@@ -1,0 +1,25 @@
+[Unit]
+Description=TOUCHLINE football manager
+After=network.target
+
+[Service]
+Type=simple
+User=football
+Group=football
+WorkingDirectory=/srv/touchline-manager/current
+EnvironmentFile=/etc/touchline-manager.env
+ExecStart=/usr/bin/node /srv/touchline-manager/current/packages/server/src/index.mjs
+Restart=on-failure
+RestartSec=3
+MemoryMax=256M
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/touchline-manager /var/backups/touchline-manager
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
+
