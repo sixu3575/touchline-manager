@@ -1,23 +1,18 @@
 # 项目地图
 
-版本 0.1.0。用户目标：低成本、可持续扩展的模拟经营足球游戏。当前发布验证完整单人经营循环，所有对手为 AI。
+版本 0.2.0。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
 
-## 目录与职责
+## 代码职责
 
-- packages/shared/game.mjs：球员生成、阵型合法性、比赛引擎、赛季、杯赛、训练、转会与财务规则。
-- packages/server/src/index.mjs：HTTP、会话、请求校验、SQLite、原子存档与操作去重。
-- packages/client/src/：React + TypeScript 界面。components/ 放置球场、回放、球员档案和基础 UI；pages/ 放置战术页面；model.ts 与 constants.ts 定义界面数据与展示约定。
-- scripts/：备份、生产发布与验证；tests/：引擎与 API 行为测试。
-- deploy/：systemd 与 Caddy 模板；docs/：以下约定与运维手册。
+- packages/shared/modules/：players 球员、tactics 战术、matches 比赛、competitions 赛事、training 训练、transfers 转会、stadium 球场、economy 财务、club 俱乐部、world 初始化。各自 index.mjs、README.md 和 CHANGELOG.md。
+- packages/shared/core/：确定性随机、数值和游戏日期；game.mjs：兼容接口与动作编排。
+- packages/client/src/modules/players/：球员类型、名单、球探、详情和样式；modules/training/：训练页。modules/overview、tactics、matches、competitions、stadium、economy 分别维护其页面；main.tsx 只组合导航、会话与公共弹层，旧 pages/components 路径保留兼容导出。
+- packages/server/src/：HTTP、会话、事务与 SQLite；storage/：版本迁移。
+- modules.json：模块路径与依赖；scripts/collaboration.mjs：可选协作保护；tests/：行为与边界验证。
+- deploy/：现有 systemd/Caddy 部署；docs/：领域契约和运维。
 
-## 按任务阅读
+## 开工阅读
 
-- 玩法与数值：docs/GAMEPLAY.md
-- 状态归属与边界：docs/ARCHITECTURE.md
-- 存档与事务：docs/DATA.md
-- 协作与检查：docs/CONTRIBUTING.md
-- 上线、回滚、备份：docs/OPERATIONS.md
+AGENTS.md → 本文件 → 对应模块 README/CHANGELOG，再按需阅读 docs/PLAYERS.md、GAMEPLAY.md、DATA.md、ARCHITECTURE.md、COLLABORATION.md、CONTRIBUTING.md、OPERATIONS.md。
 
-## 下一阶段
-
-优先收集首版玩法反馈，完善比赛解释和球员成长，再加入正式账号与 HTTPS；真人 PvP 需要公共赛程、强隔离与反作弊，不能在当前独立世界上直接换个标签。
+开发流程保持不变；任何流程优化须先得到用户批准。完整账号、HTTPS、真人 PvP、球员互动和粉丝商品仍是后续功能。

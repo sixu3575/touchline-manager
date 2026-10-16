@@ -1,0 +1,1 @@
+export { Tactics } from './Tactics';

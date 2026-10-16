@@ -19,3 +19,9 @@
 匿名随机 256 位 Cookie 是存档访问凭据；数据库仅保存 SHA-256 摘要。Cookie 为 HttpOnly + SameSite=Lax，HTTP IP 试玩未设 Secure。会话不通过 URL 或 API JSON 泄露。跨来源写请求拒绝；每 IP 每分钟限流、请求体 8KB 上限、静态路径边界与 CSP。
 
 后续账号须另立认证设计；不要把试玩会话称为完整账号安全方案。
+
+## 模块边界（0.2.0）
+
+领域逻辑在 packages/shared/modules/，仅从公共 index.mjs 导入；core 不反向引用领域，依赖图受 modules.json 与现有测试约束。game.mjs 保留外部兼容入口与动作路由，减少调用方迁移。球员档案、训练、比赛结算中的球员更新由 players 公共函数统一维护；其他模块不复制属性公式。球员界面与样式位于 client/src/modules/players，训练界面位于 modules/training。
+
+服务端启动迁移由 storage/migrations.mjs 独立维护，先事务升级再接收请求。前端各功能页在对应 modules/ 目录；共享主题和 ui 仍由 integration 负责，页面新增样式使用各自文件与前缀。目录级 README/CHANGELOG 是交接入口；协作冲突机制见 COLLABORATION.md。本次不改变既有开发流程。

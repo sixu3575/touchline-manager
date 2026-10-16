@@ -4,6 +4,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { migrateDatabase } from './storage/migrations.mjs';
 import { createGame, applyAction } from '../../shared/game.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
@@ -13,6 +14,8 @@ const db = new DatabaseSync(resolve(DATA, 'game.sqlite'));
 db.exec(
   'PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS saves (id TEXT PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL, state TEXT NOT NULL, updated_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS operations (save_id TEXT NOT NULL, request_id TEXT NOT NULL, body_hash TEXT NOT NULL, PRIMARY KEY(save_id,request_id)); PRAGMA user_version=1;',
 );
+const migrated = migrateDatabase(db);
+if (migrated) console.log(`Migrated ${migrated} saves to schema 2`);
 const findSave = db.prepare('SELECT * FROM saves WHERE token_hash=?');
 const insertSave = db.prepare('INSERT INTO saves VALUES (?,?,?,?)');
 const updateSave = db.prepare('UPDATE saves SET state=?,updated_at=? WHERE id=?');
@@ -23,7 +26,7 @@ const insertOperation = db.prepare('INSERT INTO operations VALUES (?,?,?)');
 const hash = (s) => createHash('sha256').update(s).digest('hex');
 const rate = new Map();
 const dist = resolve(ROOT, 'dist/client');
-const version = '0.1.0';
+const version = '0.2.0';
 const security = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'same-origin',

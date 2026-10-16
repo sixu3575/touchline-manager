@@ -12,7 +12,7 @@
 ## 架构与数据边界
 
 - 服务端是资金、签约、训练、赛程与赛果的唯一权威。客户端只提交受限意图，禁止接收任意状态覆盖。
-- 游戏规则仅由 packages/shared/game.mjs 维护；HTTP/SQLite 由 server 维护；client 只负责界面与展示。
+- 游戏规则由 packages/shared/modules/<模块>/ 维护，跨模块仅导入 index.mjs；game.mjs 仅保留兼容导出和动作编排。HTTP/SQLite 由 server 维护；client 只负责界面与展示。文件归属与允许依赖见 modules.json。
 - simulate 必须是固定输入与种子可复现的纯函数。历史回放读取保存的事件与快照，不调用新引擎重新推演。
 - 每个写请求携带 requestId 与 revision。操作去重、版本校验和存档提交在同一事务中；失败不能扣款或留下半次结算。
 - 现金以整数英镑计，能力值最多一位小数；所有标识由服务器认可，绝不信任客户端提供的价格或归属。
@@ -31,3 +31,9 @@
 ## 运行约束
 
 生产目标约 1GB RAM 的 Ubuntu VM。首版为单 Node 进程 + SQLite WAL + Caddy。不要未经说明增加 Docker、Redis、数据库服务器、常驻构建进程或微服务。完整账号、HTTPS 与多人竞技是后续阶段。
+
+## 本次用户确认的模块约束
+
+- 每次开发将代码与变更记录留在对应模块目录，更新该目录 CHANGELOG.md；新增注意事项同步对应 README 和仓库 docs。
+- 保持既有分支、npm run check、PR 审查和部署流程。未经用户批准，不修改、简化或优化开发流程，不安装强制钩子、不新增自动合并或发布。
+- 不强推、不用旧文件整份覆盖远端新版本。多人使用独立 worktree；冲突防护工具见 docs/COLLABORATION.md。工具的模块锁与文件摘要只保护遵守工具的写入，不能替代 Git 合并审查。
