@@ -16,7 +16,10 @@ export function formation(club) {
     };
   });
 }
-export function teamRoles(actors, ball, owner, pendingPass, direction, tactics) {
+export function teamRoles(actors, ball, owner, pendingPass, direction, tactics, time = 0) {
+  // A missed pass becomes a loose-ball contest. Don't reserve it forever for a
+  // distant intended receiver while a nearer teammate waits beside the ball.
+  if (pendingPass && time - pendingPass.time > 3.5) pendingPass = null;
   const roles = { chasers: [], receiverId: pendingPass?.receiverId ?? null, runnerId: null };
   for (const side of [0, 1]) {
     const mates = actors.filter((a) => a.side === side && !a.sentOff);

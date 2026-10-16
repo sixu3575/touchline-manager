@@ -33,4 +33,6 @@
 
 修复球撞自身/传感器滞后一帧；分离躯干/腿、有限抬脚与滚动角冲量。新增spatial/skills/locomotion/positioning/decisions，agents保留内部兼容导出。实现步行/慢跑/补位/冲刺/带球、角色职责、持续带球意图、球风与空间/拦截时间决策；防止过期意图和门将慢球死锁。新增motion/行为统计，不重算旧回放。
 
-验证：新增player-intelligence场景/物理回归，沿用npm run check、PR和VM/浏览器检查。
+接球职责3.5秒后回到就近争球，避免传球落空后近处队友等待；传后前插在球飞行期间也执行加速。
+
+验证：新增player-intelligence场景/物理回归，含过期接球职责和传后前插，沿用npm run check、PR和VM/浏览器检查。

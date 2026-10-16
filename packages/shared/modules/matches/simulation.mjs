@@ -380,6 +380,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
           pendingPass,
           direction,
           clubs.map((c) => c.tactics),
+          time,
         );
         const chasers = roles.chasers;
         for (const a of actors) {

@@ -31,6 +31,6 @@ export function movementMode(actor, ball, owner, roles, gap) {
   const chasing = roles.chasers.includes(actor.index);
   if (roles.receiverId === actor.player.id) return distance(actor.pos, ball) > 5 ? 'sprint' : 'run';
   if (chasing) return distance(actor.pos, ball) > 7 ? 'sprint' : 'run';
-  if (roles.runnerId === actor.player.id && owner?.side === actor.side) return 'sprint';
+  if (roles.runnerId === actor.player.id) return 'sprint';
   return gap > 18 ? 'run' : 'jog';
 }

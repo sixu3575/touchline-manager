@@ -6,6 +6,7 @@ import {
   chooseAction,
   playerProfile,
   movement,
+  movementMode,
   targetFor,
   teamRoles,
   distance,
@@ -198,6 +199,26 @@ test('supporters form triangles, a loose ball is recovered, and a keeper approac
     keeper.index,
   ]);
   assert.ok(claim.x > 7, 'keeper must approach reachable loose balls');
+  const receiver = actor('r', 0, 85, 34);
+  receiver.index = 1;
+  support.index = 2;
+  support.pos = { x: 65, z: 34 };
+  const flight = { actor: owner, receiverId: receiver.player.id, time: 0 };
+  const teammates = [owner, support, receiver];
+  const rolesAt = (time) =>
+    teamRoles(teammates, { ...ball, x: 65 }, null, flight, () => 1, [{}, {}], time);
+  assert.equal(rolesAt(1).receiverId, 'r', 'give the intended receiver time to meet the pass');
+  const looseRoles = rolesAt(5);
+  assert.equal(looseRoles.receiverId, null);
+  assert.ok(
+    looseRoles.chasers.includes(support.index),
+    'a nearby teammate recovers an overdue pass',
+  );
+  assert.equal(
+    movementMode(owner, ball, null, { chasers: [], runnerId: owner.player.id }, 10),
+    'sprint',
+    'a give-and-go runner accelerates while the ball is in flight',
+  );
 });
 
 test('a physical segment has fast passes, mostly submaximal running, and meaningful player behaviour statistics', () => {
