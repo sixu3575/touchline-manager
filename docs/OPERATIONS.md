@@ -11,7 +11,7 @@
 
 ## 发布
 
-在本机执行 npm ci、npm run check、提交并推送。创建只包含 packages/server、packages/shared、scripts/backup.mjs、dist/client、package.json、deploy 的生产归档；不打包凭据、运行数据或 node_modules。上传 VM 的临时目录，运行 deploy/install.sh <archive> <commit>。
+在本机执行 npm ci、npm run check、提交并推送。生产归档包含packages/server、packages/shared、scripts/backup.mjs、dist/client、package.json、package-lock.json、deploy；不打包凭据、运行数据或node_modules。上传VM临时目录，运行deploy/install.sh <archive> <commit>。安装脚本执行npm ci --omit=dev --ignore-scripts --no-audit --no-fund，仅安装锁定的运行依赖，Rapier的WASM随包提供，无需编译工具。
 
 安装脚本在已存在数据时先备份；校验 Caddy 配置、重启服务并检查本机健康。公网验证 /api/health 的 build 必须匹配提交。保留上一发布目录用于回滚，回滚只切换 current 并重启，数据结构变更需另行迁移。
 
@@ -30,3 +30,7 @@ DATA_DIR=/var/lib/touchline-manager BACKUP_DIR=/var/backups/touchline-manager no
 ## 限制
 
 首版 HTTP IP 入口为匿名试玩；正式账号与跨设备恢复必须在配置域名/HTTPS后实施。日常检查 systemctl status、journalctl -u touchline-manager.service、/api/health、磁盘和备份 timer。秘密与个人会话 Cookie 不写入工单或聊天。
+
+物理比赛较慢，联赛每轮计算四场；前端显示等待状态。服务仅一个比赛worker，最多两个排队任务，任务120秒超时后失败且不结算，HTTP健康和读取仍可响应。注意内存与轨迹磁盘增长；健康正常不等于比赛成功，发布后必须通过真实浏览器新建一次比赛并读取轨迹。
+
+VM上完整90分钟物理的联赛结算超过120秒；当前使用12分钟物理/90分钟游戏时钟，详情见GAMEPLAY。实测单进程物理内存峰值高于原256MB限制，服务MemoryMax改为512MB（非预留），主线程和worker各限制JS老生代128MB；仍只有一个Node服务/一个工作线程，无前端常驻构建。发布时检查systemd的MemoryCurrent/MemoryPeak。

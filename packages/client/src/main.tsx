@@ -44,6 +44,7 @@ function App() {
     [error, setError] = useState(''),
     [toast, setToast] = useState(''),
     [busy, setBusy] = useState(false),
+    [simulating, setSimulating] = useState(false),
     [view, setView] = useState('overview'),
     [mobile, setMobile] = useState(false),
     [player, setPlayer] = useState<Player | null>(null),
@@ -72,6 +73,7 @@ function App() {
   const act = async (type: string, payload: Record<string, unknown> = {}) => {
     if (!game || busy) return;
     setBusy(true);
+    setSimulating(['advance', 'cup'].includes(type));
     try {
       const requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), (x) =>
         x.toString(16).padStart(2, '0'),
@@ -94,6 +96,7 @@ function App() {
       setToast((e as Error).message);
     } finally {
       setBusy(false);
+      setSimulating(false);
     }
   };
   if (!game)
@@ -171,7 +174,7 @@ function App() {
             </div>
           </div>
           <span className="demo-label">
-            <span /> PvE 试玩版 · v0.2.0
+            <span /> PvE 试玩版 · v0.3.0
           </span>
         </div>
       </aside>
@@ -271,6 +274,11 @@ function App() {
           </footer>
         </div>
       </main>
+      {simulating && (
+        <div className="simulation-busy" role="status">
+          正在计算球员跑动与足球轨迹，完成后自动打开回放…
+        </div>
+      )}
       {toast && (
         <div className="toast" role="status">
           <CheckCircle2 size={19} />

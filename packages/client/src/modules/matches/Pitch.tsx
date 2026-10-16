@@ -4,7 +4,6 @@ export function Pitch({
   club,
   lineup,
   onPlayer,
-  minute = 0,
   away = false,
   ball,
 }: {
@@ -32,7 +31,7 @@ export function Pitch({
       {['GK', 'DEF', 'MID', 'FWD'].flatMap((role) => {
         const group = ps.filter((p) => p.role === role);
         return group.map((p, i) => {
-          let x = coords[role] + (minute ? Math.sin(minute * 0.6 + i) * 2 : 0),
+          let x = coords[role],
             y = ((i + 1) / (group.length + 1)) * 80 + 10;
           return (
             <button

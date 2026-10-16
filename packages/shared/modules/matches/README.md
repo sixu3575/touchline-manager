@@ -1,10 +1,14 @@
 # 比赛模块
 
-待审批的新规则见 [design/PLAYER_MATCH_MODEL_V1.md](design/PLAYER_MATCH_MODEL_V1.md)；该文档不是当前运行代码的契约，获得用户批准前不得启用。
+当前规则、30项属性作用和数学参数见 [design/PHYSICAL_ENGINE_V1.md](design/PHYSICAL_ENGINE_V1.md)。原 PLAYER_MATCH_MODEL_V1.md 是历史未批准方案，不能混用其概率赛果、心理或犯规规则。
 
 职责：带版本的确定性比赛引擎、能力与战术影响、赛后收入和战报存储的编排。
 
 公共入口：index.mjs。ENGINE_VERSION、simulate、finishMatch。
+
+内部职责：physics.mjs 管 Rapier 世界、碰撞与触球冲量；agents.mjs 管战术目标/动作选择；simulation.mjs 管比赛状态、统计与轨迹编码。改战术无需改物理求解器，改回放无需重算赛果。
+
+新增唯一外部领域依赖 @dimforge/rapier3d-compat，固定0.21.0。模块初始化一次加载WASM；simulate仍为同步、固定输入/种子的计算，不访问Node服务。浏览器不得导入本模块或game.mjs，回放只读服务端存储的轨迹。测试用短时选项不暴露给HTTP动作。
 
 边界：不得依赖系统时间、随机全局源或网络。改变赛果算法需更新 ENGINE_VERSION；历史事件和快照不能重算。球员结算调用 players 公共接口，资金调用 economy。
 

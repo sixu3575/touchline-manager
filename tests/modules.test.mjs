@@ -25,6 +25,7 @@ test('domain modules have owners, documented boundaries, public imports and no d
     for (const f of files(resolve(domain, entry)).filter((f) => f.endsWith('.mjs'))) {
       const source = readFileSync(f, 'utf8');
       for (const [, spec] of source.matchAll(/(?:from\s*|import\s*)['"]([^'"]+)['"]/g)) {
+        if (spec === '@dimforge/rapier3d-compat' && entry === 'matches') continue;
         assert.ok(spec.startsWith('.'), `Domain must be pure, without Node/network imports: ${f}`);
         const target = relative(domain, resolve(dirname(f), spec)).replaceAll('\\', '/');
         assert.ok(

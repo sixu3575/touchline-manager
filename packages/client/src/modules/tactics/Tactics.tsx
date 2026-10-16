@@ -1,6 +1,7 @@
 import { Check, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-import { bestLineup, rating } from '../../../../shared/game.mjs';
+import { bestLineup } from '../../../../shared/modules/tactics/index.mjs';
+import { rating } from '../../../../shared/modules/players/index.mjs';
 import { PanelHead } from '../../components/ui';
 import { styleNames } from '../../constants';
 import type { Club, Game, Player } from '../../model';

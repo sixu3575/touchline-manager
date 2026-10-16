@@ -21,6 +21,7 @@ export interface Club {
   lineup: string[];
 }
 export interface MatchEvent {
+  second?: number;
   minute: number;
   type: string;
   text: string;
@@ -30,6 +31,26 @@ export interface MatchEvent {
   playerId?: string;
 }
 export interface Report {
+  replay?: {
+    format: string;
+    sampleHz: number;
+    stride: number;
+    frameCount: number;
+    duration: number;
+    clockScale?: number;
+    physics: string;
+    stepHz: number;
+    players: { id: string; side: number; number: number; name: string; role: string }[];
+  };
+  performance?: {
+    id: string;
+    side: number;
+    distance: number;
+    energy: number;
+    touches: number;
+    passes: number;
+    completed: number;
+  }[];
   id: string;
   engineVersion: string;
   seed: number;
@@ -38,7 +59,17 @@ export interface Report {
   homeName: string;
   awayName: string;
   score: number[];
-  stats: { shots: number; onTarget: number; xg: number; possession: number }[];
+  stats: {
+    shots: number;
+    onTarget: number;
+    xg: number;
+    possession: number;
+    passes?: number;
+    completedPasses?: number;
+    saves?: number;
+    interceptions?: number;
+    corners?: number;
+  }[];
   events: MatchEvent[];
   // Historical v1 snapshots intentionally lack the newer identity/personality fields.
   snapshots: { id: string; name: string; tactics: Club['tactics']; players: ArchivedPlayer[] }[];

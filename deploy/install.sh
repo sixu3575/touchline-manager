@@ -18,6 +18,8 @@ if [ ! -d "$release" ]; then
   mkdir "$release"
   tar -xzf "$archive" -C "$release" --no-same-owner
 fi
+# Only pinned production runtime packages; the frontend was built on the development machine.
+(cd "$release" && npm ci --omit=dev --ignore-scripts --no-audit --no-fund)
 /usr/bin/node --check "$release/packages/server/src/index.mjs"
 caddy validate --config "$release/deploy/Caddyfile" --adapter caddyfile
 if [ -L "$base/current" ]; then readlink -f "$base/current" > "$base/previous-release"; fi
