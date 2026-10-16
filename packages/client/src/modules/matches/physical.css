@@ -6,6 +6,13 @@
 .physical-scoreboard {
   padding: 16px 0 22px;
 }
+.physical-replay .replay-top {
+  position: sticky;
+  top: 0;
+  background: #fffffa;
+  z-index: 2;
+  min-height: 30px;
+}
 .physical-scoreboard .crest {
   width: 40px;
   height: 44px;
@@ -172,7 +179,7 @@
   .physical-layout {
     grid-template-columns: minmax(0, 1fr);
   }
-  .physical-replay {
+  .modal.physical-replay {
     padding: 14px;
   }
   .physical-commentary {
@@ -198,6 +205,7 @@
     gap: 8px;
   }
   .physical-stats {
+    grid-template-columns: 1fr;
     gap: 6px 12px;
   }
   .physical-replay .replay-controls {
