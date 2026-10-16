@@ -1,5 +1,5 @@
 import { ChevronRight, Play, Trophy } from 'lucide-react';
-import { standings } from '../../../../shared/modules/competitions/index.mjs';
+import { standings } from '../../../../shared/modules/competitions/selectors/index.mjs';
 import { Badge, Crest, Empty, LeagueTable, PanelHead } from '../../components/ui';
 import type { Game, Report, Standing } from '../../model';
 import { AdvanceButton } from './AdvanceButton';

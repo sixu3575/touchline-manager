@@ -19,6 +19,11 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
       a.events.filter((e) => e.type === 'goal' && e.side === side).length,
     );
   assert.equal(a.stats[0].possession + a.stats[1].possession, 100);
+  assert.equal(a.replay.frameCount, 3601);
+  assert.equal(a.replay.duration * a.replay.clockScale, 5400);
+  assert.equal(a.events.find((e) => e.type === 'half').minute, 45);
+  assert.equal(a.events.at(-1).minute, 90);
+  assert.ok(a.performance.every((p) => p.energy >= 20 && p.energy <= 100));
 });
 test('round robin has balanced fixtures and no repeated club per round', () => {
   const s = schedule(Array.from({ length: 8 }, (_, i) => String(i)));
@@ -58,6 +63,13 @@ test('a complete season balances standings, pays one award, and can continue', (
     112,
   );
   assert.equal(g.reports.length, 14);
+  for (const club of g.clubs) {
+    assert.ok(club.players.filter((p) => club.lineup.includes(p.id)).every((p) => p.apps === 14));
+    assert.ok(
+      club.players.some((p) => p.apps === 14 && p.fitness < 100),
+      'both manager and AI squads expend energy',
+    );
+  }
   assert.equal(g.ledger.filter((l) => l.label === '赛季排名奖金').length, 1);
   assert.throws(() => applyAction(g, 'advance'));
   applyAction(g, 'season');

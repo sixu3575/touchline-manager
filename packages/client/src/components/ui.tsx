@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, Flag, ChevronRight, Wallet } from 'lucide-react';
-import { rating } from '../../../shared/game.mjs';
+import { rating } from '../../../shared/modules/players/index.mjs';
 import { roles } from '../constants';
 import type { Player, Standing } from '../model';
 export function Crest({

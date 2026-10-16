@@ -225,7 +225,7 @@ export function trainPlayer(p, focus, rng) {
   p.skills = skillSummary(p.attributes);
   p.fitness = clamp(p.fitness + (focus === 'fitness' ? 8 : -4), 30, 100);
 }
-export function settlePlayerMatch(p, { played, won, drawn, goals, press, seed }) {
+export function settlePlayerMatch(p, { played, won, drawn, goals, press, seed, energy }) {
   // Stable personality is never changed by a match; only short-term state changes.
   p.wellbeing.morale = clamp(
     p.wellbeing.morale + (won ? 3 : drawn ? 0 : -2) + (played ? 1 : -1),
@@ -234,7 +234,13 @@ export function settlePlayerMatch(p, { played, won, drawn, goals, press, seed })
   );
   if (played) {
     p.apps++;
-    p.fitness = clamp(p.fitness - (press === 'high' ? 12 : press === 'low' ? 5 : 8), 20, 100);
+    p.fitness = clamp(
+      Number.isFinite(energy)
+        ? energy
+        : p.fitness - (press === 'high' ? 12 : press === 'low' ? 5 : 8),
+      20,
+      100,
+    );
     p.goals += goals;
     p.form = decimal(
       6 + random(seed + p.number)() * 1.7 + (won ? 0.4 : 0) + Math.min(1.5, p.goals * 0.15),

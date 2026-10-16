@@ -13,7 +13,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import { standings } from '../../../../shared/modules/competitions/index.mjs';
+import { standings } from '../../../../shared/modules/competitions/selectors/index.mjs';
 import { Badge, LeagueTable, PanelHead, Stat } from '../../components/ui';
 import { money, styleNames } from '../../constants';
 import type { Game, Player, Report, Standing } from '../../model';

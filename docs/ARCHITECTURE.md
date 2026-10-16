@@ -4,15 +4,15 @@
 
 浏览器 → Caddy :80 → Node 127.0.0.1:3100 → SQLite WAL。
 
-界面在开发机编译。生产运行无需 node_modules，只使用 Node 内置 HTTP、crypto、fs 与 sqlite。约 1GB 内存的 VM 不承担 TypeScript/Vite 构建。Node 22 的 sqlite 仍可能输出实验性提示，发布前必须同时在 Node 22/24 上验证。
+界面在开发机编译。Node内置HTTP/SQLite服务加单个比赛worker；生产安装锁定的运行依赖Rapier WASM，不安装开发依赖。约1GB内存VM不承担TypeScript/Vite构建。Node22的sqlite仍可能输出实验性提示，发布前继续在Node22/24验证。
 
 ## 状态与事务
 
 每位经理拥有一个独立世界，包括 8 支球队、赛季、资金与市场；不是共享多人世界。唯一状态 owner 为服务端。
 
-客户端请求 `{type,payload,requestId,revision}`。服务端验证来源和结构，开启 BEGIN IMMEDIATE，检查操作唯一键、请求内容摘要与版本，执行规则，再同一事务写入状态与操作记录。没有网络等待出现在事务中。
+客户端请求 `{type,payload,requestId,revision}`。普通动作在事务中执行。advance/cup先校验、在单个worker计算，再在BEGIN IMMEDIATE中重新读revision/去重，原子提交状态、轨迹BLOB和操作记录。计算期间不持有SQLite写锁；过期结果拒绝提交。相同进行中请求共享计算；每存档只接收一个不同的比赛计算，worker最多两项排队，超限返回503。
 
-比赛 simulate(home,away,seed,id) 不访问数据库、系统时间或网络。UI 回放读取持久化事件，不运行引擎。球场动画是位置示意，不是物理运动模拟。首版比赛短计算同步执行，后续只有测量到阻塞才引入受限 worker。
+比赛simulate(home,away,seed,id,options)不访问数据库、系统时间或网络；20Hz Rapier3D物理、0.1–0.6秒分层目标更新、5Hz轨迹。单场本机实测约6秒，所以放入worker避免HTTP阻塞。轨迹从同会话端点单独加载，浏览器只插值显示，老报告使用LegacyReplay。客户端共享只读赛事选择器从competitions/selectors/index.mjs导入；不要通过game.mjs把WASM和比赛编排打进前端。
 
 ## 访问保护
 

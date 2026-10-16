@@ -45,6 +45,7 @@ test('API transactions, isolation, restart persistence and backup recovery', asy
   const dir = mkdtempSync(join(tmpdir(), 'touchline-test-'));
   let app = await start(join(dir, 'data'));
   let cookie = '',
+    otherCookie = '',
     state;
   const get = async (c = cookie) => {
     const res = await fetch(app.url + '/api/state', { headers: c ? { cookie: c } : {} });
@@ -75,6 +76,7 @@ test('API transactions, isolation, restart persistence and backup recovery', asy
         assert.match(a.res.headers.get('set-cookie'), /HttpOnly/);
         const b = await get('');
         const other = b.res.headers.get('set-cookie').split(';')[0];
+        otherCookie = other;
         assert.notEqual(other, cookie);
         const renamed = await action('rename', { name: '事务测试俱乐部' });
         state = renamed.data.state;
@@ -137,8 +139,57 @@ test('API transactions, isolation, restart persistence and backup recovery', asy
       assert.equal(state.cash, cash - price);
       assert.equal(state.clubs[0].players.filter((p) => p.id === id).length, 1);
     });
+    await t.test(
+      'simulation leaves HTTP responsive and stale computed results cannot overwrite saves',
+      async () => {
+        const rev = state.revision;
+        const pending = action('advance', {}, rev);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const start = performance.now();
+        assert.equal((await fetch(app.url + '/api/health')).status, 200);
+        assert.ok(performance.now() - start < 1500, 'worker must not block HTTP');
+        const renamed = await action('rename', { name: '事务测试俱乐部' }, rev);
+        assert.equal(renamed.res.status, 200);
+        assert.equal((await pending).res.status, 409);
+        state = (await get()).data.state;
+        assert.equal(state.round, 0);
+        assert.equal(state.revision, rev + 1);
+      },
+    );
+    await t.test(
+      'duplicate match requests settle once and replay payloads are private and separate',
+      async () => {
+        const id = randomUUID(),
+          rev = state.revision;
+        const [a, b] = await Promise.all([
+          action('advance', {}, rev, id),
+          action('advance', {}, rev, id),
+        ]);
+        assert.equal(a.res.status, 200);
+        assert.equal(b.res.status, 200);
+        state = (await get()).data.state;
+        assert.equal(state.round, 1);
+        assert.equal(state.revision, rev + 1);
+        assert.equal(state.reports.length, 1);
+        const report = state.reports[0];
+        assert.equal(report.engineVersion, '0.3.0-rapier');
+        assert.equal(report.trajectory, undefined, 'large tracks must not enter JSON saves');
+        const path = '/api/replays/' + encodeURIComponent(report.id);
+        const replay = await fetch(app.url + path, { headers: { cookie } });
+        assert.equal(replay.status, 200);
+        assert.equal(
+          (await replay.arrayBuffer()).byteLength,
+          report.replay.frameCount * report.replay.stride * 2,
+        );
+        assert.equal(
+          (await fetch(app.url + path, { headers: { cookie: otherCookie } })).status,
+          404,
+        );
+        assert.equal((await fetch(app.url + path)).status, 404);
+      },
+    );
     await t.test('full season persists through process restart', async () => {
-      for (let i = 0; i < 14; i++) {
+      for (let i = state.round; i < 14; i++) {
         const r = await action('advance');
         assert.equal(r.res.status, 200);
         state = r.data.state;
@@ -151,6 +202,11 @@ test('API transactions, isolation, restart persistence and backup recovery', asy
       assert.equal(state.round, 14);
       assert.equal(state.cash, cash);
       assert.equal(state.clubs[0].name, '事务测试俱乐部');
+      assert.equal(
+        (await fetch(app.url + '/api/replays/' + state.reports[0].id, { headers: { cookie } }))
+          .status,
+        200,
+      );
     });
     await t.test('live database backup restores into a fresh data directory', async () => {
       const out = join(dir, 'snapshots');
@@ -174,6 +230,11 @@ test('API transactions, isolation, restart persistence and backup recovery', asy
       app = await start(restored);
       state = (await get()).data.state;
       assert.equal(state.round, 14);
+      assert.equal(
+        (await fetch(app.url + '/api/replays/' + state.reports[0].id, { headers: { cookie } }))
+          .status,
+        200,
+      );
       const r = await action('season');
       assert.equal(r.res.status, 200);
       assert.equal(r.data.state.season, 2);
