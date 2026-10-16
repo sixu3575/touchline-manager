@@ -13,3 +13,9 @@
 服务版本0.4.0，沿用现有worker、revision/请求去重事务与隔离轨迹入口；启动迁移由storage负责。
 
 验证：沿用npm run check；新增approved-v1规则/迁移/确定性测试，发布另做浏览器与VM验证。
+
+## 0.5.0 · 2026-10-16
+
+服务健康版本更新至0.5.0；继续既有worker、事务与请求保护，不新增服务或改变发布流程。
+
+验证：新增player-intelligence场景/物理回归，沿用npm run check、PR和VM/浏览器检查。

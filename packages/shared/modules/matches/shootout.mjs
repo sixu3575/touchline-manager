@@ -6,6 +6,7 @@ import {
   orientFoot,
   orientHands,
   kick,
+  touchesBall,
   stepPhysics,
   goalCrossing,
 } from './physics.mjs';
@@ -102,11 +103,7 @@ export function shootout({ physics, actors, seed, time, event, direction }) {
         const desired = clamp((targetZ - keeper.pos.z) * 5, -m.speed, m.speed);
         const dv = clamp(desired - v.z, -m.acceleration * STEP * 2.3, m.acceleration * STEP * 2.3);
         keeper.body.applyImpulse({ x: 0, y: 0, z: dv * keeper.body.mass() }, true);
-        if (
-          !saved &&
-          time - start > 0.8 + delay &&
-          physics.world.intersectionPair(keeper.hands, physics.collider)
-        ) {
+        if (!saved && time - start > 0.8 + delay && touchesBall(physics, keeper.hands)) {
           kick(physics, keeper, { x: -8, y: 2, z: (rng() - 0.5) * 10 }, keeper.hands);
           saved = true;
           lastTouch = keeper;

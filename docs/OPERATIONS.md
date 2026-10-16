@@ -36,3 +36,5 @@ DATA_DIR=/var/lib/touchline-manager BACKUP_DIR=/var/backups/touchline-manager no
 VM上完整90分钟物理的联赛结算超过120秒；当前使用12分钟物理/90分钟游戏时钟，详情见GAMEPLAY。实测单进程物理内存峰值高于原256MB限制，服务MemoryMax改为512MB（非预留），主线程和worker各限制JS老生代128MB；仍只有一个Node服务/一个工作线程，无前端常驻构建。发布时检查systemd的MemoryCurrent/MemoryPeak。
 
 0.4.0升级JSON至3。安装前一致备份须复制到本机校验；回滚需恢复升级前完整数据库。发布后验证旧回放、新比赛纪律/解释、适应度迁移和杯赛物理点球；轨迹多出点球阶段时仍按5Hz/49值校验。原开发与发布流程未修改。
+
+0.5.0保持JSON schema3、SQLite user_version2与原轨迹格式，只给新比赛报告增加可选速度/行为字段。上线前后比较旧存档JSON、历史轨迹BLOB和已提交操作，旧比赛不重算。真实浏览器确认新回放默认1×、球速、球员行为与动作理由；隔离压测确认比赛仍在120秒任务限制和512MiB服务内存限制内。升级沿用既有检查、PR和部署步骤。
