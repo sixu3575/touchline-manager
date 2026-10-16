@@ -66,6 +66,19 @@ test('only a whole-ball swept crossing between posts and under the crossbar scor
   assert.equal(goalCrossing({ x: 104, y: 1, z: 40 }, { x: 106, y: 1, z: 40 }), null);
 });
 
+test('scored ball continues into the net before a delayed kickoff resets positions', () => {
+  const g = createGame('入网轨迹', 42);
+  const r = simulate(g.clubs[0], g.clubs[1], 42, 'net');
+  const goal = r.events.find((e) => e.type === 'goal' && e.second < 710);
+  assert.ok(goal, 'seeded goal fixture');
+  const nextKickoff = r.events.find((e) => e.type === 'kickoff' && e.second > goal.second);
+  assert.ok(nextKickoff.second - goal.second >= 2.5);
+  const index = Math.ceil((goal.second + 0.2) * r.replay.sampleHz) * r.replay.stride;
+  const ballX = r.trajectory[index + 44] / 100 - 5;
+  assert.ok(Math.abs(ballX - 52.5) > 45, 'ball remains at the scored goal, not the centre spot');
+  assert.equal(r.trajectory[index + 47], 0, 'no premature replay cut after goal');
+});
+
 test('player attributes and fatigue determine locomotion; tactics change saved team movement', () => {
   const low = { attributes: { sprintSpeed: 20, acceleration: 20, agility: 20 } };
   const high = { attributes: { sprintSpeed: 90, acceleration: 90, agility: 90 } };

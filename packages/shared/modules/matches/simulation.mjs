@@ -84,6 +84,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
   let restartUntil = 0,
     restartSide = 0,
     restartTaker = null,
+    goalRestart = null,
     cut = true,
     cursor = 0;
   const direction = (side) => (side === 0 ? 1 : -1) * (half === 0 ? 1 : -1);
@@ -121,6 +122,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
     a.setPiece = null;
   }
   function kickoff(side, type = 'kickoff') {
+    goalRestart = null;
     placeBall(52.5, 34);
     for (const a of actors) {
       const dir = direction(a.side);
@@ -186,6 +188,8 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       if (tick === 7_200) {
         half = 1;
         kickoff(1, 'half');
+      } else if (goalRestart && time >= goalRestart.at) {
+        kickoff(goalRestart.side);
       }
       const bp = physics.ball.translation(),
         bv = physics.ball.linvel();
@@ -461,8 +465,13 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             scorer,
             { score: [...score], ...(scorer ? {} : { ownGoal: true }) },
           );
-          kickoff(1 - side);
-          restartUntil = time + 4;
+          // Keep the actual goal/net trajectory visible before the dead-ball reset.
+          restartUntil = time + 2.5;
+          restartTaker = null;
+          owner = null;
+          pendingPass = null;
+          shot = null;
+          goalRestart = { side: 1 - side, at: restartUntil };
         } else if (afterBall.z < -BALL_RADIUS || afterBall.z > 68 + BALL_RADIUS) {
           restart(
             'throwIn',
