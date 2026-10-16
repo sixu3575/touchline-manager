@@ -5,7 +5,7 @@
 - saves：id、token_hash、state（JSON）、updated_at。JSON schemaVersion=3，revision 随操作递增。
 - operations：(save_id,request_id) 唯一，body_hash 校验相同标识意图。相同请求返回当前状态，过期 revision 返回 409。
 - state：原字段加 gameDate；所有当前 clubs.players 与 market 具有球员模型 2 字段，见 PLAYERS.md。
-- reports：保留engineVersion、seed、事件与快照；旧报告不重算。0.3.0添加可选replay元数据、second事件时间、performance球员跑动和扩展统计；不破坏JSON schemaVersion=3。
+- reports：保留engineVersion、seed、事件与快照；旧报告不重算。0.3.0添加可选replay元数据、second事件时间、performance球员跑动和扩展统计；保持当时JSON schemaVersion=2；0.4.0按下述方案迁移至3。
 - replays：(save_id,report_id)主键、payload为gzip压缩的小端uint16轨迹。与状态和operations同一事务写入，最多保留当前35份报告对应的数据；其他存档和无会话请求无法读取。
 - SQLite user_version=2：启动时增建replays表；未知更高版本拒绝启动。此前表和JSON不删除或重建。JSON版本独立于表版本。
 

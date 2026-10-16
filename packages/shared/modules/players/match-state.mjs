@@ -57,9 +57,10 @@ export function matchShock(p, morale, confidence, leadership = 0) {
     ['confidence', confidence],
   ]) {
     const changeKey = key + 'Change';
-    const next = clamp(state[changeKey] + amount, -10, 10);
-    state[key] = clamp(state[key] + next - state[changeKey], 0, 100);
-    state[changeKey] = next;
+    const initial = state[key] - state[changeKey];
+    // Cap the actual net change, including when a previous shock hit 0 or 100.
+    state[key] = clamp(state[key] + amount, Math.max(0, initial - 10), Math.min(100, initial + 10));
+    state[changeKey] = state[key] - initial;
   }
 }
 export function energyCost(p, speed, press, live, dt) {

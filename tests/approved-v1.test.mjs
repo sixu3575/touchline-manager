@@ -53,6 +53,19 @@ test('mental caps, leader and resilience limits, fatigue monotonicity and trait 
   for (let i = 0; i < 50; i++) matchShock(strong, -2, -2, 100);
   assert.equal(strong.matchState.moraleChange, -10);
   assert.equal(strong.matchState.confidenceChange, -10);
+  for (const initial of [0, 100]) {
+    const edge = structuredClone(p);
+    Object.assign(edge.matchState, {
+      morale: initial,
+      confidence: initial,
+      moraleChange: 0,
+      confidenceChange: 0,
+    });
+    matchShock(edge, initial === 100 ? 20 : -20, initial === 100 ? 20 : -20);
+    matchShock(edge, initial === 100 ? -40 : 40, initial === 100 ? -40 : 40);
+    assert.ok(Math.abs(edge.matchState.morale - initial) <= 10);
+    assert.ok(Math.abs(edge.matchState.confidence - initial) <= 10);
+  }
   const fatigued = structuredClone(p);
   fatigued.matchState.energy = 20;
   assert.ok(effectiveAbility(fatigued, 'sprintSpeed') < effectiveAbility(p, 'sprintSpeed'));

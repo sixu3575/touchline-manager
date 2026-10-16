@@ -243,7 +243,7 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
               </section>
             </div>
             <p className="pm-note">
-              职业态度已影响训练；士气、信心、归属与关注度会随比赛变化。媒体、兴趣与其余性格用于后续互动和事件，当前不额外带来收入。
+              职业态度影响训练；领导力与抗挫缓冲负面冲击，进取心改变末段落后时的风险选择，情绪稳定影响抗议判罚。忠诚、社交、媒体与兴趣留给后续互动，当前不额外带来竞技加成或收入。
             </p>
           </div>
         )}
