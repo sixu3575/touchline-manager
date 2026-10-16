@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "modules": {
+    "players": {
+      "paths": ["packages/shared/modules/players/", "packages/client/src/modules/players/"],
+      "dependencies": []
+    },
+    "tactics": {
+      "paths": [
+        "packages/shared/modules/tactics/",
+        "packages/client/src/pages/Tactics.tsx",
+        "packages/client/src/modules/tactics/"
+      ],
+      "dependencies": ["players"]
+    },
+    "matches": {
+      "paths": [
+        "packages/shared/modules/matches/",
+        "packages/client/src/components/Replay.tsx",
+        "packages/client/src/components/Pitch.tsx",
+        "packages/client/src/modules/matches/"
+      ],
+      "dependencies": ["players", "tactics", "economy"]
+    },
+    "competitions": {
+      "paths": [
+        "packages/shared/modules/competitions/",
+        "packages/client/src/modules/competitions/"
+      ],
+      "dependencies": ["players", "tactics", "matches", "economy"]
+    },
+    "world": {
+      "paths": ["packages/shared/modules/world/"],
+      "dependencies": ["players", "tactics", "competitions"]
+    },
+    "training": {
+      "paths": ["packages/shared/modules/training/", "packages/client/src/modules/training/"],
+      "dependencies": ["players", "economy"]
+    },
+    "transfers": {
+      "paths": ["packages/shared/modules/transfers/"],
+      "dependencies": ["economy", "players"]
+    },
+    "stadium": {
+      "paths": ["packages/shared/modules/stadium/", "packages/client/src/modules/stadium/"],
+      "dependencies": ["economy"]
+    },
+    "economy": {
+      "paths": ["packages/shared/modules/economy/", "packages/client/src/modules/economy/"],
+      "dependencies": []
+    },
+    "club": {
+      "paths": ["packages/shared/modules/club/"],
+      "dependencies": []
+    },
+    "integration": {
+      "paths": [
+        "packages/shared/game.mjs",
+        "packages/shared/core/",
+        "packages/server/src/",
+        "packages/client/src/main.tsx",
+        "packages/client/src/model.ts",
+        "packages/client/src/constants.ts",
+        "packages/client/src/components/PlayerModal.tsx",
+        "packages/client/src/components/ui.tsx",
+        "packages/client/src/style.css",
+        "modules.json"
+      ],
+      "dependencies": []
+    },
+    "overview": {
+      "paths": ["packages/client/src/modules/overview/"],
+      "dependencies": []
+    }
+  }
+}

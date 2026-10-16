@@ -32,3 +32,7 @@ npm start
 任何 AI / 人类开发者均须先读 [AGENTS.md](AGENTS.md)。系统地图见 [PROJECT.md](PROJECT.md)，运维与恢复见 [docs/OPERATIONS.md](docs/OPERATIONS.md)。
 
 工程组织参考 [kennysli1/slg1.0](https://github.com/kennysli1/slg1.0) 的文档入口与职责分离思想；该仓库未声明许可证，本项目未复制其代码、美术或规范文本。
+
+## 0.2.0 球员与模块
+
+球员具有 30 项能力、8 项性格、生日/国籍和公众档案；训练与比赛持续保存成长。模块地图见 PROJECT.md，模型与当前接入范围见 docs/PLAYERS.md，协作保护见 docs/COLLABORATION.md。旧存档启动时原子升级，不重置进度。开发流程保持现状，优化须用户批准。

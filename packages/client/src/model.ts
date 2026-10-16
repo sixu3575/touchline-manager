@@ -1,18 +1,5 @@
-export interface Player {
-  id: string;
-  name: string;
-  role: string;
-  age: number;
-  skills: Record<string, number>;
-  fitness: number;
-  potential: number;
-  number: number;
-  wage: number;
-  price: number;
-  goals: number;
-  apps: number;
-  form: number;
-}
+import type { Player } from './modules/players';
+export type { Player } from './modules/players';
 export interface Standing {
   id: string;
   name: string;
@@ -53,16 +40,33 @@ export interface Report {
   score: number[];
   stats: { shots: number; onTarget: number; xg: number; possession: number }[];
   events: MatchEvent[];
-  snapshots: { id: string; name: string; tactics: Club['tactics']; players: Player[] }[];
+  // Historical v1 snapshots intentionally lack the newer identity/personality fields.
+  snapshots: { id: string; name: string; tactics: Club['tactics']; players: ArchivedPlayer[] }[];
   competition: string;
   round: number;
   penalties?: number[];
 }
+export type ArchivedPlayer = Pick<
+  Player,
+  | 'id'
+  | 'name'
+  | 'role'
+  | 'age'
+  | 'skills'
+  | 'fitness'
+  | 'potential'
+  | 'number'
+  | 'goals'
+  | 'apps'
+  | 'form'
+> &
+  Partial<Player>;
 export interface Game {
   schemaVersion: number;
   seed: number;
   revision: number;
   createdAt: string;
+  gameDate: string;
   season: number;
   round: number;
   clubs: Club[];
