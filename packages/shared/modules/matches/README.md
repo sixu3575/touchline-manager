@@ -1,5 +1,7 @@
 # 比赛模块
 
+待审批的新规则见 [design/PLAYER_MATCH_MODEL_V1.md](design/PLAYER_MATCH_MODEL_V1.md)；该文档不是当前运行代码的契约，获得用户批准前不得启用。
+
 职责：带版本的确定性比赛引擎、能力与战术影响、赛后收入和战报存储的编排。
 
 公共入口：index.mjs。ENGINE_VERSION、simulate、finishMatch。
