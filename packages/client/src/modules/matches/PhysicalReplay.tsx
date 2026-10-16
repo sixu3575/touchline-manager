@@ -22,6 +22,10 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
     [playing, setPlaying] = useState(true),
     [speed, setSpeed] = useState(5);
   const [selected, setSelected] = useState(-1);
+  const [eventFilter, setEventFilter] = useState('key');
+  const regulation = meta.regulationDuration ?? meta.duration;
+  const shootout = time > regulation;
+  const matchClock = (t: number) => (t > regulation ? '点球大战' : clock(t * clockScale));
   useEffect(() => {
     const controller = new AbortController();
     setError('');
@@ -61,10 +65,30 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
     return () => cancelAnimationFrame(animation);
   }, [playing, speed, data, meta.duration, ended]);
   const events = report.events.filter(
-    (e) => (e.second ?? e.minute * 60) <= time && e.type !== 'pass',
+    (e) =>
+      (e.second ?? e.minute * 60) <= time &&
+      (eventFilter === 'all' ||
+        (eventFilter === 'rules'
+          ? [
+              'offside',
+              'foul',
+              'yellowCard',
+              'redCard',
+              'penalty',
+              'freeKick',
+              'indirect',
+              'backpass',
+              'doubleTouch',
+            ].includes(e.type)
+          : !['pass', 'passComplete', 'dribble', 'tackleLost', 'tackleWon', 'miscontrol'].includes(
+              e.type,
+            ))),
   );
   const score = [0, 1].map(
-    (side) => events.filter((e) => e.type === 'goal' && e.minute <= 90 && e.side === side).length,
+    (side) =>
+      report.events.filter(
+        (e) => (e.second ?? 0) <= time && e.type === 'goal' && e.minute <= 90 && e.side === side,
+      ).length,
   );
   const player = meta.players[selected];
   const performanceRow = player && report.performance?.find((p) => p.id === player.id);
@@ -101,9 +125,12 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               <span>:</span>
               {score[1]}
             </strong>
-            <Badge tone="dark">{ended ? '全场结束' : clock(time * clockScale)}</Badge>
+            <Badge tone="dark">{ended ? '全场结束' : matchClock(time)}</Badge>
             {report.penalties && ended && (
-              <small>点球 {report.penalties.join(' : ')} · 简化结算</small>
+              <small>
+                点球 {report.penalties.join(' : ')} ·{' '}
+                {report.eventFormatVersion === 2 ? '物理点球大战' : '简化结算'}
+              </small>
             )}
           </div>
           <div>
@@ -168,7 +195,7 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                   setPlaying(false);
                 }}
               />
-              <b>{clock(time * clockScale)}</b>
+              <b>{matchClock(time)}</b>
               <select
                 aria-label="回放速度"
                 value={speed}
@@ -213,6 +240,10 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                   模拟段 {(performanceRow.distance / 1000).toFixed(2)} km · 触球{' '}
                   {performanceRow.touches} · 成功传球 {performanceRow.completed}/
                   {performanceRow.passes} · 赛末体能 {performanceRow.energy}
+                  {performanceRow.yellowCards !== undefined &&
+                    ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
+                  {performanceRow.mind &&
+                    ` · 士气 ${Math.round(performanceRow.mind.morale)} / 信心 ${Math.round(performanceRow.mind.confidence)}`}
                 </span>
               ) : (
                 <span>球员按阵型、攻防阶段和属性寻找位置。</span>
@@ -232,6 +263,20 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                   report.stats[1].completedPasses + ' / ' + report.stats[1].passes,
                 ],
                 ['预期进球', report.stats[0].xg, report.stats[1].xg],
+                ...(report.stats[0].fouls !== undefined
+                  ? [
+                      [
+                        '犯规 / 越位',
+                        `${report.stats[0].fouls} / ${report.stats[0].offsides}`,
+                        `${report.stats[1].fouls} / ${report.stats[1].offsides}`,
+                      ],
+                      [
+                        '黄牌 / 红牌',
+                        `${report.stats[0].yellowCards} / ${report.stats[0].redCards}`,
+                        `${report.stats[1].yellowCards} / ${report.stats[1].redCards}`,
+                      ],
+                    ]
+                  : []),
               ].map(([label, a, b]) => (
                 <div key={label}>
                   <b>{a}</b>
@@ -266,6 +311,16 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                 </span>
               ))}
             </div>
+            <select
+              aria-label="事件筛选"
+              value={eventFilter}
+              onChange={(e) => setEventFilter(e.target.value)}
+              className="event-filter"
+            >
+              <option value="key">关键事件</option>
+              <option value="rules">裁判与纪律</option>
+              <option value="all">全部动作与解释</option>
+            </select>
             <div className="physical-events">
               {events
                 .slice(-7)
@@ -275,15 +330,39 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                     className={'event ' + (e.type === 'goal' ? 'goal-event' : '')}
                     key={e.second + '-' + i}
                   >
-                    <b>{clock(e.second !== undefined ? e.second * clockScale : e.minute * 60)}</b>
-                    <p>{e.text}</p>
+                    <b>{e.second !== undefined ? matchClock(e.second) : clock(e.minute * 60)}</b>
+                    <div>
+                      <p>{e.text}</p>
+                      {e.quality !== undefined && (
+                        <details className="event-explanation">
+                          <summary>动作解释</summary>
+                          {typeof e.quality === 'number' ? (
+                            <span>
+                              动作质量 {e.quality.toFixed(1)}
+                              {e.opponentQuality !== undefined &&
+                                ` / 对手 ${e.opponentQuality.toFixed(1)}`}
+                              {e.probability !== undefined &&
+                                ` · 本次局部对抗概率 ${(e.probability * 100).toFixed(0)}%`}
+                            </span>
+                          ) : (
+                            <span>
+                              {e.reason}。有效质量 {e.quality.value.toFixed(1)} · 压力扣分{' '}
+                              {e.quality.pressureLoss.toFixed(1)} · 脚法系数{' '}
+                              {e.quality.foot.toFixed(3)} · 心理修正{' '}
+                              {(e.quality.mental ?? 0).toFixed(1)}
+                            </span>
+                          )}
+                        </details>
+                      )}
+                    </div>
                   </div>
                 ))}
             </div>
             <p className="fine">
               {clockScale > 1 &&
                 '免费VM模式：90分钟比赛时钟对应12分钟连续物理过程，跑动数据为实际模拟距离。'}
-              20 Hz物理、5 Hz轨迹采样。暂停、拖动和变速不会改变已结算赛果。
+              {report.rulesVersion && '已启用基础越位、犯规、红黄牌与定位球。'}20 Hz物理、5
+              Hz轨迹采样。暂停、拖动和变速不会改变已结算赛果。
             </p>
           </aside>
         </div>

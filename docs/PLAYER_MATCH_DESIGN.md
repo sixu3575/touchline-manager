@@ -1,7 +1,7 @@
-# 球员比赛影响与物理引擎
+# 比赛属性设计入口
 
-依据用户后续要求重做为物理比赛，当前实现与逐项数学说明位于 [比赛模块 design/PHYSICAL_ENGINE_V1.md](../packages/shared/modules/matches/design/PHYSICAL_ENGINE_V1.md)。
+用户于2026-10-16明确回复“批准 v1 的 A/B/C 并上线”。原审批稿见 [PLAYER_MATCH_MODEL_V1.md](../packages/shared/modules/matches/design/PLAYER_MATCH_MODEL_V1.md)。
 
-30项能力分别影响移动、目标选择、瞄准误差和真实接触。比分由轨迹越线决定；不采用旧稿的伯努利进球概率。数值仍为游戏参数，尚非真实足球数据拟合。
+当前0.4.0实现与数学边界见 [APPROVED_V1_PHYSICAL.md](../packages/shared/modules/matches/design/APPROVED_V1_PHYSICAL.md)。A采用分层行动、局部对抗和30项能力；保留用户后来明确要求的Rapier真实球轨迹，不启用原稿两次概率抽签生成进球。B实施封顶心理、人格分工及适应度。C实施传控带射、头球、门将、体能、基本越位/犯规/红黄牌/任意球/点球与物理点球大战；互动及粉丝消费仍另案。
 
-原 [PLAYER_MATCH_MODEL_V1.md](../packages/shared/modules/matches/design/PLAYER_MATCH_MODEL_V1.md)保留为未批准历史方案，其心理、随机事件和犯规规则没有整体启用。既有开发流程未改。
+[PHYSICAL_ENGINE_V1.md](../packages/shared/modules/matches/design/PHYSICAL_ENGINE_V1.md)保留0.3.0物理架构和旧参数说明。历史回放读取原轨迹，不以新版本重算。开发流程不变。

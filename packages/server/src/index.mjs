@@ -31,7 +31,7 @@ const insertOperation = db.prepare('INSERT INTO operations VALUES (?,?,?)');
 const hash = (s) => createHash('sha256').update(s).digest('hex');
 const rate = new Map();
 const dist = resolve(ROOT, 'dist/client');
-const version = '0.3.0';
+const version = '0.4.0';
 const security = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'same-origin',

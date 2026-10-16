@@ -174,7 +174,7 @@ function App() {
             </div>
           </div>
           <span className="demo-label">
-            <span /> PvE 试玩版 · v0.3.0
+            <span /> PvE 试玩版 · v0.4.0
           </span>
         </div>
       </aside>

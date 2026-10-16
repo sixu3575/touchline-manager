@@ -1,6 +1,6 @@
 # 项目地图
 
-版本 0.3.0。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
+版本 0.4.0。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
 
 ## 代码职责
 
@@ -17,4 +17,4 @@ AGENTS.md → 本文件 → 对应模块 README/CHANGELOG，再按需阅读 docs
 
 开发流程保持不变；任何流程优化须先得到用户批准。完整账号、HTTPS、真人 PvP、球员互动和粉丝商品仍是后续功能。
 
-当前物理引擎及属性公式入口：docs/PLAYER_MATCH_DESIGN.md → matches/design/PHYSICAL_ENGINE_V1.md。原概率模型审批稿为历史提案，其未实现机制仍未启用。
+当前属性与规则入口：docs/PLAYER_MATCH_DESIGN.md → matches/design/APPROVED_V1_PHYSICAL.md。用户已批准v1的A/B/C，保留后续要求的真实物理进球，新增封顶心理与基础裁判；开发流程不变。

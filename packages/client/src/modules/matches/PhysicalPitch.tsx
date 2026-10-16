@@ -81,6 +81,9 @@ export function PhysicalPitch({
       const { positions: pos, owner } = positionAt(data, report, frameRef.current.time);
       const radius = Math.max(6, sx * 0.85);
       report.replay!.players.forEach((p, i) => {
+        const dismissed = report.performance?.find((row) => row.id === p.id)?.dismissedAt;
+        if (dismissed !== null && dismissed !== undefined && frameRef.current.time >= dismissed)
+          return;
         const px = x(pos[i * 2]),
           py = z(pos[i * 2 + 1]);
         ctx.fillStyle = '#0005';

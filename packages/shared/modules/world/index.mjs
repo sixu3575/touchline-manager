@@ -35,7 +35,7 @@ export function createGame(name = '临场竞技', seed = 12345) {
     return c;
   });
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     gameDate: seasonStart(1),
     seed,
     revision: 0,

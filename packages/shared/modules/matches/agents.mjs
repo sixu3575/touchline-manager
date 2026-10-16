@@ -1,13 +1,16 @@
+import { effectiveAbility } from '../players/index.mjs';
 import { clamp } from '../../core/index.mjs';
 
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 export function ability(p, key) {
-  return p.attributes?.[key] ?? 50;
+  return effectiveAbility(p, key);
 }
 export function movement(p, energy) {
+  if (!p.matchState)
+    p = { ...p, matchState: { energy, morale: 50, confidence: 50, adaptation: 100 } };
   return {
-    speed: (4.7 + ability(p, 'sprintSpeed') * 0.037) * (0.7 + energy * 0.003),
-    acceleration: (1.8 + ability(p, 'acceleration') * 0.052) * (0.75 + energy * 0.0025),
+    speed: 4.5 + ability(p, 'sprintSpeed') * 0.04,
+    acceleration: 1.5 + ability(p, 'acceleration') * 0.03,
     response: 0.3 + ability(p, 'agility') * 0.007,
   };
 }
@@ -35,121 +38,262 @@ function laneRisk(from, to, opponents) {
   }
   return risk;
 }
-export function chooseAction(actor, actors, ball, direction, tactics, rng) {
-  const p = actor.player,
-    a = (key) => ability(p, key);
-  const opponents = actors.filter((o) => o.side !== actor.side);
-  const pressure = opponents.reduce(
-    (v, o) => Math.max(v, Math.max(0, 5 - distance(o.pos, actor.pos))),
+// Geometry determines weak-side use; metadata and display changes consume no RNG.
+export function actionQuality(actor, ball, key, opponents, lapse = false) {
+  const a = (key) => ability(actor.player, key);
+  const mix = {
+    passing: 0.8 * a('passing') + 0.2 * a('balance'),
+    crossing: 0.8 * a('crossing') + 0.2 * a('passing'),
+    firstTouch: 0.65 * a('firstTouch') + 0.2 * a('balance') + 0.15 * a('agility'),
+    dribbling: 0.65 * a('dribbling') + 0.2 * a('agility') + 0.15 * a('balance'),
+    tackling: 0.7 * a('tackling') + 0.2 * a('balance') + 0.1 * a('strength'),
+    distribution: 0.75 * a('distribution') + 0.25 * a('passing'),
+    finishing: 0.75 * a('finishing') + 0.25 * a('balance'),
+    longShots: 0.7 * a('longShots') + 0.3 * a('strength'),
+    setPieces: 0.7 * a('setPieces') + 0.2 * a('longShots') + 0.1 * a('strength'),
+    penalty: 0.55 * a('finishing') + 0.45 * a('setPieces'),
+  };
+  const pressure = clamp(
+    1 - Math.min(3, ...opponents.map((o) => distance(o.pos, actor.pos))) / 3,
     0,
+    1,
   );
-  const goalX = direction === 1 ? 105 : 0;
-  const goalDistance = distance(actor.pos, { x: goalX, z: 34 });
-  const goalAngle = Math.atan2(3.66, Math.max(1, Math.abs(goalX - actor.pos.x))) * 2;
-  const central = Math.abs(actor.pos.z - 34) < 21;
-  const shotRange = 18 + a('longShots') * 0.13;
+  const facing =
+    Math.hypot(actor.velocity.x, actor.velocity.z) > 0.5
+      ? actor.velocity
+      : { x: actor.direction ?? 1, z: 0 };
+  const lateral = facing.x * (ball.z - actor.pos.z) - facing.z * (ball.x - actor.pos.x);
+  const weak = actor.player.preferredFoot === 'left' ? lateral < -0.12 : lateral > 0.12;
+  const foot =
+    actor.player.preferredFoot === 'both'
+      ? 0.95 + (0.05 * (actor.player.weakFoot ?? 50)) / 100
+      : weak
+        ? 1 - 0.18 * (1 - (actor.player.weakFoot ?? 50) / 100)
+        : 1;
+  const base = mix[key] ?? a(key);
+  const pressureLoss = 10 * pressure * (1 - a('composure') / 100);
+  return {
+    value: clamp(base * foot - pressureLoss - (lapse ? 12 : 0), 1, 100),
+    base,
+    foot,
+    pressure,
+    pressureLoss,
+    lapse,
+    mental: actor.player.matchState ? actor.player.matchState.mental : 0,
+  };
+}
+function ballVelocity(ball, target, speed, height) {
+  const len = distance(ball, target),
+    flight = Math.max(0.15, len / speed);
+  return {
+    x: (target.x - ball.x) / flight,
+    z: (target.z - ball.z) / flight,
+    y: (height - ball.y + 4.905 * flight * flight) / flight,
+  };
+}
+export function chooseAction(actor, actors, ball, direction, tactics, rng, context = {}) {
+  const p = actor.player,
+    a = (key) => ability(p, key),
+    opponents = actors.filter((o) => o.side !== actor.side && !o.sentOff);
+  actor.direction = direction;
+  const quality = (key) => actionQuality(actor, ball, key, opponents, context.lapse);
+  const goalX = direction === 1 ? 105 : 0,
+    goalDistance = distance(ball, { x: goalX, z: 34 });
+  const pressure = quality('passing').pressure;
+  const ambition =
+    context.minute >= 70 && context.trailing
+      ? (0.02 * ((p.personality?.ambition ?? 50) - 50)) / 50
+      : 0;
+  const direct =
+    actor.setPiece === 'penalty' ||
+    (actor.setPiece === 'freeKick' && goalDistance < 30 && Math.abs(ball.z - 34) < 20);
+  const candidates = [];
   if (
-    p.role !== 'GK' &&
-    central &&
-    goalDistance < shotRange &&
-    laneRisk(
-      actor.pos,
+    (p.role !== 'GK' && goalDistance < 18 + a('longShots') * 0.13 && Math.abs(ball.z - 34) < 21) ||
+    direct
+  ) {
+    const alpha = clamp((goalDistance - 16) / 8, 0, 1);
+    const q = direct
+      ? quality(actor.setPiece === 'penalty' ? 'penalty' : 'setPieces')
+      : quality('finishing');
+    if (!direct) q.value = (1 - alpha) * q.value + alpha * quality('longShots').value;
+    const blockers = laneRisk(
+      ball,
       { x: goalX, z: 34 },
       opponents.filter((o) => o.player.role !== 'GK'),
-    ) < 12 &&
-    (goalDistance < 10 || rng() < 0.2 + a('decisions') / 250 - pressure * 0.05)
-  ) {
-    const skill = goalDistance > 20 ? a('longShots') : a('finishing');
-    const composure = a('composure') / 100;
-    const weakPenalty = p.preferredFoot === 'both' ? 1 : 1 + (100 - (p.weakFoot ?? 50)) / 400;
-    const error = (0.4 + (100 - skill) * 0.065 + pressure * (1 - composure) * 0.3) * weakPenalty;
-    const aim = 34 + (rng() < 0.5 ? -1 : 1) * (1.4 + rng() * 1.5) + (rng() - 0.5) * error * 2;
-    const target = { x: goalX + direction * 1.5, z: aim };
-    const len = distance(ball, target);
-    const speed = 20 + a('strength') * 0.11;
-    const flight = len / speed;
-    const height = 0.3 + rng() * (0.7 + (100 - skill) / 16);
-    return {
+    );
+    const left = { x: goalX - ball.x, z: 30.34 - ball.z },
+      right = { x: goalX - ball.x, z: 37.66 - ball.z };
+    const angle = Math.acos(
+      clamp(
+        (left.x * right.x + left.z * right.z) /
+          (Math.hypot(left.x, left.z) * Math.hypot(right.x, right.z)),
+        -1,
+        1,
+      ),
+    );
+    const keeper = opponents.find((o) => o.player.role === 'GK');
+    const g = keeper ? clamp(Math.abs(keeper.pos.z - 34) / 8, 0, 1) : 1;
+    const xg =
+      actor.setPiece === 'penalty'
+        ? 0.76
+        : clamp(
+            1 /
+              (1 +
+                Math.exp(
+                  -(
+                    -2.1 -
+                    0.09 * (goalDistance - 12) +
+                    1.8 * (angle - 0.35) -
+                    0.8 * clamp(blockers / 15, 0, 1) +
+                    2.5 * g
+                  ),
+                )),
+            0.005,
+            0.8,
+          );
+    candidates.push({
       type: 'shot',
-      x: ((target.x - ball.x) / len) * speed,
-      z: ((target.z - ball.z) / len) * speed,
-      y: (height - ball.y + 4.905 * flight * flight) / flight,
-      xg: clamp(goalAngle * Math.exp(-goalDistance / 24) * 0.65, 0.01, 0.65),
-      onTarget: Math.abs(aim - 34) < 3.55 && height < 2.33,
-    };
+      quality: q,
+      xg,
+      utility: xg - 0.08 + ambition + (direct ? 1 : 0),
+      make: () => {
+        const error = 0.25 + 0.055 * (100 - q.value);
+        const aim = 34 + (rng() < 0.5 ? -1 : 1) * (1.2 + rng() * 1.4) + (rng() - 0.5) * error * 2;
+        return {
+          ...ballVelocity(
+            ball,
+            { x: goalX + direction * 1.5, z: aim },
+            20 + 0.11 * a('strength'),
+            0.25 + rng() * (0.65 + (100 - q.value) / 24),
+          ),
+          xg,
+        };
+      },
+    });
   }
-  let best = null,
-    utility = -Infinity;
-  for (const mate of actors) {
-    if (mate.side !== actor.side || mate === actor || mate.player.role === 'GK') continue;
+  const mates = actors.filter((o) => o.side === actor.side && o !== actor && !o.sentOff);
+  const nearest = mates
+    .slice()
+    .sort((x, y) => distance(actor.pos, x.pos) - distance(actor.pos, y.pos))[0];
+  for (const mate of mates) {
+    if (!actor.setPiece && actor.hold < 0.8 && pressure < 0.5) continue;
     const len = distance(actor.pos, mate.pos);
-    if (len < 5 || len > 16 + a('vision') * 0.38) continue;
-    const progress = (mate.pos.x - actor.pos.x) * direction;
-    const space = Math.min(12, ...opponents.map((o) => distance(o.pos, mate.pos)));
-    const risk = laneRisk(actor.pos, mate.pos, opponents);
-    const value =
-      progress * (tactics.style === 'counter' ? 1.2 : 0.6) +
-      space * 1.6 -
-      risk * 2.5 -
-      len * 0.15 +
-      (tactics.style === 'wide' ? Math.abs(mate.pos.z - 34) * 0.15 : 0) +
-      ((rng() - 0.5) * (100 - a('decisions'))) / 9;
-    if (value > utility) {
-      utility = value;
-      best = mate;
-    }
-  }
-  const hold = tactics.style === 'possession' ? 0.5 : 1.5;
-  if (best && (pressure > 3.3 || (actor.hold > hold && utility > -4) || actor.hold > 4)) {
-    const len = distance(ball, best.pos);
+    if (len < 4 || len > 16 + a('vision') * 0.38) continue;
+    const risk = laneRisk(actor.pos, mate.pos, opponents),
+      progress = (mate.pos.x - actor.pos.x) * direction;
+    const obscurity = clamp(risk / 16, 0, 1);
+    const discover = 1 / (1 + Math.exp(-(Math.log(4) + (a('vision') - 50) / 20 - 1.2 * obscurity)));
+    if (mate !== nearest && rng() > discover) continue;
     const cross =
       actor.setPiece === 'corner' ||
-      (tactics.style === 'wide' &&
-        Math.abs(actor.pos.z - 34) > 19 &&
-        105 - Math.abs(goalX - actor.pos.x) > 68);
-    const lob = cross || (len > 27 && tactics.style === 'counter');
-    const skill = actor.setPiece
-      ? a('setPieces')
-      : p.role === 'GK'
-        ? a('distribution')
-        : cross
-          ? a('crossing')
-          : a('passing');
-    const error = ((100 - skill) / 100) * (0.6 + len * 0.055);
-    const flight = lob ? Math.max(1, len / 17) : len / (12 + len * 0.13);
-    const target = {
-      x: best.pos.x + best.velocity.x * flight * 0.55 + (rng() - 0.5) * error * 2,
-      z: best.pos.z + best.velocity.z * flight * 0.55 + (rng() - 0.5) * error * 2,
-    };
-    return {
+      (tactics.style === 'wide' && Math.abs(ball.z - 34) > 19 && goalDistance < 40);
+    const q = quality(
+      actor.setPiece === 'corner'
+        ? 'setPieces'
+        : p.role === 'GK'
+          ? 'distribution'
+          : cross
+            ? 'crossing'
+            : 'passing',
+    );
+    const success = clamp(
+      0.92 - 0.005 * Math.max(0, len - 12) - risk * 0.015 + (q.value - 50) / 300,
+      0.1,
+      0.97,
+    );
+    const space = Math.min(10, ...opponents.map((o) => distance(o.pos, mate.pos))) / 10;
+    const forward = clamp(progress / 35, -1, 1);
+    const style = clamp(
+      tactics.style === 'counter'
+        ? 0.04 * forward
+        : tactics.style === 'possession'
+          ? 0.04 * success
+          : tactics.style === 'wide' && cross
+            ? 0.04
+            : 0,
+      -0.04,
+      0.04,
+    );
+    const utility =
+      success * (0.08 + 0.13 * space + 0.22 * forward) -
+      (1 - success) * 0.12 +
+      style +
+      ambition * Math.sign(progress);
+    candidates.push({
       type: cross ? 'cross' : 'pass',
-      receiverId: best.player.id,
-      x: (target.x - ball.x) / flight,
-      z: (target.z - ball.z) / flight,
-      y: lob ? 4.905 * flight : 0.2,
-    };
+      quality: q,
+      receiverId: mate.player.id,
+      utility,
+      make: () => {
+        const lob = cross || (len > 27 && tactics.style === 'counter');
+        const flight = lob ? Math.max(1, len / 17) : len / (12 + len * 0.13);
+        const error = ((100 - q.value) / 100) * (0.6 + len * 0.055);
+        return {
+          x:
+            (mate.pos.x + mate.velocity.x * flight * 0.55 + (rng() - 0.5) * error * 2 - ball.x) /
+            flight,
+          z:
+            (mate.pos.z + mate.velocity.z * flight * 0.55 + (rng() - 0.5) * error * 2 - ball.z) /
+            flight,
+          y: lob ? 4.905 * flight : 0.2,
+        };
+      },
+    });
   }
-  // Short physical taps into space; the ball is never attached to the dribbler.
-  const defender = opponents
-    .slice()
-    .sort((a, b) => distance(a.pos, actor.pos) - distance(b.pos, actor.pos))[0];
-  const dodge =
-    defender && distance(defender.pos, actor.pos) < 4
-      ? Math.sign(actor.pos.z - defender.pos.z || 1) * (1.5 + a('dribbling') / 70)
-      : (34 - actor.pos.z) * 0.05;
-  const error = ((rng() - 0.5) * (100 - a('dribbling'))) / 80;
-  return {
+  const q = quality('dribbling');
+  candidates.push({
     type: 'dribble',
-    x: direction * (3.6 + a('dribbling') * 0.019),
-    z: clamp(dodge + error, -3, 3),
-    y: 0.1,
+    quality: q,
+    utility: 0.12 - 0.12 * pressure + (actor.hold > 2 ? -0.12 : 0) + ambition,
+    make: () => {
+      const defender = opponents
+        .slice()
+        .sort((x, y) => distance(x.pos, actor.pos) - distance(y.pos, actor.pos))[0];
+      const dodge =
+        defender && distance(defender.pos, actor.pos) < 4
+          ? Math.sign(actor.pos.z - defender.pos.z || 1) * (1.5 + q.value / 70)
+          : (34 - actor.pos.z) * 0.05;
+      return {
+        x: direction * (3.6 + q.value * 0.019),
+        z: clamp(dodge + ((rng() - 0.5) * (100 - q.value)) / 80, -3, 3),
+        y: 0.1,
+      };
+    },
+  });
+  const choices = direct
+    ? candidates.filter((c) => c.type === 'shot')
+    : actor.setPiece
+      ? candidates.filter(
+          (c) => c.type !== 'dribble' && (actor.setPiece !== 'indirect' || c.type !== 'shot'),
+        )
+      : candidates;
+  if (!choices.length) return { type: 'pass', quality: q, x: direction * 12, z: 0, y: 0.3 };
+  const temperature = 0.12 + 0.25 * (1 - a('decisions') / 100);
+  const weights = choices.map((c) =>
+    Math.exp((c.utility + (rng() - 0.5) * 0.4 * (1 - a('decisions') / 100)) / temperature),
+  );
+  let roll = rng() * weights.reduce((s, w) => s + w, 0),
+    selected = choices[choices.length - 1];
+  for (let i = 0; i < choices.length; i++) {
+    roll -= weights[i];
+    if (roll <= 0) {
+      selected = choices[i];
+      break;
+    }
+  }
+  return {
+    type: selected.type,
+    receiverId: selected.receiverId,
+    quality: selected.quality,
+    ...selected.make(),
   };
 }
 
 export function targetFor(actor, actors, ball, owner, direction, tactics, chasers) {
   const p = actor.player;
   const ownGoal = direction === 1 ? 0 : 105;
-  if (p.role === 'GK') {
+  if (actor.isKeeper ?? p.role === 'GK') {
     const goalDist = Math.abs(ball.x - ownGoal);
     const keeperX = ownGoal + direction * clamp(goalDist * 0.07, 1.2, 4.2);
     const flight = Math.abs(ball.vx) > 1 ? (keeperX - ball.x) / ball.vx : -1;
