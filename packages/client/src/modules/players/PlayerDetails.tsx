@@ -220,6 +220,10 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
                 <Meter label="士气" value={p.wellbeing.morale} />
                 <Meter label="信心" value={p.wellbeing.confidence} />
                 <Meter label="归属感" value={p.wellbeing.clubAttachment} />
+                <Meter label="适应度" value={p.wellbeing.adaptation ?? 100} />
+                <p className="fine">
+                  士气、信心与适应度仅小幅影响镇定和决策（−4 至 +3）。国籍不影响适应。
+                </p>
                 <h4>公众形象</h4>
                 <p>
                   表达风格{' '}
@@ -239,7 +243,7 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
               </section>
             </div>
             <p className="pm-note">
-              职业态度已影响训练；士气、信心、归属与关注度会随比赛变化。媒体、兴趣与其余性格用于后续互动和事件，当前不额外带来收入。
+              职业态度影响训练；领导力与抗挫缓冲负面冲击，进取心改变末段落后时的风险选择，情绪稳定影响抗议判罚。忠诚、社交、媒体与兴趣留给后续互动，当前不额外带来竞技加成或收入。
             </p>
           </div>
         )}

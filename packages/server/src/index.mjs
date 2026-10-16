@@ -4,7 +4,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateDatabase } from './storage/migrations.mjs';
+import { CURRENT_SCHEMA, migrateDatabase } from './storage/migrations.mjs';
 import { createReplayStorage } from './storage/replays.mjs';
 import { SimulationPool } from './simulation-pool.mjs';
 import { createGame, applyAction } from '../../shared/game.mjs';
@@ -20,7 +20,7 @@ const replays = createReplayStorage(db);
 const simulations = new SimulationPool();
 const pending = new Map();
 const migrated = migrateDatabase(db);
-if (migrated) console.log(`Migrated ${migrated} saves to schema 2`);
+if (migrated) console.log(`Migrated ${migrated} saves to schema ${CURRENT_SCHEMA}`);
 const findSave = db.prepare('SELECT * FROM saves WHERE token_hash=?');
 const insertSave = db.prepare('INSERT INTO saves VALUES (?,?,?,?)');
 const updateSave = db.prepare('UPDATE saves SET state=?,updated_at=? WHERE id=?');
@@ -31,7 +31,7 @@ const insertOperation = db.prepare('INSERT INTO operations VALUES (?,?,?)');
 const hash = (s) => createHash('sha256').update(s).digest('hex');
 const rate = new Map();
 const dist = resolve(ROOT, 'dist/client');
-const version = '0.3.0';
+const version = '0.4.0';
 const security = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'same-origin',

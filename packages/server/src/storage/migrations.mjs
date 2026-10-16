@@ -1,15 +1,20 @@
 import { addDays, seasonStart } from '../../../shared/core/index.mjs';
 import { migratePlayer } from '../../../shared/modules/players/index.mjs';
 
-export const CURRENT_SCHEMA = 2;
+export const CURRENT_SCHEMA = 3;
 export function migrateState(state) {
   if (state.schemaVersion === CURRENT_SCHEMA) return { state, changed: false };
-  if (state.schemaVersion !== 1) throw Error('Unsupported save schema: ' + state.schemaVersion);
+  if (![1, 2].includes(state.schemaVersion))
+    throw Error('Unsupported save schema: ' + state.schemaVersion);
   // Clone first: a failed migration must never partially modify the caller's state.
   const next = structuredClone(state);
-  next.gameDate = addDays(seasonStart(next.season), next.round * 7);
+  if (state.schemaVersion === 1) {
+    next.gameDate = addDays(seasonStart(next.season), next.round * 7);
+    for (const p of [...next.clubs.flatMap((c) => c.players), ...next.market])
+      migratePlayer(p, next.seed, next.gameDate);
+  }
   for (const p of [...next.clubs.flatMap((c) => c.players), ...next.market])
-    migratePlayer(p, next.seed, next.gameDate);
+    p.wellbeing.adaptation = 100;
   next.schemaVersion = CURRENT_SCHEMA;
   next.revision++; // Old browser tabs must reload before writing to the migrated save.
   return { state: next, changed: true };

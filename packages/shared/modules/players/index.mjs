@@ -1,6 +1,7 @@
 import { random, seedFrom, clamp, decimal } from '../../core/index.mjs';
 import { ATTRIBUTE_GROUPS, COUNTRIES, PERSONALITY, INTERESTS } from './catalog.mjs';
 export * from './catalog.mjs';
+export * from './match-state.mjs';
 
 export function ageOn(birthDate, date) {
   return (
@@ -66,7 +67,7 @@ function makeCharacter(rng) {
   const second = (first + 1 + Math.floor(rng() * (keys.length - 1))) % keys.length;
   return {
     personality,
-    wellbeing: { morale: 70, confidence: 65, clubAttachment: 40 },
+    wellbeing: { morale: 70, confidence: 65, clubAttachment: 40, adaptation: 100 },
     publicProfile: {
       mediaStyle:
         personality.sociability >= 70
@@ -225,7 +226,10 @@ export function trainPlayer(p, focus, rng) {
   p.skills = skillSummary(p.attributes);
   p.fitness = clamp(p.fitness + (focus === 'fitness' ? 8 : -4), 30, 100);
 }
-export function settlePlayerMatch(p, { played, won, drawn, goals, press, seed, energy }) {
+export function settlePlayerMatch(
+  p,
+  { played, won, drawn, goals, assists = 0, press, seed, energy, mind },
+) {
   // Stable personality is never changed by a match; only short-term state changes.
   p.wellbeing.morale = clamp(
     p.wellbeing.morale + (won ? 3 : drawn ? 0 : -2) + (played ? 1 : -1),
@@ -242,9 +246,8 @@ export function settlePlayerMatch(p, { played, won, drawn, goals, press, seed, e
       100,
     );
     p.goals += goals;
-    p.form = decimal(
-      6 + random(seed + p.number)() * 1.7 + (won ? 0.4 : 0) + Math.min(1.5, p.goals * 0.15),
-    );
+    p.assists = (p.assists ?? 0) + assists;
+    p.form = decimal(clamp(6 + (won ? 0.3 : 0) + goals * 0.8 + assists * 0.5, 1, 10));
     p.wellbeing.confidence = clamp(
       p.wellbeing.confidence + (won ? 2 : drawn ? 0 : -2) + goals * 2,
       0,
@@ -253,12 +256,18 @@ export function settlePlayerMatch(p, { played, won, drawn, goals, press, seed, e
     p.wellbeing.clubAttachment = clamp(p.wellbeing.clubAttachment + 1, 0, 100);
     p.publicProfile.popularity = clamp(p.publicProfile.popularity + goals + Number(won), 0, 100);
   }
+  // New reports carry bounded in-match state; do not apply the legacy result shock twice.
+  if (played && mind) {
+    p.wellbeing.morale = clamp(mind.morale, 0, 100);
+    p.wellbeing.confidence = clamp(mind.confidence, 0, 100);
+  }
 }
 export function recoverPlayer(p, amount = 8) {
   p.fitness = Math.min(100, p.fitness + amount);
 }
 export function joinClub(p) {
   p.wellbeing.clubAttachment = 20;
+  p.wellbeing.adaptation = 70;
 }
 export function resetForSeason(p, date) {
   p.age = ageOn(p.birthDate, date);

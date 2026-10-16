@@ -16,6 +16,8 @@ export function settleClubPlayers(club, report) {
       press: club.tactics.press,
       seed: report.seed,
       energy: report.performance?.find((row) => row.id === p.id)?.energy,
+      mind: report.performance?.find((row) => row.id === p.id)?.mind,
+      assists: report.events.filter((e) => e.type === 'goal' && e.assistId === p.id).length,
     });
   }
 }

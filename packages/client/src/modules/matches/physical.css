@@ -215,3 +215,19 @@
     width: 62px;
   }
 }
+
+.event-filter {
+  margin: 12px 0;
+  font-size: 11px;
+  padding: 8px;
+  width: 100%;
+}
+.event-explanation {
+  font-size: 10px;
+  color: #687360;
+  line-height: 1.6;
+  padding-bottom: 8px;
+}
+.event-explanation summary {
+  cursor: pointer;
+}

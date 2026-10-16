@@ -11,3 +11,5 @@
 浏览器只读入口：selectors/index.mjs（schedule/standings，无物理依赖）。规则编排仍从index.mjs调用，不得从浏览器导入会加载Rapier的服务端入口。模拟所有场次，只给本队保存轨迹，避免无用内存与磁盘开销。
 
 AI球员同样通过matches.settleClubPlayers → players公共接口结算体能、出场与进球；本队只由finishMatch结算一次。全体球队沿用联赛轮末+8恢复，杯赛不另送恢复。禁止跳过AI消耗形成隐性优势。
+
+0.4.0注意：日期推进统一调用球员适应度；杯赛使用比赛模块knockout物理点球，不再掷币决胜，不重复统计常规进球。AI和本队使用同公式。

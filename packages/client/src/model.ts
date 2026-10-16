@@ -29,6 +29,21 @@ export interface MatchEvent {
   x: number;
   y: number;
   playerId?: string;
+  reason?: string;
+  result?: string;
+  probability?: number;
+  quality?:
+    | number
+    | {
+        value: number;
+        base: number;
+        foot: number;
+        pressure: number;
+        pressureLoss: number;
+        lapse: boolean;
+        mental?: number;
+      };
+  opponentQuality?: number;
 }
 export interface Report {
   replay?: {
@@ -38,6 +53,7 @@ export interface Report {
     frameCount: number;
     duration: number;
     clockScale?: number;
+    regulationDuration?: number;
     physics: string;
     stepHz: number;
     players: { id: string; side: number; number: number; name: string; role: string }[];
@@ -50,9 +66,17 @@ export interface Report {
     touches: number;
     passes: number;
     completed: number;
+    tackles?: number;
+    wonTackles?: number;
+    yellowCards?: number;
+    redCards?: number;
+    dismissedAt?: number | null;
+    mind?: { morale: number; confidence: number };
   }[];
   id: string;
   engineVersion: string;
+  rulesVersion?: string;
+  eventFormatVersion?: number;
   seed: number;
   homeId: string;
   awayId: string;
@@ -69,6 +93,10 @@ export interface Report {
     saves?: number;
     interceptions?: number;
     corners?: number;
+    fouls?: number;
+    offsides?: number;
+    yellowCards?: number;
+    redCards?: number;
   }[];
   events: MatchEvent[];
   // Historical v1 snapshots intentionally lack the newer identity/personality fields.

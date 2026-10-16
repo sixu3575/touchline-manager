@@ -2,10 +2,10 @@
 
 数据库 game.sqlite 位于 DATA_DIR；生产 /var/lib/touchline-manager，与 /srv 只读发布目录分开。
 
-- saves：id、token_hash、state（JSON）、updated_at。JSON schemaVersion=2，revision 随操作递增。
+- saves：id、token_hash、state（JSON）、updated_at。JSON schemaVersion=3，revision 随操作递增。
 - operations：(save_id,request_id) 唯一，body_hash 校验相同标识意图。相同请求返回当前状态，过期 revision 返回 409。
 - state：原字段加 gameDate；所有当前 clubs.players 与 market 具有球员模型 2 字段，见 PLAYERS.md。
-- reports：保留engineVersion、seed、事件与快照；旧报告不重算。0.3.0添加可选replay元数据、second事件时间、performance球员跑动和扩展统计；不破坏JSON schemaVersion=2。
+- reports：保留engineVersion、seed、事件与快照；旧报告不重算。0.3.0添加可选replay元数据、second事件时间、performance球员跑动和扩展统计；保持当时JSON schemaVersion=2；0.4.0按下述方案迁移至3。
 - replays：(save_id,report_id)主键、payload为gzip压缩的小端uint16轨迹。与状态和operations同一事务写入，最多保留当前35份报告对应的数据；其他存档和无会话请求无法读取。
 - SQLite user_version=2：启动时增建replays表；未知更高版本拒绝启动。此前表和JSON不删除或重建。JSON版本独立于表版本。
 
@@ -18,3 +18,9 @@
 迁移验证覆盖旧档不变、能力评级保持、幂等、未知版本全事务回滚和迁移后继续训练/比赛；原 API 测试覆盖重启和备份恢复。
 
 0.3.0的原始轨迹不得存入reports JSON；HTTP每次状态只返回元数据。GET /api/replays/:id返回gzip传输的二进制，由浏览器解压后校验格式和长度。VACUUM INTO会将轨迹表一起备份；恢复必须同时恢复报告与轨迹，不能只复制JSON。回滚前仍需保留完整快照：0.2旧界面不能显示新轨迹，回滚会失去新功能。
+
+## 2 → 3（0.4.0）
+
+仅所有当前clubs.players与market补wellbeing.adaptation=100；其他字段与旧reports/轨迹BLOB不变。schema1先恢复身份/日期后同样补适应；单事务迁移、revision只加1、重复启动不重复。新签约适应70。新报告添加规则/参数/eventFormat版本、质量解释、mind及纪律、助攻；原始轨迹仍独立BLOB。可选regulationDuration区分点球大战末段；stride/5Hz不变，penaltyGoal不算常规goal。
+
+回滚0.3.0：先停服务备份当前schema3，再恢复本次发布前完整schema2数据库与对应release；仅切代码会被旧版拒绝，不可删除adaptation后伪称无损降级。保留升级后备份以便追回新增比赛。

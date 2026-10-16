@@ -11,7 +11,7 @@ export interface Player {
   attributes: Record<string, number>;
   skills: Record<string, number>;
   personality: Record<string, number>;
-  wellbeing: { morale: number; confidence: number; clubAttachment: number };
+  wellbeing: { morale: number; confidence: number; clubAttachment: number; adaptation: number };
   publicProfile: { mediaStyle: string; interests: string[]; popularity: number };
   fitness: number;
   potential: number;

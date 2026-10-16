@@ -1,5 +1,11 @@
 import { random, addDays, seasonStart } from '../../core/index.mjs';
-import { player, updateAges, resetForSeason, recoverPlayer } from '../players/index.mjs';
+import {
+  player,
+  updateAges,
+  resetForSeason,
+  recoverPlayer,
+  advanceAdaptation,
+} from '../players/index.mjs';
 import { validateLineup } from '../tactics/index.mjs';
 import { simulate, finishMatch, settleClubPlayers } from '../matches/index.mjs';
 import { money } from '../economy/index.mjs';
@@ -14,6 +20,7 @@ export function advance(g, payload, rng) {
   g.round++;
   g.gameDate = addDays(g.gameDate, 7);
   updateAges(g);
+  advanceAdaptation(g, 7);
   for (const [h, a] of g.schedule[round]) {
     const home = g.clubs.find((c) => c.id === h),
       away = g.clubs.find((c) => c.id === a);
@@ -57,20 +64,10 @@ export function cup(g, payload, rng) {
     opponent,
     g.seed + g.season * 20200 + g.cup.stage * 33,
     's' + g.season + '-cup-' + g.cup.stage,
+    { knockout: true },
   );
   let won = report.score[0] > report.score[1];
-  if (report.score[0] === report.score[1]) {
-    won = rng() > 0.5;
-    report.penalties = won ? [5, 4] : [3, 4];
-    report.events.push({
-      minute: 91,
-      type: won ? 'goal' : 'fulltime',
-      side: 0,
-      text: '点球大战结束：' + report.penalties.join(' : '),
-      x: 88,
-      y: 50,
-    });
-  }
+  if (report.penalties) won = report.penalties[0] > report.penalties[1];
   settleClubPlayers(opponent, report);
   finishMatch(g, report, 'cup');
   g.cup.stage++;
@@ -84,8 +81,15 @@ export function newSeason(g, payload, rng) {
   const me = g.clubs[0];
 
   if (g.round !== 14) throw Error('请先完成本赛季。');
+  const previousDate = g.gameDate;
   g.season++;
   g.gameDate = seasonStart(g.season);
+  advanceAdaptation(
+    g,
+    Math.round(
+      (Date.parse(g.gameDate + 'T12:00:00Z') - Date.parse(previousDate + 'T12:00:00Z')) / 86400000,
+    ),
+  );
   g.round = 0;
   g.results = [];
   g.training.used = 0;

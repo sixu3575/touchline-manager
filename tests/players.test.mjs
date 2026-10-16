@@ -142,7 +142,7 @@ test('schema 1 upgrade preserves gameplay, money, ages, identity and immutable h
   assert.deepEqual(old, pristine);
   assert.deepEqual(migrateState(old).state, next);
   assert.equal(next.revision, old.revision + 1);
-  assert.equal(next.schemaVersion, 2);
+  assert.equal(next.schemaVersion, 3);
   assert.deepEqual(next.reports, old.reports);
   assert.deepEqual(next.ledger, old.ledger);
   assert.deepEqual(next.results, old.results);
@@ -178,7 +178,7 @@ test('database migration is atomic and unsupported schemas stop startup without 
   assert.equal(migrateDatabase(db), 0);
   assert.equal(
     JSON.parse(db.prepare('SELECT state FROM saves WHERE id=?').get('old').state).schemaVersion,
-    2,
+    3,
   );
   db.close();
 });
