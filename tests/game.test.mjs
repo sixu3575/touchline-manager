@@ -63,6 +63,13 @@ test('a complete season balances standings, pays one award, and can continue', (
     112,
   );
   assert.equal(g.reports.length, 14);
+  for (const club of g.clubs) {
+    assert.ok(club.players.filter((p) => club.lineup.includes(p.id)).every((p) => p.apps === 14));
+    assert.ok(
+      club.players.some((p) => p.apps === 14 && p.fitness < 100),
+      'both manager and AI squads expend energy',
+    );
+  }
   assert.equal(g.ledger.filter((l) => l.label === '赛季排名奖金').length, 1);
   assert.throws(() => applyAction(g, 'advance'));
   applyAction(g, 'season');

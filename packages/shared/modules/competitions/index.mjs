@@ -1,7 +1,7 @@
 import { random, addDays, seasonStart } from '../../core/index.mjs';
 import { player, updateAges, resetForSeason, recoverPlayer } from '../players/index.mjs';
 import { validateLineup } from '../tactics/index.mjs';
-import { simulate, finishMatch } from '../matches/index.mjs';
+import { simulate, finishMatch, settleClubPlayers } from '../matches/index.mjs';
 import { money } from '../economy/index.mjs';
 import { schedule, standings } from './selectors/index.mjs';
 export { schedule, standings };
@@ -25,6 +25,7 @@ export function advance(g, payload, rng) {
       { recordReplay: h === 'me' || a === 'me' },
     );
     g.results.push({ id: report.id, homeId: h, awayId: a, score: report.score, round: g.round });
+    for (const club of [home, away]) if (club.id !== 'me') settleClubPlayers(club, report);
     if (h === 'me' || a === 'me') finishMatch(g, report, 'league');
   }
   money(
@@ -70,6 +71,7 @@ export function cup(g, payload, rng) {
       y: 50,
     });
   }
+  settleClubPlayers(opponent, report);
   finishMatch(g, report, 'cup');
   g.cup.stage++;
   if (won) {

@@ -2,6 +2,23 @@ import { random } from '../../core/index.mjs';
 import { settlePlayerMatch } from '../players/index.mjs';
 import { money } from '../economy/index.mjs';
 export { simulate, ENGINE_VERSION } from './simulation.mjs';
+export function settleClubPlayers(club, report) {
+  const side = report.homeId === club.id ? 0 : 1;
+  const won = report.score[side] > report.score[1 - side];
+  const drawn = report.score[side] === report.score[1 - side];
+  for (const p of club.players) {
+    settlePlayerMatch(p, {
+      played: club.lineup.includes(p.id),
+      won,
+      drawn,
+      goals: report.events.filter((e) => e.type === 'goal' && e.minute <= 90 && e.playerId === p.id)
+        .length,
+      press: club.tactics.press,
+      seed: report.seed,
+      energy: report.performance?.find((row) => row.id === p.id)?.energy,
+    });
+  }
+}
 export function finishMatch(g, report, label) {
   const me = g.clubs[0];
   const side = report.homeId === 'me' ? 0 : 1;
@@ -22,20 +39,7 @@ export function finishMatch(g, report, label) {
     report.id + '-prize',
   );
   g.fans = Math.max(500, g.fans + (won ? 95 : drawn ? 20 : -35));
-  for (const p of me.players) {
-    const goals = report.events.filter(
-      (e) => e.type === 'goal' && e.minute <= 90 && e.playerId === p.id,
-    ).length;
-    settlePlayerMatch(p, {
-      played: me.lineup.includes(p.id),
-      won,
-      drawn,
-      goals,
-      press: me.tactics.press,
-      seed: report.seed,
-      energy: report.performance?.find((row) => row.id === p.id)?.energy,
-    });
-  }
+  settleClubPlayers(me, report);
   g.reports.unshift({
     ...report,
     competition: label === 'cup' ? '城市挑战杯' : '先锋联赛',
