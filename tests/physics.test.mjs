@@ -8,7 +8,7 @@ import {
   orientFoot,
   goalCrossing,
 } from '../packages/shared/modules/matches/physics.mjs';
-import { movement } from '../packages/shared/modules/matches/agents.mjs';
+import { movement, targetFor } from '../packages/shared/modules/matches/agents.mjs';
 import { createGame, simulate } from '../packages/shared/game.mjs';
 
 test('gravity, grass bounce, inertia and body/goalpost collisions use rigid-body physics', () => {
@@ -72,6 +72,12 @@ test('player attributes and fatigue determine locomotion; tactics change saved t
   assert.ok(movement(high, 100).speed > movement(low, 100).speed);
   assert.ok(movement(high, 100).acceleration > movement(low, 100).acceleration);
   assert.ok(movement(high, 100).speed > movement(high, 25).speed);
+  const runner = { index: 0, player: { role: 'MID', attributes: { anticipation: 20 } } };
+  const ball = { x: 50, z: 34, vx: 10, vz: 0 };
+  const late = targetFor(runner, [], ball, null, 1, {}, [0]);
+  runner.player.attributes.anticipation = 90;
+  const early = targetFor(runner, [], ball, null, 1, {}, [0]);
+  assert.ok(early.x > late.x, 'higher anticipation leads the moving ball further in advance');
   const g = createGame('物理测试', 42);
   const original = structuredClone(g.clubs);
   const a = simulate(g.clubs[0], g.clubs[1], 2026, 'short', { durationSeconds: 180 });

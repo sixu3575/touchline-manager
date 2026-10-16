@@ -168,7 +168,7 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   }
   const attacking = owner?.side === actor.side;
   if (chasers.includes(actor.index)) {
-    const reaction = 0.12 + (100 - ability(p, 'anticipation')) * 0.003;
+    const reaction = 0.12 + ability(p, 'anticipation') * 0.003;
     return {
       x: clamp(ball.x + ball.vx * reaction, 1, 104),
       z: clamp(ball.z + ball.vz * reaction, 1, 67),
