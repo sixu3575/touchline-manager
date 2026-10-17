@@ -11,8 +11,14 @@
     "start": "node packages/server/src/index.mjs",
     "build": "vite build --config packages/client/vite.config.ts",
     "typecheck": "tsc -p packages/client/tsconfig.json",
-    "test": "node --test --test-concurrency=4 tests/*.test.mjs",
-    "check": "npm run typecheck && npm test && npm run build",
+    "test": "node scripts/validate.mjs --quick --tests-only",
+    "test:smoke": "node scripts/validate.mjs --only smoke",
+    "test:business": "node scripts/validate.mjs --only business",
+    "test:match": "node scripts/validate.mjs --only match",
+    "test:season": "node scripts/validate.mjs --only season",
+    "check": "node scripts/validate.mjs",
+    "check:quick": "node scripts/validate.mjs --quick",
+    "check:plan": "node scripts/validate.mjs --plan",
     "backup": "node scripts/backup.mjs"
   },
   "dependencies": {

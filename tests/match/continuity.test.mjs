@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createGame, simulate, random } from '../packages/shared/game.mjs';
-import { createMatchSimulation } from '../packages/shared/modules/matches/index.mjs';
+import { createGame, simulate, random } from '../../packages/shared/game.mjs';
+import { createMatchSimulation } from '../../packages/shared/modules/matches/index.mjs';
 import {
   createCompetitionPlan,
   settleCompetition,
-} from '../packages/shared/modules/competitions/index.mjs';
+} from '../../packages/shared/modules/competitions/index.mjs';
 import {
   createPhysics,
   createBody,
@@ -13,14 +13,14 @@ import {
   touchesBall,
   kick,
   stepPhysics,
-} from '../packages/shared/modules/matches/physics.mjs';
-import { firstTouchVelocity } from '../packages/shared/modules/matches/receiving.mjs';
-import { passSpeed } from '../packages/shared/modules/matches/decisions.mjs';
+} from '../../packages/shared/modules/matches/physics.mjs';
+import { firstTouchVelocity } from '../../packages/shared/modules/matches/receiving.mjs';
+import { passSpeed } from '../../packages/shared/modules/matches/decisions.mjs';
 import {
   continuityState,
   controlBall,
   updateContinuity,
-} from '../packages/shared/modules/matches/continuity.mjs';
+} from '../../packages/shared/modules/matches/continuity.mjs';
 
 test('finite first touches control at least 95 of 100 unopposed medium-quality 10m passes', () => {
   let controlled = 0;
@@ -69,41 +69,4 @@ test('controller survives a brief independent carry but never gives remote conta
   assert.equal(updateContinuity(s, [a], { x: 52, z: 34, y: 0.11 }, 0.5, true, null), a);
   assert.equal(updateContinuity(s, [a], { x: 53, z: 34, y: 0.11 }, 0.6, true, null), null);
   assert.equal(s.controller, null);
-});
-
-test('durable slices, including halftime, restore exactly the same events, stats and binary frames', () => {
-  const g = createGame('恢复测试', 42),
-    args = [g.clubs[0], g.clubs[1], 2026, 'checkpoint'];
-  const expected = simulate(...args, { durationSeconds: 240 });
-  let checkpoint = null,
-    result;
-  for (let i = 0; i < 4; i++) {
-    const engine = createMatchSimulation(...args, {
-      durationSeconds: 240,
-      durable: true,
-      checkpoint,
-    });
-    const part = engine.next();
-    if (part.done) result = part.value;
-    else {
-      checkpoint = structuredClone(part.value.checkpoint);
-      assert.ok(part.value.trajectory.length > 0);
-    }
-    engine.return();
-  }
-  assert.deepEqual(result, expected);
-  assert.equal(expected.replay.clockScale, 1);
-});
-
-test('fixture order has frozen independent inputs and settlement rejects partial rounds', () => {
-  const g = createGame('任务计划', 42),
-    before = structuredClone(g),
-    plan = createCompetitionPlan(g, 'advance');
-  assert.deepEqual(g, before);
-  assert.ok(plan.order[0].homeId === 'me' || plan.order[0].awayId === 'me');
-  assert.deepEqual(
-    new Set(plan.order.map((f) => f.seed)),
-    new Set(plan.fixtures.map((f) => f.seed)),
-  );
-  assert.throws(() => settleCompetition(plan, []), /不完整/);
 });

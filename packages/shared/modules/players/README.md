@@ -1,5 +1,7 @@
 # 球员模块
 
+验证按[分层规则](../../../../docs/VALIDATION.md)：生日直接构造换季边界，性格/训练/迁移使用明确标记的测试报告；真实有效能力与跑动由比赛专项覆盖。普通球员业务修补不为准备状态计算完整比赛；相关源码/默认数据变更须核对并更新决策参考图。
+
 职责：球员身份、30 项细分能力、六项兼容摘要、评级、长期性格、短期状态、公众形象、训练成长与比赛后的球员结算。
 
 公共入口：index.mjs。player、squad、rating、skillSummary、ageOn、migratePlayer、trainPlayer、settlePlayerMatch、recoverPlayer、joinClub、resetForSeason、updateAges 及展示目录。

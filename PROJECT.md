@@ -4,9 +4,9 @@
 
 当前球员跑位/接球/传带射和球风决策图： [PLAYER_DECISION_MAP.md](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。按0.6.1实际代码归档，含Mermaid、可放大SVG、条件和数学；相关算法或固定数据修改须同次同步更新，维护范围见其第8节及AGENTS.md。
 
-本次决策图归档采用用户明确批准的单次纯文档验证例外，见AGENTS.md；其余任务及既有CI配置仍按原要求执行，另案提速方案尚未获准。
+当前开发验证采用用户2026-10-17最新批准的[分层规则](docs/VALIDATION.md)：日常冒烟与针对性测试，仅比赛算法变化模拟真实比赛，重大流程验证完整业务赛季；二者同时变化才计算物理赛季。先前纯文档例外保留为历史，授权见AGENTS.md。
 
-最新速度/阻力检查与数学：packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md。统一传球预测和真实减速，旧回放不重算；流程仅有用户2026-10-17批准的测试并行4与CI触发去重，见AGENTS.md。
+最新速度/阻力检查与数学：packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md。统一传球预测和真实减速，旧回放不重算；当前验证规则见docs/VALIDATION.md。
 
 当前连续攻防、完整90分钟和双观看入口契约：packages/shared/modules/matches/design/CONTINUITY_AND_WATCHING_V3.md。用户已批准，旧报告仍按原版本读取；开发流程保持原样。
 
@@ -21,8 +21,8 @@
 
 ## 开工阅读
 
-AGENTS.md → 本文件 → 对应模块 README/CHANGELOG，再按需阅读 docs/PLAYERS.md、GAMEPLAY.md、DATA.md、ARCHITECTURE.md、COLLABORATION.md、CONTRIBUTING.md、OPERATIONS.md。
+AGENTS.md → 本文件 → docs/VALIDATION.md → 对应模块 README/CHANGELOG，再按需阅读 docs/PLAYERS.md、GAMEPLAY.md、DATA.md、ARCHITECTURE.md、COLLABORATION.md、CONTRIBUTING.md、OPERATIONS.md。
 
-开发流程保持不变；任何流程优化须先得到用户批准。完整账号、HTTPS、真人 PvP、球员互动和粉丝商品仍是后续功能。
+执行已批准的分层验证；进一步流程优化须先得到用户批准。完整账号、HTTPS、真人 PvP、球员互动和粉丝商品仍是后续功能。
 
-当前属性与规则入口：docs/PLAYER_MATCH_DESIGN.md → matches/design/PHYSICAL_MOTION_V061.md（最新运动参数）及CONTINUITY_AND_WATCHING_V3.md（完整比赛/观看契约）。v1 A/B/C心理与基础裁判边界保留，进球依照真实轨迹；流程仅有根AGENTS记录的两项批准调整。
+当前属性与规则入口：docs/PLAYER_MATCH_DESIGN.md → matches/design/PHYSICAL_MOTION_V061.md（最新运动参数）及CONTINUITY_AND_WATCHING_V3.md（完整比赛/观看契约）。v1 A/B/C心理与基础裁判边界保留，进球依照真实轨迹；授权范围见根AGENTS的最新记录。

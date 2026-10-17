@@ -35,6 +35,8 @@ npm start
 
 任何 AI / 人类开发者均须先读 [AGENTS.md](AGENTS.md)。系统地图见 [PROJECT.md](PROJECT.md)，运维与恢复见 [docs/OPERATIONS.md](docs/OPERATIONS.md)。
 
+日常迭代使用 `npm test` 或 `npm run check:quick`，提交前使用 `npm run check` 自动按改动选择检查。仅比赛算法改动启用真实比赛，重大流程启用业务赛季；详细条件与记录见[分层验证](docs/VALIDATION.md)。Node22/24、PR审查及备份保留。
+
 球员如何无球跑动、接球后如何选择传带射，以及位置/球风/战术的实际区别，见[当前算法决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。包含六张流程图、SVG和数学说明，后续相关算法及固定数据修改须同次更新。
 
 工程组织参考 [kennysli1/slg1.0](https://github.com/kennysli1/slg1.0) 的文档入口与职责分离思想；该仓库未声明许可证，本项目未复制其代码、美术或规范文本。

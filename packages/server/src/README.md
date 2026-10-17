@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+开发验证按[分层规则](../../../docs/VALIDATION.md)。常规测试由显式CLI预加载受控报告，仍使用真实HTTP/SQLite/任务/重启与备份；生产没有fixture开关。真实引擎HTTP链路仅算法变化执行，跨轮业务赛季仅重大流程执行；禁止通过放宽生产限流加速测试。
+
 index.mjs拥有会话、动作验证、SQLite事务与静态文件。simulation-pool.mjs仅管理一个worker和最多两个排队任务；worker执行服务端权威规则，不直接访问数据库。计算先于事务，提交时必须重新校验revision和requestId，不能把旧计算结果覆盖新状态。
 
 storage/replays.mjs压缩和保存轨迹，必须与状态/操作记录使用同一事务。读取轨迹只用现有Cookie对应save_id，禁止仅凭report_id跨存档访问。不得把原始trajectory放进状态JSON或日志。

@@ -2,7 +2,7 @@
 
 唯一可编辑来源是上一级 [PLAYER_DECISION_MAP.md](../PLAYER_DECISION_MAP.md) 中按顺序出现的六个 Mermaid 代码块。对应文件为 `01-overview`、`02-roles`、`03-positioning`、`04-reception`、`05-actions`、`06-profiles`。先改正文，再重新导出，不能只修 SVG 而留下旧图源。
 
-`SOURCE_SNAPSHOT.json` 记录已核对的引擎版本、基线提交、18 个相关源码文件和图源/SVG的 SHA-256。它是人工维护的参考摘要，不是 CI 门禁；后续更新要使用实际核对的版本与内容，不能只刷新摘要来掩盖图文未同步。
+`SOURCE_SNAPSHOT.json` 记录已核对的引擎版本、基线提交、18 个相关源码文件和图源/SVG的 SHA-256。按用户后续批准的分层验证，相关变更由 `tests/decision-reference.test.mjs` 自动核对摘要；后续更新要使用实际核对的版本与内容，不能只刷新摘要来掩盖图文未同步。没有算法变化时，该核对不启用真实比赛。
 
 本次使用临时安装在仓库外的 `@mermaid-js/mermaid-cli` 12.0.0。该工具不属于游戏依赖，不修改根 package.json、锁文件或既有 CI。可在自己的临时工具目录安装同版工具，按块取出 Mermaid 至临时 `.mmd` 文件，使用如下配置与命令生成六张 SVG：
 
