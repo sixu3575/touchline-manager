@@ -37,3 +37,5 @@ JSON schemaVersion仍3，不升级revision，不改写既有saves/operations/rep
 
 VACUUM INTO备份包括新表、未完成任务与片段。原版本/同Node和Rapier依赖恢复未完成任务；发布前应先让旧引擎任务结算完成。回滚0.5必须停服务、保留最新完整快照，再恢复升级前表2备份及对应release；会回到该备份时间点，不能仅切代码或删表假称无损回滚。
 0.6.0补充：match_reports按save_id/report_id保存gzip完整战报，新state.reports只保留detailsStored摘要，GET /api/reports/:id同Cookie按需读取事件/快照/球员统计；旧报告JSON不压缩迁移、不重算。详细战报与轨迹、存档、操作同事务提交，沿用35场保留期，完整备份必须包含此表。这样长期存档不会反复解析35份完整90分钟事件，保护128MiB主线程JS堆。
+
+0.6.1仅改运动模型：ENGINE_VERSION=0.6.1-physical-motion、参数physical-motion-1；JSON3、SQLite表3、事件3、49值/5Hz编码不变，无旧数据迁移。0.6.0未完成任务先按原引擎结算，不能拿新阻力恢复旧检查点。历史报告和轨迹不重算；发布/回滚前保留最新完整离机快照。

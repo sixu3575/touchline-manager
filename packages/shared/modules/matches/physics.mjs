@@ -1,8 +1,10 @@
 import RAPIER from '@dimforge/rapier3d-compat';
+import { AIR_DRAG, BALL_MOTION } from './ball-motion.mjs';
+import { movement } from './locomotion.mjs';
 await RAPIER.init();
 
 export const FIELD = Object.freeze({ length: 105, width: 68, goalWidth: 7.32, goalHeight: 2.44 });
-export const BALL_RADIUS = 0.11;
+export const BALL_RADIUS = BALL_MOTION.radius;
 export const STEP = 1 / 20;
 const vector = (x, y, z) => ({ x, y, z });
 
@@ -21,10 +23,14 @@ export function createPhysics() {
   const world = new RAPIER.World(vector(0, -9.81, 0));
   world.timestep = STEP;
   world.numSolverIterations = 4;
+  world.integrationParameters.normalizedAllowedLinearError = 0.001;
   world.createCollider(
     RAPIER.ColliderDesc.cuboid(60, 0.2, 40)
       .setTranslation(52.5, -0.2, 34)
-      .setFriction(0.32)
+      // Grass resistance is integrated explicitly below. Rapier 0.21 caps spin
+      // at ~45 degrees/step, which otherwise turns a rolling ball into a skid.
+      .setFriction(0)
+      .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
       .setRestitution(0.48)
       .setCollisionGroups(0x00080001),
   );
@@ -53,13 +59,13 @@ export function createPhysics() {
     RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(52.5, BALL_RADIUS + 0.01, 34)
       .setCcdEnabled(true)
-      .setLinearDamping(0.012)
+      .setLinearDamping(0)
       .setAngularDamping(0.015)
       .setCanSleep(false),
   );
   const collider = world.createCollider(
     RAPIER.ColliderDesc.ball(BALL_RADIUS)
-      .setMass(0.43)
+      .setMass(BALL_MOTION.mass)
       .setFriction(0.28)
       .setRestitution(0.6)
       .setCollisionGroups(0x0001ffff),
@@ -189,6 +195,10 @@ export function touchesBall(physics, contact) {
 // Kicks change momentum only when current finite contact shapes overlap.
 export function kick(physics, actor, velocity, contact = actor.foot) {
   if (!touchesBall(physics, contact)) return false;
+  const requested = Math.hypot(velocity.x, velocity.y, velocity.z);
+  if (!Number.isFinite(requested)) return false;
+  const scale = Math.min(1, BALL_MOTION.maxKickSpeed / Math.max(0.001, requested));
+  velocity = vector(velocity.x * scale, velocity.y * scale, velocity.z * scale);
   const v = physics.ball.linvel();
   const mass = physics.ball.mass();
   physics.ball.applyImpulse(
@@ -216,19 +226,59 @@ export function kick(physics, actor, velocity, contact = actor.foot) {
   return true;
 }
 
+function ballResistance(ball, dt) {
+  const v = ball.linvel(),
+    p = ball.translation(),
+    mass = ball.mass();
+  const speed = Math.hypot(v.x, v.y, v.z);
+  // Exact drag-only velocity update: drag always removes energy and cannot reverse it.
+  const drag = 1 / (1 + AIR_DRAG * speed * dt);
+  let vx = v.x * drag,
+    vy = v.y * drag,
+    vz = v.z * drag;
+  // A flying or bouncing ball does not receive a grass impulse before landing.
+  if (p.y <= BALL_RADIUS + 0.002 && Math.abs(v.y) < 0.75) {
+    const horizontal = Math.hypot(vx, vz);
+    const factor = Math.max(
+      0,
+      1 - (BALL_MOTION.rollingDeceleration * dt) / Math.max(1e-9, horizontal),
+    );
+    vx *= factor;
+    vz *= factor;
+    const spin = ball.angvel(),
+      angular = Math.hypot(spin.x, spin.y, spin.z);
+    const loss = Math.min(
+      1,
+      (BALL_MOTION.rollingDeceleration * dt) / (BALL_RADIUS * Math.max(1e-9, angular)),
+    );
+    const inertia = ball.principalInertia();
+    ball.applyTorqueImpulse(
+      vector(-spin.x * loss * inertia.x, -spin.y * loss * inertia.y, -spin.z * loss * inertia.z),
+      true,
+    );
+  }
+  ball.applyImpulse(vector((vx - v.x) * mass, (vy - v.y) * mass, (vz - v.z) * mass), true);
+}
+
+function limitImpactSpeed(actor) {
+  const v = actor.body.linvel(),
+    speed = Math.hypot(v.x, v.z);
+  if (speed <= 5.7 + 0.036 + 0.6) return;
+  // A collision can push a body briefly beyond its own sprint speed, within a
+  // small margin. Overlapping capsules must never launch a footballer like a projectile.
+  const limit = movement(actor.player, actor.energy).topSpeed + 0.6;
+  if (speed > limit) {
+    const scale = limit / speed - 1,
+      mass = actor.body.mass();
+    actor.body.applyImpulse(vector(v.x * scale * mass, 0, v.z * scale * mass), true);
+  }
+}
+
 export function stepPhysics(physics, contactStep = null, actors = []) {
   const { ball, world } = physics;
   const p = ball.translation(),
     v = ball.linvel();
-  const speed = Math.hypot(v.x, v.z);
-  // Grass rolling resistance, separate from contact friction (which alone permits rolling).
-  if (p.y < BALL_RADIUS + 0.04 && speed > 0.01) {
-    const dv = Math.min(speed, 0.65 * STEP);
-    ball.applyImpulse(
-      vector((-v.x / speed) * dv * ball.mass(), 0, (-v.z / speed) * dv * ball.mass()),
-      true,
-    );
-  }
+  const speed = Math.hypot(v.x, v.y, v.z);
   // Resolve fast trajectories against actual finite feet at intermediate times.
   // Only the nearby fast-ball case needs extra physical steps; no enlarged touch radius.
   const near =
@@ -239,7 +289,9 @@ export function stepPhysics(physics, contactStep = null, actors = []) {
   world.timestep = STEP / steps;
   for (let i = 0; i < steps; i++) {
     if (i && contactStep) contactStep();
+    ballResistance(ball, STEP / steps);
     world.step();
+    for (const actor of actors) if (!actor.sentOff) limitImpactSpeed(actor);
   }
   world.timestep = STEP;
   for (const [actor, remaining] of physics.legRecovery) {

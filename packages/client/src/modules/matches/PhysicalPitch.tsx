@@ -25,7 +25,8 @@ export function speedAt(data: Uint16Array, report: Report, time: number, index =
     z = index < 0 ? 46 : index * 2 + 1;
   const dx = (data[b * meta.stride + x] - data[a * meta.stride + x]) / 100,
     dz = (data[b * meta.stride + z] - data[a * meta.stride + z]) / 100;
-  return Math.hypot(dx, dz) * meta.sampleHz;
+  const dy = index < 0 ? (data[b * meta.stride + 45] - data[a * meta.stride + 45]) / 100 : 0;
+  return Math.hypot(dx, dy, dz) * meta.sampleHz;
 }
 
 export function PhysicalPitch({

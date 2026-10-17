@@ -1,6 +1,7 @@
 import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
+import { groundTravel, AIR_DRAG } from './ball-motion.mjs';
 import { distance, localX, unit } from './spatial.mjs';
 
 export function formation(club) {
@@ -198,7 +199,9 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
       speed = Math.hypot(ball.vx, ball.vz);
     let target = roles.receiveTarget ?? { x: ball.x, z: ball.z };
     for (let t = 0.05; t < 3; t += 0.05) {
-      const f = Math.max(0, t - (0.4 * t * t) / Math.max(1, speed));
+      const travel =
+        ball.y > 0.2 ? Math.log1p(AIR_DRAG * speed * t) / AIR_DRAG : groundTravel(speed, t);
+      const f = travel / Math.max(0.001, speed);
       const point = { x: ball.x + ball.vx * f, z: ball.z + ball.vz * f };
       const heading = unit(actor.pos, point);
       const projection = actor.velocity.x * heading.x + actor.velocity.z * heading.z;

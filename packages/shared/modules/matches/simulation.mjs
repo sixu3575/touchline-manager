@@ -1,6 +1,7 @@
 import { packActors, unpackActors } from './checkpoint.mjs';
 import { firstTouchVelocity } from './receiving.mjs';
 import { keeperReaction, diveResponse } from './goalkeeping.mjs';
+import { driveMovement } from './locomotion.mjs';
 import {
   continuityState,
   updateContinuity,
@@ -49,8 +50,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.6.0-continuity';
-export const PARAMETER_VERSION = 'continuity-1';
+export const ENGINE_VERSION = '0.6.1-physical-motion';
+export const PARAMETER_VERSION = 'physical-motion-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -1098,7 +1099,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             intent: action.intent,
             decision: action.reason,
             estimatedSuccess: action.estimatedSuccess,
-            velocity: { x: action.x, y: action.y, z: action.z },
+            velocity: { ...physics.ball.linvel() },
             reason: lapse
               ? '专注失误降低动作质量'
               : action.quality.foot < 1
@@ -1215,28 +1216,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               vz += ((a.pos.z - o.pos.z) / d) * (1.4 - d) * 2;
             }
           }
-        const desiredSpeed = Math.hypot(vx, vz);
-        if (desiredSpeed > m.speed) {
-          vx *= m.speed / desiredSpeed;
-          vz *= m.speed / desiredSpeed;
-        }
-        const dvx = vx - a.velocity.x,
-          dvz = vz - a.velocity.z,
-          dv = Math.hypot(dvx, dvz);
         const diving =
           a.isKeeper && bv.x * direction(a.side) < -8 && Math.abs(ball.x - a.pos.x) < 25;
-        const slowing =
-          vx * a.velocity.x + vz * a.velocity.z < Math.hypot(a.velocity.x, a.velocity.z) ** 2;
-        const max =
-          (slowing ? m.braking : m.acceleration) *
-          STEP *
-          m.response *
-          (diving ? diveResponse(a.player) : 1);
-        const scale = dv > max ? max / dv : 1;
-        a.body.applyImpulse(
-          { x: dvx * scale * a.body.mass(), y: 0, z: dvz * scale * a.body.mass() },
-          true,
-        );
+        driveMovement(a, { x: vx, z: vz }, m, STEP, diving ? diveResponse(a.player) : 1);
         attemptTouch(a);
       }
       const beforeBall = physics.ball.translation();
