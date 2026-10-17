@@ -7,12 +7,12 @@ import {
   kick,
   stepPhysics,
   STEP,
-} from '../packages/shared/modules/matches/physics.mjs';
-import { movement, driveMovement } from '../packages/shared/modules/matches/locomotion.mjs';
+} from '../../packages/shared/modules/matches/physics.mjs';
+import { movement, driveMovement } from '../../packages/shared/modules/matches/locomotion.mjs';
 import {
   groundPassPlan,
   airborneVelocity,
-} from '../packages/shared/modules/matches/ball-motion.mjs';
+} from '../../packages/shared/modules/matches/ball-motion.mjs';
 
 function runner(physics, pace = 50, acceleration = pace, balance = pace, energy = 100) {
   return {

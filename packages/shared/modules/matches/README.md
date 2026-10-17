@@ -1,6 +1,8 @@
 # 比赛模块
 
-当前实现的跑位与接球决策参考入口：[design/PLAYER_DECISION_MAP.md](design/PLAYER_DECISION_MAP.md)。六张Mermaid及SVG展示动态职责、跑位优先级、接球前置处理、传带射评分和球风；阈值/公式以实际0.6.1代码为基准。按用户2026-10-17要求，相关算法或固定数据改动必须同次更新图文、SVG与源码摘要，第8节列明文件对应；展示标签不代表独立专属决策树。检查和发布要求见根AGENTS，本次归档另有用户明确批准的单次纯文档验证例外，CI配置不改。
+当前实现的跑位与接球决策参考入口：[design/PLAYER_DECISION_MAP.md](design/PLAYER_DECISION_MAP.md)。六张Mermaid及SVG展示动态职责、跑位优先级、接球前置处理、传带射评分和球风；阈值/公式以实际0.6.1代码为基准。按用户2026-10-17要求，相关算法或固定数据改动必须同次更新图文、SVG与源码摘要，第8节列明文件对应；展示标签不代表独立专属决策树。当前检查按最新批准的[分层验证](../../../../docs/VALIDATION.md)执行，相关改动会核对参考摘要。
+
+真实引擎检查在 `tests/match/`，只在比赛算法改动时执行；完整物理赛季还要求同时涉及重大流程。业务/冒烟显式预加载受控赛果，禁止真实simulation/physics入口；不能将其标记轨迹当作物理证据。当前重组只改测试与文档，生产引擎/参数仍为0.6.1-physical-motion / physical-motion-1。
 
 当前规则和数学参数见 [design/APPROVED_V1_PHYSICAL.md](design/APPROVED_V1_PHYSICAL.md)。用户已批准v1 A/B/C，保留真实物理进球；原概率赛果公式不启用。
 

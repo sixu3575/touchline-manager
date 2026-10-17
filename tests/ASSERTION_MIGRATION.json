@@ -1,0 +1,434 @@
+{
+  "baselineCommit": "351e47fab320d2936dd681017a79d600ed1aaaa8",
+  "baselineScenarioCount": 60,
+  "missingScenarioCount": 0,
+  "coverage": [
+    {
+      "name": "API transactions, isolation, restart persistence and backup recovery",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 61,
+      "currentAssertionCalls": 66
+    },
+    {
+      "name": "anonymous saves are isolated and credential stays in HttpOnly cookie",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "concurrent duplicate training bills once and stale writes reject",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 7,
+      "currentAssertionCalls": 7
+    },
+    {
+      "name": "invalid action rolls back and cross-origin requests reject",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "competing transfers only sign once",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "durable match freezes writes, survives restart, and leaves HTTP responsive",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 12,
+      "currentAssertionCalls": 15
+    },
+    {
+      "name": "duplicate match requests settle once and replay payloads are private and separate",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 20,
+      "currentAssertionCalls": 20
+    },
+    {
+      "name": "full season persists through process restart",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 6,
+      "currentAssertionCalls": 6
+    },
+    {
+      "name": "live database backup restores into a fresh data directory",
+      "from": "tests/api.test.mjs",
+      "to": "tests/helpers/api-suite.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 7
+    },
+    {
+      "name": "mental caps, leader and resilience limits, fatigue monotonicity and trait zero effects",
+      "from": "tests/approved-v1.test.mjs",
+      "to": "tests/approved-v1.test.mjs",
+      "baselineAssertionCalls": 13,
+      "currentAssertionCalls": 13
+    },
+    {
+      "name": "adaptation migrates additively, advances only with calendar and is nationality independent",
+      "from": "tests/approved-v1.test.mjs",
+      "to": "tests/approved-v1.test.mjs",
+      "baselineAssertionCalls": 11,
+      "currentAssertionCalls": 11
+    },
+    {
+      "name": "offside is frozen at touch, mirrors correctly, includes keeper and waits for involvement",
+      "from": "tests/approved-v1.test.mjs",
+      "to": "tests/approved-v1.test.mjs",
+      "baselineAssertionCalls": 10,
+      "currentAssertionCalls": 10
+    },
+    {
+      "name": "foul severity, penalty DOGSO, two yellows and direct red are distinct",
+      "from": "tests/approved-v1.test.mjs",
+      "to": "tests/approved-v1.test.mjs",
+      "baselineAssertionCalls": 11,
+      "currentAssertionCalls": 11
+    },
+    {
+      "name": "physical shootouts preserve ordinary score/stats, deterministic replay and cosmetic invariance",
+      "from": "tests/approved-v1.test.mjs",
+      "to": "tests/match/shootout.test.mjs",
+      "baselineAssertionCalls": 12,
+      "currentAssertionCalls": 12
+    },
+    {
+      "name": "module claims exclude other developers/worktrees and stale writes cannot overwrite newer code",
+      "from": "tests/collaboration.test.mjs",
+      "to": "tests/collaboration.test.mjs",
+      "baselineAssertionCalls": 9,
+      "currentAssertionCalls": 9
+    },
+    {
+      "name": "seeded engine reproduces complete event log and keeps score consistent",
+      "from": "tests/game.test.mjs",
+      "to": "tests/match/engine.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "round robin has balanced fixtures and no repeated club per round",
+      "from": "tests/game.test.mjs",
+      "to": "tests/game.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "invalid, foreign and duplicate lineups rejected",
+      "from": "tests/game.test.mjs",
+      "to": "tests/game.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "training is bounded per round and finance never allows overspending",
+      "from": "tests/game.test.mjs",
+      "to": "tests/game.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "a complete season balances standings, pays one award, and can continue",
+      "from": "tests/game.test.mjs",
+      "to": "tests/season/game-season.test.mjs",
+      "baselineAssertionCalls": 10,
+      "currentAssertionCalls": 10
+    },
+    {
+      "name": "cup cannot be replayed after elimination or completed final",
+      "from": "tests/game.test.mjs",
+      "to": "tests/game.test.mjs",
+      "baselineAssertionCalls": 2,
+      "currentAssertionCalls": 2
+    },
+    {
+      "name": "signing removes exactly one market player and bills once",
+      "from": "tests/game.test.mjs",
+      "to": "tests/game.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "finite first touches control at least 95 of 100 unopposed medium-quality 10m passes",
+      "from": "tests/match-continuity.test.mjs",
+      "to": "tests/match/continuity.test.mjs",
+      "baselineAssertionCalls": 2,
+      "currentAssertionCalls": 2
+    },
+    {
+      "name": "controller survives a brief independent carry but never gives remote contact",
+      "from": "tests/match-continuity.test.mjs",
+      "to": "tests/match/continuity.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "durable slices, including halftime, restore exactly the same events, stats and binary frames",
+      "from": "tests/match-continuity.test.mjs",
+      "to": "tests/match/checkpoint-match.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "fixture order has frozen independent inputs and settlement rejects partial rounds",
+      "from": "tests/match-continuity.test.mjs",
+      "to": "tests/competition-plan.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "a new task waits until the previous worker has fully retired",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "completed replay is one gzip member with every live chunk in order",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "a transaction that cannot begin does not roll back a nonexistent transaction or lose its checkpoint",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "an unreadable checkpoint isolates the failed task and preserves its original bytes",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "task admission freezes input, joins two modes, bounds queue and resumes the same failed request",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 9,
+      "currentAssertionCalls": 9
+    },
+    {
+      "name": "a failed final transaction preserves the previous checkpoint, money, operation and replay tables",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "long historical reports are losslessly stored outside state, while legacy reports stay unchanged",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match-jobs.test.mjs",
+      "baselineAssertionCalls": 9,
+      "currentAssertionCalls": 9
+    },
+    {
+      "name": "worker continuation and a new worker restored from transferred frames equal uninterrupted simulation",
+      "from": "tests/match-jobs.test.mjs",
+      "to": "tests/match/worker.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "domain modules have owners, documented boundaries, public imports and no dependency cycles",
+      "from": "tests/modules.test.mjs",
+      "to": "tests/modules.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "each client feature has one module owner and local handover records",
+      "from": "tests/modules.test.mjs",
+      "to": "tests/modules.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "actual rigid-body sprint, acceleration and fatigue respond to player attributes within human bounds",
+      "from": "tests/physical-motion.test.mjs",
+      "to": "tests/match/physical-motion.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "turning brakes over time and capsule impacts cannot launch a superhuman runner",
+      "from": "tests/physical-motion.test.mjs",
+      "to": "tests/match/physical-motion.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "grass rolling slows progressively to rest without skidding to walking speed or reversing",
+      "from": "tests/physical-motion.test.mjs",
+      "to": "tests/match/physical-motion.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "flying balls lose substantial aerodynamic speed and turf bounce dissipates energy",
+      "from": "tests/physical-motion.test.mjs",
+      "to": "tests/match/physical-motion.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "planned 5, 10 and 30 metre ground passes arrive at a useful speed and predicted time",
+      "from": "tests/physical-motion.test.mjs",
+      "to": "tests/match/physical-motion.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "kicks remain contact-limited and bounded; lofted planning accounts for flight drag",
+      "from": "tests/physical-motion.test.mjs",
+      "to": "tests/match/physical-motion.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "gravity, grass bounce, inertia and body/goalpost collisions use rigid-body physics",
+      "from": "tests/physics.test.mjs",
+      "to": "tests/match/physics.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "a kick requires an overlapping foot, and the ball stays independent afterwards",
+      "from": "tests/physics.test.mjs",
+      "to": "tests/match/physics.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "only a whole-ball swept crossing between posts and under the crossbar scores",
+      "from": "tests/physics.test.mjs",
+      "to": "tests/match/physics.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    },
+    {
+      "name": "scored ball continues into the net before a delayed kickoff resets positions",
+      "from": "tests/physics.test.mjs",
+      "to": "tests/match/physics-match.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "player attributes and fatigue determine locomotion; tactics change saved team movement",
+      "from": "tests/physics.test.mjs",
+      "to": "tests/match/physics-match.test.mjs",
+      "baselineAssertionCalls": 11,
+      "currentAssertionCalls": 11
+    },
+    {
+      "name": "ground passes keep useful speed in either direction without colliding with the kicker trunk",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/player-intelligence.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "a freshly reoriented finite foot uses current geometry, without waiting for stale sensor pairs",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/player-intelligence.test.mjs",
+      "baselineAssertionCalls": 2,
+      "currentAssertionCalls": 2
+    },
+    {
+      "name": "jogging, pressing, sprinting and controlled carrying use distinct physical speeds",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/player-intelligence.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "an organiser passes and a dribbler carries in the same open situation across common seeds",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/player-intelligence.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "a blocked passing corridor is rejected and a forward with a clear chance chooses a shot",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/player-intelligence.test.mjs",
+      "baselineAssertionCalls": 3,
+      "currentAssertionCalls": 3
+    },
+    {
+      "name": "supporters form triangles, a loose ball is recovered, and a keeper approaches a slow ball",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/player-intelligence.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "a physical segment has fast passes, mostly submaximal running, and meaningful player behaviour statistics",
+      "from": "tests/player-intelligence.test.mjs",
+      "to": "tests/match/intelligence-match.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "player identities and thirty bounded abilities are seeded and individually varied",
+      "from": "tests/players.test.mjs",
+      "to": "tests/players.test.mjs",
+      "baselineAssertionCalls": 11,
+      "currentAssertionCalls": 11
+    },
+    {
+      "name": "birthdays follow the game calendar, including season transitions and market players",
+      "from": "tests/players.test.mjs",
+      "to": "tests/players.test.mjs",
+      "baselineAssertionCalls": 8,
+      "currentAssertionCalls": 8
+    },
+    {
+      "name": "training uses age and professionalism, trains keepers separately, and never lowers capped skills",
+      "from": "tests/players.test.mjs",
+      "to": "tests/players.test.mjs",
+      "baselineAssertionCalls": 7,
+      "currentAssertionCalls": 7
+    },
+    {
+      "name": "personality persists while training and match settlement update appropriate fields",
+      "from": "tests/players.test.mjs",
+      "to": "tests/players.test.mjs",
+      "baselineAssertionCalls": 4,
+      "currentAssertionCalls": 4
+    },
+    {
+      "name": "schema 1 upgrade preserves gameplay, money, ages, identity and immutable historical replays",
+      "from": "tests/players.test.mjs",
+      "to": "tests/players.test.mjs",
+      "baselineAssertionCalls": 14,
+      "currentAssertionCalls": 14
+    },
+    {
+      "name": "database migration is atomic and unsupported schemas stop startup without partial changes",
+      "from": "tests/players.test.mjs",
+      "to": "tests/players.test.mjs",
+      "baselineAssertionCalls": 5,
+      "currentAssertionCalls": 5
+    }
+  ],
+  "notes": [
+    "All baseline scenario names remain; moved physical/decision/checkpoint/shootout/worker bodies retain their assertions.",
+    "API parent is parameterized: business, controlled season and real match wrappers select the original scenarios.",
+    "API fixed engine string follows ENGINE_VERSION; season assertions still require round 14 in the season mode and ordinary backup assertions require round 2.",
+    "Birthday/cup tests prepare explicit boundary state; the full season assertions remain in tests/season.",
+    "A scenario inventory is evidence of migration, not evidence that the real physics tier ran in this workflow-only change."
+  ]
+}

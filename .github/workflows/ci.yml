@@ -3,8 +3,24 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Git base for the change being validated
+        required: true
+        default: HEAD^
+      major_flow:
+        description: Explicitly assess this change as a major game flow change
+        type: boolean
+        default: false
+      reason:
+        description: Required explanation when major_flow is selected
+        default: ''
 permissions:
   contents: read
+concurrency:
+  group: validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -13,9 +29,21 @@ jobs:
         node: [22, 24]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run check
+        env:
+          VALIDATION_BASE: ${{ github.event_name == 'workflow_dispatch' && inputs.base || github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          VALIDATION_MAJOR_FLOW: ${{ github.event_name == 'workflow_dispatch' && inputs.major_flow || 'false' }}
+          VALIDATION_REASON: ${{ inputs.reason }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-node-${{ matrix.node }}
+          path: work/validation/result.json
+          if-no-files-found: warn

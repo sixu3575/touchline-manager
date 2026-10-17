@@ -89,7 +89,7 @@ test('birthdays follow the game calendar, including season transitions and marke
   assert.equal(g.gameDate, '2026-07-08');
   assert.equal(g.clubs[0].players[0].age, 26);
   assert.equal(g.market[0].age, 25);
-  for (let i = 1; i < 14; i++) applyAction(g, 'advance');
+  g.round = 14; // Test the season boundary directly, without replaying 13 unrelated rounds.
   applyAction(g, 'season');
   assert.equal(g.gameDate, '2027-07-01');
   assert.equal(g.clubs[0].players[0].age, 26);
