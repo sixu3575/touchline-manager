@@ -190,7 +190,7 @@ export function PhysicalReplay({
             {report.penalties && ended && (
               <small>
                 点球 {report.penalties.join(' : ')} ·{' '}
-                {report.eventFormatVersion === 2 ? '物理点球大战' : '简化结算'}
+                {(report.eventFormatVersion ?? 0) >= 2 ? '物理点球大战' : '简化结算'}
               </small>
             )}
           </div>
