@@ -28,7 +28,7 @@ test('gravity, grass bounce, inertia and body/goalpost collisions use rigid-body
     for (let i = 0; i < 8; i++) stepPhysics(p);
     assert.ok(p.ball.linvel().x < 0, 'CCD sphere hits a thin goalpost');
     const defender = createBody(p, 185, 80, 60, 34);
-    p.ball.setTranslation({ x: 56, y: 0.3, z: 34 }, true);
+    p.ball.setTranslation({ x: 56, y: 1, z: 34 }, true);
     p.ball.setLinvel({ x: 15, y: 0, z: 0 }, true);
     for (let i = 0; i < 8; i++) stepPhysics(p);
     assert.ok(p.ball.translation().x < 60.5, 'player body obstructs the ball');
@@ -68,7 +68,7 @@ test('only a whole-ball swept crossing between posts and under the crossbar scor
 
 test('scored ball continues into the net before a delayed kickoff resets positions', () => {
   const g = createGame('入网轨迹', 42);
-  const r = simulate(g.clubs[0], g.clubs[1], 42, 'net');
+  const r = simulate(g.clubs[0], g.clubs[1], 44, 'net');
   const goal = r.events.find((e) => e.type === 'goal' && e.second < 710);
   assert.ok(goal, 'seeded goal fixture');
   const nextKickoff = r.events.find((e) => e.type === 'kickoff' && e.second > goal.second);

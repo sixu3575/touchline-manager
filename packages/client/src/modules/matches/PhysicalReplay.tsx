@@ -3,7 +3,7 @@ import { Activity, Pause, Play, SkipForward, X } from 'lucide-react';
 import type { Report } from '../../model';
 import { Badge, Crest } from '../../components/ui';
 import { styleNames } from '../../constants';
-import { PhysicalPitch, positionAt } from './PhysicalPitch';
+import { PhysicalPitch, positionAt, speedAt } from './PhysicalPitch';
 import './physical.css';
 
 const clock = (t: number) =>
@@ -20,7 +20,7 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
     [retry, setRetry] = useState(0);
   const [time, setTime] = useState(0),
     [playing, setPlaying] = useState(true),
-    [speed, setSpeed] = useState(5);
+    [speed, setSpeed] = useState(1);
   const [selected, setSelected] = useState(-1);
   const [eventFilter, setEventFilter] = useState('key');
   const regulation = meta.regulationDuration ?? meta.duration;
@@ -93,6 +93,7 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
   const player = meta.players[selected];
   const performanceRow = player && report.performance?.find((p) => p.id === player.id);
   const ballHeight = data ? positionAt(data, report, time).positions[45] : 0;
+  const ballSpeed = data ? speedAt(data, report, time) * 3.6 : 0;
   return (
     <div className="modal-backdrop physical-backdrop">
       <section
@@ -145,7 +146,10 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               <span>
                 <i /> RAPIER 3D · 实际轨迹
               </span>
-              <span>球高 {Math.max(0, ballHeight - 0.11).toFixed(1)} m</span>
+              <span>
+                球速 {ballSpeed.toFixed(0)} km/h · 球高 {Math.max(0, ballHeight - 0.11).toFixed(1)}{' '}
+                m
+              </span>
             </div>
             {data ? (
               <PhysicalPitch
@@ -203,7 +207,7 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               >
                 {[1, 5, 15, 30, 60, 120].map((v) => (
                   <option key={v} value={v}>
-                    {v}×
+                    {v}×{v === 1 ? ' 实速' : ''}
                   </option>
                 ))}
               </select>
@@ -237,11 +241,14 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               </select>
               {performanceRow ? (
                 <span>
-                  模拟段 {(performanceRow.distance / 1000).toFixed(2)} km · 触球{' '}
-                  {performanceRow.touches} · 成功传球 {performanceRow.completed}/
-                  {performanceRow.passes} · 赛末体能 {performanceRow.energy}
+                  {performanceRow.style && <b>{performanceRow.style} · </b>}模拟段{' '}
+                  {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
+                  成功传球 {performanceRow.completed}/{performanceRow.passes} · 赛末体能{' '}
+                  {performanceRow.energy}
                   {performanceRow.yellowCards !== undefined &&
                     ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
+                  {performanceRow.dribbleTouches !== undefined &&
+                    ` · 带球触球 ${performanceRow.dribbleTouches} / 推进 ${performanceRow.carryDistance} m · 直塞 ${performanceRow.throughBalls} / 长传 ${performanceRow.longPasses} / 一脚出球 ${performanceRow.oneTouchPasses}`}
                   {performanceRow.mind &&
                     ` · 士气 ${Math.round(performanceRow.mind.morale)} / 信心 ${Math.round(performanceRow.mind.confidence)}`}
                 </span>
@@ -346,6 +353,11 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                             </span>
                           ) : (
                             <span>
+                              {e.decision && (
+                                <>
+                                  {e.decision}。<br />
+                                </>
+                              )}
                               {e.reason}。有效质量 {e.quality.value.toFixed(1)} · 压力扣分{' '}
                               {e.quality.pressureLoss.toFixed(1)} · 脚法系数{' '}
                               {e.quality.foot.toFixed(3)} · 心理修正{' '}

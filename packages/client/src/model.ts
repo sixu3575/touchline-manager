@@ -30,6 +30,9 @@ export interface MatchEvent {
   y: number;
   playerId?: string;
   reason?: string;
+  intent?: string;
+  decision?: string;
+  estimatedSuccess?: number;
   result?: string;
   probability?: number;
   quality?:
@@ -66,6 +69,13 @@ export interface Report {
     touches: number;
     passes: number;
     completed: number;
+    style?: string;
+    dribbleTouches?: number;
+    carryDistance?: number;
+    throughBalls?: number;
+    longPasses?: number;
+    oneTouchPasses?: number;
+    maxSpeed?: number;
     tackles?: number;
     wonTackles?: number;
     yellowCards?: number;

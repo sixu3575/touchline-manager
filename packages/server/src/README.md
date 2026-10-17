@@ -7,3 +7,5 @@ storage/replays.mjs压缩和保存轨迹，必须与状态/操作记录使用同
 修改本目录同步CHANGELOG与docs/ARCHITECTURE、DATA、OPERATIONS。已有开发流程不变。生产单worker适配小VM；扩容、认证和共享多人世界需要独立设计。
 
 0.4.0注意：服务版本0.4.0，沿用现有worker、revision/请求去重事务与隔离轨迹入口；启动迁移由storage负责。
+
+0.5.0注意：服务健康版本更新至0.5.0；继续既有worker、事务与请求保护，不新增服务或改变发布流程。

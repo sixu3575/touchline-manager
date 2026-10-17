@@ -19,6 +19,7 @@ import {
   orientFoot,
   orientHands,
   kick,
+  touchesBall,
   stepPhysics,
   goalCrossing,
   STEP,
@@ -32,9 +33,12 @@ import {
   targetFor,
   distance,
   actionQuality,
+  movementMode,
+  teamRoles,
+  playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.4.0-rapier-v1';
+export const ENGINE_VERSION = '0.5.0-rapier-intelligence';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // A 90-minute game clock covers 12 minutes of continuous physical play on the free VM.
@@ -53,6 +57,15 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
     formation(club).map(({ player, anchor }, i) => ({
       player: { ...player, matchState: createMatchState(player) },
       anchor,
+      profile: playerProfile(player, anchor),
+      intent: null,
+      movementMode: 'jog',
+      carries: 0,
+      carryDistance: 0,
+      throughBalls: 0,
+      longPasses: 0,
+      oneTouchPasses: 0,
+      maxSpeed: 0,
       isKeeper: player.role === 'GK',
       yellowCards: 0,
       sentOff: false,
@@ -126,6 +139,14 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
     goalRestart = null,
     cut = true,
     cursor = 0;
+  let roles = { chasers: [], receiverId: null, runnerId: null };
+  const motion = {
+    passSpeedSum: 0,
+    passSamples: 0,
+    playerSpeedSum: 0,
+    playerSamples: 0,
+    sprintSamples: 0,
+  };
   const direction = (side) => (side === 0 ? 1 : -1) * (half === 0 ? 1 : -1);
   const event = (type, side, text, actor = null, extra = {}) => {
     const b = physics.ball.translation();
@@ -163,6 +184,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
     a.target = { x, z };
     a.hold = 0;
     a.setPiece = null;
+    a.intent = null;
   }
   function kickoff(side, type = 'kickoff') {
     goalRestart = null;
@@ -343,30 +365,24 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       let active = time >= restartUntil;
       let touchedThisTick = false;
       owner =
-        lastTouch && distance(lastTouch.pos, ball) < 2 && Math.hypot(bv.x, bv.z) < 9
+        lastTouch &&
+        !lastTouch.sentOff &&
+        ball.y < 1.25 &&
+        distance(lastTouch.pos, ball) < 1.3 &&
+        Math.hypot(bv.x - lastTouch.velocity.x, bv.z - lastTouch.velocity.z) < 7
           ? lastTouch
           : null;
       if (active && tick % 6 === 0) {
-        const chasers = [];
-        for (const side of [0, 1]) {
-          const ownGoal = direction(side) === 1 ? 0 : 105;
-          const candidates = actors
-            .filter(
-              (a) =>
-                !a.sentOff && a.side === side && (!a.isKeeper || Math.abs(ball.x - ownGoal) < 9),
-            )
-            .sort(
-              (a, b) =>
-                distance(a.pos, ball) / movement(a.player, a.energy).speed -
-                distance(b.pos, ball) / movement(b.player, b.energy).speed,
-            );
-          const count = owner?.side !== side && clubs[side].tactics.press === 'high' ? 2 : 1;
-          chasers.push(...candidates.slice(0, count).map((a) => a.index));
-          if (pendingPass?.actor.side === side) {
-            const receiver = actors.find((a) => a.player.id === pendingPass.receiverId);
-            if (receiver) chasers.push(receiver.index);
-          }
-        }
+        roles = teamRoles(
+          actors,
+          ball,
+          owner,
+          pendingPass,
+          direction,
+          clubs.map((c) => c.tactics),
+          time,
+        );
+        const chasers = roles.chasers;
         for (const a of actors) {
           if (a.sentOff) continue;
           if (time < a.nextDecision) continue;
@@ -378,6 +394,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             direction(a.side),
             clubs[a.side].tactics,
             chasers,
+            roles,
           );
           a.reaction = a.isKeeper
             ? 0.1 + (100 - ability(a.player, 'reflexes')) / 180
@@ -397,6 +414,9 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
         a.velocity = a.body.linvel();
         const moved = distance(before, a.pos);
         a.distance += moved;
+        if (owner === a) a.carryDistance += moved;
+        a.direction = direction(a.side);
+        a.maxSpeed = Math.max(a.maxSpeed, Math.hypot(a.velocity.x, a.velocity.z));
         a.energy = Math.max(
           20,
           a.energy -
@@ -422,13 +442,15 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             owner,
             direction(a.side),
             clubs[a.side].tactics,
-            [],
+            roles.chasers,
+            roles,
           );
         const target = active ? a.target : a.pos;
         const dx = target.x - a.pos.x,
           dz = target.z - a.pos.z,
           gap = Math.hypot(dx, dz);
-        const m = movement(a.player, a.energy);
+        a.movementMode = active ? movementMode(a, ball, owner, roles, gap) : 'walk';
+        const m = movement(a.player, a.energy, a.movementMode);
         // Separation steers around teammates; Rapier resolves any remaining body contacts.
         let vx = gap > 0.2 ? (dx / gap) * Math.min(m.speed, gap * 2) : 0;
         let vz = gap > 0.2 ? (dz / gap) * Math.min(m.speed, gap * 2) : 0;
@@ -441,12 +463,19 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
               vz += ((a.pos.z - o.pos.z) / d) * (1.4 - d) * 2;
             }
           }
+        const desiredSpeed = Math.hypot(vx, vz);
+        if (desiredSpeed > m.speed) {
+          vx *= m.speed / desiredSpeed;
+          vz *= m.speed / desiredSpeed;
+        }
         const dvx = vx - a.velocity.x,
           dvz = vz - a.velocity.z,
           dv = Math.hypot(dvx, dvz);
         const diving =
           a.isKeeper && bv.x * direction(a.side) < -8 && Math.abs(ball.x - a.pos.x) < 25;
-        const max = m.acceleration * STEP * m.response * (diving ? 2.3 : 1);
+        const slowing =
+          vx * a.velocity.x + vz * a.velocity.z < Math.hypot(a.velocity.x, a.velocity.z) ** 2;
+        const max = (slowing ? m.braking : m.acceleration) * STEP * m.response * (diving ? 2.3 : 1);
         const scale = dv > max ? max / dv : 1;
         a.body.applyImpulse(
           { x: dvx * scale * a.body.mass(), y: 0, z: dvz * scale * a.body.mass() },
@@ -463,7 +492,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
           ball.y < a.height + ability(a.player, 'aerialReach') * 0.008 &&
           (!shot || time - shot.time > a.reaction)
         ) {
-          if (physics.world.intersectionPair(a.hands, physics.collider)) {
+          if (touchesBall(physics, a.hands)) {
             if (checkInvolvement(a)) {
               active = false;
               continue;
@@ -514,7 +543,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             continue;
           }
         }
-        if (ball.y > 1.25 && physics.world.intersectionPair(a.head, physics.collider)) {
+        if (ball.y > 1.25 && touchesBall(physics, a.head)) {
           if (checkInvolvement(a)) {
             active = false;
             continue;
@@ -575,7 +604,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             continue;
           }
         }
-        if (!physics.world.intersectionPair(a.foot, physics.collider)) continue;
+        if (distance(a.pos, ball) > 0.92 || !touchesBall(physics, a.foot)) continue;
         if (checkInvolvement(a)) {
           active = false;
           continue;
@@ -687,23 +716,19 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             result: 'won',
           });
         }
-        if (previous !== a) {
+        const incomingPass =
+          pendingPass && pendingPass.actor !== a && pendingPass.actor.side === a.side
+            ? pendingPass
+            : null;
+        const newControl = previous !== a || Boolean(incomingPass);
+        if (newControl) a.intent = null;
+        if (newControl) {
           if (previous && previous.side !== a.side) {
             stats[a.side].interceptions++;
             lastPass = null;
             shot = null;
           }
-          if (pendingPass && pendingPass.actor !== a) {
-            if (pendingPass.actor.side === a.side && time - pendingPass.time < 10) {
-              pendingPass.actor.completed++;
-              stats[a.side].completedPasses++;
-              lastPass = { actor: pendingPass.actor, receiver: a, time };
-              event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
-                passerId: pendingPass.actor.player.id,
-              });
-            }
-            pendingPass = null;
-          }
+          if (pendingPass && pendingPass.actor !== a) pendingPass = null;
           a.hold = 0;
         }
         const incoming = Math.hypot(bv.x - a.velocity.x, bv.z - a.velocity.z);
@@ -716,7 +741,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
                 'firstTouch',
                 playing().filter((o) => o.side !== a.side),
               ).value;
-        if (previous !== a && incoming > 5 + control * 0.17) {
+        if (newControl && incoming > 11 + control * 0.3) {
           // A difficult first touch dissipates only part of momentum and may spill loose.
           kick(physics, a, {
             x: bv.x * 0.45 + (rng() - 0.5) * 3,
@@ -733,6 +758,49 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
           });
           a.cooldown = 0.35 + (100 - ability(a.player, 'balance')) / 200;
         } else {
+          if (incomingPass && incomingPass.actor.side === a.side && time - incomingPass.time < 10) {
+            incomingPass.actor.completed++;
+            stats[a.side].completedPasses++;
+            lastPass = { actor: incomingPass.actor, receiver: a, time };
+            event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
+              passerId: incomingPass.actor.player.id,
+            });
+          }
+          const oneTouch = Boolean(
+            incomingPass &&
+            ability(a.player, 'firstTouch') >= 78 &&
+            ability(a.player, 'decisions') >= 72,
+          );
+          if (newControl && incoming > 3 && !a.setPiece && !oneTouch) {
+            const speed = Math.min(5, Math.hypot(a.velocity.x, a.velocity.z) * 0.75 + 1.9);
+            const heading =
+              Math.hypot(a.velocity.x, a.velocity.z) > 1
+                ? { x: a.velocity.x, z: a.velocity.z }
+                : { x: direction(a.side), z: 0 };
+            const length = Math.hypot(heading.x, heading.z) || 1;
+            const error = ((rng() - 0.5) * (100 - control)) / 90;
+            kick(physics, a, {
+              x: (heading.x / length) * speed - (heading.z / length) * error,
+              z: (heading.z / length) * speed + (heading.x / length) * error,
+              y: 0.08,
+            });
+            playedBall(a, 'control');
+            touchedThisTick = true;
+            lastTouch = a;
+            a.touches++;
+            a.cooldown = 0.14 + 0.18 * (1 - control / 100);
+            a.hold = 0;
+            a.intent = {
+              kind: 'carry',
+              destination: { x: clamp(a.pos.x + direction(a.side) * 7, 1, 104), z: a.pos.z },
+              expiresAt: time + 0.4,
+            };
+            event('control', a.side, `${a.player.name}调整第一脚触球，为下一步处理留出空间。`, a, {
+              quality: control,
+              result: 'controlled',
+            });
+            continue;
+          }
           const lapseProbability = clamp(
             0.0015 *
               Math.exp((50 - ability(a.player, 'concentration')) / 30) *
@@ -751,6 +819,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             actionRng,
             {
               minute: (time * CLOCK_SCALE) / 60,
+              time,
               trailing: score[a.side] < score[1 - a.side],
               lapse,
             },
@@ -763,6 +832,9 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             receiverId: action.receiverId,
             quality: action.quality,
             result: 'impulse',
+            intent: action.intent,
+            decision: action.reason,
+            estimatedSuccess: action.estimatedSuccess,
             velocity: { x: action.x, y: action.y, z: action.z },
             reason: lapse
               ? '专注失误降低动作质量'
@@ -783,22 +855,34 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             pendingPass = null;
           } else if (action.type !== 'dribble') {
             a.passes++;
+            if (action.intent === 'through') a.throughBalls++;
+            if (['switch', 'cross', 'clearance'].includes(action.intent)) a.longPasses++;
+            if (oneTouch) a.oneTouchPasses++;
             stats[a.side].passes++;
-            pendingPass = { actor: a, time, receiverId: action.receiverId };
+            pendingPass = {
+              actor: a,
+              time,
+              receiverId: action.receiverId,
+              target: action.destination,
+            };
             shot = null;
             if (events.length < 2500)
               event(
                 action.type,
                 a.side,
-                `${a.player.name}${action.type === 'cross' ? '送出高空传中。' : '传球寻找队友。'}`,
+                `${a.player.name}${{ through: '将球送入队友前插的空间。', switch: '长传转移到另一侧。', cross: '送出高空传中。', clearance: '将球解围到安全区域。', feet: '将球快速传到队友脚下。' }[action.intent] ?? '传球寻找队友。'}`,
                 a,
                 explanation,
               );
           }
           a.cooldown =
-            action.type === 'dribble' ? 0.28 + (100 - ability(a.player, 'dribbling')) / 300 : 0.6;
-          if (action.type === 'dribble')
+            action.type === 'dribble'
+              ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
+              : 0.28;
+          if (action.type === 'dribble') {
+            a.carries++;
             event('dribble', a.side, `${a.player.name}短触球向前推进。`, a, explanation);
+          }
           a.setPiece = null;
         }
         a.setPiece = null;
@@ -810,7 +894,9 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       const afterBall = physics.ball.translation();
       // Body deflections count as touches even without an intentional foot action.
       physics.world.contactPairsWith(physics.collider, (c) => {
-        const a = actors.find((a) => a.collider.handle === c.handle);
+        const a = actors.find(
+          (a) => a.collider.handle === c.handle || a.legs.some((leg) => leg.handle === c.handle),
+        );
         if (a && !a.sentOff && active) {
           let contact = false;
           physics.world.contactPair(physics.collider, c, (manifold) => {
@@ -888,7 +974,20 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
         // At the whistle, the taker pursues the stationary ball; all subsequent touches are physical.
         restartTaker.target = { x: afterBall.x, z: afterBall.z };
       }
-      if (tick % 4 === 0) record();
+      if (tick % 4 === 0) {
+        if (active) {
+          if (pendingPass && time - pendingPass.time < 1.2) {
+            motion.passSpeedSum += Math.hypot(bv.x, bv.z);
+            motion.passSamples++;
+          }
+          for (const a of actors.filter((a) => !a.sentOff)) {
+            motion.playerSpeedSum += Math.hypot(a.velocity.x, a.velocity.z);
+            motion.playerSamples++;
+            if (a.movementMode === 'sprint') motion.sprintSamples++;
+          }
+        }
+        record();
+      }
       if (abandoned) break;
     }
     event(
@@ -926,7 +1025,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       id,
       engineVersion: ENGINE_VERSION,
       rulesVersion: RULES_VERSION,
-      parameterVersion: 'approved-v1-physical-1',
+      parameterVersion: 'tempo-intelligence-1',
       eventFormatVersion: 2,
       ...(penalties ? { penalties } : {}),
       ...(abandoned ? { abandoned: true } : {}),
@@ -938,6 +1037,11 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       score,
       stats,
       events,
+      motion: {
+        passSpeedMean: motion.passSpeedSum / (motion.passSamples || 1),
+        playerSpeedMean: motion.playerSpeedSum / (motion.playerSamples || 1),
+        sprintShare: motion.sprintSamples / (motion.playerSamples || 1),
+      },
       performance: actors.map((a) => ({
         id: a.player.id,
         side: a.side,
@@ -946,6 +1050,13 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
         touches: a.touches,
         passes: a.passes,
         completed: a.completed,
+        style: a.profile.label,
+        dribbleTouches: a.carries,
+        carryDistance: Math.round(a.carryDistance),
+        throughBalls: a.throughBalls,
+        longPasses: a.longPasses,
+        oneTouchPasses: a.oneTouchPasses,
+        maxSpeed: Math.round(a.maxSpeed * 100) / 100,
         tackles: a.tackles,
         wonTackles: a.wonTackles,
         yellowCards: a.yellowCards,

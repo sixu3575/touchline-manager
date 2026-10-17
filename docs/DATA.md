@@ -24,3 +24,5 @@
 仅所有当前clubs.players与market补wellbeing.adaptation=100；其他字段与旧reports/轨迹BLOB不变。schema1先恢复身份/日期后同样补适应；单事务迁移、revision只加1、重复启动不重复。新签约适应70。新报告添加规则/参数/eventFormat版本、质量解释、mind及纪律、助攻；原始轨迹仍独立BLOB。可选regulationDuration区分点球大战末段；stride/5Hz不变，penaltyGoal不算常规goal。
 
 回滚0.3.0：先停服务备份当前schema3，再恢复本次发布前完整schema2数据库与对应release；仅切代码会被旧版拒绝，不可删除adaptation后伪称无损降级。保留升级后备份以便追回新增比赛。
+
+0.5.0维持JSON3与轨迹编码。新报告可选motion（传球初段平均m/s、全员平均m/s及冲刺采样比例）；performance可选style、dribbleTouches、carryDistance（实际米）、throughBalls、longPasses、oneTouchPasses、maxSpeed；事件新增intent/decision/estimatedSuccess。均只描述当场保存结果，不写入稳定球员字段，不重算历史。旧0.4代码忽略这些可选字段即可回滚代码，回滚前仍保留完整最新快照。

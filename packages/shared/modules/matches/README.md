@@ -15,3 +15,7 @@
 依赖与文件归属见根目录 modules.json。跨模块只导入公共入口；每次开发在本目录 CHANGELOG.md 记录内容、验证和新增注意事项。既有分支、检查、PR、部署流程不变，流程优化需用户批准。
 
 0.4.0注意：实施已批准A/B/C并保留真实Rapier球轨迹。新增rules及shootout，分层动作质量、越位、近身犯规、纪律、自由球/点球、物理点球大战和助攻解释；退场不得再运动/碰撞。旧事件和轨迹不可重算。数学和简化边界见design/APPROVED_V1_PHYSICAL.md。
+
+0.5.0注意：修复球撞自身/传感器滞后一帧；分离躯干/腿、有限抬脚与滚动角冲量。新增spatial/skills/locomotion/positioning/decisions，agents保留内部兼容导出。实现步行/慢跑/补位/冲刺/带球、角色职责、持续带球意图、球风与空间/拦截时间决策；防止过期意图和门将慢球死锁。新增motion/行为统计，不重算旧回放。
+
+当前细节与参数以[design/TEMPO_AND_DECISIONS_V2.md](design/TEMPO_AND_DECISIONS_V2.md)为准；形状即时接触必须使用刚体当前位置+局部传感器偏移，不能退回上一帧intersectionPair。改变球速时必须验证自身体积、接球可达时间与人速的比例。teamRoles须传入当前物理时间，接球职责3.5秒后失效；跑动职责已判断进攻方，前插不依赖当前有人持球。
