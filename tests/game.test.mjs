@@ -19,7 +19,7 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
       a.events.filter((e) => e.type === 'goal' && e.side === side).length,
     );
   assert.equal(a.stats[0].possession + a.stats[1].possession, 100);
-  assert.equal(a.replay.frameCount, 3601);
+  assert.equal(a.replay.frameCount, 27001);
   assert.equal(a.replay.duration * a.replay.clockScale, 5400);
   assert.equal(a.events.find((e) => e.type === 'half').minute, 45);
   assert.equal(a.events.at(-1).minute, 90);

@@ -49,6 +49,23 @@ export interface MatchEvent {
   opponentQuality?: number;
 }
 export interface Report {
+  detailsStored?: boolean;
+  abandoned?: boolean;
+  timeline?: {
+    second: number;
+    stats: Report['stats'];
+    performance: NonNullable<Report['performance']>;
+  }[];
+  continuity?: {
+    controlledSeconds: number[];
+    looseSeconds: number;
+    contestedSeconds: number;
+    deadSeconds: number;
+    chains: number[][];
+    restarts: number;
+    boxEntries: number[];
+    turnovers: Record<string, number>;
+  };
   replay?: {
     format: string;
     sampleHz: number;

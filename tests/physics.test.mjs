@@ -68,8 +68,8 @@ test('only a whole-ball swept crossing between posts and under the crossbar scor
 
 test('scored ball continues into the net before a delayed kickoff resets positions', () => {
   const g = createGame('入网轨迹', 42);
-  const r = simulate(g.clubs[0], g.clubs[1], 44, 'net');
-  const goal = r.events.find((e) => e.type === 'goal' && e.second < 710);
+  const r = simulate(g.clubs[0], g.clubs[1], 42, 'net');
+  const goal = r.events.find((e) => e.type === 'goal' && e.second < 5390);
   assert.ok(goal, 'seeded goal fixture');
   const nextKickoff = r.events.find((e) => e.type === 'kickoff' && e.second > goal.second);
   assert.ok(nextKickoff.second - goal.second >= 2.5);

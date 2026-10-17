@@ -21,6 +21,7 @@ import { PlayerModal } from './components/PlayerModal';
 import { Replay } from './components/Replay';
 import { Badge, Crest } from './components/ui';
 import type { Game, Player, Report } from './model';
+import { useMatchJob, MatchTask, PhysicalReplay } from './modules/matches';
 import { Fixtures } from './modules/competitions';
 import { Finance } from './modules/economy';
 import { Overview } from './modules/overview';
@@ -44,19 +45,22 @@ function App() {
     [error, setError] = useState(''),
     [toast, setToast] = useState(''),
     [busy, setBusy] = useState(false),
-    [simulating, setSimulating] = useState(false),
+    [watching, setWatching] = useState(false),
     [view, setView] = useState('overview'),
     [mobile, setMobile] = useState(false),
     [player, setPlayer] = useState<Player | null>(null),
     [report, setReport] = useState<Report | null>(null),
     [rename, setRename] = useState(false),
     [name, setName] = useState('');
+  const match = useMatchJob(() => void load());
+  const locked = Boolean(match.job && match.job.status !== 'complete');
   const load = async () => {
     try {
       const res = await fetch('/api/state');
       const data = await res.json();
       if (!res.ok) throw Error(data.error);
       setGame(data.state);
+      if (data.job) match.accept(data.job);
       setError('');
     } catch (e) {
       setError((e as Error).message || '连接失败，请刷新重试。');
@@ -73,7 +77,8 @@ function App() {
   const act = async (type: string, payload: Record<string, unknown> = {}) => {
     if (!game || busy) return;
     setBusy(true);
-    setSimulating(['advance', 'cup'].includes(type));
+    const liveMode = payload.watchMode === 'live';
+    const { watchMode, ...intent } = payload;
     try {
       const requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), (x) =>
         x.toString(16).padStart(2, '0'),
@@ -81,12 +86,17 @@ function App() {
       const res = await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, payload, requestId, revision: game.revision }),
+        body: JSON.stringify({ type, payload: intent, requestId, revision: game.revision }),
       });
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 409) await load();
         throw Error(data.error);
+      }
+      if (res.status === 202) {
+        match.accept(data.job);
+        setWatching(liveMode);
+        return;
       }
       setGame(data.state);
       setToast(data.state.lastMessage);
@@ -96,7 +106,6 @@ function App() {
       setToast((e as Error).message);
     } finally {
       setBusy(false);
-      setSimulating(false);
     }
   };
   if (!game)
@@ -174,7 +183,7 @@ function App() {
             </div>
           </div>
           <span className="demo-label">
-            <span /> PvE 试玩版 · v0.5.0
+            <span /> PvE 试玩版 · v0.6.0
           </span>
         </div>
       </aside>
@@ -241,10 +250,23 @@ function App() {
               <span className="status-dot" /> 独立存档 · AI 联赛
             </Badge>
           </div>
+          {match.job && (
+            <MatchTask
+              job={match.job}
+              connection={match.connection}
+              onWatch={() => setWatching(true)}
+              onReplay={() => {
+                if (match.job?.report) setReport(match.job.report);
+              }}
+              onRetry={() =>
+                void act(match.job!.type, { watchMode: watching ? 'live' : 'background' })
+              }
+            />
+          )}
           {view === 'overview' && (
             <Overview
               game={game}
-              busy={busy}
+              busy={busy || locked}
               act={act}
               navigate={navigate}
               onPlayer={setPlayer}
@@ -252,19 +274,33 @@ function App() {
             />
           )}
           {view === 'squad' && (
-            <Squad game={game} club={club} busy={busy} act={act} onPlayer={setPlayer} />
+            <Squad game={game} club={club} busy={busy || locked} act={act} onPlayer={setPlayer} />
           )}
-          {view === 'tactics' && <Tactics club={club} act={act} busy={busy} onPlayer={setPlayer} />}
+          {view === 'tactics' && (
+            <Tactics club={club} act={act} busy={busy || locked} onPlayer={setPlayer} />
+          )}
           {view === 'fixtures' && (
-            <Fixtures game={game} busy={busy} act={act} onReport={setReport} />
+            <Fixtures game={game} busy={busy || locked} act={act} onReport={setReport} />
           )}
           {view === 'scouting' && (
-            <Scouting game={game} club={club} busy={busy} act={act} onPlayer={setPlayer} />
+            <Scouting
+              game={game}
+              club={club}
+              busy={busy || locked}
+              act={act}
+              onPlayer={setPlayer}
+            />
           )}
           {view === 'training' && (
-            <Training game={game} club={club} busy={busy} act={act} onPlayer={setPlayer} />
+            <Training
+              game={game}
+              club={club}
+              busy={busy || locked}
+              act={act}
+              onPlayer={setPlayer}
+            />
           )}
-          {view === 'stadium' && <Stadium game={game} busy={busy} act={act} />}
+          {view === 'stadium' && <Stadium game={game} busy={busy || locked} act={act} />}
           {view === 'finance' && <Finance game={game} />}
           <footer>
             <span>
@@ -274,11 +310,33 @@ function App() {
           </footer>
         </div>
       </main>
-      {simulating && (
-        <div className="simulation-busy" role="status">
-          正在计算球员跑动与足球轨迹，完成后自动打开回放…
-        </div>
-      )}
+      {watching &&
+        (match.job?.report ? (
+          <PhysicalReplay
+            key={match.job.id}
+            report={match.job.report}
+            onClose={() => setWatching(false)}
+            live={{
+              job: match.job,
+              data: match.data,
+              connection: match.connection,
+              onBackground: () => setWatching(false),
+            }}
+          />
+        ) : (
+          <div className="modal-backdrop">
+            <section className="modal live-empty" role="dialog" aria-label="等待实时比赛">
+              <h2>正在准备比赛画面</h2>
+              <p>
+                {match.connection ||
+                  '本队比赛优先计算。首段轨迹生成后立即开始观看，默认12×，90分钟约7.5分钟。'}
+              </p>
+              <button className="secondary" onClick={() => setWatching(false)}>
+                切换后台模拟
+              </button>
+            </section>
+          </div>
+        ))}
       {toast && (
         <div className="toast" role="status">
           <CheckCircle2 size={19} />
@@ -308,18 +366,19 @@ function App() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && name.trim().length >= 2)
+                  if (e.key === 'Enter' && !locked && name.trim().length >= 2)
                     void act('rename', { name }).then((r) => r && setRename(false));
                 }}
               />
             </label>
             <button
               className="primary"
-              disabled={busy || name.trim().length < 2}
+              disabled={busy || locked || name.trim().length < 2}
               onClick={() => void act('rename', { name }).then((r) => r && setRename(false))}
             >
               保存名称 <Check size={17} />
             </button>
+            {locked && <small className="fine">本轮结算完成后可修改名称。</small>}
             <small className="fine">
               每个浏览器拥有独立存档。清除站点 Cookie 会失去此存档的访问凭据；本版暂不提供账号找回。
             </small>

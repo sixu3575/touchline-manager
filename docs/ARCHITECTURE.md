@@ -10,9 +10,9 @@
 
 每位经理拥有一个独立世界，包括 8 支球队、赛季、资金与市场；不是共享多人世界。唯一状态 owner 为服务端。
 
-客户端请求 `{type,payload,requestId,revision}`。普通动作在事务中执行。advance/cup先校验、在单个worker计算，再在BEGIN IMMEDIATE中重新读revision/去重，原子提交状态、轨迹BLOB和操作记录。计算期间不持有SQLite写锁；过期结果拒绝提交。相同进行中请求共享计算；每存档只接收一个不同的比赛计算，worker最多两项排队，超限返回503。
+客户端请求 `{type,payload,requestId,revision}`。普通动作在事务中执行。advance/cup返回202与持久任务ID；按存档/赛事/赛季/轮次去重，冻结输入和种子，一个worker分段计算、最多三项未结算任务。计算期间不持有SQLite写锁，同一存档的其他写操作返回409，浏览仍可用。全轮完成后在BEGIN IMMEDIATE中复查revision，原子提交状态、轨迹、操作去重和任务完成。失败或重启保留原检查点，不重抽赛果。
 
-比赛simulate(home,away,seed,id,options)不访问数据库、系统时间或网络；20Hz Rapier3D物理、0.1–0.6秒分层目标更新、5Hz轨迹。单场本机实测约6秒，所以放入worker避免HTTP阻塞。轨迹从同会话端点单独加载，浏览器只插值显示，老报告使用LegacyReplay。客户端共享只读赛事选择器从competitions/selectors/index.mjs导入；不要通过game.mjs把WASM和比赛编排打进前端。
+比赛simulate(home,away,seed,id,options)不访问数据库、系统时间或网络；20Hz Rapier3D物理、0.1–0.6秒分层目标更新、5Hz轨迹。0.6.0默认完整5400秒，由worker计算避免HTTP阻塞；每60模拟秒保存检查点/轨迹片段，片段45秒看门狗。SSE只发索引，同会话GET取gzip二进制；客户端可从首段开始插值观看。静止重开不重复求解AI，实际比赛阶段物理质量一致。轨迹从同会话端点单独加载，浏览器只插值显示，老报告使用LegacyReplay。客户端共享只读赛事选择器从competitions/selectors/index.mjs导入；不要通过game.mjs把WASM和比赛编排打进前端。
 
 ## 访问保护
 

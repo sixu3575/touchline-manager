@@ -1,7 +1,12 @@
 import { random } from '../../core/index.mjs';
 import { settlePlayerMatch } from '../players/index.mjs';
 import { money } from '../economy/index.mjs';
-export { simulate, ENGINE_VERSION } from './simulation.mjs';
+export {
+  simulate,
+  createMatchSimulation,
+  ENGINE_VERSION,
+  PARAMETER_VERSION,
+} from './simulation.mjs';
 export function settleClubPlayers(club, report) {
   const side = report.homeId === club.id ? 0 : 1;
   const won = report.score[side] > report.score[1 - side];

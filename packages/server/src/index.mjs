@@ -6,7 +6,8 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CURRENT_SCHEMA, migrateDatabase } from './storage/migrations.mjs';
 import { createReplayStorage } from './storage/replays.mjs';
-import { SimulationPool } from './simulation-pool.mjs';
+import { MatchJobs } from './match-jobs.mjs';
+import { gzipSync } from 'node:zlib';
 import { createGame, applyAction } from '../../shared/game.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
@@ -17,8 +18,7 @@ db.exec(
   'PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS saves (id TEXT PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL, state TEXT NOT NULL, updated_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS operations (save_id TEXT NOT NULL, request_id TEXT NOT NULL, body_hash TEXT NOT NULL, PRIMARY KEY(save_id,request_id));',
 );
 const replays = createReplayStorage(db);
-const simulations = new SimulationPool();
-const pending = new Map();
+const jobs = new MatchJobs(db, replays);
 const migrated = migrateDatabase(db);
 if (migrated) console.log(`Migrated ${migrated} saves to schema ${CURRENT_SCHEMA}`);
 const findSave = db.prepare('SELECT * FROM saves WHERE token_hash=?');
@@ -30,8 +30,9 @@ const findOperation = db.prepare(
 const insertOperation = db.prepare('INSERT INTO operations VALUES (?,?,?)');
 const hash = (s) => createHash('sha256').update(s).digest('hex');
 const rate = new Map();
+const streams = new Map();
 const dist = resolve(ROOT, 'dist/client');
-const version = '0.5.0';
+const version = '0.6.0';
 const security = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'same-origin',
@@ -109,14 +110,33 @@ const server = http.createServer(async (req, res) => {
         entry = { n: 0, until: now + 60000 };
         rate.set(ip, entry);
       }
-      if (++entry.n > 150) {
+      if (++entry.n > (req.method === 'GET' ? 600 : 150)) {
         send(res, 429, { error: '操作太频繁，请稍后重试。' });
         return;
       }
       if (rate.size > 5000) for (const [k, v] of rate) if (v.until < now) rate.delete(k);
       if (req.method === 'GET' && url.pathname === '/api/state') {
         const row = session(req, res);
-        send(res, 200, { state: JSON.parse(row.state), version });
+        send(res, 200, { state: JSON.parse(row.state), version, job: jobs.latest(row.id) });
+        return;
+      }
+      if (req.method === 'GET' && url.pathname.startsWith('/api/reports/')) {
+        const raw = cookies(req).tl_session;
+        const row = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;
+        const id = decodeURIComponent(url.pathname.slice('/api/reports/'.length));
+        const payload = row && replays.report(row.id, id);
+        if (!payload) {
+          send(res, 404, { error: '战报不存在或不属于此存档。' });
+          return;
+        }
+        res.writeHead(200, {
+          ...security,
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Encoding': 'gzip',
+          'Content-Length': payload.length,
+          'Cache-Control': 'no-store',
+        });
+        res.end(payload);
         return;
       }
       if (req.method === 'GET' && url.pathname.startsWith('/api/replays/')) {
@@ -131,6 +151,75 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, {
           ...security,
           'Content-Type': 'application/octet-stream',
+          'Content-Encoding': 'gzip',
+          'Content-Length': payload.length,
+          'Cache-Control': 'no-store',
+        });
+        res.end(payload);
+        return;
+      }
+      if (req.method === 'GET' && url.pathname.startsWith('/api/match-jobs/')) {
+        const raw = cookies(req).tl_session;
+        const save = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;
+        const parts = url.pathname.split('/').slice(3),
+          row = save && jobs.store.owned(parts[0], save.id);
+        if (!row) {
+          send(res, 404, { error: '比赛任务不存在或不属于此存档。' });
+          return;
+        }
+        if (parts[1] === 'events' && parts.length === 2) {
+          if ([...streams.values()].filter((id) => id === save.id).length >= 4) {
+            send(res, 429, { error: '观赛连接过多，请关闭重复页面。' });
+            return;
+          }
+          const emit = () => {
+            const view = jobs.view(jobs.store.get(row.id));
+            const { report, ...summary } = view;
+            res.write('id: ' + (view.seq ?? 0) + '\ndata: ' + JSON.stringify(summary) + '\n\n');
+          };
+          res.writeHead(200, {
+            ...security,
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-store',
+            Connection: 'keep-alive',
+            'X-Accel-Buffering': 'no',
+          });
+          res.flushHeaders();
+          streams.set(res, save.id);
+          emit();
+          jobs.on(row.id, emit);
+          const heartbeat = setInterval(() => res.write(': keepalive\n\n'), 15000);
+          req.on('close', () => {
+            clearInterval(heartbeat);
+            jobs.off(row.id, emit);
+            streams.delete(res);
+          });
+          return;
+        }
+        if (parts[1] === 'chunks' && parts.length === 3 && /^\d{1,4}$/.test(parts[2])) {
+          const payload = jobs.store.chunk(row.id, Number(parts[2]));
+          if (!payload) {
+            send(res, 404, { error: '轨迹尚未生成。' });
+            return;
+          }
+          res.writeHead(200, {
+            ...security,
+            'Content-Type': 'application/octet-stream',
+            'Content-Encoding': 'gzip',
+            'Content-Length': payload.length,
+            'Cache-Control': 'no-store',
+          });
+          res.end(payload);
+          return;
+        }
+        if (parts.length !== 1) {
+          send(res, 404, { error: '接口不存在。' });
+          return;
+        }
+        const payload = gzipSync(JSON.stringify({ job: jobs.view(row) }), { level: 1 });
+        res.writeHead(200, {
+          ...security,
+          'Content-Type': 'application/json; charset=utf-8',
           'Content-Encoding': 'gzip',
           'Content-Length': payload.length,
           'Cache-Control': 'no-store',
@@ -172,27 +261,17 @@ const server = http.createServer(async (req, res) => {
           send(res, 200, { state: before, replayed: true });
           return;
         }
+        if (['advance', 'cup'].includes(data.type)) {
+          const job = jobs.start(row.id, before, data, bodyHash);
+          send(res, 202, { job });
+          return;
+        }
+        if (jobs.locked(row.id))
+          throw Object.assign(Error('比赛正在结算，暂不能修改俱乐部；可继续浏览和观赛。'), {
+            status: 409,
+          });
         if (before.revision !== data.revision)
           throw Object.assign(Error('存档已更新，请刷新后重试。'), { status: 409 });
-        let computed;
-        if (['advance', 'cup'].includes(data.type)) {
-          const key = row.id + ':' + data.requestId;
-          let job = pending.get(key);
-          if (job && job.bodyHash !== bodyHash)
-            throw Object.assign(Error('操作标识已被使用。'), { status: 409 });
-          if (!job) {
-            if ([...pending.keys()].some((k) => k.startsWith(row.id + ':')))
-              throw Object.assign(Error('本存档正在计算比赛，请等待结算完成。'), { status: 409 });
-            const promise = simulations.run(before, data.type, data.payload);
-            job = { bodyHash, promise };
-            pending.set(key, job);
-          }
-          try {
-            computed = await job.promise;
-          } finally {
-            if (pending.get(key) === job) pending.delete(key);
-          }
-        }
         db.exec('BEGIN IMMEDIATE');
         try {
           const existing = findOperation.get(row.id, data.requestId);
@@ -208,7 +287,7 @@ const server = http.createServer(async (req, res) => {
           }
           if (current.revision !== data.revision)
             throw Object.assign(Error('存档已更新，请重试刚才的操作。'), { status: 409 });
-          const state = computed ?? applyAction(current, data.type, data.payload);
+          const state = applyAction(current, data.type, data.payload);
           replays.persist(row.id, state);
           updateSave.run(JSON.stringify(state), new Date().toISOString(), row.id);
           insertOperation.run(row.id, data.requestId, bodyHash);
@@ -269,7 +348,8 @@ server.listen(Number(process.env.PORT || 3100), process.env.HOST || '127.0.0.1',
   ),
 );
 async function close() {
-  await simulations.close();
+  await jobs.close();
+  for (const res of streams.keys()) res.end();
   server.close(() => {
     db.close();
     process.exit(0);
