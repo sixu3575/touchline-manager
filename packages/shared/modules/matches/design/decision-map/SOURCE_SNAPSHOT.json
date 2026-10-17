@@ -1,0 +1,60 @@
+{
+  "verifiedOn": "2026-10-17",
+  "baselineCommit": "00e683dc90aed61dd647144c5665d02f2cc6b45b",
+  "engineVersion": "0.6.1-physical-motion",
+  "parameterVersion": "physical-motion-1",
+  "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
+  "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
+  "rendering": {
+    "cli": "12.0.0",
+    "layout": "dagre",
+    "font": "Microsoft YaHei",
+    "htmlLabels": false
+  },
+  "sourceFiles": {
+    "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
+    "packages/shared/modules/matches/positioning.mjs": "42a46fe0f764fb9d9b09a30b7412bc925b9f555a4587145ef10bfd9b381c67a6",
+    "packages/shared/modules/matches/locomotion.mjs": "b3f7a4843a219a080613328fd2d3c0b0e985b1e6d5c94174546f89da6124392d",
+    "packages/shared/modules/matches/decisions.mjs": "a02585caa09589d92459c060671e3f80e1defd5150612c33e5dae876f56b9f6b",
+    "packages/shared/modules/matches/simulation.mjs": "cb11262210cbbe91470c5093d680dabef146033e0e87721f8318febd44a2a454",
+    "packages/shared/modules/matches/continuity.mjs": "ca40e8219074584ada8be045202a7c79661553faf157f733958f69d0b80579e0",
+    "packages/shared/modules/matches/receiving.mjs": "90bef1659050f765fbd13a593f5e27e5942d1d8047b6c5a8a4dcd579e047d283",
+    "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
+    "packages/shared/modules/matches/skills.mjs": "2247076fcf27042db968d32fe8e768eac3be23381dee0919f29ccedfedc1e5cd",
+    "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
+    "packages/shared/modules/matches/physics.mjs": "c69e3b51c7e69b3cad7b0ddcd684fc33a1ba9797baad8006abc992d5bdcd510e",
+    "packages/shared/modules/matches/ball-motion.mjs": "1093786771b1ced1ecc84c83c86d846f4154e517260512146e7b8107c0214cb9",
+    "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
+    "packages/shared/modules/players/index.mjs": "6ce81484d00764aea6e71f27be84c1146a5711590a20e4af07de219776e29439",
+    "packages/shared/modules/players/match-state.mjs": "68d9996b73ec714b90aa6557af6ba3cb5bc9fab434133eeb27bcd0f54a1c133f",
+    "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
+    "packages/shared/modules/tactics/index.mjs": "44d228d28a6a7d24a551782eb0841930e7a91c96a6855eb9fd70ab7395d2482d",
+    "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68"
+  },
+  "diagrams": {
+    "01-overview": {
+      "mermaidSha256": "2426e87906ef293137c31c477d929a5432760ae7d68aa1524c2539ba787fa6ff",
+      "svgSha256": "1bf0ca9c3d7c67c5b0d43137db14fb87ae5671f48b67cea34bad9891105803da"
+    },
+    "02-roles": {
+      "mermaidSha256": "f5851871322565e6914e77a011f0e44eb0a5cc812896aa09b25297d8f5e41e0f",
+      "svgSha256": "01bd5f5c95fe7a97ddb7e6d166cff3e9708e390bbc0faf3c4de910ebace3a018"
+    },
+    "03-positioning": {
+      "mermaidSha256": "f4079f96e23bfe89d32f9329bbc7a9a74214acdb4e87ca74c7c27608ff6bd0f7",
+      "svgSha256": "d6b40b483ea77ff39cfc99662ab838fe2efda751329bdb887deb9c27b6865487"
+    },
+    "04-reception": {
+      "mermaidSha256": "5c68873097fa14346fab8a7c9f83c713beb156701c4d6276399a3766d2b60d54",
+      "svgSha256": "ea1b4251931ee5babdffa82c74c8ddef98b1bd5d008d317c55e977f4d90d804f"
+    },
+    "05-actions": {
+      "mermaidSha256": "71a7867166c62b231655439aa90644c102c55da3924444530b57a44fa8cdf400",
+      "svgSha256": "1b40f571ef3410729bd3470b13bf4838b0c35a1904bb90e76c8f16e105e9db86"
+    },
+    "06-profiles": {
+      "mermaidSha256": "feaf1f7cd4cd5dc69b3ea60620bdbe3bd0db0e129f6d2840f8d99db17d7a3886",
+      "svgSha256": "9445d5239f8462ede85d0516fef0c7202ad11f21f49d4fbaaa689dea9b5dd955"
+    }
+  }
+}

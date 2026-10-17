@@ -1,5 +1,7 @@
 # 比赛属性设计入口
 
+当前实现的可视化入口：[球员无球跑动与接球决策图](../packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。基于0.6.1实际函数核对，区分位置职责、动态职责、球风展示与真实评分影响；包括候选门槛、数学及现有限制。用户2026-10-17明确要求后续相关算法/固定数据改动同次更新该图、SVG和源码摘要；具体维护映射见该文第8节，既有检查和发布流程不变。
+
 最新运动参数与检查见[PHYSICAL_MOTION_V061.md](../packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md)：属性驱动的实际跑速、有限加减速、异常碰撞保护、二次空气阻力与显式草阻、同步传球/接球预测。完整90分钟及双观看入口契约见[CONTINUITY_AND_WATCHING_V3.md](../packages/shared/modules/matches/design/CONTINUITY_AND_WATCHING_V3.md)。以下各版本用于追溯，不能用旧速度参数覆盖新引擎。
 
 2026-10-17用户仅批准测试文件并行4、CI触发去重两项流程调整，批准范围见根AGENTS.md；其他流程优化仍须另行批准。
