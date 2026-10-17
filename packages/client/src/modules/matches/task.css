@@ -1,0 +1,114 @@
+.match-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  background: #eef3e7;
+  border: 1px solid #cdd8bf;
+  border-radius: 14px;
+}
+.match-task h3 {
+  margin: 6px 0;
+  font-size: 20px;
+}
+.match-task p {
+  margin: 6px 0 12px;
+  color: #5d6d52;
+  max-width: 650px;
+  font-size: 13px;
+}
+.match-task progress {
+  display: block;
+  width: 100%;
+  height: 7px;
+  accent-color: #527d36;
+  margin: 12px 0 8px;
+}
+.match-task small {
+  color: #5d6d52;
+}
+.match-task-copy {
+  flex: 1;
+}
+.match-task-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: 320px;
+}
+.match-task-actions > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #657858;
+  font-size: 12px;
+}
+.match-start-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.match-start-options .secondary {
+  background: #fff9;
+}
+.physical-live-progress {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #edf3e6;
+  font-size: 12px;
+  color: #425d31;
+  flex-wrap: wrap;
+}
+.physical-live-progress button {
+  font: inherit;
+  border: 1px solid #cbd7be;
+  border-radius: 6px;
+  background: white;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.physical-live-note {
+  font-size: 12px;
+  color: #627455;
+  margin: 8px 0;
+}
+.live-empty {
+  min-height: 240px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 28px;
+}
+.live-empty p {
+  color: #718065;
+  max-width: 500px;
+}
+.live-empty button {
+  margin: auto;
+}
+@media (max-width: 650px) {
+  .match-task {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 18px;
+  }
+  .match-task-actions {
+    max-width: none;
+  }
+  .match-task-actions button {
+    flex: 1;
+  }
+  .match-start-options {
+    flex-direction: column;
+  }
+  .match-start-options button {
+    width: 100%;
+    justify-content: center;
+  }
+}

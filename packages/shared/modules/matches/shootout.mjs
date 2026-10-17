@@ -1,4 +1,5 @@
 import { random, seedFrom, clamp } from '../../core/index.mjs';
+import { keeperReaction } from './goalkeeping.mjs';
 import { chooseAction, ability, movement } from './agents.mjs';
 import {
   STEP,
@@ -95,7 +96,7 @@ export function shootout({ physics, actors, seed, time, event, direction }) {
         );
       }
       if (kicked && !goal) {
-        const delay = 0.1 + (100 - ability(keeper.player, 'reflexes')) / 180;
+        const delay = keeperReaction(keeper.player);
         const targetZ =
           time - start > 0.8 + delay ? clamp(ball.z + velocity.z * 0.15, 30.4, 37.6) : 34;
         const m = movement(keeper.player, keeper.energy),

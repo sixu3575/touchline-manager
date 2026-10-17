@@ -7,7 +7,7 @@
 - state：原字段加 gameDate；所有当前 clubs.players 与 market 具有球员模型 2 字段，见 PLAYERS.md。
 - reports：保留engineVersion、seed、事件与快照；旧报告不重算。0.3.0添加可选replay元数据、second事件时间、performance球员跑动和扩展统计；保持当时JSON schemaVersion=2；0.4.0按下述方案迁移至3。
 - replays：(save_id,report_id)主键、payload为gzip压缩的小端uint16轨迹。与状态和operations同一事务写入，最多保留当前35份报告对应的数据；其他存档和无会话请求无法读取。
-- SQLite user_version=2：启动时增建replays表；未知更高版本拒绝启动。此前表和JSON不删除或重建。JSON版本独立于表版本。
+- SQLite user_version=3：保留replays表并增建match_jobs/match_chunks；未知更高版本拒绝启动。此前表和JSON不删除或重建。JSON版本独立于表版本。
 
 ## 1 → 2
 
@@ -26,3 +26,14 @@
 回滚0.3.0：先停服务备份当前schema3，再恢复本次发布前完整schema2数据库与对应release；仅切代码会被旧版拒绝，不可删除adaptation后伪称无损降级。保留升级后备份以便追回新增比赛。
 
 0.5.0维持JSON3与轨迹编码。新报告可选motion（传球初段平均m/s、全员平均m/s及冲刺采样比例）；performance可选style、dribbleTouches、carryDistance（实际米）、throughBalls、longPasses、oneTouchPasses、maxSpeed；事件新增intent/decision/estimatedSuccess。均只描述当场保存结果，不写入稳定球员字段，不重算历史。旧0.4代码忽略这些可选字段即可回滚代码，回滚前仍保留完整最新快照。
+
+## 0.6.0 表版本 2 → 3
+
+JSON schemaVersion仍3，不升级revision，不改写既有saves/operations/replays。新增match_jobs（存档/赛事身份/请求/冻结revision/状态/进度/压缩work）与match_chunks（job_id+seq唯一，gzip二进制）。输入计划、随机状态、Rapier快照和域状态一起保存；片段与检查点在同一事务提交，最终状态/全部正式回放/operation/job.complete再同事务提交。不同会话不能读取任务、SSE或分段。
+
+任务唯一身份：save_id+advance/season/round，或save_id+cup/season/stage；原始requestId也唯一。不同按钮和新requestId加入未结算原任务，前端模式不进入种子。任务进行/失败时冻结其他存档写入，拒绝借更改阵容或资金覆盖结算。失败重试从原work恢复，不删除比赛。
+
+新报告ENGINE_VERSION=0.6.0-continuity、parameterVersion=continuity-1、eventFormatVersion=3、clockScale=1，帧仍positions-u16-v1/49值/5Hz。旧回放按原元数据解码，不重算、不把12分钟旧回放伸成90分钟新轨迹。阶段timeline仅保存在最近3个完成任务供实时界面，不在所有历史报告重复携带。正式回放仍跟随35份报告保留。
+
+VACUUM INTO备份包括新表、未完成任务与片段。原版本/同Node和Rapier依赖恢复未完成任务；发布前应先让旧引擎任务结算完成。回滚0.5必须停服务、保留最新完整快照，再恢复升级前表2备份及对应release；会回到该备份时间点，不能仅切代码或删表假称无损回滚。
+0.6.0补充：match_reports按save_id/report_id保存gzip完整战报，新state.reports只保留detailsStored摘要，GET /api/reports/:id同Cookie按需读取事件/快照/球员统计；旧报告JSON不压缩迁移、不重算。详细战报与轨迹、存档、操作同事务提交，沿用35场保留期，完整备份必须包含此表。这样长期存档不会反复解析35份完整90分钟事件，保护128MiB主线程JS堆。

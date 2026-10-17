@@ -1,3 +1,13 @@
+import { packActors, unpackActors } from './checkpoint.mjs';
+import { firstTouchVelocity } from './receiving.mjs';
+import { keeperReaction, diveResponse } from './goalkeeping.mjs';
+import {
+  continuityState,
+  updateContinuity,
+  controlBall,
+  releaseControl,
+  deadBall,
+} from './continuity.mjs';
 import { random, clamp, seedFrom } from '../../core/index.mjs';
 import { createMatchState, matchShock, energyCost, mentalModifier } from '../players/index.mjs';
 import {
@@ -14,6 +24,7 @@ import { shootout } from './shootout.mjs';
 import { validateLineup } from '../tactics/index.mjs';
 import {
   createPhysics,
+  restorePhysics,
   createBody,
   createHands,
   orientFoot,
@@ -38,61 +49,87 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.5.0-rapier-intelligence';
+export const ENGINE_VERSION = '0.6.0-continuity';
+export const PARAMETER_VERSION = 'continuity-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
-// A 90-minute game clock covers 12 minutes of continuous physical play on the free VM.
-// Physics remains in real seconds: never scale ball velocity or gravity by CLOCK_SCALE.
-const DURATION = 12 * 60;
-const CLOCK_SCALE = 7.5;
+// Full regulation clock in real SI seconds. Playback speed is a client concern.
+const DURATION = 90 * 60;
+const CLOCK_SCALE = 1;
 const toCm = (n) => Math.round(clamp(n, 0, 655.35) * 100);
 
 export function simulate(home, away, seed, id = 'match', options = {}) {
+  const engine = createMatchSimulation(home, away, seed, id, options);
+  try {
+    let part;
+    do {
+      part = engine.next();
+    } while (!part.done);
+    return part.value;
+  } finally {
+    engine.return();
+  }
+}
+// One deterministic implementation for synchronous simulation and durable server slices.
+export function* createMatchSimulation(home, away, seed, id = 'match', options = {}) {
+  const duration = options.durationSeconds ?? DURATION;
+  if (!Number.isInteger(duration) || duration < 1 || duration > DURATION)
+    throw Error('Invalid simulation duration');
+  if (
+    options.checkpoint &&
+    (options.checkpoint.version !== ENGINE_VERSION ||
+      options.checkpoint.seed !== seed ||
+      options.checkpoint.id !== id ||
+      options.checkpoint.duration !== duration)
+  )
+    throw Error('Incompatible match checkpoint');
   validateLineup(home, home.lineup, home.tactics.formation);
   validateLineup(away, away.lineup, away.tactics.formation);
   const clubs = [home, away],
     rng = random(seed),
-    physics = createPhysics();
-  const actors = clubs.flatMap((club, side) =>
-    formation(club).map(({ player, anchor }, i) => ({
-      player: { ...player, matchState: createMatchState(player) },
-      anchor,
-      profile: playerProfile(player, anchor),
-      intent: null,
-      movementMode: 'jog',
-      carries: 0,
-      carryDistance: 0,
-      throughBalls: 0,
-      longPasses: 0,
-      oneTouchPasses: 0,
-      maxSpeed: 0,
-      isKeeper: player.role === 'GK',
-      yellowCards: 0,
-      sentOff: false,
-      dismissedAt: null,
-      tackles: 0,
-      wonTackles: 0,
-      tackleAt: 0,
-      side,
-      index: side * 11 + i,
-      ...createBody(physics, player.heightCm ?? 180, ability(player, 'strength'), 0, 0),
-      pos: { x: 0, z: 0 },
-      velocity: { x: 0, z: 0 },
-      target: { x: 0, z: 0 },
-      energy: player.fitness,
-      distance: 0,
-      touches: 0,
-      passes: 0,
-      completed: 0,
-      hold: 0,
-      cooldown: 0,
-      bias: rng() * 2 - 1,
-      reaction: 0,
-      setPiece: null,
-      nextDecision: 0,
-    })),
-  );
-  for (const a of actors) if (a.isKeeper) a.hands = createHands(physics, a);
+    physics = options.checkpoint ? restorePhysics(options.checkpoint.physics) : createPhysics();
+  const actors = options.checkpoint
+    ? unpackActors(options.checkpoint.actors, physics)
+    : clubs.flatMap((club, side) =>
+        formation(club).map(({ player, anchor }, i) => ({
+          player: { ...player, matchState: createMatchState(player) },
+          anchor,
+          profile: playerProfile(player, anchor),
+          intent: null,
+          movementMode: 'jog',
+          carries: 0,
+          carryDistance: 0,
+          throughBalls: 0,
+          longPasses: 0,
+          oneTouchPasses: 0,
+          maxSpeed: 0,
+          isKeeper: player.role === 'GK',
+          yellowCards: 0,
+          sentOff: false,
+          dismissedAt: null,
+          tackles: 0,
+          wonTackles: 0,
+          tackleAt: 0,
+          side,
+          index: side * 11 + i,
+          ...createBody(physics, player.heightCm ?? 180, ability(player, 'strength'), 0, 0),
+          pos: { x: 0, z: 0 },
+          velocity: { x: 0, z: 0 },
+          target: { x: 0, z: 0 },
+          energy: player.fitness,
+          distance: 0,
+          touches: 0,
+          passes: 0,
+          completed: 0,
+          hold: 0,
+          cooldown: 0,
+          bias: rng() * 2 - 1,
+          reaction: 0,
+          setPiece: null,
+          nextDecision: 0,
+        })),
+      );
+  for (const a of actors) if (a.isKeeper && !a.hands) a.hands = createHands(physics, a);
   const stats = clubs.map(() => ({
     shots: 0,
     onTarget: 0,
@@ -109,11 +146,10 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
     redCards: 0,
     possessionTicks: 0,
   }));
+  const continuity = continuityState();
+  const timeline = [];
   const score = [0, 0],
     events = [];
-  const duration = options.durationSeconds ?? DURATION; // Short fixture harness; not exposed to HTTP.
-  if (!Number.isInteger(duration) || duration < 1 || duration > DURATION)
-    throw Error('Invalid simulation duration');
   const ticks = duration * 20;
   const frames =
     options.recordReplay === false
@@ -162,11 +198,12 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       ...extra,
     });
   };
-  function placeBall(x, z) {
+  function placeBall(x, z, reason) {
     physics.ball.setTranslation({ x, y: BALL_RADIUS + 0.015, z }, true);
     physics.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
     physics.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
     lastTouch = null;
+    deadBall(continuity, time, reason);
     owner = null;
     pendingPass = null;
     shot = null;
@@ -188,7 +225,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
   }
   function kickoff(side, type = 'kickoff') {
     goalRestart = null;
-    placeBall(52.5, 34);
+    placeBall(52.5, 34, type);
     for (const a of actors) {
       if (a.sentOff) continue;
       const dir = direction(a.side);
@@ -199,14 +236,14 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       actors.find((a) => a.side === side && !a.sentOff && a.player.role === 'FWD') ??
       actors.find((a) => a.side === side && !a.sentOff && !a.isKeeper);
     placeActor(taker, 52.5 - direction(side) * 0.66, 34);
-    restartUntil = time + 2;
+    restartUntil = time + 10;
     restartSide = side;
     restartTaker = taker;
     taker.setPiece = 'kickoff';
     event(type, side, type === 'half' ? '双方交换场地，下半场开始。' : '中圈开球，比赛开始。');
   }
   function restart(type, side, x, z) {
-    placeBall(x, z);
+    placeBall(x, z, type);
     const candidates = actors.filter(
       (a) => !a.sentOff && a.side === side && (type === 'goalKick' ? a.isKeeper : !a.isKeeper),
     );
@@ -254,9 +291,16 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       }
     }
     taker.setPiece = type;
+    for (const a of actors) {
+      a.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      a.velocity = { x: 0, z: 0 };
+    }
     restartSide = side;
     restartTaker = taker;
-    restartUntil = time + 2.5;
+    restartUntil =
+      time +
+      ({ throwIn: 12, goalKick: 18, corner: 18, freeKick: 20, indirect: 15, penalty: 25 }[type] ??
+        12);
     event(
       type,
       side,
@@ -348,12 +392,208 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
     frames[cursor++] = lastTouch === null ? 0 : lastTouch.index + 1;
     cut = false;
   }
-  kickoff(0);
-  record();
+  const actorAt = (i) => (i === null || i === undefined ? null : actors[i]);
+  const link = (row) =>
+    row
+      ? {
+          ...row,
+          actor: actorAt(row.actor),
+          ...(row.receiver !== undefined ? { receiver: actorAt(row.receiver) } : {}),
+        }
+      : null;
+  let startTick = 0;
+  if (options.checkpoint) {
+    const c = options.checkpoint;
+    if (c.version !== ENGINE_VERSION || c.seed !== seed || c.id !== id || c.duration !== duration)
+      throw Error('Incompatible match checkpoint');
+    ({
+      time,
+      half,
+      pendingPass,
+      shot,
+      offside,
+      lastPass,
+      deliberate,
+      restartPlay,
+      actionNumber,
+      abandoned,
+      restartUntil,
+      restartSide,
+      goalRestart,
+      cut,
+      cursor,
+      roles,
+    } = c.state);
+    lastTouch = actorAt(c.state.lastTouch);
+    owner = actorAt(c.state.owner);
+    restartTaker = actorAt(c.state.restartTaker);
+    pendingPass = link(pendingPass);
+    shot = link(shot);
+    lastPass = link(lastPass);
+    stats.splice(0, 2, ...c.stats);
+    score.splice(0, 2, ...c.score);
+    events.push(...c.events);
+    timeline.push(...c.timeline);
+    Object.assign(motion, c.motion);
+    Object.assign(continuity, c.continuity);
+    if (frames && c.frames) frames.set(c.frames);
+    rng.restore(c.rng);
+    rulesRng.restore(c.rulesRng);
+    startTick = c.tick;
+    for (const [i, n] of c.legRecovery) physics.legRecovery.set(actors[i], n);
+  } else {
+    kickoff(0);
+    record();
+  }
+  const unlink = (row) =>
+    row
+      ? {
+          ...row,
+          actor: row.actor?.index,
+          ...(row.receiver ? { receiver: row.receiver.index } : {}),
+        }
+      : null;
+  function checkpoint(tick) {
+    return {
+      version: ENGINE_VERSION,
+      seed,
+      id,
+      duration,
+      tick,
+      rng: rng.state(),
+      rulesRng: rulesRng.state(),
+      physics: {
+        world: physics.world.takeSnapshot(),
+        ball: physics.ball.handle,
+        collider: physics.collider.handle,
+      },
+      actors: packActors(actors),
+      legRecovery: [...physics.legRecovery].map(([a, n]) => [a.index, n]),
+      stats,
+      score,
+      events,
+      timeline,
+      motion,
+      continuity,
+      frames: frames?.slice(0, cursor),
+      state: {
+        time,
+        half,
+        lastTouch: lastTouch?.index ?? null,
+        owner: owner?.index ?? null,
+        pendingPass: unlink(pendingPass),
+        shot: unlink(shot),
+        offside,
+        lastPass: unlink(lastPass),
+        deliberate,
+        restartPlay,
+        actionNumber,
+        abandoned,
+        restartUntil,
+        restartSide,
+        restartTaker: restartTaker?.index ?? null,
+        goalRestart,
+        cut,
+        cursor,
+        roles,
+      },
+    };
+  }
+  let chunkStart = cursor === FRAME_STRIDE ? 0 : cursor;
+  const sliceTicks = (options.sliceSeconds ?? 60) * 20;
+  function publicStats() {
+    const total = stats[0].possessionTicks + stats[1].possessionTicks;
+    return stats.map((row, side) => {
+      const { possessionTicks, ...rest } = row;
+      const home = total ? Math.round((stats[0].possessionTicks / total) * 100) : 50;
+      return {
+        ...rest,
+        xg: Math.round(row.xg * 100) / 100,
+        possession: side === 0 ? home : 100 - home,
+      };
+    });
+  }
+  function playerStats() {
+    return actors.map((a) => ({
+      id: a.player.id,
+      side: a.side,
+      distance: Math.round(a.distance),
+      energy: Math.round(a.energy * 10) / 10,
+      touches: a.touches,
+      passes: a.passes,
+      completed: a.completed,
+      style: a.profile.label,
+      dribbleTouches: a.carries,
+      carryDistance: Math.round(a.carryDistance),
+      throughBalls: a.throughBalls,
+      longPasses: a.longPasses,
+      oneTouchPasses: a.oneTouchPasses,
+      maxSpeed: Math.round(a.maxSpeed * 100) / 100,
+      tackles: a.tackles,
+      wonTackles: a.wonTackles,
+      yellowCards: a.yellowCards,
+      redCards: Number(a.sentOff),
+      dismissedAt: a.dismissedAt,
+      mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
+    }));
+  }
+  function buildReport(penalties, abandoned = false) {
+    return {
+      id,
+      engineVersion: ENGINE_VERSION,
+      rulesVersion: RULES_VERSION,
+      parameterVersion: PARAMETER_VERSION,
+      eventFormatVersion: 3,
+      ...(penalties ? { penalties } : {}),
+      ...(abandoned ? { abandoned: true } : {}),
+      seed,
+      homeId: home.id,
+      awayId: away.id,
+      homeName: home.name,
+      awayName: away.name,
+      score: [...score],
+      stats: publicStats(),
+      continuity: structuredClone(continuity.metrics),
+      timeline: structuredClone(timeline),
+      events: [...events],
+      motion: {
+        passSpeedMean: motion.passSpeedSum / (motion.passSamples || 1),
+        playerSpeedMean: motion.playerSpeedSum / (motion.playerSamples || 1),
+        sprintShare: motion.sprintSamples / (motion.playerSamples || 1),
+      },
+      performance: playerStats(),
+      replay: frames
+        ? {
+            format: 'positions-u16-v1',
+            sampleHz: SAMPLE_HZ,
+            stride: FRAME_STRIDE,
+            frameCount: cursor / FRAME_STRIDE,
+            duration: time,
+            regulationDuration: duration,
+            clockScale: 1,
+            physics: 'Rapier 3D 0.21.0',
+            stepHz: 20,
+            players: actors.map((a) => ({
+              id: a.player.id,
+              side: a.side,
+              number: a.player.number,
+              name: a.player.name,
+              role: a.player.role,
+            })),
+          }
+        : undefined,
+      snapshots: clubs.map((c) => ({
+        id: c.id,
+        name: c.name,
+        tactics: structuredClone(c.tactics),
+        players: structuredClone(c.lineup.map((id) => c.players.find((p) => p.id === id))),
+      })),
+    };
+  }
   try {
-    for (let tick = 1; tick <= ticks; tick++) {
+    for (let tick = startTick + 1; tick <= ticks; tick++) {
       time = tick * STEP;
-      if (tick === 7_200) {
+      if (tick === Math.floor(ticks / 2)) {
         half = 1;
         kickoff(1, 'half');
       } else if (goalRestart && time >= goalRestart.at) {
@@ -364,14 +604,40 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       const ball = { ...bp, vx: bv.x, vz: bv.z };
       let active = time >= restartUntil;
       let touchedThisTick = false;
-      owner =
-        lastTouch &&
-        !lastTouch.sentOff &&
-        ball.y < 1.25 &&
-        distance(lastTouch.pos, ball) < 1.3 &&
-        Math.hypot(bv.x - lastTouch.velocity.x, bv.z - lastTouch.velocity.z) < 7
-          ? lastTouch
-          : null;
+      // Waiting for a stationary restart needs clock/recovery/samples, not 22 AI decisions
+      // and a collision solve. Goal-to-net motion still runs through the physical path.
+      if (!active && !goalRestart) {
+        continuity.metrics.deadSeconds += STEP;
+        for (const a of actors)
+          if (!a.sentOff) {
+            a.energy = Math.max(
+              20,
+              a.energy - energyCost(a.player, 0, clubs[a.side].tactics.press, false, STEP),
+            );
+            a.player.matchState.energy = a.energy;
+            a.cooldown -= STEP;
+          }
+        if (tick % 4 === 0) record();
+        if (frames && tick % 600 === 0)
+          timeline.push({
+            second: time,
+            stats: publicStats(),
+            performance: playerStats(),
+            continuity: structuredClone(continuity.metrics),
+          });
+        if (tick % sliceTicks === 0 && tick < ticks) {
+          const part = {
+            second: time,
+            trajectory: frames?.slice(chunkStart, cursor),
+            report: options.durable ? buildReport() : undefined,
+            checkpoint: options.durable ? checkpoint(tick) : undefined,
+          };
+          chunkStart = cursor;
+          yield part;
+        }
+        continue;
+      }
+      owner = updateContinuity(continuity, actors, ball, time, active, pendingPass);
       if (active && tick % 6 === 0) {
         roles = teamRoles(
           actors,
@@ -397,13 +663,499 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             roles,
           );
           a.reaction = a.isKeeper
-            ? 0.1 + (100 - ability(a.player, 'reflexes')) / 180
+            ? keeperReaction(a.player)
             : 0.1 +
               (100 - (ability(a.player, 'concentration') + ability(a.player, 'decisions')) / 2) /
                 180;
           a.nextDecision = time + a.reaction;
         }
       }
+      const attemptTouch = (a) => {
+        const bv = physics.ball.linvel(),
+          bp = physics.ball.translation();
+        const ball = { ...bp, vx: bv.x, vz: bv.z };
+        a.pos = a.body.translation();
+        a.velocity = a.body.linvel();
+        orientFoot(a, ball);
+        if (!active || touchedThisTick || a.cooldown > 0) return;
+        // Goalkeepers intercept physically reachable high balls with a finite hand volume.
+        if (
+          a.isKeeper &&
+          bv.x * direction(a.side) < -1 &&
+          Math.abs(a.pos.x - (direction(a.side) === 1 ? 0 : 105)) < 16.5 &&
+          Math.abs(a.pos.z - 34) < 20 &&
+          distance(a.pos, ball) < 0.9 + ability(a.player, 'oneOnOnes') * 0.004 &&
+          ball.y < a.height + ability(a.player, 'aerialReach') * 0.008 &&
+          (!shot || time - shot.time > a.reaction)
+        ) {
+          if (touchesBall(physics, a.hands)) {
+            if (checkInvolvement(a)) {
+              active = false;
+              return;
+            }
+            if (
+              deliberate?.side === a.side &&
+              deliberate.playerId !== a.player.id &&
+              (deliberate.receiverId === a.player.id || deliberate.kind === 'throwIn')
+            ) {
+              offence(
+                'backpass',
+                a.side,
+                a,
+                ball.x,
+                ball.z,
+                `${a.player.name}违规用手处理队友故意回传，判间接任意球。`,
+              );
+              active = false;
+              return;
+            }
+            touchedThisTick = true;
+            offside = null;
+            lastPass = null;
+            deliberate = null;
+            if (restartPlay && restartPlay.taker !== a.player.id) restartPlay.touched = true;
+            const speed = Math.hypot(bv.x, bv.y, bv.z);
+            const handling = ability(a.player, 'handling');
+            const retain = speed < 8 + handling * 0.17;
+            const impulse = {
+              x: (direction(a.side) * (retain ? 1.5 : 8) - bv.x) * physics.ball.mass(),
+              y: ((retain ? 0.1 : 2.5) - bv.y) * physics.ball.mass(),
+              z: ((rng() - 0.5) * (retain ? 1 : 10) - bv.z) * physics.ball.mass(),
+            };
+            physics.ball.applyImpulse(impulse, true);
+            lastTouch = a;
+            if (retain && ball.y < 1.3)
+              controlBall(
+                continuity,
+                a,
+                time,
+                null,
+                Boolean(pendingPass && pendingPass.actor.side !== a.side),
+              );
+            else releaseControl(continuity, time, 'shot');
+            pendingPass = null;
+            a.cooldown = 0.4;
+            if (shot && shot.side !== a.side) {
+              stats[a.side].saves++;
+              stats[shot.side].onTarget++;
+            }
+            event(
+              'save',
+              a.side,
+              `${a.player.name}${retain ? '近身卸下来球。' : '将球扑出，皮球仍在比赛中！'}`,
+              a,
+            );
+            shot = null;
+            return;
+          }
+        }
+        if (ball.y > 1.25 && touchesBall(physics, a.head)) {
+          if (checkInvolvement(a)) {
+            active = false;
+            return;
+          }
+          const goalX = direction(a.side) === 1 ? 105 : 0;
+          const headerShot = distance(a.pos, { x: goalX, z: 34 }) < 22;
+          const target = {
+            x: headerShot ? goalX + direction(a.side) : ball.x + direction(a.side) * 14,
+            z:
+              34 +
+              (rng() - 0.5) *
+                (100 -
+                  (0.75 * ability(a.player, 'heading') + 0.25 * ability(a.player, 'balance'))) *
+                0.12,
+          };
+          const len = distance(ball, target),
+            speed = 8 + ability(a.player, 'strength') * 0.1;
+          const flight = Math.max(0.2, len / speed);
+          if (
+            kick(
+              physics,
+              a,
+              {
+                x: (target.x - ball.x) / flight,
+                z: (target.z - ball.z) / flight,
+                y: (0.7 - ball.y + 4.905 * flight * flight) / flight,
+              },
+              a.head,
+            )
+          ) {
+            if (
+              pendingPass &&
+              pendingPass.actor.side === a.side &&
+              pendingPass.actor !== a &&
+              time - pendingPass.time < 10
+            ) {
+              pendingPass.actor.completed++;
+              stats[a.side].completedPasses++;
+              lastPass = { actor: pendingPass.actor, receiver: a, time };
+            } else if (lastTouch?.side !== a.side) lastPass = null;
+            playedBall(a, 'header');
+            touchedThisTick = true;
+            lastTouch = a;
+            a.touches++;
+            a.cooldown = 0.8;
+            pendingPass = null;
+            if (headerShot) {
+              stats[a.side].shots++;
+              stats[a.side].xg += 0.1;
+              shot = { side: a.side, actor: a, time };
+            }
+            event(
+              headerShot ? 'shot' : 'header',
+              a.side,
+              `${a.player.name}${headerShot ? '头球攻门！' : '争到高球并顶向前场。'}`,
+              a,
+            );
+            return;
+          }
+        }
+        if (distance(a.pos, ball) > 0.92 || !touchesBall(physics, a.foot)) return;
+        if (checkInvolvement(a)) {
+          active = false;
+          return;
+        }
+        if (
+          restartPlay &&
+          !restartPlay.touched &&
+          restartPlay.taker === a.player.id &&
+          deliberate?.playerId === a.player.id
+        ) {
+          offence(
+            'doubleTouch',
+            a.side,
+            a,
+            ball.x,
+            ball.z,
+            `${a.player.name}重开后连续两次触球，判间接任意球。`,
+          );
+          active = false;
+          return;
+        }
+        const previous = actorAt(continuity.controller);
+        if (previous && previous !== a && previous.side !== a.side && time < a.tackleAt) return;
+        if (
+          previous &&
+          previous !== a &&
+          previous.side !== a.side &&
+          distance(previous.pos, a.pos) < 1.8 &&
+          time >= a.tackleAt
+        ) {
+          a.tackleAt = time + 1.6;
+          a.tackles++;
+          const qa = actionQuality(
+            a,
+            ball,
+            'tackling',
+            playing().filter((o) => o.side !== a.side),
+          ).value;
+          const qd = actionQuality(
+            previous,
+            ball,
+            'dribbling',
+            playing().filter((o) => o.side !== previous.side),
+          ).value;
+          const success = clamp(1 / (1 + Math.exp(-(qa - qd) / 18)), 0.02, 0.98);
+          if (rulesRng() > success) {
+            const relative = Math.hypot(
+              a.velocity.x - previous.velocity.x,
+              a.velocity.z - previous.velocity.z,
+            );
+            const late = clamp((distance(a.pos, ball) - distance(previous.pos, ball)) / 1.1, 0, 1),
+              danger = clamp((relative - 2) / 9, 0, 1);
+            const penalty = inPenaltyArea(ball, direction(a.side));
+            const progress = localX(previous.pos.x, direction(previous.side));
+            const covering = playing().filter(
+              (o) =>
+                o.side === a.side &&
+                o !== a &&
+                localX(o.pos.x, direction(previous.side)) > progress,
+            ).length;
+            const separation = Math.max(0.1, distance(a.pos, previous.pos));
+            const closing =
+              ((a.velocity.x - previous.velocity.x) * (previous.pos.x - a.pos.x) +
+                (a.velocity.z - previous.velocity.z) * (previous.pos.z - a.pos.z)) /
+              separation;
+            const judgement =
+              closing > 2.2 || (late > 0.65 && relative > 1.2)
+                ? foulAssessment(
+                    {
+                      tackling: ability(a.player, 'tackling'),
+                      late,
+                      danger,
+                      penalty,
+                      dogso: progress > 82 && Math.abs(ball.z - 34) < 12 && covering <= 1,
+                    },
+                    rulesRng(),
+                  )
+                : { foul: false, probability: 0, severity: 'standingChallenge', card: null };
+            event('tackleLost', a.side, `${a.player.name}尝试抢断未能夺球。`, a, {
+              opponentId: previous.player.id,
+              quality: qa,
+              opponentQuality: qd,
+              probability: success,
+              result: 'failed',
+            });
+            a.cooldown = 0.5;
+            if (judgement.foul) {
+              stats[a.side].fouls++;
+              event(
+                'foul',
+                a.side,
+                `${a.player.name}抢断犯规，${penalty ? '禁区内判罚点球！' : '对手获得任意球。'}`,
+                a,
+                { opponentId: previous.player.id, ...judgement },
+              );
+              if (judgement.card) card(a, judgement.card, '抢断动作');
+              if (
+                !a.sentOff &&
+                rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50)
+              )
+                card(a, 'yellow', '抗议判罚');
+              restart(
+                penalty ? 'penalty' : 'freeKick',
+                previous.side,
+                penalty ? (direction(previous.side) === 1 ? 94 : 11) : clamp(ball.x, 1, 104),
+                penalty ? 34 : clamp(ball.z, 1, 67),
+              );
+              active = false;
+            }
+            return;
+          }
+          a.wonTackles++;
+          previous.tackleAt = Math.max(previous.tackleAt, time + 1.2);
+          previous.cooldown = Math.max(previous.cooldown, 0.7);
+          event('tackleWon', a.side, `${a.player.name}成功抢下脚下球。`, a, {
+            opponentId: previous.player.id,
+            quality: qa,
+            opponentQuality: qd,
+            probability: success,
+            result: 'won',
+          });
+        }
+        const incomingPass =
+          pendingPass && pendingPass.actor !== a && pendingPass.actor.side === a.side
+            ? pendingPass
+            : null;
+        const opposingPass =
+          pendingPass &&
+          pendingPass.actor.side !== a.side &&
+          time < (pendingPass.expiresAt ?? pendingPass.time + 4)
+            ? pendingPass
+            : null;
+        const newControl = previous !== a || Boolean(incomingPass);
+        if (newControl) {
+          a.intent = null;
+          a.readyAt = time + 0.65 + (100 - ability(a.player, 'decisions')) * 0.012;
+        }
+        if (newControl) {
+          if (opposingPass) {
+            stats[a.side].interceptions++;
+            event('interception', a.side, `${a.player.name}切断传球并控制住球。`, a, {
+              passerId: opposingPass.actor.player.id,
+              result: 'controlled',
+            });
+          }
+          if ((previous && previous.side !== a.side) || opposingPass) {
+            lastPass = null;
+            shot = null;
+          }
+          if (pendingPass && pendingPass.actor !== a) pendingPass = null;
+          a.hold = 0;
+        }
+        const incoming = Math.hypot(bv.x - a.velocity.x, bv.z - a.velocity.z);
+        const control =
+          previous && previous.side !== a.side
+            ? ability(a.player, 'tackling') * 0.65 + ability(a.player, 'firstTouch') * 0.35
+            : actionQuality(
+                a,
+                ball,
+                'firstTouch',
+                playing().filter((o) => o.side !== a.side),
+              ).value;
+        if (newControl && incoming > 11 + control * 0.3) {
+          // A difficult first touch dissipates only part of momentum and may spill loose.
+          kick(physics, a, {
+            x: bv.x * 0.45 + (rng() - 0.5) * 3,
+            y: Math.max(0.2, bv.y * 0.2),
+            z: bv.z * 0.45 + (rng() - 0.5) * 3,
+          });
+          playedBall(a, 'control');
+          touchedThisTick = true;
+          matchShock(a.player, 0, -2);
+          event('miscontrol', a.side, `${a.player.name}来球过快，停球未稳。`, a, {
+            quality: control,
+            incoming,
+            result: 'loose',
+          });
+          releaseControl(continuity, time, 'miscontrol');
+          continuity.metrics.errors[
+            playing().some((o) => o.side !== a.side && distance(o.pos, ball) < 3)
+              ? 'forced'
+              : 'unforced'
+          ]++;
+          a.cooldown = 0.35 + (100 - ability(a.player, 'balance')) / 200;
+        } else {
+          controlBall(continuity, a, time, incomingPass, Boolean(opposingPass));
+          if (incomingPass && incomingPass.actor.side === a.side && time - incomingPass.time < 10) {
+            incomingPass.actor.completed++;
+            stats[a.side].completedPasses++;
+            lastPass = { actor: incomingPass.actor, receiver: a, time };
+            event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
+              passerId: incomingPass.actor.player.id,
+            });
+          }
+          const oneTouch = Boolean(
+            incomingPass &&
+            ability(a.player, 'firstTouch') >= 78 &&
+            ability(a.player, 'decisions') >= 72,
+          );
+          if (newControl && incoming > 3 && !a.setPiece && !oneTouch) {
+            kick(
+              physics,
+              a,
+              firstTouchVelocity(
+                a,
+                ball,
+                direction(a.side),
+                control,
+                incoming,
+                rng,
+                playing().filter((o) => o.side !== a.side),
+              ),
+            );
+            playedBall(a, 'control');
+            touchedThisTick = true;
+            lastTouch = a;
+            a.touches++;
+            a.cooldown = 0.14 + 0.18 * (1 - control / 100);
+            a.hold = 0;
+            a.intent = {
+              kind: 'settle',
+              destination: { x: clamp(a.pos.x + direction(a.side) * 7, 1, 104), z: a.pos.z },
+              expiresAt: time + 0.4,
+            };
+            event('control', a.side, `${a.player.name}调整第一脚触球，为下一步处理留出空间。`, a, {
+              quality: control,
+              result: 'controlled',
+            });
+            return;
+          }
+          if (!a.setPiece && !oneTouch && time < (a.readyAt ?? 0)) {
+            // Keep looking while making a real, gentle shielding touch if needed.
+            const speed = Math.hypot(a.velocity.x, a.velocity.z);
+            if (incoming > 0.8 || distance(a.pos, ball) > 0.72) {
+              const threat = playing()
+                .filter((o) => o.side !== a.side)
+                .sort((x, y) => distance(x.pos, ball) - distance(y.pos, ball))[0];
+              const length = threat ? Math.max(0.1, distance(threat.pos, ball)) : 10;
+              const shield =
+                threat && length < 3
+                  ? { x: (ball.x - threat.pos.x) / length, z: (ball.z - threat.pos.z) / length }
+                  : { x: 0, z: 0 };
+              kick(physics, a, {
+                x: a.velocity.x * 0.4 + shield.x * 0.6,
+                z: a.velocity.z * 0.4 + shield.z * 0.6,
+                y: 0.03,
+              });
+              touchedThisTick = true;
+              lastTouch = a;
+              a.cooldown = 0.2;
+            }
+            return;
+          }
+          const lapseProbability = clamp(
+            0.0015 *
+              Math.exp((50 - ability(a.player, 'concentration')) / 30) *
+              (1 + 0.8 * (1 - a.energy / 100)),
+            0.0002,
+            0.012,
+          );
+          const actionRng = random(seedFrom(`${seed}:action:${++actionNumber}`));
+          const lapse = actionRng() < lapseProbability;
+          const action = chooseAction(
+            a,
+            playing(),
+            ball,
+            direction(a.side),
+            clubs[a.side].tactics,
+            actionRng,
+            {
+              minute: (time * CLOCK_SCALE) / 60,
+              time,
+              trailing: score[a.side] < score[1 - a.side],
+              lapse,
+            },
+          );
+          if (!kick(physics, a, action)) return;
+          playedBall(a, action.type, action.receiverId);
+          touchedThisTick = true;
+          const explanation = {
+            actionId: actionNumber,
+            receiverId: action.receiverId,
+            quality: action.quality,
+            result: 'impulse',
+            intent: action.intent,
+            decision: action.reason,
+            estimatedSuccess: action.estimatedSuccess,
+            velocity: { x: action.x, y: action.y, z: action.z },
+            reason: lapse
+              ? '专注失误降低动作质量'
+              : action.quality.foot < 1
+                ? '逆足处理影响动作精度'
+                : action.quality.pressure > 0.5
+                  ? '贴身压迫影响动作精度'
+                  : '按当前空间执行动作',
+          };
+          if (action.type !== 'dribble') releaseControl(continuity, time, action.type);
+          if (action.type === 'shot') {
+            stats[a.side].shots++;
+            stats[a.side].xg += action.xg;
+            shot = { side: a.side, actor: a, time };
+            event('shot', a.side, `${a.player.name}起脚射门！`, a, {
+              xg: action.xg,
+              ...explanation,
+            });
+            pendingPass = null;
+          } else if (action.type !== 'dribble') {
+            a.passes++;
+            if (action.intent === 'through') a.throughBalls++;
+            if (['switch', 'cross', 'clearance'].includes(action.intent)) a.longPasses++;
+            if (oneTouch) a.oneTouchPasses++;
+            stats[a.side].passes++;
+            pendingPass = {
+              actor: a,
+              time,
+              receiverId: action.receiverId,
+              target: action.destination,
+              arrivalAt: time + (action.flight ?? 2),
+              expiresAt: time + (action.flight ?? 2) + 1.8,
+              pressure: action.quality.pressure,
+            };
+            shot = null;
+            if (events.length < 25000)
+              event(
+                action.type,
+                a.side,
+                `${a.player.name}${{ through: '将球送入队友前插的空间。', switch: '长传转移到另一侧。', cross: '送出高空传中。', clearance: '将球解围到安全区域。', feet: '将球快速传到队友脚下。' }[action.intent] ?? '传球寻找队友。'}`,
+                a,
+                explanation,
+              );
+          }
+          a.cooldown =
+            action.type === 'dribble'
+              ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
+              : 0.28;
+          if (action.type === 'dribble') {
+            a.carries++;
+            event('dribble', a.side, `${a.player.name}短触球向前推进。`, a, explanation);
+          }
+          a.setPiece = null;
+        }
+        a.setPiece = null;
+        lastTouch = a;
+        a.touches++;
+      };
       const actionOrder = actors
         .slice()
         .sort((a, b) => distance(a.pos, ball) - distance(b.pos, ball) || a.bias - b.bias);
@@ -475,422 +1227,32 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
           a.isKeeper && bv.x * direction(a.side) < -8 && Math.abs(ball.x - a.pos.x) < 25;
         const slowing =
           vx * a.velocity.x + vz * a.velocity.z < Math.hypot(a.velocity.x, a.velocity.z) ** 2;
-        const max = (slowing ? m.braking : m.acceleration) * STEP * m.response * (diving ? 2.3 : 1);
+        const max =
+          (slowing ? m.braking : m.acceleration) *
+          STEP *
+          m.response *
+          (diving ? diveResponse(a.player) : 1);
         const scale = dv > max ? max / dv : 1;
         a.body.applyImpulse(
           { x: dvx * scale * a.body.mass(), y: 0, z: dvz * scale * a.body.mass() },
           true,
         );
-        if (!active || touchedThisTick || a.cooldown > 0) continue;
-        // Goalkeepers intercept physically reachable high balls with a finite hand volume.
-        if (
-          a.isKeeper &&
-          bv.x * direction(a.side) < -1 &&
-          Math.abs(a.pos.x - (direction(a.side) === 1 ? 0 : 105)) < 16.5 &&
-          Math.abs(a.pos.z - 34) < 20 &&
-          distance(a.pos, ball) < 0.9 + ability(a.player, 'oneOnOnes') * 0.004 &&
-          ball.y < a.height + ability(a.player, 'aerialReach') * 0.008 &&
-          (!shot || time - shot.time > a.reaction)
-        ) {
-          if (touchesBall(physics, a.hands)) {
-            if (checkInvolvement(a)) {
-              active = false;
-              continue;
-            }
-            if (
-              deliberate?.side === a.side &&
-              deliberate.playerId !== a.player.id &&
-              (deliberate.receiverId === a.player.id || deliberate.kind === 'throwIn')
-            ) {
-              offence(
-                'backpass',
-                a.side,
-                a,
-                ball.x,
-                ball.z,
-                `${a.player.name}违规用手处理队友故意回传，判间接任意球。`,
-              );
-              active = false;
-              continue;
-            }
-            touchedThisTick = true;
-            offside = null;
-            lastPass = null;
-            deliberate = null;
-            if (restartPlay && restartPlay.taker !== a.player.id) restartPlay.touched = true;
-            const speed = Math.hypot(bv.x, bv.y, bv.z);
-            const handling = ability(a.player, 'handling');
-            const retain = speed < 8 + handling * 0.17;
-            const impulse = {
-              x: (direction(a.side) * (retain ? 1.5 : 8) - bv.x) * physics.ball.mass(),
-              y: ((retain ? 0.1 : 2.5) - bv.y) * physics.ball.mass(),
-              z: ((rng() - 0.5) * (retain ? 1 : 10) - bv.z) * physics.ball.mass(),
-            };
-            physics.ball.applyImpulse(impulse, true);
-            lastTouch = a;
-            a.cooldown = 0.4;
-            if (shot && shot.side !== a.side) {
-              stats[a.side].saves++;
-              stats[shot.side].onTarget++;
-            }
-            event(
-              'save',
-              a.side,
-              `${a.player.name}${retain ? '近身卸下来球。' : '将球扑出，皮球仍在比赛中！'}`,
-              a,
-            );
-            shot = null;
-            continue;
-          }
-        }
-        if (ball.y > 1.25 && touchesBall(physics, a.head)) {
-          if (checkInvolvement(a)) {
-            active = false;
-            continue;
-          }
-          const goalX = direction(a.side) === 1 ? 105 : 0;
-          const headerShot = distance(a.pos, { x: goalX, z: 34 }) < 22;
-          const target = {
-            x: headerShot ? goalX + direction(a.side) : ball.x + direction(a.side) * 14,
-            z:
-              34 +
-              (rng() - 0.5) *
-                (100 -
-                  (0.75 * ability(a.player, 'heading') + 0.25 * ability(a.player, 'balance'))) *
-                0.12,
-          };
-          const len = distance(ball, target),
-            speed = 8 + ability(a.player, 'strength') * 0.1;
-          const flight = Math.max(0.2, len / speed);
-          if (
-            kick(
-              physics,
-              a,
-              {
-                x: (target.x - ball.x) / flight,
-                z: (target.z - ball.z) / flight,
-                y: (0.7 - ball.y + 4.905 * flight * flight) / flight,
-              },
-              a.head,
-            )
-          ) {
-            if (
-              pendingPass &&
-              pendingPass.actor.side === a.side &&
-              pendingPass.actor !== a &&
-              time - pendingPass.time < 10
-            ) {
-              pendingPass.actor.completed++;
-              stats[a.side].completedPasses++;
-              lastPass = { actor: pendingPass.actor, receiver: a, time };
-            } else if (lastTouch?.side !== a.side) lastPass = null;
-            playedBall(a, 'header');
-            touchedThisTick = true;
-            lastTouch = a;
-            a.touches++;
-            a.cooldown = 0.8;
-            pendingPass = null;
-            if (headerShot) {
-              stats[a.side].shots++;
-              stats[a.side].xg += 0.1;
-              shot = { side: a.side, actor: a, time };
-            }
-            event(
-              headerShot ? 'shot' : 'header',
-              a.side,
-              `${a.player.name}${headerShot ? '头球攻门！' : '争到高球并顶向前场。'}`,
-              a,
-            );
-            continue;
-          }
-        }
-        if (distance(a.pos, ball) > 0.92 || !touchesBall(physics, a.foot)) continue;
-        if (checkInvolvement(a)) {
-          active = false;
-          continue;
-        }
-        if (
-          restartPlay &&
-          !restartPlay.touched &&
-          restartPlay.taker === a.player.id &&
-          deliberate?.playerId === a.player.id
-        ) {
-          offence(
-            'doubleTouch',
-            a.side,
-            a,
-            ball.x,
-            ball.z,
-            `${a.player.name}重开后连续两次触球，判间接任意球。`,
-          );
-          active = false;
-          continue;
-        }
-        const previous = lastTouch;
-        if (
-          previous &&
-          previous !== a &&
-          previous.side !== a.side &&
-          distance(previous.pos, a.pos) < 1.8 &&
-          time >= a.tackleAt
-        ) {
-          a.tackleAt = time + 0.9;
-          a.tackles++;
-          const qa = actionQuality(
-            a,
-            ball,
-            'tackling',
-            playing().filter((o) => o.side !== a.side),
-          ).value;
-          const qd = actionQuality(
-            previous,
-            ball,
-            'dribbling',
-            playing().filter((o) => o.side !== previous.side),
-          ).value;
-          const success = clamp(1 / (1 + Math.exp(-(qa - qd) / 18)), 0.02, 0.98);
-          if (rulesRng() > success) {
-            const relative = Math.hypot(
-              a.velocity.x - previous.velocity.x,
-              a.velocity.z - previous.velocity.z,
-            );
-            const late = clamp((distance(a.pos, ball) - distance(previous.pos, ball)) / 1.1, 0, 1),
-              danger = clamp((relative - 2) / 9, 0, 1);
-            const penalty = inPenaltyArea(ball, direction(a.side));
-            const progress = localX(previous.pos.x, direction(previous.side));
-            const covering = playing().filter(
-              (o) =>
-                o.side === a.side &&
-                o !== a &&
-                localX(o.pos.x, direction(previous.side)) > progress,
-            ).length;
-            const judgement = foulAssessment(
-              {
-                tackling: ability(a.player, 'tackling'),
-                late,
-                danger,
-                penalty,
-                dogso: progress > 82 && Math.abs(ball.z - 34) < 12 && covering <= 1,
-              },
-              rulesRng(),
-            );
-            event('tackleLost', a.side, `${a.player.name}尝试抢断未能夺球。`, a, {
-              opponentId: previous.player.id,
-              quality: qa,
-              opponentQuality: qd,
-              probability: success,
-              result: 'failed',
-            });
-            a.cooldown = 0.5;
-            if (judgement.foul) {
-              stats[a.side].fouls++;
-              event(
-                'foul',
-                a.side,
-                `${a.player.name}抢断犯规，${penalty ? '禁区内判罚点球！' : '对手获得任意球。'}`,
-                a,
-                { opponentId: previous.player.id, ...judgement },
-              );
-              if (judgement.card) card(a, judgement.card, '抢断动作');
-              if (
-                !a.sentOff &&
-                rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50)
-              )
-                card(a, 'yellow', '抗议判罚');
-              restart(
-                penalty ? 'penalty' : 'freeKick',
-                previous.side,
-                penalty ? (direction(previous.side) === 1 ? 94 : 11) : clamp(ball.x, 1, 104),
-                penalty ? 34 : clamp(ball.z, 1, 67),
-              );
-              active = false;
-            }
-            continue;
-          }
-          a.wonTackles++;
-          event('tackleWon', a.side, `${a.player.name}成功抢下脚下球。`, a, {
-            opponentId: previous.player.id,
-            quality: qa,
-            opponentQuality: qd,
-            probability: success,
-            result: 'won',
-          });
-        }
-        const incomingPass =
-          pendingPass && pendingPass.actor !== a && pendingPass.actor.side === a.side
-            ? pendingPass
-            : null;
-        const newControl = previous !== a || Boolean(incomingPass);
-        if (newControl) a.intent = null;
-        if (newControl) {
-          if (previous && previous.side !== a.side) {
-            stats[a.side].interceptions++;
-            lastPass = null;
-            shot = null;
-          }
-          if (pendingPass && pendingPass.actor !== a) pendingPass = null;
-          a.hold = 0;
-        }
-        const incoming = Math.hypot(bv.x - a.velocity.x, bv.z - a.velocity.z);
-        const control =
-          previous && previous.side !== a.side
-            ? ability(a.player, 'tackling') * 0.65 + ability(a.player, 'firstTouch') * 0.35
-            : actionQuality(
-                a,
-                ball,
-                'firstTouch',
-                playing().filter((o) => o.side !== a.side),
-              ).value;
-        if (newControl && incoming > 11 + control * 0.3) {
-          // A difficult first touch dissipates only part of momentum and may spill loose.
-          kick(physics, a, {
-            x: bv.x * 0.45 + (rng() - 0.5) * 3,
-            y: Math.max(0.2, bv.y * 0.2),
-            z: bv.z * 0.45 + (rng() - 0.5) * 3,
-          });
-          playedBall(a, 'control');
-          touchedThisTick = true;
-          matchShock(a.player, 0, -2);
-          event('miscontrol', a.side, `${a.player.name}来球过快，停球未稳。`, a, {
-            quality: control,
-            incoming,
-            result: 'loose',
-          });
-          a.cooldown = 0.35 + (100 - ability(a.player, 'balance')) / 200;
-        } else {
-          if (incomingPass && incomingPass.actor.side === a.side && time - incomingPass.time < 10) {
-            incomingPass.actor.completed++;
-            stats[a.side].completedPasses++;
-            lastPass = { actor: incomingPass.actor, receiver: a, time };
-            event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
-              passerId: incomingPass.actor.player.id,
-            });
-          }
-          const oneTouch = Boolean(
-            incomingPass &&
-            ability(a.player, 'firstTouch') >= 78 &&
-            ability(a.player, 'decisions') >= 72,
-          );
-          if (newControl && incoming > 3 && !a.setPiece && !oneTouch) {
-            const speed = Math.min(5, Math.hypot(a.velocity.x, a.velocity.z) * 0.75 + 1.9);
-            const heading =
-              Math.hypot(a.velocity.x, a.velocity.z) > 1
-                ? { x: a.velocity.x, z: a.velocity.z }
-                : { x: direction(a.side), z: 0 };
-            const length = Math.hypot(heading.x, heading.z) || 1;
-            const error = ((rng() - 0.5) * (100 - control)) / 90;
-            kick(physics, a, {
-              x: (heading.x / length) * speed - (heading.z / length) * error,
-              z: (heading.z / length) * speed + (heading.x / length) * error,
-              y: 0.08,
-            });
-            playedBall(a, 'control');
-            touchedThisTick = true;
-            lastTouch = a;
-            a.touches++;
-            a.cooldown = 0.14 + 0.18 * (1 - control / 100);
-            a.hold = 0;
-            a.intent = {
-              kind: 'carry',
-              destination: { x: clamp(a.pos.x + direction(a.side) * 7, 1, 104), z: a.pos.z },
-              expiresAt: time + 0.4,
-            };
-            event('control', a.side, `${a.player.name}调整第一脚触球，为下一步处理留出空间。`, a, {
-              quality: control,
-              result: 'controlled',
-            });
-            continue;
-          }
-          const lapseProbability = clamp(
-            0.0015 *
-              Math.exp((50 - ability(a.player, 'concentration')) / 30) *
-              (1 + 0.8 * (1 - a.energy / 100)),
-            0.0002,
-            0.012,
-          );
-          const actionRng = random(seedFrom(`${seed}:action:${++actionNumber}`));
-          const lapse = actionRng() < lapseProbability;
-          const action = chooseAction(
-            a,
-            playing(),
-            ball,
-            direction(a.side),
-            clubs[a.side].tactics,
-            actionRng,
-            {
-              minute: (time * CLOCK_SCALE) / 60,
-              time,
-              trailing: score[a.side] < score[1 - a.side],
-              lapse,
-            },
-          );
-          if (!kick(physics, a, action)) continue;
-          playedBall(a, action.type, action.receiverId);
-          touchedThisTick = true;
-          const explanation = {
-            actionId: actionNumber,
-            receiverId: action.receiverId,
-            quality: action.quality,
-            result: 'impulse',
-            intent: action.intent,
-            decision: action.reason,
-            estimatedSuccess: action.estimatedSuccess,
-            velocity: { x: action.x, y: action.y, z: action.z },
-            reason: lapse
-              ? '专注失误降低动作质量'
-              : action.quality.foot < 1
-                ? '逆足处理影响动作精度'
-                : action.quality.pressure > 0.5
-                  ? '贴身压迫影响动作精度'
-                  : '按当前空间执行动作',
-          };
-          if (action.type === 'shot') {
-            stats[a.side].shots++;
-            stats[a.side].xg += action.xg;
-            shot = { side: a.side, actor: a, time };
-            event('shot', a.side, `${a.player.name}起脚射门！`, a, {
-              xg: action.xg,
-              ...explanation,
-            });
-            pendingPass = null;
-          } else if (action.type !== 'dribble') {
-            a.passes++;
-            if (action.intent === 'through') a.throughBalls++;
-            if (['switch', 'cross', 'clearance'].includes(action.intent)) a.longPasses++;
-            if (oneTouch) a.oneTouchPasses++;
-            stats[a.side].passes++;
-            pendingPass = {
-              actor: a,
-              time,
-              receiverId: action.receiverId,
-              target: action.destination,
-            };
-            shot = null;
-            if (events.length < 2500)
-              event(
-                action.type,
-                a.side,
-                `${a.player.name}${{ through: '将球送入队友前插的空间。', switch: '长传转移到另一侧。', cross: '送出高空传中。', clearance: '将球解围到安全区域。', feet: '将球快速传到队友脚下。' }[action.intent] ?? '传球寻找队友。'}`,
-                a,
-                explanation,
-              );
-          }
-          a.cooldown =
-            action.type === 'dribble'
-              ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
-              : 0.28;
-          if (action.type === 'dribble') {
-            a.carries++;
-            event('dribble', a.side, `${a.player.name}短触球向前推进。`, a, explanation);
-          }
-          a.setPiece = null;
-        }
-        a.setPiece = null;
-        lastTouch = a;
-        a.touches++;
+        attemptTouch(a);
       }
       const beforeBall = physics.ball.translation();
-      stepPhysics(physics);
+      stepPhysics(
+        physics,
+        active
+          ? () => {
+              if (touchedThisTick) return;
+              for (const a of actionOrder) {
+                if (!a.sentOff) attemptTouch(a);
+                if (touchedThisTick) break;
+              }
+            }
+          : null,
+        actors,
+      );
       const afterBall = physics.ball.translation();
       // Body deflections count as touches even without an intentional foot action.
       physics.world.contactPairsWith(physics.collider, (c) => {
@@ -909,7 +1271,6 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             }
             if (lastTouch?.side !== a.side) {
               lastPass = null;
-              pendingPass = null;
             }
             if (deliberate?.side !== a.side) deliberate = null;
             if (restartPlay && restartPlay.taker !== a.player.id) restartPlay.touched = true;
@@ -918,6 +1279,32 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
         }
       });
       if (active) {
+        if (
+          afterBall.z < -BALL_RADIUS ||
+          afterBall.z > 68 + BALL_RADIUS ||
+          afterBall.x < -BALL_RADIUS ||
+          afterBall.x > 105 + BALL_RADIUS
+        ) {
+          if (goalCrossing(beforeBall, afterBall) === null) {
+            const cause = shot
+              ? 'shotOut'
+              : pendingPass
+                ? lastTouch?.side !== pendingPass.actor.side
+                  ? 'deflected'
+                  : pendingPass.pressure > 0.45
+                    ? 'forced'
+                    : 'unforced'
+                : 'carryOut';
+            continuity.metrics.errors[cause]++;
+            event(
+              'out',
+              lastTouch?.side ?? restartSide,
+              `皮球出界：${{ shotOut: '射门偏出', deflected: '对手碰球后折出', forced: '受压传球未能保留', unforced: '传球未被接住', carryOut: '控制或争抢中出界' }[cause]}。`,
+              lastTouch,
+              { cause },
+            );
+          }
+        }
         const end = goalCrossing(beforeBall, afterBall);
         if (end !== null && restartPlay?.kind === 'indirect' && !restartPlay.touched) {
           const defending = direction(0) === (end === 0 ? 1 : -1) ? 0 : 1;
@@ -968,7 +1355,7 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
             );
           else restart('goalKick', defending, end === 0 ? 5.5 : 99.5, 34);
         }
-        const s = owner?.side ?? lastTouch?.side;
+        const s = owner?.side ?? (continuity.phase === 'flight' ? continuity.side : undefined);
         if (s !== undefined) stats[s].possessionTicks++;
       } else if (restartTaker) {
         // At the whistle, the taker pursues the stationary ball; all subsequent touches are physical.
@@ -988,7 +1375,24 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
         }
         record();
       }
+      if (frames && tick % 600 === 0)
+        timeline.push({
+          second: time,
+          stats: publicStats(),
+          performance: playerStats(),
+          continuity: structuredClone(continuity.metrics),
+        });
       if (abandoned) break;
+      if (tick % sliceTicks === 0 && tick < ticks) {
+        const part = {
+          second: time,
+          trajectory: frames?.slice(chunkStart, cursor),
+          report: options.durable ? buildReport() : undefined,
+          checkpoint: options.durable ? checkpoint(tick) : undefined,
+        };
+        chunkStart = cursor;
+        yield part;
+      }
     }
     event(
       'fulltime',
@@ -1014,71 +1418,15 @@ export function simulate(home, away, seed, id = 'match', options = {}) {
       penaltyFrames = outcome.frames;
       time = outcome.time;
     }
-    const total = stats[0].possessionTicks + stats[1].possessionTicks;
-    stats[0].possession = total ? Math.round((stats[0].possessionTicks / total) * 100) : 50;
-    stats[1].possession = 100 - stats[0].possession;
-    stats.forEach((s) => {
-      s.xg = Math.round(s.xg * 100) / 100;
-      delete s.possessionTicks;
-    });
-    const report = {
-      id,
-      engineVersion: ENGINE_VERSION,
-      rulesVersion: RULES_VERSION,
-      parameterVersion: 'tempo-intelligence-1',
-      eventFormatVersion: 2,
-      ...(penalties ? { penalties } : {}),
-      ...(abandoned ? { abandoned: true } : {}),
-      seed,
-      homeId: home.id,
-      awayId: away.id,
-      homeName: home.name,
-      awayName: away.name,
-      score,
-      stats,
-      events,
-      motion: {
-        passSpeedMean: motion.passSpeedSum / (motion.passSamples || 1),
-        playerSpeedMean: motion.playerSpeedSum / (motion.playerSamples || 1),
-        sprintShare: motion.sprintSamples / (motion.playerSamples || 1),
-      },
-      performance: actors.map((a) => ({
-        id: a.player.id,
-        side: a.side,
-        distance: Math.round(a.distance),
-        energy: Math.round(a.energy * 10) / 10,
-        touches: a.touches,
-        passes: a.passes,
-        completed: a.completed,
-        style: a.profile.label,
-        dribbleTouches: a.carries,
-        carryDistance: Math.round(a.carryDistance),
-        throughBalls: a.throughBalls,
-        longPasses: a.longPasses,
-        oneTouchPasses: a.oneTouchPasses,
-        maxSpeed: Math.round(a.maxSpeed * 100) / 100,
-        tackles: a.tackles,
-        wonTackles: a.wonTackles,
-        yellowCards: a.yellowCards,
-        redCards: Number(a.sentOff),
-        dismissedAt: a.dismissedAt,
-        mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
-      })),
-      snapshots: clubs.map((c) => ({
-        id: c.id,
-        name: c.name,
-        tactics: structuredClone(c.tactics),
-        players: structuredClone(c.lineup.map((id) => c.players.find((p) => p.id === id))),
-      })),
-    };
+    const report = buildReport(penalties, abandoned);
     if (frames) {
       report.replay = {
         format: 'positions-u16-v1',
         sampleHz: SAMPLE_HZ,
         stride: FRAME_STRIDE,
         frameCount: cursor / FRAME_STRIDE + (penaltyFrames?.length ?? 0) / FRAME_STRIDE,
-        duration: penaltyFrames ? time : duration,
-        regulationDuration: duration,
+        duration: penaltyFrames || abandoned ? time : duration,
+        regulationDuration: abandoned ? time : duration,
         clockScale: CLOCK_SCALE,
         physics: 'Rapier 3D 0.21.0',
         stepHz: 20,

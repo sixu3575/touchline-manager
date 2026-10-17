@@ -30,7 +30,8 @@ export function playerProfile(p, anchor = { z: 34 }) {
 }
 
 export function passSpeed(length, quality, lob = false) {
-  return lob ? clamp(17 + length * 0.1, 18, 25) : clamp(12 + length * 0.4 + quality * 0.02, 14, 25);
+  const arrival = clamp(4.5 + 0.17 * length + 0.015 * quality, 5, 14);
+  return lob ? clamp(17 + length * 0.1, 18, 25) : Math.sqrt(arrival ** 2 + 2 * 0.8 * length);
 }
 export function interceptionRisk(
   from,
@@ -86,7 +87,12 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
     ),
   );
   const keeper = opponents.find((o) => o.isKeeper ?? o.player.role === 'GK');
-  const g = keeper ? clamp(Math.abs(keeper.pos.z - 34) / 8, 0, 1) : 1;
+  const expectedKeeperZ = keeper
+    ? 34 +
+      (ball.z - 34) *
+        Math.min(1, Math.abs(keeper.pos.x - goalX) / Math.max(0.5, Math.abs(ball.x - goalX)))
+    : 34;
+  const g = keeper ? clamp(Math.abs(keeper.pos.z - expectedKeeperZ) / 8, 0, 1) : 1;
   const blocked = interceptionRisk(
     ball,
     { x: goalX, z: 34 },
@@ -193,8 +199,10 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
               : 'passing',
       );
       const speed = passSpeed(len, q.value, variant.lob),
-        flight = variant.lob ? Math.max(1.15, len / speed) : len / speed;
-      const leadTime = clamp(flight * 0.65, 0, 0.9);
+        flight = variant.lob
+          ? Math.max(1.15, len / speed)
+          : (2 * len) / (speed + Math.sqrt(Math.max(1, speed * speed - 1.6 * len)));
+      const leadTime = clamp(flight * 0.45, 0, 0.65);
       const target = {
         x: clamp(
           mate.pos.x +
@@ -209,10 +217,10 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
                         Math.max(0.1, flight - 0.2) ** 2,
                   )
                 : 0),
-          1,
-          104,
+          2.5,
+          102.5,
         ),
-        z: clamp(mate.pos.z + mate.velocity.z * leadTime, 1, 67),
+        z: clamp(mate.pos.z + mate.velocity.z * leadTime, 2.5, 65.5),
       };
       const risk = interceptionRisk(ball, target, speed, opponents, variant.lob, flight);
       // A high-risk corridor is not a viable professional pass, except a necessary clearance.
@@ -244,11 +252,17 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         0.04,
       );
       const escape = pressure * clamp(space / 7, 0, 1) * 0.14;
+      const outlets = mates.filter(
+        (o) => o !== mate && distance(o.pos, target) > 5 && distance(o.pos, target) < 23,
+      ).length;
+      const retention =
+        0.02 * success + 0.004 * Math.min(3, outlets) + 0.012 * Math.min(1, actor.hold ?? 0);
       const utility =
         success * pitchValue(target, direction) -
         currentValue -
         (1 - success) * (0.07 + currentValue * 0.3) +
         escape +
+        retention +
         style -
         0.035 * profile.inclination * clamp(forward / 10, 0.3, 1) +
         ambition * Math.sign(forward);
@@ -260,6 +274,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         quality: q,
         utility,
         estimatedSuccess: success,
+        flight,
         reason:
           variant.intent === 'through'
             ? '队友前插，传到其前方空间'
@@ -279,8 +294,12 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
               z: target.z + (rng() - 0.5) * error * 2,
             };
           return {
-            x: (aim.x - ball.x) / flight,
-            z: (aim.z - ball.z) / flight,
+            x:
+              (aim.x - ball.x) / flight +
+              (variant.lob ? 0 : (0.4 * flight * (aim.x - ball.x)) / Math.max(1, len)),
+            z:
+              (aim.z - ball.z) / flight +
+              (variant.lob ? 0 : (0.4 * flight * (aim.z - ball.z)) / Math.max(1, len)),
             y: variant.lob ? 4.905 * flight : 0.08,
           };
         },
@@ -316,8 +335,11 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
           success * pitchValue(destination, direction) -
           currentValue -
           (1 - success) * (0.09 + currentValue * 0.4) +
-          0.065 * profile.inclination -
-          ownRisk +
+          0.065 * profile.inclination +
+          0.025 * clamp((near - 3) / 5, 0, 1) +
+          (persistent ? 0.025 : 0) -
+          ownRisk -
+          0.03 * clamp((3 - Math.min(destination.z, 68 - destination.z)) / 3, 0, 1) +
           ambition,
         reason: danger > 0.5 ? '侧向调整，寻找绕过防守者的路线' : '前方有可推进空间，继续带球',
         make: () => {
@@ -383,7 +405,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     actor.intent = {
       kind: 'carry',
       destination: best.destination,
-      expiresAt: time + 0.55 + a('decisions') * 0.006,
+      expiresAt: time + 1.6 + a('decisions') * 0.01,
     };
   else
     actor.intent = {
@@ -399,6 +421,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     quality: best.quality,
     reason: best.reason,
     estimatedSuccess: best.estimatedSuccess,
+    flight: best.flight,
     destination: best.destination ?? best.target,
     ...best.make(),
   };

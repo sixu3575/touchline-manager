@@ -5,3 +5,10 @@ migrateState 为复制后迁移，migrateDatabase 在单个 BEGIN IMMEDIATE 事�
 0.3.0增加replays.mjs管理独立压缩轨迹表；user_version=2与JSON schemaVersion=2独立。persist必须在状态提交的现有事务内执行；失败一起回滚。未知更高表版本拒绝启动，备份使用VACUUM INTO包含所有表。
 
 0.4.0注意：新增JSON 1/2→3原子迁移，仅当前球员补适应度100、revision+1；旧报告与replays BLOB保持。表版本仍2，未知JSON版本拒绝启动。回滚需使用发布前完整数据库。
+
+## 0.6.0 注意事项
+
+SQLite表版本升至3，新增match_jobs和match_chunks，JSON仍为3；旧saves/operations/replays不改写。gzip+V8存储输入和检查点，按序保存uint16轨迹片段；最终按序解压片段后重新压为单个gzip成员，兼容浏览器完整解码，保持原49值帧编码。仅保留最近3个完成任务的观赛数据，正式历史回放保留原35份规则。VACUUM INTO自动包含任务和片段。注意回滚0.5需发布前完整数据库；不能只切回不认识表3的代码；未完成任务要用原Node/Rapier/引擎版本恢复。
+
+开发流程保持原样；本次只更改产品和运行实现。
+match_reports属于表版本3：仅新eventFormatVersion>=3战报压缩离开state.reports，摘要含detailsStored，读取完整战报与轨迹分别鉴权；旧报告不改写，35场清理规则相同。所有写入仍在结算事务内。

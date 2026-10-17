@@ -6,6 +6,16 @@ export const BALL_RADIUS = 0.11;
 export const STEP = 1 / 20;
 const vector = (x, y, z) => ({ x, y, z });
 
+export function restorePhysics(snapshot) {
+  const world = RAPIER.World.restoreSnapshot(snapshot.world);
+  return {
+    world,
+    ball: world.getRigidBody(snapshot.ball),
+    collider: world.getCollider(snapshot.collider),
+    legRecovery: new Map(),
+  };
+}
+
 // The world uses metres, seconds and kilograms. Y is elevation; Z is pitch width.
 export function createPhysics() {
   const world = new RAPIER.World(vector(0, -9.81, 0));
@@ -206,7 +216,7 @@ export function kick(physics, actor, velocity, contact = actor.foot) {
   return true;
 }
 
-export function stepPhysics(physics) {
+export function stepPhysics(physics, contactStep = null, actors = []) {
   const { ball, world } = physics;
   const p = ball.translation(),
     v = ball.linvel();
@@ -219,7 +229,19 @@ export function stepPhysics(physics) {
       true,
     );
   }
-  world.step();
+  // Resolve fast trajectories against actual finite feet at intermediate times.
+  // Only the nearby fast-ball case needs extra physical steps; no enlarged touch radius.
+  const near =
+    contactStep &&
+    speed > 6 &&
+    actors.some((a) => !a.sentOff && Math.hypot(a.pos.x - p.x, a.pos.z - p.z) < 3);
+  const steps = near ? Math.min(8, Math.max(2, Math.ceil((speed * STEP) / 0.22))) : 1;
+  world.timestep = STEP / steps;
+  for (let i = 0; i < steps; i++) {
+    if (i && contactStep) contactStep();
+    world.step();
+  }
+  world.timestep = STEP;
   for (const [actor, remaining] of physics.legRecovery) {
     if (remaining <= 1) {
       actor.legs.forEach((leg) => leg.setCollisionGroups(0x00020007));

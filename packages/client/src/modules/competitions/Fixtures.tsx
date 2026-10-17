@@ -52,24 +52,38 @@ export function Fixtures({
                   : '八强 → 半决赛 → 决赛 · 已晋级 ' + game.cup.wins + ' 次'}
             </p>
           </div>
-          <button
-            className="secondary"
-            disabled={
-              busy ||
-              game.cup.eliminated ||
-              game.cup.stage >= 3 ||
-              game.round < 2 + game.cup.stage * 3
-            }
-            onClick={() => void act('cup')}
-          >
-            {game.cup.stage >= 3
-              ? '杯赛已结束'
-              : game.cup.eliminated
-                ? '已出局'
-                : game.round < 2 + game.cup.stage * 3
-                  ? '第 ' + (2 + game.cup.stage * 3) + ' 轮后开放'
-                  : '参加' + ['八强赛', '半决赛', '决赛'][game.cup.stage]}
-          </button>
+          <div className="match-start-options">
+            <button
+              className="secondary"
+              disabled={
+                busy ||
+                game.cup.eliminated ||
+                game.cup.stage >= 3 ||
+                game.round < 2 + game.cup.stage * 3
+              }
+              onClick={() => void act('cup', { watchMode: 'live' })}
+            >
+              {game.cup.stage >= 3
+                ? '杯赛已结束'
+                : game.cup.eliminated
+                  ? '已出局'
+                  : game.round < 2 + game.cup.stage * 3
+                    ? '第 ' + (2 + game.cup.stage * 3) + ' 轮后开放'
+                    : '实时观看' + ['八强赛', '半决赛', '决赛'][game.cup.stage]}
+            </button>
+            <button
+              className="secondary"
+              disabled={
+                busy ||
+                game.cup.eliminated ||
+                game.cup.stage >= 3 ||
+                game.round < 2 + game.cup.stage * 3
+              }
+              onClick={() => void act('cup', { watchMode: 'background' })}
+            >
+              杯赛后台模拟
+            </button>
+          </div>
         </section>
       </div>
       <div className="dashboard-grid fixtures-grid">

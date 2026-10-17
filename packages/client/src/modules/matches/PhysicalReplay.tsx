@@ -5,6 +5,8 @@ import { Badge, Crest } from '../../components/ui';
 import { styleNames } from '../../constants';
 import { PhysicalPitch, positionAt, speedAt } from './PhysicalPitch';
 import './physical.css';
+import './task.css';
+import type { MatchJob } from './useMatchJob';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -12,21 +14,31 @@ const clock = (t: number) =>
     .padStart(2, '0')}:${Math.floor(t % 60)
     .toString()
     .padStart(2, '0')}`;
-export function PhysicalReplay({ report, onClose }: { report: Report; onClose: () => void }) {
+export function PhysicalReplay({
+  report,
+  onClose,
+  live,
+}: {
+  report: Report;
+  onClose: () => void;
+  live?: { job: MatchJob; data: Uint16Array | null; connection: string; onBackground: () => void };
+}) {
   const meta = report.replay!;
   const clockScale = meta.clockScale ?? 1;
-  const [data, setData] = useState<Uint16Array | null>(null);
+  const [loadedData, setData] = useState<Uint16Array | null>(null);
+  const data = live ? live.data : loadedData;
   const [error, setError] = useState(''),
     [retry, setRetry] = useState(0);
   const [time, setTime] = useState(0),
     [playing, setPlaying] = useState(true),
-    [speed, setSpeed] = useState(1);
+    [speed, setSpeed] = useState(live ? 12 : 1);
   const [selected, setSelected] = useState(-1);
   const [eventFilter, setEventFilter] = useState('key');
   const regulation = meta.regulationDuration ?? meta.duration;
   const shootout = time > regulation;
   const matchClock = (t: number) => (t > regulation ? '点球大战' : clock(t * clockScale));
   useEffect(() => {
+    if (live) return;
     const controller = new AbortController();
     setError('');
     setData(null);
@@ -49,21 +61,37 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
         if (!controller.signal.aborted) setError((e as Error).message);
       });
     return () => controller.abort();
-  }, [report.id, meta, retry]);
-  const ended = time >= meta.duration;
+  }, [report.id, meta, retry, Boolean(live)]);
+  const ownComplete = !live || Boolean(live.job.ownComplete);
+  const ended = ownComplete && time >= meta.duration;
+  const buffering = Boolean(live && !ownComplete && time >= Math.max(0, meta.duration - 0.4));
+  const prefix = live ? report.timeline?.filter((row) => row.second <= time).at(-1) : null;
+  const visibleStats =
+    live && !ended
+      ? (prefix?.stats ??
+        report.stats.map(
+          (row) =>
+            Object.fromEntries(
+              Object.keys(row).map((k) => [k, k === 'possession' ? 50 : 0]),
+            ) as unknown as Report['stats'][number],
+        ))
+      : report.stats;
+  const visiblePerformance = live && !ended ? (prefix?.performance ?? []) : report.performance;
   useEffect(() => {
-    if (!playing || !data || ended) return;
+    if (!playing || !data || ended || buffering) return;
     let animation = 0,
       last = performance.now();
     const advance = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      setTime((t) => Math.min(meta.duration, t + dt * speed));
+      setTime((t) =>
+        Math.min(ownComplete ? meta.duration : Math.max(0, meta.duration - 0.4), t + dt * speed),
+      );
       animation = requestAnimationFrame(advance);
     };
     animation = requestAnimationFrame(advance);
     return () => cancelAnimationFrame(animation);
-  }, [playing, speed, data, meta.duration, ended]);
+  }, [playing, speed, data, meta.duration, ended, buffering, ownComplete]);
   const events = report.events.filter(
     (e) =>
       (e.second ?? e.minute * 60) <= time &&
@@ -91,7 +119,7 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
       ).length,
   );
   const player = meta.players[selected];
-  const performanceRow = player && report.performance?.find((p) => p.id === player.id);
+  const performanceRow = player && visiblePerformance?.find((p) => p.id === player.id);
   const ballHeight = data ? positionAt(data, report, time).positions[45] : 0;
   const ballSpeed = data ? speedAt(data, report, time) * 3.6 : 0;
   return (
@@ -100,11 +128,11 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
         className="modal replay physical-replay"
         role="dialog"
         aria-modal="true"
-        aria-label="物理比赛回放"
+        aria-label={live ? '实时比赛观看' : '物理比赛回放'}
       >
         <div className="replay-top">
           <div>
-            <Badge>物理比赛回放</Badge>
+            <Badge>{live ? `实时观看 · ${speed}× 快进` : '物理比赛回放'}</Badge>
             <span className="muted">
               {' '}
               {report.competition} · 第 {report.round} 轮
@@ -114,6 +142,36 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
             <X />
           </button>
         </div>
+        {live && (
+          <div className="physical-live-progress">
+            <span>
+              {live.connection ||
+                (live.job.status === 'failed'
+                  ? '计算暂时中断，请切换后台恢复原场比赛'
+                  : buffering
+                    ? '正在等待下一段轨迹，服务器继续计算…'
+                    : ownComplete
+                      ? '模拟已完成，正在播放剩余画面'
+                      : '正在生成比赛轨迹')}
+              {' · 已生成 '}
+              {clock(meta.duration)}
+              {' / 已观看 '}
+              {clock(time)}
+              {live.job.ownComplete && live.job.status !== 'complete' && ' · 本轮结算中'}
+            </span>
+            <div>
+              <button
+                onClick={() => {
+                  setTime(Math.max(0, meta.duration - 2));
+                  setPlaying(true);
+                }}
+              >
+                跟随最新
+              </button>{' '}
+              <button onClick={live.onBackground}>切换后台模拟</button>
+            </div>
+          </div>
+        )}
         <div className="scoreboard physical-scoreboard">
           <div>
             <Crest name={report.homeName} />
@@ -126,11 +184,13 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               <span>:</span>
               {score[1]}
             </strong>
-            <Badge tone="dark">{ended ? '全场结束' : matchClock(time)}</Badge>
+            <Badge tone="dark">
+              {ended ? (report.abandoned ? '比赛中止' : '全场结束') : matchClock(time)}
+            </Badge>
             {report.penalties && ended && (
               <small>
                 点球 {report.penalties.join(' : ')} ·{' '}
-                {report.eventFormatVersion === 2 ? '物理点球大战' : '简化结算'}
+                {(report.eventFormatVersion ?? 0) >= 2 ? '物理点球大战' : '简化结算'}
               </small>
             )}
           </div>
@@ -205,7 +265,7 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                 value={speed}
                 onChange={(e) => setSpeed(+e.target.value)}
               >
-                {[1, 5, 15, 30, 60, 120].map((v) => (
+                {[1, 5, 12, 15, 30, 60, 120].map((v) => (
                   <option key={v} value={v}>
                     {v}×{v === 1 ? ' 实速' : ''}
                   </option>
@@ -241,10 +301,10 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               </select>
               {performanceRow ? (
                 <span>
-                  {performanceRow.style && <b>{performanceRow.style} · </b>}模拟段{' '}
+                  {performanceRow.style && <b>{performanceRow.style} · </b>}实际跑动{' '}
                   {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
-                  成功传球 {performanceRow.completed}/{performanceRow.passes} · 赛末体能{' '}
-                  {performanceRow.energy}
+                  成功传球 {performanceRow.completed}/{performanceRow.passes} ·{' '}
+                  {live && !ended ? '当前体能' : '赛末体能'} {performanceRow.energy}
                   {performanceRow.yellowCards !== undefined &&
                     ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
                   {performanceRow.dribbleTouches !== undefined &&
@@ -258,29 +318,29 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
             </div>
             <div className="match-stats physical-stats">
               {[
-                ['控球率', report.stats[0].possession + '%', report.stats[1].possession + '%'],
+                ['控球率', visibleStats[0].possession + '%', visibleStats[1].possession + '%'],
                 [
                   '射门 / 射正',
-                  report.stats[0].shots + ' / ' + report.stats[0].onTarget,
-                  report.stats[1].shots + ' / ' + report.stats[1].onTarget,
+                  visibleStats[0].shots + ' / ' + visibleStats[0].onTarget,
+                  visibleStats[1].shots + ' / ' + visibleStats[1].onTarget,
                 ],
                 [
                   '成功传球',
-                  report.stats[0].completedPasses + ' / ' + report.stats[0].passes,
-                  report.stats[1].completedPasses + ' / ' + report.stats[1].passes,
+                  visibleStats[0].completedPasses + ' / ' + visibleStats[0].passes,
+                  visibleStats[1].completedPasses + ' / ' + visibleStats[1].passes,
                 ],
-                ['预期进球', report.stats[0].xg, report.stats[1].xg],
-                ...(report.stats[0].fouls !== undefined
+                ['预期进球', visibleStats[0].xg, visibleStats[1].xg],
+                ...(visibleStats[0].fouls !== undefined
                   ? [
                       [
                         '犯规 / 越位',
-                        `${report.stats[0].fouls} / ${report.stats[0].offsides}`,
-                        `${report.stats[1].fouls} / ${report.stats[1].offsides}`,
+                        `${visibleStats[0].fouls} / ${visibleStats[0].offsides}`,
+                        `${visibleStats[1].fouls} / ${visibleStats[1].offsides}`,
                       ],
                       [
                         '黄牌 / 红牌',
-                        `${report.stats[0].yellowCards} / ${report.stats[0].redCards}`,
-                        `${report.stats[1].yellowCards} / ${report.stats[1].redCards}`,
+                        `${visibleStats[0].yellowCards} / ${visibleStats[0].redCards}`,
+                        `${visibleStats[1].yellowCards} / ${visibleStats[1].redCards}`,
                       ],
                     ]
                   : []),
@@ -289,7 +349,9 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
                   <b>{a}</b>
                   <span>
                     {label}
-                    <small>全场统计</small>
+                    <small>
+                      {live && !ended ? '截至 ' + clock(prefix?.second ?? 0) : '全场统计'}
+                    </small>
                   </span>
                   <b>{b}</b>
                 </div>
@@ -374,7 +436,10 @@ export function PhysicalReplay({ report, onClose }: { report: Report; onClose: (
               {clockScale > 1 &&
                 '免费VM模式：90分钟比赛时钟对应12分钟连续物理过程，跑动数据为实际模拟距离。'}
               {report.rulesVersion && '已启用基础越位、犯规、红黄牌与定位球。'}20 Hz物理、5
-              Hz轨迹采样。暂停、拖动和变速不会改变已结算赛果。
+              Hz轨迹采样。
+              {live
+                ? '默认12×，90分钟约7.5分钟；缓冲和点球会延长观看时间。暂停只暂停观看，服务器继续计算，进度限于已生成画面。'
+                : '暂停、拖动和变速不会改变已结算赛果。'}
             </p>
           </aside>
         </div>
