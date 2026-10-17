@@ -111,7 +111,7 @@ export function shootout({ physics, actors, seed, time, event, direction }) {
         }
       }
       const before = physics.ball.translation();
-      stepPhysics(physics);
+      stepPhysics(physics, null, actors);
       if (kicked && !goal && goalCrossing(before, physics.ball.translation()) === 1) goal = true;
       if (tick % 4 === 0) {
         for (const a of actors) {

@@ -208,7 +208,7 @@ test('API transactions, isolation, restart persistence and backup recovery', asy
         assert.equal(state.revision, rev + 1);
         assert.equal(state.reports.length, 2);
         const report = state.reports[0];
-        assert.equal(report.engineVersion, '0.6.0-continuity');
+        assert.equal(report.engineVersion, '0.6.1-physical-motion');
         assert.equal(report.trajectory, undefined, 'large tracks must not enter JSON saves');
         assert.equal(report.detailsStored, true);
         assert.equal(

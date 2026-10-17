@@ -1,6 +1,7 @@
 import { clamp } from '../../core/index.mjs';
 import { ability, actionQuality } from './skills.mjs';
 import { movement } from './locomotion.mjs';
+import { groundPassPlan, airborneVelocity } from './ball-motion.mjs';
 import { distance, unit, segmentPoint, pitchValue, localX } from './spatial.mjs';
 
 export function playerProfile(p, anchor = { z: 34 }) {
@@ -30,8 +31,7 @@ export function playerProfile(p, anchor = { z: 34 }) {
 }
 
 export function passSpeed(length, quality, lob = false) {
-  const arrival = clamp(4.5 + 0.17 * length + 0.015 * quality, 5, 14);
-  return lob ? clamp(17 + length * 0.1, 18, 25) : Math.sqrt(arrival ** 2 + 2 * 0.8 * length);
+  return lob ? clamp(17 + length * 0.1, 18, 25) : groundPassPlan(length, quality).speed;
 }
 export function interceptionRisk(
   from,
@@ -134,13 +134,8 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
           0.15,
           distance(ball, target) / (23 + 0.1 * ability(actor.player, 'strength')),
         );
-      return {
-        x: (target.x - ball.x) / flight,
-        z: (target.z - ball.z) / flight,
-        y:
-          (0.25 + rng() * (0.7 + (100 - q.value) / 30) - ball.y + 4.905 * flight * flight) / flight,
-        xg,
-      };
+      const targetY = 0.25 + rng() * (0.7 + (100 - q.value) / 30);
+      return { ...airborneVelocity(ball, { ...target, y: targetY }, flight), xg };
     },
   };
 }
@@ -198,10 +193,9 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
               ? 'crossing'
               : 'passing',
       );
-      const speed = passSpeed(len, q.value, variant.lob),
-        flight = variant.lob
-          ? Math.max(1.15, len / speed)
-          : (2 * len) / (speed + Math.sqrt(Math.max(1, speed * speed - 1.6 * len)));
+      const ground = variant.lob ? null : groundPassPlan(len, q.value);
+      const speed = ground?.speed ?? passSpeed(len, q.value, true),
+        flight = variant.lob ? Math.max(1.15, len / speed) : ground.flight;
       const leadTime = clamp(flight * 0.45, 0, 0.65);
       const target = {
         x: clamp(
@@ -293,14 +287,16 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
               x: target.x + (rng() - 0.5) * error * 2,
               z: target.z + (rng() - 0.5) * error * 2,
             };
+          const actualLength = distance(ball, aim);
+          const launch = variant.lob
+            ? actualLength / flight
+            : groundPassPlan(actualLength, q.value).speed;
+          const heading = unit(ball, aim);
+          if (variant.lob) return airborneVelocity(ball, { ...aim, y: 0.15 }, flight);
           return {
-            x:
-              (aim.x - ball.x) / flight +
-              (variant.lob ? 0 : (0.4 * flight * (aim.x - ball.x)) / Math.max(1, len)),
-            z:
-              (aim.z - ball.z) / flight +
-              (variant.lob ? 0 : (0.4 * flight * (aim.z - ball.z)) / Math.max(1, len)),
-            y: variant.lob ? 4.905 * flight : 0.08,
+            x: heading.x * launch,
+            z: heading.z * launch,
+            y: 0.08,
           };
         },
       });
@@ -367,7 +363,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       reason: '本方危险区域受压，优先解围',
       make: () => {
         const t = 1.7;
-        return { x: (target.x - ball.x) / t, z: (target.z - ball.z) / t, y: 7 };
+        return airborneVelocity(ball, { ...target, y: 0.15 }, t);
       },
     });
   }

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { version as APP_VERSION } from '../../../package.json';
 import { PlayerModal } from './components/PlayerModal';
 import { Replay } from './components/Replay';
 import { Badge, Crest } from './components/ui';
@@ -183,7 +184,7 @@ function App() {
             </div>
           </div>
           <span className="demo-label">
-            <span /> PvE 试玩版 · v0.6.0
+            <span /> PvE 试玩版 · v{APP_VERSION}
           </span>
         </div>
       </aside>

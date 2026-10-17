@@ -1,6 +1,8 @@
 # 项目地图
 
-版本 0.6.0。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
+版本 0.6.1。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
+
+最新速度/阻力检查与数学：packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md。统一传球预测和真实减速，旧回放不重算；流程仅有用户2026-10-17批准的测试并行4与CI触发去重，见AGENTS.md。
 
 当前连续攻防、完整90分钟和双观看入口契约：packages/shared/modules/matches/design/CONTINUITY_AND_WATCHING_V3.md。用户已批准，旧报告仍按原版本读取；开发流程保持原样。
 
@@ -19,4 +21,4 @@ AGENTS.md → 本文件 → 对应模块 README/CHANGELOG，再按需阅读 docs
 
 开发流程保持不变；任何流程优化须先得到用户批准。完整账号、HTTPS、真人 PvP、球员互动和粉丝商品仍是后续功能。
 
-当前属性与规则入口：docs/PLAYER_MATCH_DESIGN.md → matches/design/TEMPO_AND_DECISIONS_V2.md。用户已批准v1的A/B/C，保留后续要求的真实物理进球，新增封顶心理与基础裁判；开发流程不变。
+当前属性与规则入口：docs/PLAYER_MATCH_DESIGN.md → matches/design/PHYSICAL_MOTION_V061.md（最新运动参数）及CONTINUITY_AND_WATCHING_V3.md（完整比赛/观看契约）。v1 A/B/C心理与基础裁判边界保留，进球依照真实轨迹；流程仅有根AGENTS记录的两项批准调整。

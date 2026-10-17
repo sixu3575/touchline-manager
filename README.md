@@ -6,6 +6,8 @@
 
 **试玩： http://138.2.64.10/**
 
+0.6.1核对属性驱动的实际跑动，修复草地过强减速与空阻过弱，传球预测同步更新；详细公式、现实依据及简化边界见[运动检查](packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md)。旧轨迹不重算。
+
 ## 快速开始
 
 需要 Node.js 22.13+（建议当前 Node 22 LTS 或 Node 24）。
