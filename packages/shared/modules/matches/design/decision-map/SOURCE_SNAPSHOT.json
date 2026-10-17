@@ -1,6 +1,6 @@
 {
   "verifiedOn": "2026-10-17",
-  "baselineCommit": "00e683dc90aed61dd647144c5665d02f2cc6b45b",
+  "baselineCommit": "033f23961486f10b44dbafc1f029efcf59570329",
   "engineVersion": "0.6.1-physical-motion",
   "parameterVersion": "physical-motion-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
@@ -25,6 +25,7 @@
     "packages/shared/modules/matches/physics.mjs": "c69e3b51c7e69b3cad7b0ddcd684fc33a1ba9797baad8006abc992d5bdcd510e",
     "packages/shared/modules/matches/ball-motion.mjs": "1093786771b1ced1ecc84c83c86d846f4154e517260512146e7b8107c0214cb9",
     "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
+    "packages/shared/modules/matches/shootout.mjs": "10e4d2b5673dba4b2d1277dacede08727257d67348ac7d647bcea14e4491ebd0",
     "packages/shared/modules/players/index.mjs": "6ce81484d00764aea6e71f27be84c1146a5711590a20e4af07de219776e29439",
     "packages/shared/modules/players/match-state.mjs": "68d9996b73ec714b90aa6557af6ba3cb5bc9fab434133eeb27bcd0f54a1c133f",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
@@ -33,28 +34,28 @@
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "2426e87906ef293137c31c477d929a5432760ae7d68aa1524c2539ba787fa6ff",
-      "svgSha256": "1bf0ca9c3d7c67c5b0d43137db14fb87ae5671f48b67cea34bad9891105803da"
+      "mermaidSha256": "9bf3902fd6a0cf4c1fa0d7f2b9933b237ffe4b8c163f1530eb20ba15f69daa3a",
+      "svgSha256": "481762b91e382fe82222929ece84d433c7552a00c78a6e53c17bbaa05d643ee2"
     },
     "02-roles": {
-      "mermaidSha256": "f5851871322565e6914e77a011f0e44eb0a5cc812896aa09b25297d8f5e41e0f",
-      "svgSha256": "01bd5f5c95fe7a97ddb7e6d166cff3e9708e390bbc0faf3c4de910ebace3a018"
+      "mermaidSha256": "642e8d2710946a8317555d7ad65e0bb93b2c0ada185ade0cc92cd1037d91bdcc",
+      "svgSha256": "4d4836fd86cfc1f9e4c8214dc351ad0cad5c35a43931c803f415adfe6f0268da"
     },
     "03-positioning": {
-      "mermaidSha256": "f4079f96e23bfe89d32f9329bbc7a9a74214acdb4e87ca74c7c27608ff6bd0f7",
-      "svgSha256": "d6b40b483ea77ff39cfc99662ab838fe2efda751329bdb887deb9c27b6865487"
+      "mermaidSha256": "657c549f60b3948e8eb08b6888796f8695e66995ce8d231416ca350ab77169a5",
+      "svgSha256": "6b98557610f043167dd02c42b34c94e266bad829f67af12549d317e700302928"
     },
     "04-reception": {
-      "mermaidSha256": "5c68873097fa14346fab8a7c9f83c713beb156701c4d6276399a3766d2b60d54",
-      "svgSha256": "ea1b4251931ee5babdffa82c74c8ddef98b1bd5d008d317c55e977f4d90d804f"
+      "mermaidSha256": "fd865f5464c45058e6fbe369b0ad55d973d6dcb7e1ff742145ced170f05f4413",
+      "svgSha256": "4af025368610d72c41774f7441c8614fb8e857bfaf9c0df3075937833613c275"
     },
     "05-actions": {
-      "mermaidSha256": "71a7867166c62b231655439aa90644c102c55da3924444530b57a44fa8cdf400",
-      "svgSha256": "1b40f571ef3410729bd3470b13bf4838b0c35a1904bb90e76c8f16e105e9db86"
+      "mermaidSha256": "6626c301f0eb3f9eb6c16072212a1a4850139ca5ce6fd33b286167677e3d02e7",
+      "svgSha256": "038af38ef85fae67a6caa2c21b6704ffa1c104e773be90e8770b698b633264de"
     },
     "06-profiles": {
-      "mermaidSha256": "feaf1f7cd4cd5dc69b3ea60620bdbe3bd0db0e129f6d2840f8d99db17d7a3886",
-      "svgSha256": "9445d5239f8462ede85d0516fef0c7202ad11f21f49d4fbaaa689dea9b5dd955"
+      "mermaidSha256": "f04aca2b4048cc6311fc9159dac3f7d3ffd60f298b9f5b030d1da62e70541086",
+      "svgSha256": "ce51c37ab1a1a7d2af901d36f2458c7bdc54483fec281cef364339d7e61b8d12"
     }
   }
 }

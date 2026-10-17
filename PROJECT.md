@@ -2,7 +2,7 @@
 
 版本 0.6.1。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
 
-当前球员跑位/接球/传带射和球风决策图： [PLAYER_DECISION_MAP.md](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。按0.6.1实际代码归档，含Mermaid、可放大SVG、条件和数学；相关算法或固定数据修改须同次同步更新，维护范围见其第8节及AGENTS.md。
+当前球员跑位/接球/传带射和球风决策图： [PLAYER_DECISION_MAP.md](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。按0.6.1实际代码归档，六图节点含触发数值、概率类别和属性影响，配可放大SVG、30能力/8性格等完整实战索引；按用户要求用相关性说明，不列公式。相关算法或固定数据修改须同次同步更新，维护范围见其第8节及AGENTS.md。
 
 当前开发验证采用用户2026-10-17最新批准的[分层规则](docs/VALIDATION.md)：日常冒烟与针对性测试，仅比赛算法变化模拟真实比赛，重大流程验证完整业务赛季；二者同时变化才计算物理赛季。先前纯文档例外保留为历史，授权见AGENTS.md。
 
