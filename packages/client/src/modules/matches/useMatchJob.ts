@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Report } from '../../model';
+import { liveSecond, mergeLiveJob } from './live-clock.mjs';
+export { liveSecond } from './live-clock.mjs';
 
 export interface MatchJob {
   id: string;
@@ -18,17 +20,6 @@ export interface MatchJob {
     finished: boolean;
     buffering: boolean;
   };
-}
-export function liveSecond(job: MatchJob) {
-  const clock = job.broadcast;
-  if (!clock) return 0;
-  return (
-    clock.seconds +
-    (clock.started && !clock.finished && !clock.buffering
-      ? (Math.max(0, performance.now() - (job.receivedAt ?? performance.now())) / 1000) *
-        clock.speed
-      : 0)
-  );
 }
 export function useBroadcastSecond(job: MatchJob) {
   const [second, setSecond] = useState(() => liveSecond(job));
@@ -49,7 +40,6 @@ export function useMatchJob(onSettled: () => void, watching: boolean) {
     callback = useRef(onSettled);
   callback.current = onSettled;
   const track = useRef({ id: '', values: new Uint16Array(0), length: 0 });
-  const stamp = (value: MatchJob) => ({ ...value, receivedAt: performance.now() });
   useEffect(() => {
     if (!job?.id) return;
     const id = job.id,
@@ -73,20 +63,38 @@ export function useMatchJob(onSettled: () => void, watching: boolean) {
         do {
           again = false;
           lastFetch = Date.now();
-          const response = await fetch('/api/match-jobs/' + id, { signal: controller.signal });
-          const payload = await response.json();
-          if (!response.ok) throw Error(payload.error);
-          const next = payload.job as MatchJob;
-          if (watching && next.report) {
-            const from = current.length / 49;
-            const r = await fetch(`/api/match-jobs/${id}/frames?from=${from}`, {
-              signal: controller.signal,
-            });
-            if (!r.ok) throw Error('画面加载中，正在重新连接。');
-            const bytes = await r.arrayBuffer();
+          const from = current.length / 49;
+          const reportRequest = (async () => {
+            const response = await fetch('/api/match-jobs/' + id, { signal: controller.signal });
+            const payload = await response.json();
+            if (!response.ok) throw Error(payload.error);
+            const next = payload.job as MatchJob,
+              receivedAt = performance.now();
+            const { report, ...summary } = next;
+            if (!controller.signal.aborted)
+              setJob((previous) => mergeLiveJob(previous, summary, receivedAt));
+            return { next, receivedAt };
+          })();
+          const frameRequest = watching
+            ? (async () => {
+                const response = await fetch(`/api/match-jobs/${id}/frames?from=${from}`, {
+                  signal: controller.signal,
+                });
+                if (!response.ok) throw Error('画面加载中，正在重新连接。');
+                return {
+                  bytes: await response.arrayBuffer(),
+                  start: Number(response.headers.get('X-Frame-Start')),
+                  end: Number(response.headers.get('X-Frame-End')),
+                };
+              })()
+            : Promise.resolve(null);
+          // Transport runs in parallel. The independent SSE/report clock keeps ticking
+          // while a delayed frame response is in flight.
+          const [{ next, receivedAt }, frames] = await Promise.all([reportRequest, frameRequest]);
+          if (watching && next.report && frames) {
+            const { bytes, start, end } = frames;
             if (controller.signal.aborted) return;
-            const end = Number(r.headers.get('X-Frame-End'));
-            if (bytes.byteLength % 98 || end !== from + bytes.byteLength / 98)
+            if (start !== from || bytes.byteLength % 98 || end !== from + bytes.byteLength / 98)
               throw Error('轨迹片段格式无效。');
             const length = end * 49;
             if (current.values.length < length) {
@@ -112,7 +120,7 @@ export function useMatchJob(onSettled: () => void, watching: boolean) {
           }
           if (controller.signal.aborted) return;
           setConnection('');
-          setJob(stamp(next));
+          setJob((previous) => mergeLiveJob(previous, next, receivedAt));
           if (next.status === 'complete') {
             stream.close();
             clearInterval(fallback);
@@ -133,7 +141,10 @@ export function useMatchJob(onSettled: () => void, watching: boolean) {
       try {
         const summary = JSON.parse(event.data) as MatchJob;
         if (summary.id !== id || controller.signal.aborted) return;
-        setJob((previous) => (previous?.id === id ? stamp({ ...previous, ...summary }) : previous));
+        const receivedAt = performance.now();
+        setJob((previous) =>
+          previous?.id === id ? mergeLiveJob(previous, summary, receivedAt) : previous,
+        );
         if (watching || summary.status === 'complete') void refresh(summary.status === 'complete');
       } catch {
         setConnection('正在重新同步比赛进度。');
@@ -156,7 +167,8 @@ export function useMatchJob(onSettled: () => void, watching: boolean) {
     job,
     data,
     connection,
-    accept: (next: MatchJob | null) => setJob(next ? stamp(next) : null),
+    accept: (next: MatchJob | null) =>
+      setJob((previous) => (next ? mergeLiveJob(previous, next) : null)),
     reconnect: () => setRetry((n) => n + 1),
   };
 }

@@ -1,5 +1,13 @@
 # matches 界面模块
 
+## 0.7.1 当前播放注意事项
+
+live-clock.mjs仅处理浏览器展示时间，使用performance.now单调外推。收到报告或SSE时立刻记录receivedAt；异步画面完成时不得重盖接收时间。按broadcast.serverNow拒绝旧时钟/任务状态，连续运行时保留已知五倍速进度下界，避免网络抖动触发倒退后等待。真实buffering/finished仍接受服务端权威值，帧不足仍只画到已下载末帧。
+
+useMatchJob并行取报告与增量帧，报告先只发布时钟摘要，帧解码后再发布匹配长度的report/data；中途到达的新SSE不能被迟到下载覆盖。PhysicalReplay用ref向稳定动画循环提供最新时钟与画面长度，不能每个网络包重建播放循环。不得以提高物理速度、预先显示未来比分或无限扩大轨迹缓冲来掩盖卡顿。
+
+tests/live-clock.test.mjs覆盖迟到/乱序、变动延迟、真实缓冲/恢复、终场与跨场清理。界面变更还应以移动测试球检查零延迟、650ms画面请求延迟、650ms画面响应延迟的坐标停顿（连续>=100ms），并检查退出重入/刷新/赛后控制；使用显式测试CLI的受控报告，不计算真实物理。服务端/比赛算法与开发流程不变。
+
 公共入口 index.ts；实现从原 components/pages 提取，旧路径保留兼容导出。领域规则由 shared/modules/matches 公共接口维护，不复制球员或比赛公式。修改此目录后同步 CHANGELOG.md，开发流程不变。
 
 0.3.0：Replay按report.replay选择PhysicalReplay或LegacyReplay。PhysicalPitch只绘制保存位置，5Hz采样间线性插值，cut帧不跨重开插值；球高和落地阴影分开。轨迹通过同会话/api/replays/:id按需加载、校验长度和格式；失败可重试。旧报告无轨迹时保持旧示意回放，删除了假跑动摆动。
