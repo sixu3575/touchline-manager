@@ -1,8 +1,10 @@
 # 比赛模块
 
+当前持球选择与数学以[design/CARRYING_V080.md](design/CARRYING_V080.md)为准：carrying.mjs独立管理空地推进/单防/协防与路线；decisions.mjs比较传带射并生成实际触球。ENGINE_VERSION=0.8.0-carrying，参数carrying-1。物理仍沿用0.6.1速度/阻力，旧回放不重算，升级前排空旧引擎任务。
+
 当前实现的跑位与接球决策参考入口：[design/PLAYER_DECISION_MAP.md](design/PLAYER_DECISION_MAP.md)。六张Mermaid及SVG直接标明动态职责、跑位/接球/对抗/传带射的触发数值、条件概率类别与影响因子，正文逐项覆盖30能力、8性格及身份等数据的实战效果，不列公式；固定权重、评分、估计值和真实抽签明确区分。按用户2026-10-17要求，相关算法或固定数据改动必须同次更新图文、SVG与源码摘要，第8节列明文件对应；展示标签不代表独立专属决策树。当前检查按最新批准的[分层验证](../../../../docs/VALIDATION.md)执行，相关改动会核对参考摘要。
 
-真实引擎检查在 `tests/match/`，只在比赛算法改动时执行；完整物理赛季还要求同时涉及重大流程。业务/冒烟显式预加载受控赛果，禁止真实simulation/physics入口；不能将其标记轨迹当作物理证据。当前重组只改测试与文档，生产引擎/参数仍为0.6.1-physical-motion / physical-motion-1。
+真实引擎检查在 `tests/match/`，只在比赛算法改动时执行；完整物理赛季还要求同时涉及重大流程。业务/冒烟显式预加载受控赛果，禁止真实simulation/physics入口；不能将其标记轨迹当作物理证据。本次持球算法改动执行真实比赛专项，赛历/结算不变，无完整赛季触发。
 
 当前规则和数学参数见 [design/APPROVED_V1_PHYSICAL.md](design/APPROVED_V1_PHYSICAL.md)。用户已批准v1 A/B/C，保留真实物理进球；原概率赛果公式不启用。
 

@@ -1,8 +1,8 @@
 {
-  "verifiedOn": "2026-10-17",
-  "baselineCommit": "033f23961486f10b44dbafc1f029efcf59570329",
-  "engineVersion": "0.6.1-physical-motion",
-  "parameterVersion": "physical-motion-1",
+  "verifiedOn": "2026-10-18",
+  "baselineCommit": "076dad65f1812148ab5ebf811e986679247ea201",
+  "engineVersion": "0.8.0-carrying",
+  "parameterVersion": "carrying-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
   "rendering": {
@@ -15,8 +15,9 @@
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "42a46fe0f764fb9d9b09a30b7412bc925b9f555a4587145ef10bfd9b381c67a6",
     "packages/shared/modules/matches/locomotion.mjs": "b3f7a4843a219a080613328fd2d3c0b0e985b1e6d5c94174546f89da6124392d",
-    "packages/shared/modules/matches/decisions.mjs": "a02585caa09589d92459c060671e3f80e1defd5150612c33e5dae876f56b9f6b",
-    "packages/shared/modules/matches/simulation.mjs": "cb11262210cbbe91470c5093d680dabef146033e0e87721f8318febd44a2a454",
+    "packages/shared/modules/matches/decisions.mjs": "eb5ee813ce9f0334baaaff34a1d239dd4fdfcc8ab13982914e560c7fb25e8035",
+    "packages/shared/modules/matches/carrying.mjs": "b6682e55a410020a32f272068795413def8b48f31be433b1d34c19a9bcbcf7de",
+    "packages/shared/modules/matches/simulation.mjs": "962d2951afa0c3d3163f09d4b5438cf7b372e6396a7904b38d8837a2bc0dff39",
     "packages/shared/modules/matches/continuity.mjs": "ca40e8219074584ada8be045202a7c79661553faf157f733958f69d0b80579e0",
     "packages/shared/modules/matches/receiving.mjs": "90bef1659050f765fbd13a593f5e27e5942d1d8047b6c5a8a4dcd579e047d283",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
@@ -50,12 +51,12 @@
       "svgSha256": "4af025368610d72c41774f7441c8614fb8e857bfaf9c0df3075937833613c275"
     },
     "05-actions": {
-      "mermaidSha256": "6626c301f0eb3f9eb6c16072212a1a4850139ca5ce6fd33b286167677e3d02e7",
-      "svgSha256": "038af38ef85fae67a6caa2c21b6704ffa1c104e773be90e8770b698b633264de"
+      "mermaidSha256": "c645d3ab33b1874a26c76f141dfb7544d9d68a06d20eef69eaaae3243f86659a",
+      "svgSha256": "f862d1ae10794dc759d466262650c65995034a48b8870bbac25bb36ff825973e"
     },
     "06-profiles": {
-      "mermaidSha256": "f04aca2b4048cc6311fc9159dac3f7d3ffd60f298b9f5b030d1da62e70541086",
-      "svgSha256": "ce51c37ab1a1a7d2af901d36f2458c7bdc54483fec281cef364339d7e61b8d12"
+      "mermaidSha256": "8a148799c72d6a3cee16e6fd9d27033be7a1c87b3054202dc1fd047adfe99b59",
+      "svgSha256": "9e02f5208e75fda3eb1bad78ca65df86940700ad75d851f051e14a3202b1252b"
     }
   }
 }
