@@ -1,5 +1,11 @@
 # 数据与迁移
 
+## 0.11.0 显式属性重塑与观察名额
+
+JSON/SQLite仍3，启动迁移不变。当前球员可选attributeProfile:{version:1,archetype,source}；指定用户可选playerProfileGrant:{version:1,playerId}防重复发放。显式维护只更新当前clubs.players/market属性、skills、说明标记及revision；指定目标另加一名前锋并替换对应首发槽位。旧球员其他字段、所有reports/results/ledger/资金/日期/赛历与历史BLOB保留。原细项按授权重分配，六项预算误差≤0.1，综合舍入最多约1点。每个有变化存档revision只+1，旧页面须刷新。
+
+维护plan记录每个存档原JSON摘要与预期新摘要；apply在BEGIN IMMEDIATE中重新核对全计划、阻挡任何未complete任务，任一异常全库回滚。服务停止、已校验离机备份后才执行。再次生成计划将无变化，旧计划不能覆盖已更新存档。新名额售价/工资为0，不动现金，不加入正常初始化。
+
 0.10.0仍JSON3/SQLite3。新报告replay.players与performance可选positionRole（运行位置），事件可选phase、delivery=lofted/low/cutback、setPiece；intent/type仍cross，不重复计传球/助攻/评分。phase不是结果开关，setPiece用于区分角球与运动战。新赛内continuity.regainedAt自动随既有检查点保存；新旧引擎版本不兼容，发布先排空旧任务。没有迁移或旧报告重写，旧回放仅用旧字段/轨迹。
 
 

@@ -9,6 +9,7 @@ export interface Player {
   weakFoot: number;
   heightCm: number;
   attributes: Record<string, number>;
+  attributeProfile?: { version: number; archetype: string; source: string };
   skills: Record<string, number>;
   personality: Record<string, number>;
   wellbeing: { morale: number; confidence: number; clubAttachment: number; adaptation: number };

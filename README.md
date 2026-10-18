@@ -1,5 +1,7 @@
 # TOUCHLINE · 临场足球经理
 
+当前版本0.11.0：球员有位置与技术偏向的差异化属性，旧档显式一次重塑，指定观察存档加入综合95的99号林曜。详见[球员分布](packages/shared/modules/players/ATTRIBUTE_PROFILES.md)。
+
 0.10.0：战术与真实位置共同驱动跑位和传带射。边路配合有宽度接应、条件套边、包抄和高/低/倒三角选择；控球多点接应，反击有夺回后短机会窗口。战术板/新回放可查看位置职责；保存后下一场生效，历史不重算。[决策图与属性影响](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)、[专项数值](packages/shared/modules/matches/design/TACTICS_V0100.md)。
 
 
