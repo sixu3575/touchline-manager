@@ -1,5 +1,11 @@
 # matches 界面模块
 
+## 0.8.2 进球提示
+
+GoalCelebration只消费播放时刻已到的goal/penaltyGoal；事件key绑定报告、类型、时间与射手，SSE替换对象不重播。同一提示用浏览器计时3.2秒，不能修改服务端5×或物理轨迹。goal-presentation优先event.scorer，旧档回退到本场replay.players/快照；不从当前球队猜号码，不使用最终比分剧透；乌龙显示真实触球者和受益队，点球大战用其点球比分。缺身份显示中性提示，不能编造号码。回退到进球前隐藏，reduced-motion关闭彩带/进场运动；遮罩pointer-events:none不阻止球员/进度交互。
+
+物理修复仅新比赛生效；旧轨迹保持原样，已有事件仍可显示新进球提示。新增测试tests/goal-presentation.test.mjs，挂入既有matches映射。相关设计shared/modules/matches/design/GOAL_NET_V082.md，开发流程不变。
+
 ## 0.8.1 事件展示
 
 event-filter.mjs是实时、物理回放和LegacyReplay的统一展示分类。关键事件使用明确名单，其他事件为其补集，未知类型默认归其他；全部动作保留原记录，裁判视图保持独立。进球/射门/扑救/犯规/红黄牌/越位/重要定位球/阶段与点球大战保留在关键事件；普通控球、传带球、拦截/争抢、失误、头球解围和普通出界重开归其他。换人/伤情仅兼容事件类型，当前引擎不生成，不代表已实现玩法。

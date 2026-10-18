@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-18",
-  "baselineCommit": "076dad65f1812148ab5ebf811e986679247ea201",
-  "engineVersion": "0.8.0-carrying",
-  "parameterVersion": "carrying-1",
+  "baselineCommit": "07d964176bb4eb932e9a0499a8907b50bb1b6522",
+  "engineVersion": "0.8.2-goal-net",
+  "parameterVersion": "goal-net-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
   "rendering": {
@@ -17,13 +17,13 @@
     "packages/shared/modules/matches/locomotion.mjs": "b3f7a4843a219a080613328fd2d3c0b0e985b1e6d5c94174546f89da6124392d",
     "packages/shared/modules/matches/decisions.mjs": "eb5ee813ce9f0334baaaff34a1d239dd4fdfcc8ab13982914e560c7fb25e8035",
     "packages/shared/modules/matches/carrying.mjs": "b6682e55a410020a32f272068795413def8b48f31be433b1d34c19a9bcbcf7de",
-    "packages/shared/modules/matches/simulation.mjs": "962d2951afa0c3d3163f09d4b5438cf7b372e6396a7904b38d8837a2bc0dff39",
+    "packages/shared/modules/matches/simulation.mjs": "300bba3700c701ce40539d20073a3039b36d3b2fc37801a108d2f587a7100bf9",
     "packages/shared/modules/matches/continuity.mjs": "ca40e8219074584ada8be045202a7c79661553faf157f733958f69d0b80579e0",
     "packages/shared/modules/matches/receiving.mjs": "90bef1659050f765fbd13a593f5e27e5942d1d8047b6c5a8a4dcd579e047d283",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
     "packages/shared/modules/matches/skills.mjs": "2247076fcf27042db968d32fe8e768eac3be23381dee0919f29ccedfedc1e5cd",
     "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
-    "packages/shared/modules/matches/physics.mjs": "c69e3b51c7e69b3cad7b0ddcd684fc33a1ba9797baad8006abc992d5bdcd510e",
+    "packages/shared/modules/matches/physics.mjs": "488cce274e3871aa59ab5d89f373f72839280979e93986495777c089024c99c5",
     "packages/shared/modules/matches/ball-motion.mjs": "1093786771b1ced1ecc84c83c86d846f4154e517260512146e7b8107c0214cb9",
     "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
     "packages/shared/modules/matches/shootout.mjs": "10e4d2b5673dba4b2d1277dacede08727257d67348ac7d647bcea14e4491ebd0",
@@ -35,8 +35,8 @@
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "9bf3902fd6a0cf4c1fa0d7f2b9933b237ffe4b8c163f1530eb20ba15f69daa3a",
-      "svgSha256": "481762b91e382fe82222929ece84d433c7552a00c78a6e53c17bbaa05d643ee2"
+      "mermaidSha256": "baa99b748a7abf0fd61cf8709905a413ebb54ed221c611df57189bfbed147313",
+      "svgSha256": "2ce311fe2b81bf9fe43bda500eb8511fd9d4f725e71fd7776378d02479e6c3d6"
     },
     "02-roles": {
       "mermaidSha256": "642e8d2710946a8317555d7ad65e0bb93b2c0ada185ade0cc92cd1037d91bdcc",

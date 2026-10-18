@@ -6,6 +6,7 @@ import { Pitch } from './Pitch';
 import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
 import './physical.css';
+import { GoalCelebration } from './GoalCelebration';
 export function LegacyReplay({ report, onClose }: { report: Report; onClose: () => void }) {
   const [minute, setMinute] = useState(0),
     [playing, setPlaying] = useState(true),
@@ -83,7 +84,7 @@ export function LegacyReplay({ report, onClose }: { report: Report; onClose: () 
         </div>
         <div className="replay-body">
           <div>
-            <div className="replay-pitch">
+            <div className="replay-pitch match-pitch-stage">
               <Pitch
                 club={home}
                 minute={minute}
@@ -92,6 +93,7 @@ export function LegacyReplay({ report, onClose }: { report: Report; onClose: () 
               <div className="away-overlay">
                 <Pitch club={away} minute={minute} away />
               </div>
+              <GoalCelebration report={report} time={minute * 60} windowSeconds={180} />
             </div>
             <div className="replay-controls">
               <button

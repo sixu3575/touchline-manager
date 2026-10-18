@@ -29,6 +29,10 @@ export interface MatchEvent {
   x: number;
   y: number;
   playerId?: string;
+  scorer?: { id: string; number?: number; name: string; side: number };
+  score?: number[];
+  penalties?: number[];
+  ownGoal?: boolean;
   reason?: string;
   intent?: string;
   decision?: string;

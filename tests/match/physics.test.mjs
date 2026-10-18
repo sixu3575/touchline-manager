@@ -65,3 +65,44 @@ test('only a whole-ball swept crossing between posts and under the crossbar scor
   assert.equal(goalCrossing({ x: 104, y: 3, z: 34 }, { x: 106, y: 3, z: 34 }), null);
   assert.equal(goalCrossing({ x: 104, y: 1, z: 40 }, { x: 106, y: 1, z: 40 }), null);
 });
+
+test('both goal nets absorb central, oblique and high shots without rebounding the scored ball onto the pitch', () => {
+  for (const end of [0, 1])
+    for (const speed of [10, 25, 38])
+      for (const [height, z, vz] of [
+        [0.2, 34, 0],
+        [1.8, 33, 4],
+        [2.2, 35, -4],
+      ]) {
+        const p = createPhysics();
+        try {
+          const dir = end ? 1 : -1;
+          p.ball.setTranslation({ x: end ? 104 : 1, y: height, z }, true);
+          p.ball.setLinvel({ x: dir * speed, y: 1, z: vz }, true);
+          let scored = false;
+          for (let tick = 0; tick < 160; tick++) {
+            const before = p.ball.translation();
+            stepPhysics(p);
+            const after = p.ball.translation();
+            if (goalCrossing(before, after) === end) scored = true;
+            if (scored) {
+              assert.ok(
+                end ? after.x > 105 : after.x < 0,
+                `scored ball escaped: end=${end}, speed=${speed}, height=${height}, tick=${tick}, x=${after.x}`,
+              );
+              assert.ok(
+                after.y < 2.6 && after.z > 30.1 && after.z < 37.9,
+                'net sides and roof contain the scored ball',
+              );
+            }
+          }
+          assert.ok(scored, 'the net must not close the goal mouth');
+          assert.ok(
+            Math.hypot(...Object.values(p.ball.linvel())) < 0.2,
+            'net contact dissipates speed',
+          );
+        } finally {
+          p.world.free();
+        }
+      }
+});

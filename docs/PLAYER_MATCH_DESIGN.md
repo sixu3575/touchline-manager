@@ -1,5 +1,7 @@
 # 比赛属性设计入口
 
+0.8.2入网/进球提示以[GOAL_NET_V082.md](../packages/shared/modules/matches/design/GOAL_NET_V082.md)为准，决策总览O9/SVG和来源摘要同步；属性与传带射候选沿用0.8.0，球网耗能、顶网和进球后15秒重开是本次物理变化。
+
 当前实现的可视化入口：[球员无球跑动与接球决策图](../packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。已随0.8.0持球选择核对，六图直接写候选门槛、概率类别、影响属性及方向，正文覆盖30能力、8性格及其他数据的实战效果；按用户要求不列公式，区分位置职责、动态职责、球风展示与真实评分影响。最新带球/突破数学见[CARRYING_V080.md](../packages/shared/modules/matches/design/CARRYING_V080.md)。后续相关算法/固定数据改动须同次更新该图、SVG和源码摘要，维护映射见该文第8节；既定分层验证和发布流程不改。
 
 最新运动参数与检查见[PHYSICAL_MOTION_V061.md](../packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md)：属性驱动的实际跑速、有限加减速、异常碰撞保护、二次空气阻力与显式草阻、同步传球/接球预测。完整90分钟及双观看入口契约见[CONTINUITY_AND_WATCHING_V3.md](../packages/shared/modules/matches/design/CONTINUITY_AND_WATCHING_V3.md)。以下各版本用于追溯，不能用旧速度参数覆盖新引擎。

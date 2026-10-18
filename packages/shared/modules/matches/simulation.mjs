@@ -50,8 +50,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.8.0-carrying';
-export const PARAMETER_VERSION = 'carrying-1';
+export const ENGINE_VERSION = '0.8.2-goal-net';
+export const PARAMETER_VERSION = 'goal-net-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -1301,14 +1301,28 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           const side = direction(0) === (end === 1 ? 1 : -1) ? 0 : 1;
           score[side]++;
           const scorer = lastTouch?.side === side ? lastTouch : null;
+          const credited = scorer ?? lastTouch;
+          const identity = credited
+            ? `${credited.player.number}号 ${credited.player.name}`
+            : '对方球员';
           if (shot?.side === side) stats[side].onTarget++;
           event(
             'goal',
             side,
-            `${scorer?.player.name ?? '对方球员乌龙'}破门！${clubs[side].name}改写比分。`,
+            `${identity}${scorer ? '破门' : '乌龙球'}！${clubs[side].name}改写比分为 ${score.join(' : ')}。`,
             scorer,
             {
               score: [...score],
+              ...(credited
+                ? {
+                    scorer: {
+                      id: credited.player.id,
+                      number: credited.player.number,
+                      name: credited.player.name,
+                      side: credited.side,
+                    },
+                  }
+                : {}),
               ...(scorer ? {} : { ownGoal: true }),
               ...(scorer && lastPass?.receiver === scorer && time - lastPass.time < 10
                 ? { assistId: lastPass.actor.player.id }
@@ -1318,7 +1332,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           shock(side, 2, scorer, 3);
           shock(1 - side, -2);
           // Keep the actual goal/net trajectory visible before the dead-ball reset.
-          restartUntil = time + 2.5;
+          restartUntil = time + 15;
           restartTaker = null;
           owner = null;
           pendingPass = null;
