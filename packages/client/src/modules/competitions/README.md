@@ -1,5 +1,7 @@
 # Fixtures 界面模块
 
+0.9.1：赛程上方通过matches公共入口组合“赛后战报”列表，直接查看已保存联赛/杯赛的统计、事件和评分，回放为另一按钮。只传game.reports，不传进行中的任务报告；暂无记录显示终场结算后可见的说明。原有赛程回放、杯赛和开赛操作不变，无规则/流程改动。
+
 公共入口 index.ts 的 Fixtures。只展示存档并提交意图；规则由对应 shared/modules/ 目录维护。页面私有改动在本目录完成，新增样式使用模块专属文件/类名前缀；公共 ui 和全站样式交由 integration 维护。每次修改更新本目录 CHANGELOG.md；开发流程不变。
 
 0.3.0只从shared/modules/competitions/selectors/index.mjs读取积分，不导入game.mjs或服务端比赛依赖。

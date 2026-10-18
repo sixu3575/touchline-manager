@@ -1,5 +1,9 @@
 # matches 界面模块
 
+## 0.9.1 独立战报
+
+公共MatchReports显示存档reports（含保留的联赛与杯赛）；查看战报打开独立只读弹层，全场比分/统计、同源事件筛选、分批事件和PlayerRatings，不挂载任何回放/球场、不请求/api/replays轨迹。回放单独调用onReplay。useArchivedReport统一已保存详情的加载、取消、格式检查与重试，Replay也复用；detailsStored摘要不能作为完整报告展示。只接受已结算game.reports，不能把进行中的job.report接入以绕过终场发布门槛。没有新端点/数据迁移，缺失统计显示“—”，不把缺数据说成零；旧评分仍同源计算。样式reports.css，关闭支持Escape并恢复入口焦点。原有评分、播放和模拟算法不变。
+
 ## 0.9.0 赛后评分
 
 PlayerRatings在实时播放终场后和历史回放显示，支持两队切换、最高分和每人加减明细。优先使用服务端保存的playerRatings；旧示意报告缺评分时仅从本场已保存证据调用matches/ratings/index.mjs轻量入口，不导入Rapier/模拟器。普通接球不是扑救，带球触球/尝试不是过人成功；缺证据显示有限数据，不编造细项。评分与能力评级/近期状态独立，不参与游戏结算；数学及来源见shared/modules/matches/ratings/README.md。不要在直播时从已计算完整数据展示最终评分。
