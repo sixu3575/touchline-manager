@@ -183,7 +183,11 @@ const changedKeys = (oldParts, nextParts) =>
   );
 const intersects = (keys, selected) => keys.some((k) => selected.includes(k));
 const moduleTests = {
-  players: ['tests/players.test.mjs', 'tests/approved-v1.test.mjs'],
+  players: [
+    'tests/players.test.mjs',
+    'tests/player-profiles.test.mjs',
+    'tests/approved-v1.test.mjs',
+  ],
   tactics: ['tests/game.test.mjs'],
   training: ['tests/players.test.mjs', 'tests/game.test.mjs'],
   transfers: ['tests/game.test.mjs', 'tests/api.test.mjs'],
@@ -255,6 +259,8 @@ export function classifyChanges(
         'tests/live-http.test.mjs',
       ])
         business.add(t);
+    if (path === 'packages/server/src/maintenance/player-profiles.mjs')
+      business.add('tests/player-profiles.test.mjs');
     if (path === 'packages/shared/game.mjs' || path.startsWith('packages/shared/core/'))
       for (const t of allBusiness) business.add(t);
     if (['package.json', 'package-lock.json'].includes(path)) {
@@ -307,6 +313,9 @@ export function classifyChanges(
     if (path === 'packages/shared/modules/tactics/index.mjs')
       algorithm = intersects(keys, ['FORMATIONS', '@links']);
     if (path === 'packages/shared/modules/tactics/presets.mjs') algorithm = true;
+    if (path === 'packages/shared/modules/players/profiles.mjs') algorithm = true;
+    if (path === 'packages/shared/modules/players/index.mjs')
+      algorithm = intersects(keys, ['player', 'reprofilePlayer', 'observationPlayer', '@links']);
     if (algorithm) {
       match = true;
       reasons.push('Match algorithm: ' + path + ' [' + keys.join(', ') + ']');

@@ -1,5 +1,7 @@
 # 球员模块
 
+0.11.0分布设计见[ATTRIBUTE_PROFILES.md](ATTRIBUTE_PROFILES.md)。profiles.mjs是纯能力分配，SPECIALISMS仅解释来源；reprofilePlayer显式一次重塑、observationPlayer仅返回指定观察球员，不会自动给所有存档发放。历史六项迁移migratePlayer仍兼容，服务启动不重抽。
+
 验证按[分层规则](../../../../docs/VALIDATION.md)：生日直接构造换季边界，性格/训练/迁移使用明确标记的测试报告；真实有效能力与跑动由比赛专项覆盖。普通球员业务修补不为准备状态计算完整比赛；相关源码/默认数据变更须核对并更新决策参考图。
 
 职责：球员身份、30 项细分能力、六项兼容摘要、评级、长期性格、短期状态、公众形象、训练成长与比赛后的球员结算。

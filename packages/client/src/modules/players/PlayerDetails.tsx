@@ -7,6 +7,7 @@ import {
   PERSONALITY,
   TRAITS,
   personalityTraits,
+  SPECIALISMS,
 } from '../../../../shared/modules/players/index.mjs';
 import { Badge, Ovr } from '../../components/ui';
 import { money, roles } from '../../constants';
@@ -105,6 +106,12 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
               {footName(p.preferredFoot)} · 逆足 {p.weakFoot}
             </span>
             <span>潜力 {p.potential} / 100</span>
+            {p.attributeProfile && (
+              <span>
+                {SPECIALISMS[p.attributeProfile.archetype as keyof typeof SPECIALISMS] ??
+                  '技术特点'}
+              </span>
+            )}
           </div>
         </div>
         <div className="pm-facts">

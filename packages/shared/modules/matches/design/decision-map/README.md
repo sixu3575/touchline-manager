@@ -1,5 +1,7 @@
 # 决策图导出副本
 
+0.11.0第6图新增FG/FB赛前技术模板与预算保护；其他五图执行条件未改。23份源码摘要包括players/profiles.mjs；引擎/参数仍0.10.0-tactical-roles/tactics-1。
+
 0.10.0更新R/P/A/F战术与位置职责、阶段和三类传中；主文仍为唯一可编辑来源，六SVG及22源摘要同次维护，详见[战术设计](../TACTICS_V0100.md)。新增tactical-plan及tactics/presets来源，不改变导出工具或开发流程。
 
 

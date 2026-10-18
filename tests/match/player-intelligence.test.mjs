@@ -222,7 +222,8 @@ test('jogging, pressing, sprinting and controlled carrying use distinct physical
 });
 
 test('an organiser passes and a dribbler carries in the same open situation across common seeds', () => {
-  const organiser = actor('p', 0, 50, 34, {
+  // Isolate the compared abilities from newly generated archetype strengths/weak feet.
+  const organiser = controlled('p', 0, 50, 34, {
     passing: 94,
     vision: 94,
     decisions: 92,
@@ -230,7 +231,7 @@ test('an organiser passes and a dribbler carries in the same open situation acro
     agility: 45,
     firstTouch: 70,
   });
-  const dribbler = actor('p', 0, 50, 34, {
+  const dribbler = controlled('p', 0, 50, 34, {
     passing: 35,
     vision: 45,
     decisions: 92,
@@ -238,9 +239,9 @@ test('an organiser passes and a dribbler carries in the same open situation acro
     agility: 94,
     firstTouch: 94,
   });
-  const mate = actor('m', 0, 61, 42),
-    def = actor('d', 1, 78, 25),
-    keeper = actor('g', 1, 102, 34, {}, 'GK');
+  const mate = controlled('m', 0, 64, 42),
+    def = controlled('d', 1, 78, 25),
+    keeper = controlled('g', 1, 102, 34, {}, 'GK');
   let passes = 0,
     carries = 0;
   for (let seed = 1; seed <= 30; seed++) {

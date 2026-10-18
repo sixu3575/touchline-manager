@@ -1,7 +1,9 @@
 import { random, seedFrom, clamp, decimal } from '../../core/index.mjs';
 import { ATTRIBUTE_GROUPS, COUNTRIES, PERSONALITY, INTERESTS } from './catalog.mjs';
+import { profileAttributes, ATTRIBUTE_PROFILE_VERSION } from './profiles.mjs';
 export * from './catalog.mjs';
 export * from './match-state.mjs';
+export { ATTRIBUTE_PROFILE_VERSION, SPECIALISMS } from './profiles.mjs';
 
 export function ageOn(birthDate, date) {
   return (
@@ -100,21 +102,23 @@ export function player(id, role, level, rng, youth = false, date = '2026-07-01')
   const country = COUNTRIES[identity.nationality];
   const first = country.first[Math.floor(rng() * country.first.length)];
   const last = country.last[Math.floor(rng() * country.last.length)];
-  const attributes = {};
-  for (const [group, { attributes: keys }] of Object.entries(ATTRIBUTE_GROUPS)) {
-    for (const key of Object.keys(keys)) {
-      const base = group === 'goalkeeping' ? (role === 'GK' ? level + 4 : 12) : level;
-      attributes[key] = decimal(
-        clamp(base + (rng() - 0.5) * 26, group === 'goalkeeping' && role !== 'GK' ? 1 : 20, 90),
-      );
-    }
-  }
+  const budgets = {
+    pace: level + (rng() - 0.5) * 8,
+    shooting: level + { GK: -18, DEF: -15, MID: -3, FWD: 4 }[role] + (rng() - 0.5) * 8,
+    passing: level + { GK: -8, DEF: -3, MID: 4, FWD: -4 }[role] + (rng() - 0.5) * 8,
+    defending: level + { GK: -20, DEF: 4, MID: -5, FWD: -22 }[role] + (rng() - 0.5) * 8,
+    stamina: level + (rng() - 0.5) * 10,
+    keeping: role === 'GK' ? level + 4 + (rng() - 0.5) * 8 : 12,
+  };
+  for (const key of Object.keys(budgets)) budgets[key] = decimal(clamp(budgets[key], 1, 95));
+  const { attributes, archetype } = profileAttributes(role, budgets, rng, identity.heightCm);
   const p = {
     id,
     name: ['CN', 'JP', 'KR'].includes(identity.nationality) ? last + first : first + '·' + last,
     role,
     ...identity,
     attributes,
+    attributeProfile: { version: ATTRIBUTE_PROFILE_VERSION, archetype, source: 'generated' },
     skills: skillSummary(attributes),
     ...makeCharacter(rng),
     fitness: 100,
@@ -127,6 +131,82 @@ export function player(id, role, level, rng, youth = false, date = '2026-07-01')
   };
   p.wage = Math.round((rating(p) * 18 + 100) / 50) * 50;
   p.price = Math.round((rating(p) ** 2 * 42 * (youth ? 1.35 : 1)) / 1000) * 1000;
+  return p;
+}
+export function reprofilePlayer(p, seed) {
+  if (p.attributeProfile?.version >= ATTRIBUTE_PROFILE_VERSION) return false;
+  if (!p.attributes) throw Error('Current player attributes required');
+  const budgets = skillSummary(p.attributes);
+  if (Object.values(budgets).some((v) => !Number.isFinite(v) || v < 1 || v > 100))
+    throw Error('Invalid ability budget');
+  const rng = random(seedFrom(`${seed}:${p.id}:attribute-profile-v1`));
+  const { attributes, archetype } = profileAttributes(p.role, budgets, rng, p.heightCm);
+  p.attributes = attributes;
+  p.skills = skillSummary(attributes);
+  p.attributeProfile = { version: ATTRIBUTE_PROFILE_VERSION, archetype, source: 'redistributed' };
+  return true;
+}
+export function observationPlayer(seed, date) {
+  const p = player(
+    'observation-star-v1',
+    'FWD',
+    95,
+    random(seedFrom(`${seed}:observation-star-v1`)),
+    false,
+    date,
+  );
+  Object.assign(p, {
+    name: '林曜',
+    number: 99,
+    nationality: 'CN',
+    birthDate: '2002-03-21',
+    preferredFoot: 'both',
+    weakFoot: 95,
+    heightCm: 188,
+    potential: 99,
+    wage: 0,
+    price: 0,
+  });
+  p.age = ageOn(p.birthDate, date);
+  Object.assign(p.attributes, {
+    finishing: 98,
+    longShots: 94,
+    composure: 97,
+    passing: 91,
+    vision: 93,
+    decisions: 96,
+    firstTouch: 97,
+    dribbling: 96,
+    crossing: 85,
+    tackling: 38,
+    marking: 35,
+    heading: 95,
+    setPieces: 90,
+    positioning: 60,
+    offTheBall: 98,
+    anticipation: 95,
+    teamwork: 88,
+    concentration: 96,
+    acceleration: 94,
+    sprintSpeed: 92,
+    agility: 94,
+    balance: 93,
+    strength: 92,
+    stamina: 96,
+    reflexes: 10,
+    handling: 8,
+    oneOnOnes: 9,
+    aerialReach: 12,
+    command: 15,
+    distribution: 48,
+  });
+  p.skills = skillSummary(p.attributes);
+  p.attributeProfile = {
+    version: ATTRIBUTE_PROFILE_VERSION,
+    archetype: 'observation',
+    source: 'observation',
+  };
+  p.wellbeing = { morale: 80, confidence: 80, clubAttachment: 70, adaptation: 100 };
   return p;
 }
 export function squad(prefix, level, rng, date) {
