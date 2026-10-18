@@ -1,5 +1,9 @@
 # 存档模块变更记录
 
+## 0.9.0 · 2026-10-18
+
+新完整战报连同playerRatings版本及明细压缩入原表，摘要不增加明细；旧报告响应只读补评分，不改原payload/存档/轨迹。原事务、会话键、schema3和35场保留策略不变。评分新增保存/回滚/旧档字节与隔离专项，开发流程不变。
+
 ## 0.7.0 · 2026-10-18
 
 jobs.progress新增broadcast锚点、chunkEnds和computedAt，status增加airing；不改SQLite表3或JSON3。单独更新时钟必须保留work原字节；全轮报告暂存后，播放终场才原子提交正式save/report/replay/operation。失败发布从原work重试，不重算。waiting仅取queued/running，本队优先并按最近片段时间轮转，airing不占worker但仍锁定存档。

@@ -254,7 +254,12 @@ test('long historical reports are losslessly stored outside state, while legacy 
     assert.equal(state.reports[0].detailsStored, true);
     assert.equal(state.reports[0].events.length, 0);
     assert.ok(JSON.stringify(state.reports[0]).length < JSON.stringify(expected).length / 10);
-    assert.deepEqual(JSON.parse(gunzipSync(storage.report('one', 'detail')).toString()), expected);
+    const { playerRatings, ...archived } = JSON.parse(
+      gunzipSync(storage.report('one', 'detail')).toString(),
+    );
+    assert.deepEqual(archived, expected);
+    assert.equal(playerRatings.version, 'match-rating-1');
+    assert.equal(playerRatings.rows.length, 22);
     assert.equal(JSON.stringify(state.reports[1]), beforeLegacy);
     const saved = Buffer.from(storage.report('one', 'detail'));
     db.exec('BEGIN');

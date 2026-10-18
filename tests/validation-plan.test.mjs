@@ -12,6 +12,24 @@ const change = (path, before, after) => ({ path, before, after });
 const engine = 'packages/shared/modules/matches/decisions.mjs';
 const flow = 'packages/shared/modules/competitions/index.mjs';
 
+test('read-only post-match ratings select targeted tests; wiring them into the simulator still requires physics checks', () => {
+  const rating = 'packages/shared/modules/matches/ratings/index.mjs';
+  const plan = classifyChanges([
+    change(rating, 'export const baseline=6;', 'export const baseline=6.5;'),
+  ]);
+  assert.equal(plan.match, false);
+  assert.equal(plan.season, false);
+  assert.ok(plan.businessTests.includes('tests/player-ratings.test.mjs'));
+  const enginePlan = classifyChanges([
+    change(
+      'packages/shared/modules/matches/simulation.mjs',
+      'export const result=1;',
+      'import {baseline} from "./ratings/index.mjs";export const result=baseline;',
+    ),
+  ]);
+  assert.equal(enginePlan.match, true);
+});
+
 test('ordinary repairs and documentation select smoke/targeted checks without real matches or seasons', () => {
   const p = classifyChanges([
     change('README.md', 'a', 'b'),

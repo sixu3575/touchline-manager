@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+0.9.0：仅broadcast.finished时通过matches/ratings/index.mjs生成赛后评分；此前liveReport白名单不带playerRatings。新报告持久化附评分，旧报告GET只生成响应、不写原记录。评分不改MatchJobs接纳/结算或引擎输入；storage/replays的事务与会话边界保持，规则见比赛模块ratings/README.md。
+
 开发验证按[分层规则](../../../docs/VALIDATION.md)。常规测试由显式CLI预加载受控报告，仍使用真实HTTP/SQLite/任务/重启与备份；生产没有fixture开关。真实引擎HTTP链路仅算法变化执行，跨轮业务赛季仅重大流程执行；禁止通过放宽生产限流加速测试。
 
 index.mjs拥有会话、动作验证、SQLite事务与静态文件。simulation-pool.mjs仅管理一个worker和最多两个排队任务；worker执行服务端权威规则，不直接访问数据库。计算先于事务，提交时必须重新校验revision和requestId，不能把旧计算结果覆盖新状态。

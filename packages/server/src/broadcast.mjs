@@ -1,3 +1,5 @@
+import { withPlayerRatings } from '../../shared/modules/matches/ratings/index.mjs';
+
 // Presentation only. Never changes simulation inputs, RNG, physics or match time.
 export const LIVE_SPEED = 5;
 export const FRAME_BUFFER_SECONDS = 10;
@@ -38,7 +40,7 @@ export function broadcastAt(progress, now) {
 
 export function liveReport(report, broadcast) {
   if (!report) return undefined;
-  if (broadcast.finished) return report;
+  if (broadcast.finished) return withPlayerRatings(report);
   const second = broadcast.seconds;
   const events = report.events.filter((e) => (e.second ?? e.minute * 60) <= second);
   // Bounded live payload. Preserve goals/cards even when ordinary touches roll out.

@@ -1,5 +1,5 @@
 import { Activity, Goal, Pause, Play, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge, Crest } from '../../components/ui';
 import type { Club, Report } from '../../model';
 import { Pitch } from './Pitch';
@@ -7,11 +7,13 @@ import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
 import './physical.css';
 import { GoalCelebration } from './GoalCelebration';
+import { PlayerRatings } from './PlayerRatings';
 export function LegacyReplay({ report, onClose }: { report: Report; onClose: () => void }) {
   const [minute, setMinute] = useState(0),
     [playing, setPlaying] = useState(true),
     [speed, setSpeed] = useState(3);
   const [eventFilter, setEventFilter] = useState('key');
+  const ratingsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!playing) return;
     const timer = setInterval(
@@ -82,6 +84,13 @@ export function LegacyReplay({ report, onClose }: { report: Report; onClose: () 
             <small>客场</small>
           </div>
         </div>
+        <button
+          type="button"
+          className="ratings-jump"
+          onClick={() => ratingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        >
+          查看赛后球员评分 ↓
+        </button>
         <div className="replay-body">
           <div>
             <div className="replay-pitch match-pitch-stage">
@@ -144,6 +153,9 @@ export function LegacyReplay({ report, onClose }: { report: Report; onClose: () 
                   <b>{b}</b>
                 </div>
               ))}
+            </div>
+            <div ref={ratingsRef} className="ratings-anchor">
+              <PlayerRatings report={report} />
             </div>
           </div>
           <aside className="commentary">

@@ -1,5 +1,7 @@
 # 存档迁移模块
 
+0.9.0：replays.persist在原有事务内将withPlayerRatings生成的完整战报压缩，summary剥离playerRatings。GET旧战报可补评分响应，但不更新历史payload；新报告已带版本时原样返回。无schema升级，无轨迹重算；评分不是资金/比赛结算输入。专项tests/player-ratings.test.mjs检查原BLOB、隔离、事务回滚和摘要体积边界。
+
 migrateState 为复制后迁移，migrateDatabase 在单个 BEGIN IMMEDIATE 事务升级所有旧档。仅接收支持的版本；遇到未知版本启动失败并回滚，禁止重建存档。生产发布前沿用既有部署备份。
 
 0.3.0增加replays.mjs管理独立压缩轨迹表；user_version=2与JSON schemaVersion=2独立。persist必须在状态提交的现有事务内执行；失败一起回滚。未知更高表版本拒绝启动，备份使用VACUUM INTO包含所有表。

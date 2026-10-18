@@ -10,6 +10,7 @@ import { liveSecond, type MatchJob } from './useMatchJob';
 import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
 import { GoalCelebration } from './GoalCelebration';
+import { PlayerRatings } from './PlayerRatings';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -37,6 +38,7 @@ export function PhysicalReplay({
     [speed, setSpeed] = useState(live ? 5 : 1);
   const [selected, setSelected] = useState(-1);
   const [eventFilter, setEventFilter] = useState('key');
+  const ratingsRef = useRef<HTMLDivElement>(null);
   const liveFrame = useRef({ job: live?.job, duration: meta.duration });
   liveFrame.current = { job: live?.job, duration: meta.duration };
   const regulation = meta.regulationDuration ?? meta.duration;
@@ -186,6 +188,17 @@ export function PhysicalReplay({
             <small>客场 · {report.snapshots[1].tactics.formation}</small>
           </div>
         </div>
+        {(!live || ended) && (
+          <button
+            type="button"
+            className="ratings-jump"
+            onClick={() =>
+              ratingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          >
+            查看赛后球员评分 ↓
+          </button>
+        )}
         <div className="physical-layout">
           <div>
             <div className="simulation-ribbon">
@@ -354,6 +367,11 @@ export function PhysicalReplay({
                 </div>
               ))}
             </div>
+            {(!live || ended) && (
+              <div ref={ratingsRef} className="ratings-anchor">
+                <PlayerRatings report={report} />
+              </div>
+            )}
           </div>
           <aside className="commentary physical-commentary">
             <h3>

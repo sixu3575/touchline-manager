@@ -53,6 +53,45 @@ export interface MatchEvent {
   opponentQuality?: number;
 }
 export interface Report {
+  playerRatings?: {
+    version: string;
+    baseline: number;
+    minimum: number;
+    maximum: number;
+    rows: {
+      id: string;
+      name: string;
+      number: number | null;
+      role: string;
+      side: number;
+      minutes: number;
+      rating: number | null;
+      coverage: string;
+      goals: number;
+      assists: number;
+      shots: number;
+      xg: number;
+      keyPasses: number;
+      progressivePasses: number;
+      passes: number;
+      completed: number;
+      carryDistance: number;
+      tackles: number;
+      wonTackles: number;
+      interceptions: number;
+      saves: number;
+      penaltySaves: number;
+      conceded: number;
+      ownGoals: number;
+      penaltyMisses: number;
+      yellowCards: number;
+      redCards: number;
+      fouls: number;
+      miscontrols: number;
+      categories: { key: string; label: string; value: number }[];
+      unratedReason: string | null;
+    }[];
+  };
   detailsStored?: boolean;
   abandoned?: boolean;
   timeline?: {

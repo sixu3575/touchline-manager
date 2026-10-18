@@ -198,6 +198,7 @@ const moduleTests = {
     'tests/live-clock.test.mjs',
     'tests/match-event-filter.test.mjs',
     'tests/goal-presentation.test.mjs',
+    'tests/player-ratings.test.mjs',
   ],
 };
 
@@ -283,6 +284,7 @@ export function classifyChanges(
     if (!keys.length) continue;
     let algorithm =
       path.startsWith('packages/shared/modules/matches/') &&
+      !path.startsWith('packages/shared/modules/matches/ratings/') &&
       !['index.mjs', 'checkpoint.mjs'].some((p) => path.endsWith('/' + p));
     if (path === 'packages/shared/modules/matches/index.mjs') algorithm = keys.includes('@links');
     if (path === 'packages/shared/modules/players/match-state.mjs')
