@@ -19,6 +19,8 @@ import {
   stepPhysics,
   touchesBall,
 } from '../../packages/shared/modules/matches/physics.mjs';
+import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
+import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
 
 function actor(id, side, x, z, changes = {}, role = 'MID') {
   const p = structuredClone(createGame().clubs[0].players.find((p) => p.role === role));
@@ -40,6 +42,139 @@ function actor(id, side, x, z, changes = {}, role = 'MID') {
     intent: null,
   };
 }
+
+function controlled(id, side, x, z, changes = {}, role = 'MID') {
+  const a = actor(id, side, x, z, {}, role);
+  for (const key of Object.keys(a.player.attributes)) a.player.attributes[key] = 65;
+  Object.assign(a.player.attributes, changes);
+  a.player.preferredFoot = 'both';
+  a.player.weakFoot = 100;
+  return a;
+}
+function decisions(p, others, direction = 1, time = 10) {
+  const counts = { pass: 0, dribble: 0, shot: 0, takeOn: 0 };
+  for (let seed = 1; seed <= 100; seed++) {
+    const a = structuredClone(p),
+      action = chooseAction(
+        a,
+        [a, ...others],
+        { x: a.pos.x + direction * 0.6, y: 0.11, z: a.pos.z },
+        direction,
+        { style: 'balanced' },
+        random(seed),
+        { time },
+      );
+    counts[action.type]++;
+    if (action.intent === 'takeOn') counts.takeOn++;
+  }
+  return counts;
+}
+
+test('an ordinary midfielder uses unmarked forward space instead of circulating automatically, in either direction', () => {
+  for (const direction of [-1, 1]) {
+    const mirror = (x) => (direction === 1 ? x : 105 - x);
+    const p = controlled('p', 0, mirror(50), 34),
+      others = [
+        controlled('m', 0, mirror(58), 42),
+        controlled('b', 0, mirror(43), 34),
+        controlled('w', 0, mirror(50), 49),
+        controlled('d', 1, mirror(78), 23),
+        controlled('k', 1, mirror(102), 34, {}, 'GK'),
+      ];
+    const result = decisions(p, others, direction);
+    assert.ok(result.dribble >= 85, JSON.stringify(result));
+    assert.equal(
+      result.takeOn,
+      0,
+      'open-field advancement is distinct from challenging a defender',
+    );
+  }
+});
+
+test('dribbling ability and the opposing marker affect whether to attempt a real one-on-one', () => {
+  const others = [
+    controlled('m', 0, 43, 44),
+    controlled('d', 1, 54, 34, { tackling: 45, positioning: 45, balance: 50 }),
+    controlled('k', 1, 102, 34, {}, 'GK'),
+  ];
+  const strong = controlled('p', 0, 50, 34, {
+      dribbling: 95,
+      agility: 85,
+      balance: 80,
+      decisions: 85,
+    }),
+    weak = structuredClone(strong);
+  weak.player.attributes.dribbling = 20;
+  const skilled = decisions(strong, others),
+    unskilled = decisions(weak, others);
+  assert.ok(skilled.takeOn >= 60, JSON.stringify(skilled));
+  assert.ok(unskilled.pass >= 70, JSON.stringify(unskilled));
+  const better = structuredClone(others);
+  Object.assign(better[1].player.attributes, { tackling: 95, positioning: 95, balance: 95 });
+  assert.ok(
+    decisions(strong, better).takeOn < skilled.takeOn,
+    'stronger defending makes beating that marker less attractive',
+  );
+});
+
+test('covering defenders discourage solo runs while a clearly better attacking pass remains available', () => {
+  const p = controlled('p', 0, 50, 34, {
+    dribbling: 92,
+    agility: 90,
+    balance: 85,
+    sprintSpeed: 84,
+    acceleration: 90,
+    decisions: 85,
+  });
+  const common = [
+    controlled('m', 0, 43, 44),
+    controlled('d', 1, 54, 34),
+    controlled('k', 1, 102, 34, {}, 'GK'),
+  ];
+  const alone = decisions(p, common),
+    covered = decisions(p, [...common, controlled('c1', 1, 57, 29), controlled('c2', 1, 57, 39)]);
+  assert.ok(covered.takeOn < alone.takeOn - 35, JSON.stringify({ alone, covered }));
+  const passer = controlled('p', 0, 72, 34, { passing: 85, vision: 85, decisions: 90 });
+  assert.ok(
+    decisions(passer, [
+      controlled('m', 0, 93, 34),
+      controlled('d', 1, 96, 10),
+      controlled('k', 1, 103, 34, {}, 'GK'),
+    ]).pass >= 90,
+  );
+});
+
+test('a persistent carry still considers new routes and renews an already reached destination', () => {
+  const p = controlled('p', 0, 50, 34),
+    ball = { x: 50.6, y: 0.11, z: 34 },
+    others = [controlled('d', 1, 57, 34)];
+  p.intent = { kind: 'carry', destination: { x: 58, z: 34 }, expiresAt: 20 };
+  const opts = carryOptions(
+    p,
+    ball,
+    1,
+    others,
+    actionQuality(p, ball, 'dribbling', others),
+    playerProfile(p.player),
+    10,
+  );
+  assert.ok(opts.length >= 5);
+  assert.ok(opts.some((o) => o.destination.z > 37) && opts.some((o) => o.destination.z < 31));
+  p.intent.destination = { x: 51, z: 34 };
+  const renewed = carryOptions(
+    p,
+    ball,
+    1,
+    others,
+    actionQuality(p, ball, 'dribbling', others),
+    playerProfile(p.player),
+    10,
+  );
+  assert.ok(
+    renewed.every((o) => o.destination.x > ball.x + 5),
+    'reaching the old target does not trap the carrier in place',
+  );
+});
 
 test('ground passes keep useful speed in either direction without colliding with the kicker trunk', () => {
   for (const direction of [-1, 1]) {

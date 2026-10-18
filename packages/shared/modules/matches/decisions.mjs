@@ -3,6 +3,7 @@ import { ability, actionQuality } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { groundPassPlan, airborneVelocity } from './ball-motion.mjs';
 import { distance, unit, segmentPoint, pitchValue, localX } from './spatial.mjs';
+import { carryOptions } from './carrying.mjs';
 
 export function playerProfile(p, anchor = { z: 34 }) {
   const pass = (ability(p, 'passing') + ability(p, 'vision') + ability(p, 'decisions')) / 3;
@@ -250,13 +251,21 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         (o) => o !== mate && distance(o.pos, target) > 5 && distance(o.pos, target) < 23,
       ).length;
       const retention =
-        0.02 * success + 0.004 * Math.min(3, outlets) + 0.012 * Math.min(1, actor.hold ?? 0);
+        0.008 * success +
+        0.003 * Math.min(3, outlets) +
+        0.012 * pressure * Math.min(1, actor.hold ?? 0);
+      const penetration =
+        0.035 *
+        success *
+        clamp((forward - 10) / 12, 0, 1) *
+        clamp((localX(target.x, direction) - 70) / 20, 0, 1);
       const utility =
         success * pitchValue(target, direction) -
         currentValue -
         (1 - success) * (0.07 + currentValue * 0.3) +
         escape +
         retention +
+        penetration +
         style -
         0.035 * profile.inclination * clamp(forward / 10, 0.3, 1) +
         ambition * Math.sign(forward);
@@ -304,40 +313,23 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   }
   const q = quality('dribbling');
   if (!actor.setPiece && !actor.isKeeper) {
-    const persistent =
-      actor.intent?.kind === 'carry' && actor.intent.expiresAt > time && pressure < 0.55
-        ? actor.intent.destination
-        : null;
-    const routes = persistent
-      ? [persistent]
-      : [-1, 0, 1].map((lane) => ({
-          x: clamp(ball.x + direction * (6 + a('offTheBall') * 0.035), 1, 104),
-          z: clamp(ball.z + lane * 6 + (34 - ball.z) * 0.07, 2, 66),
-        }));
-    for (const destination of routes) {
-      const near = Math.min(
-        12,
-        ...opponents.map((o) => segmentPoint(ball, destination, o.pos).gap),
-      );
-      const danger = clamp((2.6 - near) / 2.6, 0, 1),
-        success = clamp(0.95 - danger * (1.05 - q.value * 0.005), 0.15, 0.98);
-      const ownRisk = p.role === 'DEF' && localX(ball.x, direction) < 35 ? 0.06 : 0;
+    for (const option of carryOptions(actor, ball, direction, opponents, q, profile, time)) {
+      const { destination, success } = option;
       candidates.push({
         type: 'dribble',
-        intent: 'carry',
+        intent: option.intent,
         destination,
         quality: q,
         utility:
           success * pitchValue(destination, direction) -
           currentValue -
           (1 - success) * (0.09 + currentValue * 0.4) +
-          0.065 * profile.inclination +
-          0.025 * clamp((near - 3) / 5, 0, 1) +
-          (persistent ? 0.025 : 0) -
-          ownRisk -
+          option.bonus -
+          option.ownRisk -
           0.03 * clamp((3 - Math.min(destination.z, 68 - destination.z)) / 3, 0, 1) +
           ambition,
-        reason: danger > 0.5 ? '侧向调整，寻找绕过防守者的路线' : '前方有可推进空间，继续带球',
+        estimatedSuccess: success,
+        reason: option.reason,
         make: () => {
           const travel = unit(ball, destination),
             m = movement(p, actor.energy, 'carry');
@@ -390,8 +382,11 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   const noise = 0.006 + 0.045 * (1 - a('decisions') / 100);
   let best = choices[0],
     value = -Infinity;
+  const disturbances = new Map();
   for (const c of choices) {
-    const u = c.utility + (rng() - 0.5) * noise * 2;
+    const kind = c.type === 'cross' ? 'pass' : c.type;
+    if (!disturbances.has(kind)) disturbances.set(kind, (rng() - 0.5) * noise * 2);
+    const u = c.utility + disturbances.get(kind);
     if (u > value) {
       value = u;
       best = c;

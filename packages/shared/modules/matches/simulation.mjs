@@ -50,8 +50,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.6.1-physical-motion';
-export const PARAMETER_VERSION = 'physical-motion-1';
+export const ENGINE_VERSION = '0.8.0-carrying';
+export const PARAMETER_VERSION = 'carrying-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -1149,7 +1149,13 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               : 0.28;
           if (action.type === 'dribble') {
             a.carries++;
-            event('dribble', a.side, `${a.player.name}短触球向前推进。`, a, explanation);
+            event(
+              'dribble',
+              a.side,
+              `${a.player.name}${action.intent === 'takeOn' ? '变向带球挑战防守者。' : '短触球向前推进。'}`,
+              a,
+              explanation,
+            );
           }
           a.setPiece = null;
         }

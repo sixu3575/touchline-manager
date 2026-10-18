@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.8.0仅新比赛使用ENGINE_VERSION=0.8.0-carrying、parameterVersion=carrying-1。带球事件沿用type=dribble，可选intent=takeOn及相关解释/estimatedSuccess；意图只是路线估计，不能当成功过人统计。稳定球员模型、JSON3、SQLite3、49值/5Hz轨迹不变，无旧数据迁移/重算；旧引擎未完成任务先结算，再升级，禁止用新模型恢复旧检查点。
+
 数据库 game.sqlite 位于 DATA_DIR；生产 /var/lib/touchline-manager，与 /srv 只读发布目录分开。
 
 - saves：id、token_hash、state（JSON）、updated_at。JSON schemaVersion=3，revision 随操作递增。
