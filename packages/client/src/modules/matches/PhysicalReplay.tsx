@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Activity, Pause, Play, SkipForward, X } from 'lucide-react';
 import type { Report } from '../../model';
 import { Badge, Crest } from '../../components/ui';
@@ -34,6 +34,8 @@ export function PhysicalReplay({
     [speed, setSpeed] = useState(live ? 5 : 1);
   const [selected, setSelected] = useState(-1);
   const [eventFilter, setEventFilter] = useState('key');
+  const liveFrame = useRef({ job: live?.job, duration: meta.duration });
+  liveFrame.current = { job: live?.job, duration: meta.duration };
   const regulation = meta.regulationDuration ?? meta.duration;
   const shootout = time > regulation;
   const matchClock = (t: number) => (t > regulation ? '点球大战' : clock(t * clockScale));
@@ -73,12 +75,13 @@ export function PhysicalReplay({
     if (!live) return;
     let animation = 0;
     const advance = () => {
-      setTime((t) => Math.max(t, Math.min(meta.duration, liveSecond(live.job))));
+      const { job, duration } = liveFrame.current;
+      if (job) setTime((t) => Math.max(t, Math.min(duration, liveSecond(job))));
       animation = requestAnimationFrame(advance);
     };
     advance();
     return () => cancelAnimationFrame(animation);
-  }, [live?.job.broadcast, live?.job.receivedAt, meta.duration]);
+  }, [Boolean(live), report.id]);
   useEffect(() => {
     if (live || !playing || !data || ended || buffering) return;
     let animation = 0,

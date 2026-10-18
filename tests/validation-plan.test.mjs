@@ -22,6 +22,19 @@ test('ordinary repairs and documentation select smoke/targeted checks without re
   assert.ok(p.businessTests.includes('tests/players.test.mjs'));
   assert.ok(selectTiers(p).every((stage) => stage.fixtures));
 });
+
+test('client playback-clock repairs select their latency regressions without simulating matches or seasons', () => {
+  const p = classifyChanges([
+    change(
+      'packages/client/src/modules/matches/live-clock.mjs',
+      'export const delay=1;',
+      'export const delay=2;',
+    ),
+  ]);
+  assert.ok(p.businessTests.includes('tests/live-clock.test.mjs'));
+  assert.equal(p.match, false);
+  assert.equal(p.season, false);
+});
 test('only match algorithm changes enable real simulation, including rules and numeric parameters', () => {
   for (const p of [
     classifyChanges([change(engine, 'export const weight=0.065;', 'export const weight=0.07;')]),
