@@ -10,7 +10,17 @@ let engine = null,
   savedTick = 0;
 parentPort.on(
   'message',
-  ({ id, fixture, home, away, checkpoint, expectedTick, engineVersion, parameterVersion }) => {
+  ({
+    id,
+    fixture,
+    home,
+    away,
+    checkpoint,
+    expectedTick,
+    engineVersion,
+    parameterVersion,
+    sliceSeconds = 60,
+  }) => {
     try {
       if (engineVersion !== ENGINE_VERSION || parameterVersion !== PARAMETER_VERSION)
         throw Error('比赛引擎版本不匹配；请用创建任务时的版本恢复，不能重新抽取赛果。');
@@ -23,7 +33,7 @@ parentPort.on(
           ...fixture.options,
           checkpoint,
           durable: true,
-          sliceSeconds: 60,
+          sliceSeconds,
         });
         key = nextKey;
       }

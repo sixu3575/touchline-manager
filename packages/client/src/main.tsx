@@ -22,7 +22,7 @@ import { PlayerModal } from './components/PlayerModal';
 import { Replay } from './components/Replay';
 import { Badge, Crest } from './components/ui';
 import type { Game, Player, Report } from './model';
-import { useMatchJob, MatchTask, PhysicalReplay } from './modules/matches';
+import { useMatchJob, MatchTask, PhysicalReplay, Pitch } from './modules/matches';
 import { Fixtures } from './modules/competitions';
 import { Finance } from './modules/economy';
 import { Overview } from './modules/overview';
@@ -53,7 +53,7 @@ function App() {
     [report, setReport] = useState<Report | null>(null),
     [rename, setRename] = useState(false),
     [name, setName] = useState('');
-  const match = useMatchJob(() => void load());
+  const match = useMatchJob(() => void load(), watching);
   const locked = Boolean(match.job && match.job.status !== 'complete');
   const load = async () => {
     try {
@@ -78,8 +78,12 @@ function App() {
   const act = async (type: string, payload: Record<string, unknown> = {}) => {
     if (!game || busy) return;
     setBusy(true);
-    const liveMode = payload.watchMode === 'live';
-    const { watchMode, ...intent } = payload;
+    const liveMode = type === 'advance' || type === 'cup';
+    if (liveMode) {
+      if (!locked) match.accept(null);
+      setReport(null);
+      setWatching(true);
+    }
     try {
       const requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), (x) =>
         x.toString(16).padStart(2, '0'),
@@ -87,7 +91,7 @@ function App() {
       const res = await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, payload: intent, requestId, revision: game.revision }),
+        body: JSON.stringify({ type, payload, requestId, revision: game.revision }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -96,7 +100,7 @@ function App() {
       }
       if (res.status === 202) {
         match.accept(data.job);
-        setWatching(liveMode);
+        setWatching(true);
         return;
       }
       setGame(data.state);
@@ -104,6 +108,7 @@ function App() {
       if (type === 'advance' || type === 'cup') setReport(data.state.reports[0]);
       return data.state as Game;
     } catch (e) {
+      if (liveMode) setWatching(false);
       setToast((e as Error).message);
     } finally {
       setBusy(false);
@@ -257,11 +262,10 @@ function App() {
               connection={match.connection}
               onWatch={() => setWatching(true)}
               onReplay={() => {
-                if (match.job?.report) setReport(match.job.report);
+                const stored = game.reports.find((r) => r.id === match.job?.report?.id);
+                if (stored || match.job?.report) setReport(stored ?? match.job!.report!);
               }}
-              onRetry={() =>
-                void act(match.job!.type, { watchMode: watching ? 'live' : 'background' })
-              }
+              onRetry={() => void act(match.job!.type)}
             />
           )}
           {view === 'overview' && (
@@ -327,13 +331,17 @@ function App() {
         ) : (
           <div className="modal-backdrop">
             <section className="modal live-empty" role="dialog" aria-label="等待实时比赛">
-              <h2>正在准备比赛画面</h2>
+              <h2>比赛直播 · 5倍速</h2>
               <p>
                 {match.connection ||
-                  '本队比赛优先计算。首段轨迹生成后立即开始观看，默认12×，90分钟约7.5分钟。'}
+                  match.job?.error ||
+                  '正在开球，首段画面就绪后自动播放。90分钟约18分钟，离开后比赛仍会继续。'}
               </p>
+              <div className="live-kickoff" aria-label="赛前站位，等待开球">
+                <Pitch club={club} />
+              </div>
               <button className="secondary" onClick={() => setWatching(false)}>
-                切换后台模拟
+                返回俱乐部 · 比赛继续
               </button>
             </section>
           </div>

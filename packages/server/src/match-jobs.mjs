@@ -7,6 +7,8 @@ import {
 } from '../../shared/modules/competitions/index.mjs';
 import { ENGINE_VERSION, PARAMETER_VERSION } from '../../shared/modules/matches/index.mjs';
 import { createJobStorage, unpack } from './storage/jobs.mjs';
+import { gunzipSync } from 'node:zlib';
+import { broadcastAt, liveReport } from './broadcast.mjs';
 
 const problem = (message, status = 409) => Object.assign(Error(message), { status });
 // One bounded worker, durable input/checkpoint/chunks. It never owns SQLite.
@@ -19,23 +21,36 @@ export class MatchJobs extends EventEmitter {
   workerKey = null;
   retryTimer = null;
   retiring = null;
-  constructor(db, replays) {
+  constructor(db, replays, { now = () => Date.now() } = {}) {
     super();
     this.db = db;
     this.replays = replays;
     this.store = createJobStorage(db);
+    this.now = now;
+    this.clockTimer = setInterval(() => this.pulse(), 500);
+    this.clockTimer.unref();
     queueMicrotask(() => this.pump());
   }
-  view(row) {
+  view(row, { summary = false } = {}) {
     if (!row) return null;
     const p = JSON.parse(row.progress);
+    const broadcast = broadcastAt(p, this.now())?.public;
+    const report = summary ? undefined : broadcast ? liveReport(p.report, broadcast) : p.report;
     return {
       id: row.id,
       status: row.status,
       engineVersion: ENGINE_VERSION,
       error: row.error,
       type: row.identity.split(':')[0],
-      ...p,
+      ...(broadcast
+        ? {
+            broadcast,
+            ownComplete: broadcast.finished,
+            report,
+            frameCount: report?.replay?.frameCount,
+            generatedSeconds: broadcast.seconds,
+          }
+        : p),
     };
   }
   latest(saveId) {
@@ -51,7 +66,7 @@ export class MatchJobs extends EventEmitter {
     if (prior) {
       if (prior.body_hash !== bodyHash) throw problem('操作标识已被使用。');
       if (prior.status === 'failed') {
-        if (!this.writeStatus(prior.id, 'queued'))
+        if (!this.writeStatus(prior.id, this.resumeStatus(prior)))
           throw problem('存储暂时繁忙，请稍后恢复比赛。', 503);
         this.retries.delete(prior.id);
         this.pump();
@@ -64,7 +79,7 @@ export class MatchJobs extends EventEmitter {
       if (pending.body_hash !== bodyHash || pending.revision !== data.revision)
         throw problem('本存档有未结算的比赛，请等待完成。');
       if (pending.status === 'failed') {
-        if (!this.writeStatus(pending.id, 'queued'))
+        if (!this.writeStatus(pending.id, this.resumeStatus(pending)))
           throw problem('存储暂时繁忙，请稍后恢复比赛。', 503);
         this.retries.delete(pending.id);
         this.pump();
@@ -105,7 +120,87 @@ export class MatchJobs extends EventEmitter {
     return this.view(this.store.get(id));
   }
   notify(id) {
-    this.emit(id, this.view(this.store.get(id)));
+    if (this.listenerCount(id)) this.emit(id);
+  }
+  resumeStatus(row) {
+    const work = unpack(row.work);
+    return work && work.index === work.plan.order.length ? 'airing' : 'queued';
+  }
+  pulse() {
+    if (this.closing) return;
+    for (const row of this.store.pendingRows()) {
+      try {
+        const p = JSON.parse(row.progress),
+          clock = broadcastAt(p, this.now());
+        if (clock?.changed) {
+          p.broadcast = clock.clock;
+          this.store.progress(row.id, p);
+        }
+        if (row.status === 'airing' && clock?.public.finished)
+          this.finishAiring(this.store.get(row.id));
+        this.notify(row.id);
+      } catch {
+        // A temporary SQLite writer never advances state or loses the last durable clock.
+      }
+    }
+  }
+  finishAiring(row) {
+    let transaction = false;
+    try {
+      const work = unpack(row.work),
+        progress = JSON.parse(row.progress);
+      this.db.exec('BEGIN IMMEDIATE');
+      transaction = true;
+      this.settle(row, progress, work);
+      this.db.exec('COMMIT');
+      transaction = false;
+    } catch (error) {
+      if (transaction) this.db.exec('ROLLBACK');
+      this.writeStatus(row.id, 'failed', error.message);
+    }
+  }
+  frames(row, from) {
+    const p = JSON.parse(row.progress),
+      view = this.view(row);
+    const end = view.report?.replay?.frameCount ?? 0;
+    if (!Number.isSafeInteger(from) || from < 0 || from > end) throw problem('轨迹范围无效。', 416);
+    let offset = 0;
+    const parts = [];
+    for (let seq = 0; seq < (p.seq ?? 0) && offset < end; seq++) {
+      const chunkEnd = p.chunkEnds?.[seq];
+      if (chunkEnd !== undefined && chunkEnd <= from) {
+        offset = chunkEnd;
+        continue;
+      }
+      const raw = gunzipSync(this.store.chunk(row.id, seq));
+      const next = offset + raw.length / 98;
+      if (next > from)
+        parts.push(
+          raw.subarray(Math.max(0, from - offset) * 98, Math.min(next - offset, end - offset) * 98),
+        );
+      offset = next;
+    }
+    return { payload: Buffer.concat(parts), end };
+  }
+  settle(row, progress, work) {
+    const current = JSON.parse(
+      this.db.prepare('SELECT state FROM saves WHERE id=?').get(row.save_id).state,
+    );
+    if (current.revision !== row.revision) throw problem('存档版本冲突，比赛尚未结算。');
+    const state = settleCompetition(work.plan, work.reports);
+    const chunks = [];
+    for (let seq = 0; seq < work.seq; seq++) chunks.push(this.store.chunk(row.id, seq));
+    this.replays.persistChunks(row.save_id, state.reports[0].id, chunks);
+    this.replays.persist(row.save_id, state);
+    this.db
+      .prepare('UPDATE saves SET state=?,updated_at=? WHERE id=?')
+      .run(JSON.stringify(state), new Date().toISOString(), row.save_id);
+    this.db
+      .prepare('INSERT INTO operations VALUES (?,?,?)')
+      .run(row.save_id, row.request_id, row.body_hash);
+    progress.settledRevision = state.revision;
+    this.store.save(row.id, progress, null, 'complete');
+    this.store.prune(row.save_id);
   }
   writeStatus(id, status, error = null) {
     try {
@@ -187,6 +282,7 @@ export class MatchJobs extends EventEmitter {
       expectedTick: work.checkpoint?.tick ?? 0,
       engineVersion: work.engineVersion,
       parameterVersion: work.parameterVersion,
+      sliceSeconds: work.index === 0 ? 15 : 60,
     });
   }
   received(result) {
@@ -205,6 +301,8 @@ export class MatchJobs extends EventEmitter {
       const { done, part } = result,
         own = work.index === 0;
       const progress = JSON.parse(row.progress);
+      const beforeClock = broadcastAt(progress, this.now());
+      if (beforeClock) progress.broadcast = beforeClock.clock;
       this.db.exec('BEGIN IMMEDIATE');
       transaction = true;
       if (own) {
@@ -213,6 +311,7 @@ export class MatchJobs extends EventEmitter {
           : part.trajectory;
         if (track?.length) {
           this.store.addChunk(row.id, work.seq++, track);
+          (progress.chunkEnds ??= []).push((progress.chunkEnds?.at(-1) ?? 0) + track.length / 49);
         }
         const report = done ? { ...part } : part.report;
         delete report.trajectory;
@@ -236,26 +335,13 @@ export class MatchJobs extends EventEmitter {
       progress.fixturesDone = work.index;
       progress.fixturesTotal = work.plan.order.length;
       progress.fixtureSeconds = done ? 0 : part.second;
+      progress.computedAt = this.now();
+      const clock = broadcastAt(progress, this.now());
+      if (clock) progress.broadcast = clock.clock;
       if (work.index === work.plan.order.length) {
-        const current = JSON.parse(
-          this.db.prepare('SELECT state FROM saves WHERE id=?').get(row.save_id).state,
-        );
-        if (current.revision !== row.revision) throw problem('存档版本冲突，比赛尚未结算。');
-        const state = settleCompetition(work.plan, work.reports);
-        const ownReport = state.reports[0];
-        const chunks = [];
-        for (let seq = 0; seq < work.seq; seq++) chunks.push(this.store.chunk(row.id, seq));
-        this.replays.persistChunks(row.save_id, ownReport.id, chunks);
-        this.replays.persist(row.save_id, state);
-        this.db
-          .prepare('UPDATE saves SET state=?,updated_at=? WHERE id=?')
-          .run(JSON.stringify(state), new Date().toISOString(), row.save_id);
-        this.db
-          .prepare('INSERT INTO operations VALUES (?,?,?)')
-          .run(row.save_id, row.request_id, row.body_hash);
-        progress.settledRevision = state.revision;
-        this.store.save(row.id, progress, null, 'complete');
-        this.store.prune(row.save_id);
+        if (!clock || clock.public.finished) this.settle(row, progress, work);
+        else this.store.save(row.id, progress, work, 'airing');
+        this.working = null;
       } else this.store.save(row.id, progress, work);
       this.db.exec('COMMIT');
       transaction = false;
@@ -293,6 +379,7 @@ export class MatchJobs extends EventEmitter {
   }
   async close() {
     this.closing = true;
+    clearInterval(this.clockTimer);
     clearTimeout(this.retryTimer);
     if (this.active) clearTimeout(this.active.timer);
     const worker = this.worker;

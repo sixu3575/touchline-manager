@@ -32,7 +32,7 @@ const hash = (s) => createHash('sha256').update(s).digest('hex');
 const rate = new Map();
 const streams = new Map();
 const dist = resolve(ROOT, 'dist/client');
-const version = '0.6.0';
+const version = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')).version;
 const security = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'same-origin',
@@ -116,6 +116,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (rate.size > 5000) for (const [k, v] of rate) if (v.until < now) rate.delete(k);
       if (req.method === 'GET' && url.pathname === '/api/state') {
+        jobs.pulse();
         const row = session(req, res);
         send(res, 200, { state: JSON.parse(row.state), version, job: jobs.latest(row.id) });
         return;
@@ -173,7 +174,7 @@ const server = http.createServer(async (req, res) => {
             return;
           }
           const emit = () => {
-            const view = jobs.view(jobs.store.get(row.id));
+            const view = jobs.view(jobs.store.get(row.id), { summary: true });
             const { report, ...summary } = view;
             res.write('id: ' + (view.seq ?? 0) + '\ndata: ' + JSON.stringify(summary) + '\n\n');
           };
@@ -196,7 +197,27 @@ const server = http.createServer(async (req, res) => {
           });
           return;
         }
+        if (parts[1] === 'frames' && parts.length === 2) {
+          const from = Number(url.searchParams.get('from') ?? '0');
+          const { payload: frames, end } = jobs.frames(row, from);
+          const payload = gzipSync(frames, { level: 1 });
+          res.writeHead(200, {
+            ...security,
+            'Content-Type': 'application/octet-stream',
+            'Content-Encoding': 'gzip',
+            'Content-Length': payload.length,
+            'X-Frame-Start': String(from),
+            'X-Frame-End': String(end),
+            'Cache-Control': 'no-store',
+          });
+          res.end(payload);
+          return;
+        }
         if (parts[1] === 'chunks' && parts.length === 3 && /^\d{1,4}$/.test(parts[2])) {
+          if (JSON.parse(row.progress).broadcast && row.status !== 'complete') {
+            send(res, 409, { error: '直播期间仅提供当前画面的短缓冲，请使用观赛入口。' });
+            return;
+          }
           const payload = jobs.store.chunk(row.id, Number(parts[2]));
           if (!payload) {
             send(res, 404, { error: '轨迹尚未生成。' });
@@ -228,6 +249,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === 'POST' && url.pathname === '/api/action') {
+        jobs.pulse();
         if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {
           send(res, 403, { error: '来源校验失败。' });
           return;

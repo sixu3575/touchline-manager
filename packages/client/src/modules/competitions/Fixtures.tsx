@@ -61,7 +61,7 @@ export function Fixtures({
                 game.cup.stage >= 3 ||
                 game.round < 2 + game.cup.stage * 3
               }
-              onClick={() => void act('cup', { watchMode: 'live' })}
+              onClick={() => void act('cup')}
             >
               {game.cup.stage >= 3
                 ? '杯赛已结束'
@@ -69,19 +69,7 @@ export function Fixtures({
                   ? '已出局'
                   : game.round < 2 + game.cup.stage * 3
                     ? '第 ' + (2 + game.cup.stage * 3) + ' 轮后开放'
-                    : '实时观看' + ['八强赛', '半决赛', '决赛'][game.cup.stage]}
-            </button>
-            <button
-              className="secondary"
-              disabled={
-                busy ||
-                game.cup.eliminated ||
-                game.cup.stage >= 3 ||
-                game.round < 2 + game.cup.stage * 3
-              }
-              onClick={() => void act('cup', { watchMode: 'background' })}
-            >
-              杯赛后台模拟
+                    : '参加' + ['八强赛', '半决赛', '决赛'][game.cup.stage] + '并实时观看'}
             </button>
           </div>
         </section>

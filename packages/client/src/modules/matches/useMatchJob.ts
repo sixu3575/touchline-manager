@@ -3,19 +3,44 @@ import type { Report } from '../../model';
 
 export interface MatchJob {
   id: string;
-  status: 'queued' | 'running' | 'complete' | 'failed';
+  status: 'queued' | 'running' | 'airing' | 'complete' | 'failed';
   type: string;
   error?: string;
-  seq?: number;
-  frameCount?: number;
-  generatedSeconds?: number;
   ownComplete?: boolean;
-  fixturesDone?: number;
-  fixturesTotal?: number;
-  fixtureSeconds?: number;
+  frameCount?: number;
   report?: Report;
+  receivedAt?: number;
+  broadcast?: {
+    speed: number;
+    seconds: number;
+    serverNow: number;
+    started: boolean;
+    finished: boolean;
+    buffering: boolean;
+  };
 }
-export function useMatchJob(onSettled: () => void) {
+export function liveSecond(job: MatchJob) {
+  const clock = job.broadcast;
+  if (!clock) return 0;
+  return (
+    clock.seconds +
+    (clock.started && !clock.finished && !clock.buffering
+      ? (Math.max(0, performance.now() - (job.receivedAt ?? performance.now())) / 1000) *
+        clock.speed
+      : 0)
+  );
+}
+export function useBroadcastSecond(job: MatchJob) {
+  const [second, setSecond] = useState(() => liveSecond(job));
+  useEffect(() => {
+    setSecond(liveSecond(job));
+    const timer = setInterval(() => setSecond(liveSecond(job)), 250);
+    return () => clearInterval(timer);
+  }, [job.broadcast, job.receivedAt]);
+  return second;
+}
+
+export function useMatchJob(onSettled: () => void, watching: boolean) {
   const [job, setJob] = useState<MatchJob | null>(null),
     [data, setData] = useState<Uint16Array | null>(null);
   const [connection, setConnection] = useState(''),
@@ -23,58 +48,71 @@ export function useMatchJob(onSettled: () => void) {
   const settled = useRef(''),
     callback = useRef(onSettled);
   callback.current = onSettled;
-  const chunks = useRef<{ id: string; parts: Uint16Array[] }>({ id: '', parts: [] });
+  const track = useRef({ id: '', values: new Uint16Array(0), length: 0 });
+  const stamp = (value: MatchJob) => ({ ...value, receivedAt: performance.now() });
   useEffect(() => {
     if (!job?.id) return;
     const id = job.id,
       controller = new AbortController();
     let fetching = false,
-      again = false;
-    if (chunks.current.id !== id) {
-      chunks.current = { id, parts: [] };
+      again = false,
+      lastFetch = 0;
+    if (track.current.id !== id) {
+      track.current = { id, values: new Uint16Array(0), length: 0 };
       setData(null);
     }
-    const chunkStore = chunks.current;
-    const refresh = async () => {
+    const current = track.current;
+    const refresh = async (force = false) => {
       if (fetching) {
         again = true;
         return;
       }
+      if (!force && Date.now() - lastFetch < 900) return;
       fetching = true;
       try {
         do {
           again = false;
+          lastFetch = Date.now();
           const response = await fetch('/api/match-jobs/' + id, { signal: controller.signal });
           const payload = await response.json();
           if (!response.ok) throw Error(payload.error);
           const next = payload.job as MatchJob;
-          for (let seq = chunkStore.parts.length; seq < (next.seq ?? 0); seq++) {
-            const r = await fetch(`/api/match-jobs/${id}/chunks/${seq}`, {
+          if (watching && next.report) {
+            const from = current.length / 49;
+            const r = await fetch(`/api/match-jobs/${id}/frames?from=${from}`, {
               signal: controller.signal,
             });
-            if (!r.ok) throw Error('轨迹片段加载失败，正在重新连接。');
+            if (!r.ok) throw Error('画面加载中，正在重新连接。');
             const bytes = await r.arrayBuffer();
             if (controller.signal.aborted) return;
-            if (bytes.byteLength % 98) throw Error('轨迹片段格式无效。');
-            const view = new DataView(bytes),
-              part = new Uint16Array(bytes.byteLength / 2);
-            for (let i = 0; i < part.length; i++) part[i] = view.getUint16(i * 2, true);
-            chunkStore.parts.push(part);
+            const end = Number(r.headers.get('X-Frame-End'));
+            if (bytes.byteLength % 98 || end !== from + bytes.byteLength / 98)
+              throw Error('轨迹片段格式无效。');
+            const length = end * 49;
+            if (current.values.length < length) {
+              const grown = new Uint16Array(Math.max(length, current.values.length * 2, 49 * 1000));
+              grown.set(current.values.subarray(0, current.length));
+              current.values = grown;
+            }
+            const view = new DataView(bytes);
+            for (let i = 0; i < bytes.byteLength / 2; i++)
+              current.values[current.length + i] = view.getUint16(i * 2, true);
+            current.length = length;
+            if (length) {
+              setData(current.values.subarray(0, length));
+              next.report = {
+                ...next.report,
+                replay: {
+                  ...next.report.replay!,
+                  frameCount: end,
+                  duration: (end - 1) / next.report.replay!.sampleHz,
+                },
+              };
+            }
           }
           if (controller.signal.aborted) return;
-          if (next.report && chunkStore.parts.length) {
-            const length = chunkStore.parts.reduce((sum, p) => sum + p.length, 0);
-            if (length !== next.report.replay!.frameCount * 49) throw Error('轨迹片段长度不匹配。');
-            const track = new Uint16Array(length);
-            let cursor = 0;
-            for (const p of chunkStore.parts) {
-              track.set(p, cursor);
-              cursor += p.length;
-            }
-            setData(track);
-          }
           setConnection('');
-          setJob(next);
+          setJob(stamp(next));
           if (next.status === 'complete') {
             stream.close();
             clearInterval(fallback);
@@ -91,19 +129,34 @@ export function useMatchJob(onSettled: () => void) {
       }
     };
     const stream = new EventSource('/api/match-jobs/' + id + '/events');
-    stream.onmessage = () => void refresh();
+    stream.onmessage = (event) => {
+      try {
+        const summary = JSON.parse(event.data) as MatchJob;
+        if (summary.id !== id || controller.signal.aborted) return;
+        setJob((previous) => (previous?.id === id ? stamp({ ...previous, ...summary }) : previous));
+        if (watching || summary.status === 'complete') void refresh(summary.status === 'complete');
+      } catch {
+        setConnection('正在重新同步比赛进度。');
+      }
+    };
     stream.onopen = () => {
       setConnection('');
-      void refresh();
+      void refresh(true);
     };
-    stream.onerror = () => setConnection('连接中断，正在自动恢复；服务器继续计算。');
-    const fallback = setInterval(() => void refresh(), 15000);
-    void refresh();
+    stream.onerror = () => setConnection('连接恢复中；比赛按原进度继续。');
+    const fallback = setInterval(() => void refresh(), watching ? 3000 : 15000);
+    void refresh(true);
     return () => {
       controller.abort();
       stream.close();
       clearInterval(fallback);
     };
-  }, [job?.id, retry]);
-  return { job, data, connection, accept: setJob, reconnect: () => setRetry((n) => n + 1) };
+  }, [job?.id, retry, watching]);
+  return {
+    job,
+    data,
+    connection,
+    accept: (next: MatchJob | null) => setJob(next ? stamp(next) : null),
+    reconnect: () => setRetry((n) => n + 1),
+  };
 }

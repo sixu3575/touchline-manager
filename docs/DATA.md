@@ -39,3 +39,11 @@ VACUUM INTO备份包括新表、未完成任务与片段。原版本/同Node和R
 0.6.0补充：match_reports按save_id/report_id保存gzip完整战报，新state.reports只保留detailsStored摘要，GET /api/reports/:id同Cookie按需读取事件/快照/球员统计；旧报告JSON不压缩迁移、不重算。详细战报与轨迹、存档、操作同事务提交，沿用35场保留期，完整备份必须包含此表。这样长期存档不会反复解析35份完整90分钟事件，保护128MiB主线程JS堆。
 
 0.6.1仅改运动模型：ENGINE_VERSION=0.6.1-physical-motion、参数physical-motion-1；JSON3、SQLite表3、事件3、49值/5Hz编码不变，无旧数据迁移。0.6.0未完成任务先按原引擎结算，不能拿新阻力恢复旧检查点。历史报告和轨迹不重算；发布/回滚前保留最新完整离机快照。
+
+## 0.7.0 持久播放锚点与暂存结算
+
+表3/JSON3及历史数据保持不变，无revision迁移。match_jobs.progress可选新增broadcast={speed:5,anchorAt,anchorSecond}、chunkEnds累计帧边界、computedAt最近片完成时间；status新增airing（全轮已算完，等待播放终场）。work仍保存原输入和全部已计算报告，不能在单独更新时钟时覆盖/丢失它。
+
+公开GET job通过白名单投影，broadcast.seconds为当前播出进度、ownComplete为播放终场；私有progress.ownComplete仍为计算完成，禁止混淆。frameCount只暴露当前时刻加最多10物理秒插值缓冲，普通事件最多最近120条另保留进球/牌，统计取不晚于播出时刻的快照。GET frames?from=N返回gzip小端uint16与X-Frame-Start/End；越界416、跨档404；新任务未complete时原chunks路径409，正式reports/replays暂不存在。旧完成任务继续原契约。
+
+播放结束且全部计算齐全才事务写正式save、replay、match_reports、operation与complete；提前计算的AI比分不在state.results中出现。发布失败全部回滚，原work可重试提交而不模拟。完整备份包含airing与锚点；恢复同版本会按原UTC进度继续。升级和回滚前排空未完成任务，不认识airing的旧代码不可直接接管新任务；若需恢复旧备份，保留最新完整数据库并明确回到备份时间点。

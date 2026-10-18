@@ -15,17 +15,10 @@ export function AdvanceButton({
         <button
           className="primary match-button"
           disabled={busy}
-          onClick={() => void act('advance', { watchMode: 'live' })}
+          onClick={() => void act('advance')}
         >
           <Play size={18} />
-          实时观看（快进）
-        </button>
-        <button
-          className="secondary"
-          disabled={busy}
-          onClick={() => void act('advance', { watchMode: 'background' })}
-        >
-          后台模拟后看回放 <ArrowRight size={17} />
+          进行下一轮并实时观看
         </button>
       </div>
     );

@@ -22,3 +22,9 @@ AI球员同样通过matches.settleClubPlayers → players公共接口结算体�
 
 开发流程保持原样；本次只更改产品和运行实现。
 同步兼容入口要保留调用方持有的球员/俱乐部对象引用，不能直接用整份克隆替换后让外部引用失效；createCompetitionPlan/settleCompetition仍按隔离输入/返回DTO工作。
+
+## 0.7.0 · 2026-10-18
+
+领域createCompetitionPlan/settleCompetition未改。HTTP由服务端延迟调用结算：本队5×播放终场且全轮报告齐全才统一提交；不能在AI计算完成时提前公布积分/现金/球员变化。同步兼容接口仍立即返回，不能用它绕过HTTP任务的播放门槛。
+
+观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。

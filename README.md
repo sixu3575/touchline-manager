@@ -2,7 +2,7 @@
 
 一个从小俱乐部开始的网页足球经理游戏。组建球队、调整阵容、安排训练、签约年轻球员，在八队联赛和城市挑战杯中争取荣誉。
 
-0.6.0支持完整90分钟模拟：可实时观看已生成画面（默认12×，约7.5分钟），或后台计算后拖动/变速回放。任务可断线与重启恢复，两种入口共用同一场比赛；旧存档与回放保留。设计与已知平衡限制见[连续比赛契约](packages/shared/modules/matches/design/CONTINUITY_AND_WATCHING_V3.md)和[100场校准](packages/shared/modules/matches/design/CALIBRATION_V060.md)。
+0.7.0点击“进行下一轮并实时观看”自动进入固定5×比赛，首段画面生成即可观看，完整90分钟约18分钟。退出、刷新或关闭页面后比赛继续，菜单显示当前进度，可随时重入；本队播放终场且本轮计算齐全后才统一公布结果、积分和收支。取消后台模拟入口，赛后保留自由拖动/变速回放。观看契约见[五倍速直播与延迟结算](packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md)，原有比赛算法和[校准限制](packages/shared/modules/matches/design/CALIBRATION_V060.md)不变。
 
 **试玩： http://138.2.64.10/**
 

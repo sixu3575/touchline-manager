@@ -236,7 +236,13 @@ export function classifyChanges(
       path.match(/^packages\/client\/src\/modules\/([^/]+)\//)?.[1];
     for (const test of moduleTests[module] ?? []) business.add(test);
     if (path.startsWith('packages/server/'))
-      for (const t of ['tests/api.test.mjs', 'tests/match-jobs.test.mjs', 'tests/players.test.mjs'])
+      for (const t of [
+        'tests/api.test.mjs',
+        'tests/match-jobs.test.mjs',
+        'tests/players.test.mjs',
+        'tests/live-round.test.mjs',
+        'tests/live-http.test.mjs',
+      ])
         business.add(t);
     if (path === 'packages/shared/game.mjs' || path.startsWith('packages/shared/core/'))
       for (const t of allBusiness) business.add(t);
@@ -300,7 +306,15 @@ export function classifyChanges(
     if (path === 'packages/shared/game.mjs')
       lifecycle = intersects(keys, ['applyAction', 'actions', '@links']);
     if (path === 'packages/server/src/match-jobs.mjs')
-      lifecycle = intersects(keys, ['MatchJobs.start', 'MatchJobs.received']);
+      lifecycle = intersects(keys, [
+        'MatchJobs.start',
+        'MatchJobs.received',
+        'MatchJobs.settle',
+        'MatchJobs.finishAiring',
+        'MatchJobs.resumeStatus',
+      ]);
+    if (path === 'packages/server/src/broadcast.mjs')
+      lifecycle = intersects(keys, ['LIVE_SPEED', 'newBroadcast', 'broadcastAt']);
     if (path === 'packages/server/src/index.mjs') lifecycle = keys.includes('@action-route');
     if (path === 'packages/shared/core/index.mjs')
       lifecycle = intersects(keys, ['addDays', 'seasonStart']);

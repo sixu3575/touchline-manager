@@ -33,3 +33,9 @@
 门将反应/扑救响应由goalkeeping.mjs统一，单刀站位在positioning.mjs；手部卸球必须同步更新独立控制状态。射门偏位比较球门角度连线，不以球门中心距离直接判断。参数见V3设计，属于游戏工程模型。
 
 0.6.1运动参数以[PHYSICAL_MOTION_V061.md](design/PHYSICAL_MOTION_V061.md)为准：ball-motion统一二次空阻/草阻和传球预测，physics以冲量实现阻力，避免自转上限造成持续打滑；locomotion的driveMovement执行有限加减速。身体异常碰撞有个人冲刺+0.6m/s保护，主动球初速≤38m/s。不要恢复地面切向摩擦后再叠加草阻，不能将原生自转当作准确旋转球模型。先结算旧任务再升级；旧回放不重算，流程不变。
+
+## 0.7.0 · 2026-10-18
+
+仅新增design/LIVE_BROADCAST_V070.md观看与发布契约；0.6.1物理、决策、种子、引擎/参数版本和决策图均未变化。5×属于server/client展示时钟，不得改变simulate中的物理步长、能力或事件时间。
+
+观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。

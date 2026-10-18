@@ -160,6 +160,38 @@ test('every match and season test belongs to an explicit tier, so new files cann
   assert.deepEqual([...seasonTests].sort(), files('season'));
 });
 
+test('broadcast clock and deferred settlement remain major flow after extraction; live redaction stays targeted', () => {
+  for (const [path, before, after] of [
+    ['broadcast.mjs', 'export const LIVE_SPEED=5;', 'export const LIVE_SPEED=6;'],
+    [
+      'match-jobs.mjs',
+      'class MatchJobs{settle(){return 1;}}',
+      'class MatchJobs{settle(){return 2;}}',
+    ],
+    [
+      'match-jobs.mjs',
+      'class MatchJobs{finishAiring(){return 1;}}',
+      'class MatchJobs{finishAiring(){return 2;}}',
+    ],
+  ]) {
+    const plan = classifyChanges([change('packages/server/src/' + path, before, after)]);
+    assert.equal(plan.season, true);
+    assert.equal(plan.match, false);
+    assert.ok(plan.businessTests.includes('tests/live-round.test.mjs'));
+    assert.ok(plan.businessTests.includes('tests/live-http.test.mjs'));
+  }
+  assert.equal(
+    classifyChanges([
+      change(
+        'packages/server/src/broadcast.mjs',
+        'export function liveReport(){return 1;}',
+        'export function liveReport(){return 2;}',
+      ),
+    ]).season,
+    false,
+  );
+});
+
 test('world schema/calendar changes and checkpoint contracts enable a business season; balance/copy repairs do not', () => {
   const path = 'packages/shared/modules/world/index.mjs';
   const before =
