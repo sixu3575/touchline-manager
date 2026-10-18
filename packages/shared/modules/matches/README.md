@@ -1,5 +1,7 @@
 # 比赛模块
 
+0.9.0增加独立[赛后评分](ratings/README.md)，轻量公开入口ratings/index.mjs不导入比赛引擎，server保存与client展示共用；6.5基准、3–10分，按本场位置/事件/统计给出9类依据。评分不会回读影响决策/球员状态，物理引擎仍0.8.2-goal-net/goal-net-1。新报告保存版本，旧报告只读生成评分，不重演或改轨迹；既有分层验证仅冒烟/针对性，模拟与决策参考未变。
+
 0.8.2球门与进球展示以[GOAL_NET_V082.md](design/GOAL_NET_V082.md)为准：后/侧/顶网仅与球碰撞，恢复0/Min、摩擦1/Max，门口开放、门柱弹性不变；进球后15比赛秒保留入网轨迹再重开。引擎0.8.2-goal-net/参数goal-net-1取代下方版本，带球参数/候选沿用0.8.0。新goal.scorer记录实际触球者号码姓名/side，乌龙归属不能计错；不重算旧回放，升级先排空旧引擎任务。
 
 当前持球选择与数学以[design/CARRYING_V080.md](design/CARRYING_V080.md)为准：carrying.mjs独立管理空地推进/单防/协防与路线；decisions.mjs比较传带射并生成实际触球。ENGINE_VERSION=0.8.0-carrying，参数carrying-1。物理仍沿用0.6.1速度/阻力，旧回放不重算，升级前排空旧引擎任务。

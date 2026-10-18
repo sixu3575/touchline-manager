@@ -1,4 +1,5 @@
 import { gzipSync, gunzipSync } from 'node:zlib';
+import { withPlayerRatings } from '../../../shared/modules/matches/ratings/index.mjs';
 
 export function createReplayStorage(db) {
   const current = db.prepare('PRAGMA user_version').get().user_version;
@@ -23,7 +24,12 @@ export function createReplayStorage(db) {
       return find.get(saveId, reportId)?.payload;
     },
     report(saveId, reportId) {
-      return findReport.get(saveId, reportId)?.payload;
+      const payload = findReport.get(saveId, reportId)?.payload;
+      if (!payload) return undefined;
+      const report = JSON.parse(gunzipSync(payload));
+      const rated = withPlayerRatings(report);
+      // Old archives are enriched in the response, without rewriting their BLOBs.
+      return rated === report ? payload : gzipSync(JSON.stringify(rated), { level: 3 });
     },
     persistChunks(saveId, reportId, chunks) {
       // Browsers may stop decoding at the first gzip member. A completed replay
@@ -43,9 +49,18 @@ export function createReplayStorage(db) {
           delete report.trajectory;
         }
         if ((report.eventFormatVersion ?? 0) >= 3 && !report.detailsStored) {
-          insertReport.run(saveId, report.id, gzipSync(JSON.stringify(report), { level: 3 }));
-          const { events, snapshots, performance, continuity, motion, timeline, ...summary } =
-            report;
+          const rated = withPlayerRatings(report);
+          insertReport.run(saveId, report.id, gzipSync(JSON.stringify(rated), { level: 3 }));
+          const {
+            events,
+            snapshots,
+            performance,
+            continuity,
+            motion,
+            timeline,
+            playerRatings,
+            ...summary
+          } = rated;
           state.reports[index] = { ...summary, events: [], snapshots: [], detailsStored: true };
         }
       }

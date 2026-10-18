@@ -1,5 +1,9 @@
 # matches 界面模块
 
+## 0.9.0 赛后评分
+
+PlayerRatings在实时播放终场后和历史回放显示，支持两队切换、最高分和每人加减明细。优先使用服务端保存的playerRatings；旧示意报告缺评分时仅从本场已保存证据调用matches/ratings/index.mjs轻量入口，不导入Rapier/模拟器。普通接球不是扑救，带球触球/尝试不是过人成功；缺证据显示有限数据，不编造细项。评分与能力评级/近期状态独立，不参与游戏结算；数学及来源见shared/modules/matches/ratings/README.md。不要在直播时从已计算完整数据展示最终评分。
+
 ## 0.8.2 进球提示
 
 GoalCelebration只消费播放时刻已到的goal/penaltyGoal；事件key绑定报告、类型、时间与射手，SSE替换对象不重播。同一提示用浏览器计时3.2秒，不能修改服务端5×或物理轨迹。goal-presentation优先event.scorer，旧档回退到本场replay.players/快照；不从当前球队猜号码，不使用最终比分剧透；乌龙显示真实触球者和受益队，点球大战用其点球比分。缺身份显示中性提示，不能编造号码。回退到进球前隐藏，reduced-motion关闭彩带/进场运动；遮罩pointer-events:none不阻止球员/进度交互。

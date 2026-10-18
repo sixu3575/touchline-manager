@@ -347,3 +347,180 @@
     display: none;
   }
 }
+
+.player-ratings {
+  margin-top: 22px;
+  border: 1px solid #dce5d6;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fcfdf8;
+}
+.ratings-jump {
+  border: 1px solid #cdddba;
+  background: #edf5e3;
+  color: #315334;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0 0 14px;
+  font-size: 11px;
+}
+.ratings-anchor {
+  scroll-margin-top: 60px;
+}
+.ratings-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.ratings-heading h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.ratings-heading > b {
+  color: #35633a;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.ratings-teams {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0;
+}
+.ratings-teams button {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #d3dfca;
+  border-radius: 6px;
+  background: #fff;
+  color: #456346;
+  font-size: 11px;
+}
+.ratings-teams button[aria-pressed='true'] {
+  background: #183e2e;
+  color: #e8f5d4;
+  border-color: #183e2e;
+}
+.rating-player {
+  border-bottom: 1px solid #e5ebdf;
+}
+.rating-player summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px 0;
+  list-style: none;
+}
+.rating-player summary::-webkit-details-marker {
+  display: none;
+}
+.rating-identity,
+.rating-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rating-identity > b {
+  color: #738567;
+  font-size: 10px;
+  width: 30px;
+  flex-shrink: 0;
+}
+.rating-identity strong {
+  font-size: 12px;
+}
+.rating-identity small {
+  display: block;
+  color: #839078;
+  font-size: 10px;
+  margin-top: 3px;
+}
+.rating-result > small {
+  color: #54813a;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.match-rating {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 5px;
+  min-width: 42px;
+  text-align: center;
+  font-size: 13px;
+}
+.match-rating.normal {
+  background: #e1eed4;
+  color: #325d30;
+}
+.match-rating.excellent {
+  background: #153e8b;
+  color: #fff;
+}
+.match-rating.poor {
+  background: #f9dfc6;
+  color: #92451b;
+}
+.match-rating.unrated {
+  background: #e8eae5;
+  color: #6b7464;
+}
+.rating-breakdown {
+  padding: 0 6px 12px 40px;
+  color: #596850;
+  font-size: 11px;
+}
+.rating-breakdown p {
+  line-height: 1.6;
+  margin: 4px 0;
+}
+.rating-breakdown dl {
+  margin: 8px 0;
+  max-width: 300px;
+}
+.rating-breakdown dl > div {
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.8;
+}
+.rating-breakdown dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rating-breakdown .positive {
+  color: #3d792d;
+}
+.rating-breakdown .negative {
+  color: #a34e2c;
+}
+.rating-method {
+  font-size: 10px;
+  line-height: 1.7;
+  margin-top: 12px;
+  color: #79866d;
+}
+.rating-method summary {
+  cursor: pointer;
+}
+.rating-method p {
+  margin: 5px 0;
+}
+.rating-method a {
+  color: #3a6741;
+}
+@media (max-width: 600px) {
+  .player-ratings {
+    padding: 12px;
+  }
+  .rating-result {
+    gap: 5px;
+  }
+  .rating-identity {
+    gap: 5px;
+  }
+  .rating-breakdown {
+    padding-left: 0;
+  }
+}

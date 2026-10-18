@@ -1,6 +1,6 @@
 # 项目地图
 
-版本 0.8.2（比赛引擎0.8.2-goal-net）。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。最新[入网与进球展示](packages/shared/modules/matches/design/GOAL_NET_V082.md)修复球网回弹并显示射手号码姓名；保留关键/其他事件、[持球机会设计](packages/shared/modules/matches/design/CARRYING_V080.md)、播放修复、服务端五倍速与终场发布门槛。
+版本 0.9.0（比赛引擎0.8.2-goal-net）。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。最新[赛后评分](packages/shared/modules/matches/ratings/README.md)按位置和本场证据计算可解释10分制；保留[入网与进球展示](packages/shared/modules/matches/design/GOAL_NET_V082.md)、关键/其他事件、持球选择、播放修复、五倍速与终场发布门槛。
 
 当前球员跑位/接球/传带射和球风决策图： [PLAYER_DECISION_MAP.md](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。已随0.8.0持球算法同步，六图节点含触发数值、概率类别和属性影响，配可放大SVG、30能力/8性格等完整实战索引；按用户要求用相关性说明，不列公式。相关算法或固定数据修改须同次同步更新，维护范围见其第8节及AGENTS.md。
 
