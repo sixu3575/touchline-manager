@@ -42,18 +42,21 @@ export function createPhysics() {
     world.createCollider(
       RAPIER.ColliderDesc.cuboid(0.06, 0.06, 3.72).setTranslation(x, 2.44, 34).setRestitution(0.62),
     );
-    // A yielding back and side net, behind the goal line (never a pitch wall).
-    world.createCollider(
-      RAPIER.ColliderDesc.cuboid(0.07, 1.25, 3.8)
-        .setTranslation(x === 0 ? -2 : 107, 1.25, 34)
-        .setRestitution(0.05),
-    );
-    for (const z of [30.25, 37.75])
+    // Ball-only, energy-absorbing net: Min overrides the ball's restitution.
+    // Posts remain hard; the goal mouth stays open and never blocks a legal shot.
+    const net = (shape) =>
       world.createCollider(
-        RAPIER.ColliderDesc.cuboid(1, 1.25, 0.04)
-          .setTranslation(x === 0 ? -1 : 106, 1.25, z)
-          .setRestitution(0.05),
+        shape
+          .setRestitution(0)
+          .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Min)
+          .setFriction(1)
+          .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Max)
+          .setCollisionGroups(0x00040001),
       );
+    net(RAPIER.ColliderDesc.cuboid(0.07, 1.25, 3.8).setTranslation(x === 0 ? -2 : 107, 1.25, 34));
+    for (const z of [30.25, 37.75])
+      net(RAPIER.ColliderDesc.cuboid(1, 1.25, 0.04).setTranslation(x === 0 ? -1 : 106, 1.25, z));
+    net(RAPIER.ColliderDesc.cuboid(1, 0.04, 3.8).setTranslation(x === 0 ? -1 : 106, 2.5, 34));
   }
   const ball = world.createRigidBody(
     RAPIER.RigidBodyDesc.dynamic()

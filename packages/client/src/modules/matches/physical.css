@@ -231,3 +231,119 @@
 .event-explanation summary {
   cursor: pointer;
 }
+
+.match-pitch-stage {
+  position: relative;
+  isolation: isolate;
+}
+.goal-celebration {
+  position: absolute;
+  z-index: 2;
+  inset: 9% 12% auto;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid #d1fa85;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #103e2df5, #102c23f2);
+  box-shadow:
+    0 0 35px #c7ef7650,
+    0 8px 25px #0005;
+  color: #fffffa;
+  text-align: center;
+  pointer-events: none;
+  animation: goal-arrive 450ms ease-out both;
+}
+.goal-title {
+  color: #d1fa85;
+  font-size: clamp(20px, 3vw, 38px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+.goal-scorer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: clamp(15px, 2vw, 23px);
+}
+.goal-number {
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #d1fa85;
+  color: #123c2c;
+  white-space: nowrap;
+}
+.goal-team {
+  color: #d4e6cf;
+  font-size: 12px;
+}
+.goal-celebration small {
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.goal-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.goal-confetti i {
+  position: absolute;
+  left: calc(8% + var(--piece) * 7%);
+  top: -10px;
+  width: 5px;
+  height: 10px;
+  background: #d1fa85;
+  animation: goal-confetti 2.8s ease-out both;
+  animation-delay: calc(var(--piece) * 25ms);
+}
+.goal-confetti i:nth-child(even) {
+  background: #fff9dd;
+}
+@keyframes goal-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes goal-confetti {
+  from {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(230px) rotate(240deg);
+    opacity: 0;
+  }
+}
+@media (max-width: 600px) {
+  .goal-celebration {
+    inset: 5% 5% auto;
+    padding: 10px 12px;
+    gap: 4px;
+  }
+  .goal-celebration small {
+    font-size: 9px;
+  }
+  .goal-team {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .goal-celebration {
+    animation: none;
+  }
+  .goal-confetti {
+    display: none;
+  }
+}

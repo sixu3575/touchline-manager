@@ -1,5 +1,7 @@
 # 决策图导出副本
 
+0.8.2总览O9补球网吸能、全球过线和进球后15比赛秒重开；持球/属性分支仍为0.8.0。主文、六SVG及20源摘要同步，专项设计见[GOAL_NET_V082.md](../GOAL_NET_V082.md)。
+
 唯一可编辑来源是上一级 [PLAYER_DECISION_MAP.md](../PLAYER_DECISION_MAP.md) 中按顺序出现的六个 Mermaid 代码块。对应文件为 `01-overview`、`02-roles`、`03-positioning`、`04-reception`、`05-actions`、`06-profiles`。先改正文，再重新导出，不能只修 SVG 而留下旧图源。
 
 `SOURCE_SNAPSHOT.json` 记录已核对的引擎版本、基线提交、20 个相关源码文件和图源/SVG的 SHA-256，本次补入carrying带球机会来源（原含点球大战）。按用户批准的分层验证，相关变更由 `tests/decision-reference.test.mjs` 自动核对摘要；后续更新要使用实际核对的版本与内容，不能只刷新摘要来掩盖图文未同步。没有算法变化时，该核对不启用真实比赛。

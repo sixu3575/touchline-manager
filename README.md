@@ -2,6 +2,8 @@
 
 一个从小俱乐部开始的网页足球经理游戏。组建球队、调整阵容、安排训练、签约年轻球员，在八队联赛和城市挑战杯中争取荣誉。
 
+0.8.2修复球网回弹，进球后保留入网画面并显示特效、射手号码/姓名与本次比分。新物理从下一场生效；已有回放保留原轨迹，可根据保存事件显示进球提示。设计见[GOAL_NET_V082.md](packages/shared/modules/matches/design/GOAL_NET_V082.md)。
+
 0.8.1比赛默认显示进球、射门、扑救、犯规等关键事件；普通触球、传带球、拦截等在“其他事件”查看，仍可查看全部动作与解释。实时和历史回放共用分类，保留原数据。
 
 0.8.0增加利用无人区带球推进，以及按个人能力、具体防守者与协防评估的突破；保留好传球/射门机会。设计与数学见[持球机会](packages/shared/modules/matches/design/CARRYING_V080.md)，[决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)同步维护，旧比赛不重算。

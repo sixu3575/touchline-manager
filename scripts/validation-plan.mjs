@@ -197,6 +197,7 @@ const moduleTests = {
     'tests/match-jobs.test.mjs',
     'tests/live-clock.test.mjs',
     'tests/match-event-filter.test.mjs',
+    'tests/goal-presentation.test.mjs',
   ],
 };
 

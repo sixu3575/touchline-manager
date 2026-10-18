@@ -17,11 +17,21 @@ test('scored ball continues into the net before a delayed kickoff resets positio
   const goal = r.events.find((e) => e.type === 'goal' && e.second < 5390);
   assert.ok(goal, 'seeded goal fixture');
   const nextKickoff = r.events.find((e) => e.type === 'kickoff' && e.second > goal.second);
-  assert.ok(nextKickoff.second - goal.second >= 2.5);
+  assert.ok(nextKickoff.second - goal.second >= 15);
   const index = Math.ceil((goal.second + 0.2) * r.replay.sampleHz) * r.replay.stride;
   const ballX = r.trajectory[index + 44] / 100 - 5;
   assert.ok(Math.abs(ballX - 52.5) > 45, 'ball remains at the scored goal, not the centre spot');
   assert.equal(r.trajectory[index + 47], 0, 'no premature replay cut after goal');
+  if (!goal.ownGoal) assert.equal(goal.scorer.id, goal.playerId);
+  else assert.equal(goal.scorer.side, 1 - goal.side);
+  assert.ok(goal.scorer.number > 0 && goal.scorer.name);
+  assert.ok(goal.text.includes(`${goal.scorer.number}号 ${goal.scorer.name}`));
+  const end = ballX > 52.5 ? 1 : 0;
+  for (let t = goal.second + 0.2; t < nextKickoff.second - 0.2; t += 0.2) {
+    const offset = Math.ceil(t * r.replay.sampleHz) * r.replay.stride;
+    const x = r.trajectory[offset + 44] / 100 - 5;
+    assert.ok(end ? x > 105 : x < 0, 'saved goal trajectory stays in net until kickoff');
+  }
 });
 
 test('player attributes and fatigue determine locomotion; tactics change saved team movement', () => {

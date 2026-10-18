@@ -9,6 +9,7 @@ import './task.css';
 import { liveSecond, type MatchJob } from './useMatchJob';
 import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
+import { GoalCelebration } from './GoalCelebration';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -196,20 +197,23 @@ export function PhysicalReplay({
                 m
               </span>
             </div>
-            {data ? (
-              <PhysicalPitch
-                data={data}
-                report={report}
-                time={time}
-                selected={selected}
-                onSelect={setSelected}
-              />
-            ) : (
-              <div className="physical-loading" role="status">
-                {error || '正在读取保存的球员与足球轨迹…'}
-                {error && <button onClick={() => setRetry((r) => r + 1)}>重新加载</button>}
-              </div>
-            )}
+            <div className="match-pitch-stage">
+              {data ? (
+                <PhysicalPitch
+                  data={data}
+                  report={report}
+                  time={time}
+                  selected={selected}
+                  onSelect={setSelected}
+                />
+              ) : (
+                <div className="physical-loading" role="status">
+                  {error || '正在读取保存的球员与足球轨迹…'}
+                  {error && <button onClick={() => setRetry((r) => r + 1)}>重新加载</button>}
+                </div>
+              )}
+              <GoalCelebration report={report} time={time} />
+            </div>
             <div className="physical-legend">
               <span>
                 <i className="home-dot" />
