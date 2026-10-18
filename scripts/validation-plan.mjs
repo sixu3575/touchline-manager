@@ -192,7 +192,12 @@ const moduleTests = {
   ],
   world: ['tests/game.test.mjs', 'tests/players.test.mjs'],
   club: ['tests/api.test.mjs'],
-  matches: ['tests/approved-v1.test.mjs', 'tests/match-jobs.test.mjs', 'tests/live-clock.test.mjs'],
+  matches: [
+    'tests/approved-v1.test.mjs',
+    'tests/match-jobs.test.mjs',
+    'tests/live-clock.test.mjs',
+    'tests/match-event-filter.test.mjs',
+  ],
 };
 
 export function classifyChanges(

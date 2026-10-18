@@ -3,10 +3,14 @@ import { useEffect, useState } from 'react';
 import { Badge, Crest } from '../../components/ui';
 import type { Club, Report } from '../../model';
 import { Pitch } from './Pitch';
+import { visibleMatchEvents } from './event-filter.mjs';
+import { EventFilter, EmptyEvents } from './EventFilter';
+import './physical.css';
 export function LegacyReplay({ report, onClose }: { report: Report; onClose: () => void }) {
   const [minute, setMinute] = useState(0),
     [playing, setPlaying] = useState(true),
     [speed, setSpeed] = useState(3);
+  const [eventFilter, setEventFilter] = useState('key');
   useEffect(() => {
     if (!playing) return;
     const timer = setInterval(
@@ -22,10 +26,12 @@ export function LegacyReplay({ report, onClose }: { report: Report; onClose: () 
     );
     return () => clearInterval(timer);
   }, [playing, speed]);
-  const events = report.events.filter((e) => e.minute <= minute);
-  const latest = events.at(-1);
+  const visibleEvents = visibleMatchEvents(report.events, minute * 60, 'all');
+  const events = visibleMatchEvents(report.events, minute * 60, eventFilter);
+  const latest = visibleEvents.at(-1);
   const score = [0, 1].map(
-    (side) => events.filter((e) => e.type === 'goal' && e.minute <= 90 && e.side === side).length,
+    (side) =>
+      visibleEvents.filter((e) => e.type === 'goal' && e.minute <= 90 && e.side === side).length,
   );
   const home = {
     ...report.snapshots[0],
@@ -142,6 +148,8 @@ export function LegacyReplay({ report, onClose }: { report: Report; onClose: () 
             <h3>
               <Activity size={17} /> 比赛实况
             </h3>
+            <EventFilter value={eventFilter} onChange={setEventFilter} />
+            {!events.length && <EmptyEvents filter={eventFilter} />}
             {events
               .slice(-8)
               .reverse()

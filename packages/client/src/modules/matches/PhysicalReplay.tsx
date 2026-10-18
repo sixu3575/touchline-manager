@@ -7,6 +7,8 @@ import { PhysicalPitch, positionAt, speedAt } from './PhysicalPitch';
 import './physical.css';
 import './task.css';
 import { liveSecond, type MatchJob } from './useMatchJob';
+import { visibleMatchEvents } from './event-filter.mjs';
+import { EventFilter, EmptyEvents } from './EventFilter';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -97,26 +99,7 @@ export function PhysicalReplay({
     animation = requestAnimationFrame(advance);
     return () => cancelAnimationFrame(animation);
   }, [playing, speed, data, meta.duration, ended, buffering, ownComplete]);
-  const events = report.events.filter(
-    (e) =>
-      (e.second ?? e.minute * 60) <= time &&
-      (eventFilter === 'all' ||
-        (eventFilter === 'rules'
-          ? [
-              'offside',
-              'foul',
-              'yellowCard',
-              'redCard',
-              'penalty',
-              'freeKick',
-              'indirect',
-              'backpass',
-              'doubleTouch',
-            ].includes(e.type)
-          : !['pass', 'passComplete', 'dribble', 'tackleLost', 'tackleWon', 'miscontrol'].includes(
-              e.type,
-            ))),
-  );
+  const events = visibleMatchEvents(report.events, time, eventFilter);
   const score = live
     ? report.score
     : [0, 1].map(
@@ -390,17 +373,9 @@ export function PhysicalReplay({
                 </span>
               ))}
             </div>
-            <select
-              aria-label="事件筛选"
-              value={eventFilter}
-              onChange={(e) => setEventFilter(e.target.value)}
-              className="event-filter"
-            >
-              <option value="key">关键事件</option>
-              <option value="rules">裁判与纪律</option>
-              <option value="all">全部动作与解释</option>
-            </select>
+            <EventFilter value={eventFilter} onChange={setEventFilter} />
             <div className="physical-events">
+              {!events.length && <EmptyEvents filter={eventFilter} />}
               {events
                 .slice(-7)
                 .reverse()

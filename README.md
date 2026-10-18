@@ -2,6 +2,8 @@
 
 一个从小俱乐部开始的网页足球经理游戏。组建球队、调整阵容、安排训练、签约年轻球员，在八队联赛和城市挑战杯中争取荣誉。
 
+0.8.1比赛默认显示进球、射门、扑救、犯规等关键事件；普通触球、传带球、拦截等在“其他事件”查看，仍可查看全部动作与解释。实时和历史回放共用分类，保留原数据。
+
 0.8.0增加利用无人区带球推进，以及按个人能力、具体防守者与协防评估的突破；保留好传球/射门机会。设计与数学见[持球机会](packages/shared/modules/matches/design/CARRYING_V080.md)，[决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)同步维护，旧比赛不重算。
 
 0.7.0点击“进行下一轮并实时观看”自动进入固定5×比赛，首段画面生成即可观看，完整90分钟约18分钟。退出、刷新或关闭页面后比赛继续，菜单显示当前进度，可随时重入；本队播放终场且本轮计算齐全后才统一公布结果、积分和收支。取消后台模拟入口，赛后保留自由拖动/变速回放。观看契约见[五倍速直播与延迟结算](packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md)，原有比赛算法和[校准限制](packages/shared/modules/matches/design/CALIBRATION_V060.md)不变。
