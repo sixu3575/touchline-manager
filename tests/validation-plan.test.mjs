@@ -12,6 +12,26 @@ const change = (path, before, after) => ({ path, before, after });
 const engine = 'packages/shared/modules/matches/decisions.mjs';
 const flow = 'packages/shared/modules/competitions/index.mjs';
 
+test('tactical presets, their public wiring and team plans require match checks without a season', () => {
+  for (const row of [
+    change(
+      'packages/shared/modules/tactics/presets.mjs',
+      'export const width=1;',
+      'export const width=1.18;',
+    ),
+    change(
+      'packages/shared/modules/tactics/index.mjs',
+      "export {policy} from './old.mjs';",
+      "export {policy} from './presets.mjs';",
+    ),
+    change('packages/shared/modules/matches/tactical-plan.mjs', '', 'export const window=8;'),
+  ]) {
+    const plan = classifyChanges([row]);
+    assert.equal(plan.match, true);
+    assert.equal(plan.season, false);
+  }
+});
+
 test('read-only post-match ratings select targeted tests; wiring them into the simulator still requires physics checks', () => {
   const rating = 'packages/shared/modules/matches/ratings/index.mjs';
   const plan = classifyChanges([

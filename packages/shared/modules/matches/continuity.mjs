@@ -4,6 +4,7 @@ export function continuityState() {
   return {
     controller: null,
     controlledAt: 0,
+    regainedAt: null,
     side: null,
     phase: 'dead',
     chain: 0,
@@ -29,6 +30,7 @@ function endChain(s) {
 }
 export function controlBall(s, actor, time, pass, opposingPass = false) {
   if (s.side !== null && s.side !== actor.side) {
+    s.regainedAt = time;
     endChain(s);
     s.metrics.turnovers[opposingPass ? 'interception' : 'dispossessed']++;
   }
@@ -52,6 +54,7 @@ export function deadBall(s, time, reason = 'restart') {
   endChain(s);
   s.controller = null;
   s.side = null;
+  s.regainedAt = null;
   s.phase = 'dead';
   s.inBox = false;
 }

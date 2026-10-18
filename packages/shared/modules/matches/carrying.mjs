@@ -2,12 +2,24 @@ import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { distance, unit, segmentPoint, localX } from './spatial.mjs';
+import { tacticalPreset } from '../tactics/index.mjs';
 
 // Opportunity estimates rank routes only. Actual touches, tackles and collisions
 // still decide whether the player keeps the independently simulated ball.
-export function carryOptions(actor, ball, direction, opponents, quality, profile, time) {
+export function carryOptions(
+  actor,
+  ball,
+  direction,
+  opponents,
+  quality,
+  profile,
+  time,
+  tactical = {},
+) {
   const a = (key) => ability(actor.player, key);
-  const forward = 6 + a('offTheBall') * 0.035;
+  const preset = tacticalPreset(tactical.style);
+  const wide = tactical.style === 'wide';
+  const forward = (6 + a('offTheBall') * 0.035) * (tactical.fastBreak ? 1.2 : preset.carry);
   const previous =
     actor.intent?.kind === 'carry' && actor.intent.expiresAt > time
       ? actor.intent.destination
@@ -18,8 +30,15 @@ export function carryOptions(actor, ball, direction, opponents, quality, profile
       : null;
   const routes = [-6, -3, 0, 3, 6].map((lane) => ({
     x: clamp(ball.x + direction * forward, 1, 104),
-    z: clamp(ball.z + lane + (34 - ball.z) * 0.07, 2, 66),
+    z: clamp(ball.z + lane + (34 - ball.z) * (wide ? 0 : 0.07), 3.5, 64.5),
   }));
+  if (wide) {
+    const flank = Math.abs(ball.z - 34) > 8 ? (ball.z < 34 ? -1 : 1) : actor.anchor.z < 34 ? -1 : 1;
+    routes.push({
+      x: clamp(ball.x + direction * forward, 1, 104),
+      z: clamp(ball.z + clamp(34 + flank * 24 - ball.z, -8, 8), 4, 64),
+    });
+  }
   if (persistent) routes.unshift(persistent);
   const speed = movement(actor.player, actor.energy, 'carry').speed;
   return routes.flatMap((destination) => {
@@ -65,7 +84,13 @@ export function carryOptions(actor, ball, direction, opponents, quality, profile
           0.045 * profile.inclination +
           (0.1 * danger * Math.max(0, duel - 0.45)) / (1 + cover) +
           (destination === persistent ? 0.035 : 0) -
-          0.035 * cover,
+          0.035 * cover +
+          (wide
+            ? 0.055 *
+              clamp((Math.abs(destination.z - 34) - 12) / 12, 0, 1) *
+              clamp((near - 1) / 5, 0, 1)
+            : 0) +
+          (tactical.fastBreak ? 0.025 * success : 0),
         ownRisk:
           actor.player.role === 'DEF' && localX(ball.x, direction) < 35 ? 0.02 + 0.05 * danger : 0,
         reason:
@@ -73,7 +98,11 @@ export function carryOptions(actor, ball, direction, opponents, quality, profile
             ? '防线有协防，权衡带球路线与出球'
             : takeOn
               ? '比较个人盘带与单防能力，变向挑战防守者'
-              : '前方空地可利用，持球向前推进',
+              : wide && Math.abs(destination.z - 34) > 18
+                ? '沿边路空地推进，等待套边或包抄接应'
+                : tactical.fastBreak
+                  ? '夺回球权后利用空地快速向前'
+                  : '前方空地可利用，持球向前推进',
       },
     ];
   });

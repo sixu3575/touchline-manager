@@ -1,5 +1,8 @@
 # 数据与迁移
 
+0.10.0仍JSON3/SQLite3。新报告replay.players与performance可选positionRole（运行位置），事件可选phase、delivery=lofted/low/cutback、setPiece；intent/type仍cross，不重复计传球/助攻/评分。phase不是结果开关，setPiece用于区分角球与运动战。新赛内continuity.regainedAt自动随既有检查点保存；新旧引擎版本不兼容，发布先排空旧任务。没有迁移或旧报告重写，旧回放仅用旧字段/轨迹。
+
+
 0.9.0完整战报新增可选playerRatings:{version,baseline,minimum,maximum,rows}，独立match-rating-1；每行本场身份/位置/分钟、证据统计、rating（可null）、9类categories、coverage及未评分原因。新报告在原事务内保存，摘要不含此明细；旧GET响应只读补充，不改历史BLOB/轨迹或当前球员form。JSON3/SQLite3和物理引擎0.8.2不变，无迁移；播放终场前白名单隐藏评分。
 
 0.8.2新报告引擎0.8.2-goal-net/参数goal-net-1；goal新增可选scorer:{id,name,number,side}，同时保留score与ownGoal。scorer为真实触球者，普通playerId/助攻和乌龙受益队归属不变；旧报告通过本场快照回退身份。JSON3、SQLite3、49值/5Hz格式不变，无迁移或历史重算。部署前等待旧引擎任务结算，不能新模型恢复旧检查点；设计见比赛模块GOAL_NET_V082.md。

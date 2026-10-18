@@ -1,5 +1,8 @@
 # 战术模块
 
+0.10.0公开tacticalPreset、formationSlot、positionRoleNames。presets.mjs只含纯配置，无物理/网络依赖；matches和战术板共同消费。槽位由同大位置首发顺序决定，不更改球员固有role或增加熟练度/编辑器；配置数值/导出连接变化都要求比赛专项。职责/数值与[决策参考](../matches/design/PLAYER_DECISION_MAP.md)及专项表同次维护，不改变既有开发流程。
+
+
 职责：阵型目录、首发合法性、推荐首发与战术意图校验。
 
 公共入口：index.mjs。FORMATIONS、bestLineup、validateLineup、saveTactics。

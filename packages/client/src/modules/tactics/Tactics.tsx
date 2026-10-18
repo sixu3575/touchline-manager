@@ -38,6 +38,7 @@ export function Tactics({
             club={{ ...club, tactics: { formation, style, press } }}
             lineup={lineup}
             onPlayer={onPlayer}
+            tacticalSlots
           />
         </div>
         <div className="formation-select">
@@ -83,9 +84,9 @@ export function Tactics({
         <h4>进攻思路</h4>
         {[
           { id: 'balanced', desc: '平衡球权与推进，适合大多数对手。' },
-          { id: 'possession', desc: '提高中场控制，进攻转换稍慢。' },
-          { id: 'counter', desc: '让出部分球权，增加快速进攻威胁。' },
-          { id: 'wide', desc: '通过边路推进，发挥速度优势。' },
+          { id: 'possession', desc: '多点接应与安全推进，保持回传和转移选择。' },
+          { id: 'counter', desc: '夺回球权后趁对手未落位快速向前，窗口关闭后重新组织。' },
+          { id: 'wide', desc: '分边推进、择机套边与禁区包抄，寻找传中或倒三角。' },
         ].map((s) => (
           <button
             key={s.id}
@@ -126,7 +127,9 @@ export function Tactics({
           <Check size={17} />
           {dirty ? '保存战术与阵容' : '战术已保存'}
         </button>
-        <p className="fine">未保存的调整只在本页显示，切换页面后将恢复已保存方案。</p>
+        <p className="fine">
+          阵型板悬停球员可查看位置职责。未保存的调整只在本页显示，切换页面后将恢复已保存方案。
+        </p>
       </section>
     </div>
   );

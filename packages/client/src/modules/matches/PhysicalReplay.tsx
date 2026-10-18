@@ -11,6 +11,7 @@ import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
 import { GoalCelebration } from './GoalCelebration';
 import { PlayerRatings } from './PlayerRatings';
+import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -311,6 +312,14 @@ export function PhysicalReplay({
               </select>
               {performanceRow ? (
                 <span>
+                  {performanceRow.positionRole && (
+                    <b>
+                      {positionRoleNames[
+                        performanceRow.positionRole as keyof typeof positionRoleNames
+                      ] ?? performanceRow.positionRole}{' '}
+                      ·{' '}
+                    </b>
+                  )}
                   {performanceRow.style && <b>{performanceRow.style} · </b>}实际跑动{' '}
                   {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
                   成功传球 {performanceRow.completed}/{performanceRow.passes} ·{' '}

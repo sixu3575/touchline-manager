@@ -9,9 +9,13 @@ export const smokeTests = [
   'tests/collaboration.test.mjs',
   'tests/validation-plan.test.mjs',
 ];
-export const matchUnits = ['physics', 'physical-motion', 'player-intelligence', 'continuity'].map(
-  (n) => `tests/match/${n}.test.mjs`,
-);
+export const matchUnits = [
+  'physics',
+  'physical-motion',
+  'player-intelligence',
+  'continuity',
+  'tactics',
+].map((n) => `tests/match/${n}.test.mjs`);
 export const matchScenarios = [
   'engine',
   'shootout',
@@ -301,7 +305,8 @@ export function classifyChanges(
     if (path === 'packages/shared/core/index.mjs')
       algorithm = intersects(keys, ['random', 'seedFrom', 'clamp', '@links']);
     if (path === 'packages/shared/modules/tactics/index.mjs')
-      algorithm = keys.includes('FORMATIONS');
+      algorithm = intersects(keys, ['FORMATIONS', '@links']);
+    if (path === 'packages/shared/modules/tactics/presets.mjs') algorithm = true;
     if (algorithm) {
       match = true;
       reasons.push('Match algorithm: ' + path + ' [' + keys.join(', ') + ']');

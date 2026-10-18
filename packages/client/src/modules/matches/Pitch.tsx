@@ -1,11 +1,13 @@
 import { roles } from '../../constants';
 import type { Club, Player } from '../../model';
+import { formationSlot, positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
 export function Pitch({
   club,
   lineup,
   onPlayer,
   away = false,
   ball,
+  tacticalSlots = false,
 }: {
   club: Club;
   lineup?: string[];
@@ -13,9 +15,10 @@ export function Pitch({
   minute?: number;
   away?: boolean;
   ball?: { x: number; y: number };
+  tacticalSlots?: boolean;
 }) {
   const ids = lineup || club.lineup;
-  const ps = club.players.filter((p) => ids.includes(p.id));
+  const ps = ids.flatMap((id) => club.players.find((p) => p.id === id) ?? []);
   const coords: Record<string, number> = { GK: 8, DEF: 27, MID: 51, FWD: 77 };
   return (
     <div className="pitch">
@@ -33,13 +36,27 @@ export function Pitch({
         return group.map((p, i) => {
           let x = coords[role],
             y = ((i + 1) / (group.length + 1)) * 80 + 10;
+          const slot = tacticalSlots
+            ? formationSlot(club.tactics.formation, role, i, group.length)
+            : null;
+          if (slot) {
+            x = (slot.x / 105) * 100;
+            y = (slot.z / 68) * 100;
+          }
           return (
             <button
               className={'pitch-player ' + (away ? 'away' : '')}
               key={p.id}
               style={{ left: (away ? 100 - x : x) + '%', top: y + '%' }}
               onClick={() => onPlayer?.(p)}
-              title={p.name + ' · ' + roles[p.role]}
+              title={
+                p.name +
+                ' · ' +
+                (slot
+                  ? (positionRoleNames[slot.positionRole as keyof typeof positionRoleNames] ??
+                    roles[p.role])
+                  : roles[p.role])
+              }
             >
               <span>{p.number}</span>
               {!away && <small>{p.name.split('·').at(-1)}</small>}

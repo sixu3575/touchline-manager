@@ -35,6 +35,9 @@ export interface MatchEvent {
   ownGoal?: boolean;
   reason?: string;
   intent?: string;
+  delivery?: 'lofted' | 'low' | 'cutback';
+  phase?: string;
+  setPiece?: string;
   decision?: string;
   estimatedSuccess?: number;
   result?: string;
@@ -119,7 +122,14 @@ export interface Report {
     regulationDuration?: number;
     physics: string;
     stepHz: number;
-    players: { id: string; side: number; number: number; name: string; role: string }[];
+    players: {
+      id: string;
+      side: number;
+      number: number;
+      name: string;
+      role: string;
+      positionRole?: string;
+    }[];
   };
   performance?: {
     id: string;
@@ -130,6 +140,7 @@ export interface Report {
     passes: number;
     completed: number;
     style?: string;
+    positionRole?: string;
     dribbleTouches?: number;
     carryDistance?: number;
     throughBalls?: number;

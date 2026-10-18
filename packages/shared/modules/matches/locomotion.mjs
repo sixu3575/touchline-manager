@@ -50,5 +50,10 @@ export function movementMode(actor, ball, owner, roles, gap) {
   if (roles.receiverId === actor.player.id) return distance(actor.pos, ball) > 5 ? 'sprint' : 'run';
   if (chasing) return distance(actor.pos, ball) > 7 ? 'sprint' : 'run';
   if (roles.runnerId === actor.player.id) return 'sprint';
+  if (
+    gap > 5 &&
+    ['overlap', 'nearPost', 'farPost', 'break'].includes(roles.duties?.[actor.player.id]?.duty)
+  )
+    return 'sprint';
   return gap > 18 ? 'run' : 'jog';
 }
