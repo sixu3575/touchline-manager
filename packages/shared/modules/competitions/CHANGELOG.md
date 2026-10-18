@@ -1,5 +1,11 @@
 # 赛事模块变更记录
 
+## 0.7.0 · 2026-10-18
+
+领域createCompetitionPlan/settleCompetition未改。HTTP由服务端延迟调用结算：本队5×播放终场且全轮报告齐全才统一提交；不能在AI计算完成时提前公布积分/现金/球员变化。同步兼容接口仍立即返回，不能用它绕过HTTP任务的播放门槛。
+
+观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
+
 ## 2026-10-17 · 赛季与杯赛验证分层
 
 - 杯赛直接准备开放轮次，保留资格与重复结算断言；冻结计划/部分轮次拒绝测试独立为competition-plan。

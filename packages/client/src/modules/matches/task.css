@@ -92,6 +92,22 @@
 .live-empty button {
   margin: auto;
 }
+.live-kickoff {
+  width: min(560px, 72vw);
+  margin: 0 auto 20px;
+}
+.live-kickoff .pitch {
+  min-height: 200px;
+}
+.live-clock-controls progress {
+  flex: 1;
+  min-width: 60px;
+  accent-color: #527d36;
+}
+.live-clock-controls span {
+  color: #718065;
+  font-size: 12px;
+}
 @media (max-width: 650px) {
   .match-task {
     align-items: stretch;

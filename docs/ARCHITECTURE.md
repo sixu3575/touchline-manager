@@ -27,3 +27,9 @@
 领域逻辑在 packages/shared/modules/，仅从公共 index.mjs 导入；core 不反向引用领域，依赖图受 modules.json 与现有测试约束。game.mjs 保留外部兼容入口与动作路由，减少调用方迁移。球员档案、训练、比赛结算中的球员更新由 players 公共函数统一维护；其他模块不复制属性公式。球员界面与样式位于 client/src/modules/players，训练界面位于 modules/training。
 
 服务端启动迁移由 storage/migrations.mjs 独立维护，先事务升级再接收请求。前端各功能页在对应 modules/ 目录；共享主题和 ui 仍由 integration 负责，页面新增样式使用各自文件与前缀。目录级 README/CHANGELOG 是交接入口；协作冲突机制见 COLLABORATION.md。本次不改变既有开发流程。
+
+## 0.7.0 计算与播出分离
+
+MatchJobs的单worker继续独立计算；server/broadcast.mjs只提供5×持久展示时钟与公开报告脱敏。首段可看，本队15模拟秒切片，AI60秒切片；调度优先未完成的本队，多存档按最近计算时间轮转，正在运行的有界片段先完成。500ms脉冲/SSE维持菜单进度，观赛时按需读取时钟允许的帧，退出不改变播出。
+
+全轮算完进入airing并释放worker，保留输入和报告。到达本队终场才执行原settleCompetition和原子持久化；若AI尚未齐全则继续后台算，画面不阻塞。私有最终数据不能直接展开给HTTP；完整报告和旧chunks路径在提交前不可读取。浏览器仅对已保存坐标插值，短10秒物理缓冲不含未来事件/统计。详情见[0.7契约](../packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md)。没有新增依赖/服务，比赛引擎和现有开发流程不变。

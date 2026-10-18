@@ -58,7 +58,7 @@ npm run test:season
 ## 测试隔离与覆盖
 
 - `tests/*.test.mjs`：业务、冒烟和验证策略。业务进程显式预加载`tests/helpers/business-fixtures.mjs`，以Node自带模块mock提供受控报告；直接调用真实simulation/physics会报错。真实HTTP、SQLite、去重、权限、任务/检查点、压缩、原子结算和备份代码原样执行。
-- `tests/match/`：真实物理/决策单元和真实比赛集成。无fixture预加载，仍调用原来的生产引擎。新增文件必须加入明确的单元/场景列表，冒烟策略测试会拒绝遗漏。
+- `tests/match/`：真实物理/决策单元和真实比赛集成。无赛果fixture预加载，仍调用原来的生产引擎。0.7的真实HTTP比赛测试仅用显式`fast-broadcast-clock.mjs`预加载加速展示时钟，避免为发布门槛额外等待18分钟；不替换引擎/报告/RNG/物理，真实5×门槛另外由可控UTC单元与正常时钟HTTP/浏览器测试验证。新增文件必须加入明确的单元/场景列表，冒烟策略测试会拒绝遗漏。
 - `tests/season/`：完整业务赛季与API跨重启赛季。只有同时涉及算法与重大流程时，`game-season`才不预加载fixture，成为唯一完整物理赛季。
 - `tests/ASSERTION_MIGRATION.json`：原测试的搬迁记录；原确定性、进球/统计、物理、点球、worker恢复及赛季断言均保留。生日使用直接换季边界，杯赛直接构造开放轮次，避免仅为准备状态计算几十场无关比赛。
 

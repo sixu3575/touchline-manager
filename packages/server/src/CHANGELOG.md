@@ -1,5 +1,11 @@
 # 服务端变更
 
+## 0.7.0 · 2026-10-18
+
+新增broadcast.mjs，服务端持久5×展示时钟与直播报告白名单。MatchJobs将计算完毕暂存为airing，播放终场后才原子结算；500ms脉冲、重启/离开继续，失败保留原work并可重试发布。本队15秒片优先/轮转，AI60秒后台片；frames接口限制当前帧加10秒插值缓冲，活跃任务原始chunks禁止提前读取。健康版本读取根package版本。
+
+观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
+
 ## 2026-10-17 · HTTP验证解耦
 
 - 常规HTTP测试通过测试CLI预加载受控比赛报告，仍启动真实服务、SQLite、任务、重启与备份；保留去重、隔离、限流和原子结算断言。

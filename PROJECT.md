@@ -1,6 +1,6 @@
 # 项目地图
 
-版本 0.6.1。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
+版本 0.7.0（比赛引擎仍0.6.1）。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。
 
 当前球员跑位/接球/传带射和球风决策图： [PLAYER_DECISION_MAP.md](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。按0.6.1实际代码归档，六图节点含触发数值、概率类别和属性影响，配可放大SVG、30能力/8性格等完整实战索引；按用户要求用相关性说明，不列公式。相关算法或固定数据修改须同次同步更新，维护范围见其第8节及AGENTS.md。
 
@@ -8,7 +8,7 @@
 
 最新速度/阻力检查与数学：packages/shared/modules/matches/design/PHYSICAL_MOTION_V061.md。统一传球预测和真实减速，旧回放不重算；当前验证规则见docs/VALIDATION.md。
 
-当前连续攻防、完整90分钟和双观看入口契约：packages/shared/modules/matches/design/CONTINUITY_AND_WATCHING_V3.md。用户已批准，旧报告仍按原版本读取；开发流程保持原样。
+当前观看与结算契约：[LIVE_BROADCAST_V070.md](packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md)。单一开赛入口、服务端5×时钟、退出后继续、首段流式观看、终场后统一发布；取代V3的双观看入口与12×默认。V3的连续攻防与完整90分钟算法保留，旧报告仍按原版本读取；开发流程保持原样。
 
 ## 代码职责
 

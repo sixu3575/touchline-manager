@@ -12,3 +12,9 @@ SQLite表版本升至3，新增match_jobs和match_chunks，JSON仍为3；旧save
 
 开发流程保持原样；本次只更改产品和运行实现。
 match_reports属于表版本3：仅新eventFormatVersion>=3战报压缩离开state.reports，摘要含detailsStored，读取完整战报与轨迹分别鉴权；旧报告不改写，35场清理规则相同。所有写入仍在结算事务内。
+
+## 0.7.0 · 2026-10-18
+
+jobs.progress新增broadcast锚点、chunkEnds和computedAt，status增加airing；不改SQLite表3或JSON3。单独更新时钟必须保留work原字节；全轮报告暂存后，播放终场才原子提交正式save/report/replay/operation。失败发布从原work重试，不重算。waiting仅取queued/running，本队优先并按最近片段时间轮转，airing不占worker但仍锁定存档。
+
+观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。

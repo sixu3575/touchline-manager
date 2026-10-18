@@ -1,5 +1,6 @@
 import { serialize, deserialize } from 'node:v8';
 import { gzipSync, gunzipSync } from 'node:zlib';
+import { newBroadcast } from '../broadcast.mjs';
 
 export const pack = (value) => gzipSync(serialize(value), { level: 1 });
 export const unpack = (bytes) => (bytes ? deserialize(gunzipSync(bytes)) : null);
@@ -30,9 +31,11 @@ export function createJobStorage(db) {
     waiting: () =>
       db
         .prepare(
-          "SELECT id FROM match_jobs WHERE status IN ('queued','running') ORDER BY created_at,rowid",
+          "SELECT id FROM match_jobs WHERE status IN ('queued','running') ORDER BY CASE WHEN COALESCE(json_extract(progress,'$.ownComplete'),0)=0 THEN 0 ELSE 1 END,COALESCE(json_extract(progress,'$.computedAt'),0),created_at,rowid",
         )
         .all(),
+    pendingRows: () =>
+      db.prepare("SELECT id,status,progress FROM match_jobs WHERE status!='complete'").all(),
     count: () =>
       db.prepare("SELECT COUNT(*) AS n FROM match_jobs WHERE status!='complete'").get().n,
     insert(row, work) {
@@ -49,6 +52,8 @@ export function createJobStorage(db) {
           parameterVersion: row.parameterVersion,
           fixturesDone: 0,
           fixturesTotal: row.total,
+          broadcast: newBroadcast(),
+          chunkEnds: [],
         }),
         pack(work),
         null,
@@ -66,6 +71,9 @@ export function createJobStorage(db) {
     },
     status(id, status, error = null) {
       db.prepare('UPDATE match_jobs SET status=?,error=? WHERE id=?').run(status, error, id);
+    },
+    progress(id, progress) {
+      db.prepare('UPDATE match_jobs SET progress=? WHERE id=?').run(JSON.stringify(progress), id);
     },
     chunk(id, seq) {
       return db.prepare('SELECT payload FROM match_chunks WHERE job_id=? AND seq=?').get(id, seq)

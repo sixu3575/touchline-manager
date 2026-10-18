@@ -6,7 +6,7 @@ import { styleNames } from '../../constants';
 import { PhysicalPitch, positionAt, speedAt } from './PhysicalPitch';
 import './physical.css';
 import './task.css';
-import type { MatchJob } from './useMatchJob';
+import { liveSecond, type MatchJob } from './useMatchJob';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -31,7 +31,7 @@ export function PhysicalReplay({
     [retry, setRetry] = useState(0);
   const [time, setTime] = useState(0),
     [playing, setPlaying] = useState(true),
-    [speed, setSpeed] = useState(live ? 12 : 1);
+    [speed, setSpeed] = useState(live ? 5 : 1);
   const [selected, setSelected] = useState(-1);
   const [eventFilter, setEventFilter] = useState('key');
   const regulation = meta.regulationDuration ?? meta.duration;
@@ -66,19 +66,21 @@ export function PhysicalReplay({
   const ended = ownComplete && time >= meta.duration;
   const buffering = Boolean(live && !ownComplete && time >= Math.max(0, meta.duration - 0.4));
   const prefix = live ? report.timeline?.filter((row) => row.second <= time).at(-1) : null;
-  const visibleStats =
-    live && !ended
-      ? (prefix?.stats ??
-        report.stats.map(
-          (row) =>
-            Object.fromEntries(
-              Object.keys(row).map((k) => [k, k === 'possession' ? 50 : 0]),
-            ) as unknown as Report['stats'][number],
-        ))
-      : report.stats;
-  const visiblePerformance = live && !ended ? (prefix?.performance ?? []) : report.performance;
+  const visibleStats = live && !ended ? (prefix?.stats ?? report.stats) : report.stats;
+  const visiblePerformance =
+    live && !ended ? (prefix?.performance ?? report.performance) : report.performance;
   useEffect(() => {
-    if (!playing || !data || ended || buffering) return;
+    if (!live) return;
+    let animation = 0;
+    const advance = () => {
+      setTime((t) => Math.max(t, Math.min(meta.duration, liveSecond(live.job))));
+      animation = requestAnimationFrame(advance);
+    };
+    advance();
+    return () => cancelAnimationFrame(animation);
+  }, [live?.job.broadcast, live?.job.receivedAt, meta.duration]);
+  useEffect(() => {
+    if (live || !playing || !data || ended || buffering) return;
     let animation = 0,
       last = performance.now();
     const advance = (now: number) => {
@@ -112,12 +114,15 @@ export function PhysicalReplay({
               e.type,
             ))),
   );
-  const score = [0, 1].map(
-    (side) =>
-      report.events.filter(
-        (e) => (e.second ?? 0) <= time && e.type === 'goal' && e.minute <= 90 && e.side === side,
-      ).length,
-  );
+  const score = live
+    ? report.score
+    : [0, 1].map(
+        (side) =>
+          report.events.filter(
+            (e) =>
+              (e.second ?? 0) <= time && e.type === 'goal' && e.minute <= 90 && e.side === side,
+          ).length,
+      );
   const player = meta.players[selected];
   const performanceRow = player && visiblePerformance?.find((p) => p.id === player.id);
   const ballHeight = data ? positionAt(data, report, time).positions[45] : 0;
@@ -138,7 +143,11 @@ export function PhysicalReplay({
               {report.competition} · 第 {report.round} 轮
             </span>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="关闭回放">
+          <button
+            className="icon-button"
+            onClick={onClose}
+            aria-label={live ? '退出观赛，比赛继续' : '关闭回放'}
+          >
             <X />
           </button>
         </div>
@@ -147,28 +156,18 @@ export function PhysicalReplay({
             <span>
               {live.connection ||
                 (live.job.status === 'failed'
-                  ? '计算暂时中断，请切换后台恢复原场比赛'
+                  ? '比赛暂时中断，请返回俱乐部恢复原场比赛'
                   : buffering
-                    ? '正在等待下一段轨迹，服务器继续计算…'
+                    ? '正在衔接下一段画面…'
                     : ownComplete
-                      ? '模拟已完成，正在播放剩余画面'
-                      : '正在生成比赛轨迹')}
-              {' · 已生成 '}
-              {clock(meta.duration)}
-              {' / 已观看 '}
+                      ? '终场哨响'
+                      : '比赛按5倍速进行，离开后进度继续')}
+              {' · 当前 '}
               {clock(time)}
-              {live.job.ownComplete && live.job.status !== 'complete' && ' · 本轮结算中'}
+              {live.job.ownComplete && live.job.status !== 'complete' && ' · 正在确认本轮结果'}
             </span>
             <div>
-              <button
-                onClick={() => {
-                  setTime(Math.max(0, meta.duration - 2));
-                  setPlaying(true);
-                }}
-              >
-                跟随最新
-              </button>{' '}
-              <button onClick={live.onBackground}>切换后台模拟</button>
+              <button onClick={live.onBackground}>返回俱乐部 · 比赛继续</button>
             </div>
           </div>
         )}
@@ -204,7 +203,7 @@ export function PhysicalReplay({
           <div>
             <div className="simulation-ribbon">
               <span>
-                <i /> RAPIER 3D · 实际轨迹
+                <i /> {live ? '现场画面' : '比赛回放'}
               </span>
               <span>
                 球速 {ballSpeed.toFixed(0)} km/h · 球高 {Math.max(0, ballHeight - 0.11).toFixed(1)}{' '}
@@ -236,56 +235,64 @@ export function PhysicalReplay({
               </span>
               <span>点击球员查看跑动</span>
             </div>
-            <div className="replay-controls">
-              <button
-                className="icon-button"
-                aria-label={playing && !ended ? '暂停回放' : '播放回放'}
-                onClick={() => {
-                  if (ended) setTime(0);
-                  setPlaying(ended || !playing);
-                }}
-              >
-                {playing && !ended ? <Pause size={18} /> : <Play size={18} />}
-              </button>
-              <input
-                aria-label="比赛进度"
-                type="range"
-                min="0"
-                max={meta.duration}
-                step="0.1"
-                value={time}
-                onChange={(e) => {
-                  setTime(+e.target.value);
-                  setPlaying(false);
-                }}
-              />
-              <b>{matchClock(time)}</b>
-              <select
-                aria-label="回放速度"
-                value={speed}
-                onChange={(e) => setSpeed(+e.target.value)}
-              >
-                {[1, 5, 12, 15, 30, 60, 120].map((v) => (
-                  <option key={v} value={v}>
-                    {v}×{v === 1 ? ' 实速' : ''}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="icon-button"
-                title="下一次射门"
-                aria-label="下一次射门"
-                onClick={() => {
-                  const next = report.events.find(
-                    (e) => ['shot', 'goal'].includes(e.type) && (e.second ?? 0) > time + 5,
-                  );
-                  setTime(next ? Math.max(0, next.second! - 4) : meta.duration);
-                  setPlaying(false);
-                }}
-              >
-                <SkipForward size={18} />
-              </button>
-            </div>
+            {live ? (
+              <div className="replay-controls live-clock-controls">
+                <b>{matchClock(time)}</b>
+                <progress aria-label="直播比赛进度" value={time} max={Math.max(regulation, time)} />
+                <span>固定 5× · 自动同步当前进度</span>
+              </div>
+            ) : (
+              <div className="replay-controls">
+                <button
+                  className="icon-button"
+                  aria-label={playing && !ended ? '暂停回放' : '播放回放'}
+                  onClick={() => {
+                    if (ended) setTime(0);
+                    setPlaying(ended || !playing);
+                  }}
+                >
+                  {playing && !ended ? <Pause size={18} /> : <Play size={18} />}
+                </button>
+                <input
+                  aria-label="比赛进度"
+                  type="range"
+                  min="0"
+                  max={meta.duration}
+                  step="0.1"
+                  value={time}
+                  onChange={(e) => {
+                    setTime(+e.target.value);
+                    setPlaying(false);
+                  }}
+                />
+                <b>{matchClock(time)}</b>
+                <select
+                  aria-label="回放速度"
+                  value={speed}
+                  onChange={(e) => setSpeed(+e.target.value)}
+                >
+                  {[1, 5, 12, 15, 30, 60, 120].map((v) => (
+                    <option key={v} value={v}>
+                      {v}×{v === 1 ? ' 实速' : ''}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="icon-button"
+                  title="下一次射门"
+                  aria-label="下一次射门"
+                  onClick={() => {
+                    const next = report.events.find(
+                      (e) => ['shot', 'goal'].includes(e.type) && (e.second ?? 0) > time + 5,
+                    );
+                    setTime(next ? Math.max(0, next.second! - 4) : meta.duration);
+                    setPlaying(false);
+                  }}
+                >
+                  <SkipForward size={18} />
+                </button>
+              </div>
+            )}
             <div className="physical-player-detail">
               <select
                 aria-label="查看球员跑动"
@@ -438,7 +445,7 @@ export function PhysicalReplay({
               {report.rulesVersion && '已启用基础越位、犯规、红黄牌与定位球。'}20 Hz物理、5
               Hz轨迹采样。
               {live
-                ? '默认12×，90分钟约7.5分钟；缓冲和点球会延长观看时间。暂停只暂停观看，服务器继续计算，进度限于已生成画面。'
+                ? '固定5倍速，90分钟约18分钟；离开、关闭页面和重新进入都沿用同一比赛进度。缓冲和点球可能延长时间，结果在终场后统一记录。'
                 : '暂停、拖动和变速不会改变已结算赛果。'}
             </p>
           </aside>

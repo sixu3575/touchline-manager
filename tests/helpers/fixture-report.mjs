@@ -77,7 +77,12 @@ export function fixtureReport(home, away, seed, id = 'fixture', options = {}) {
       clockScale: 1,
       physics: 'TEST FIXTURE — no physics',
       stepHz: 20,
-      players: sides.flatMap((c, side) => c.lineup.map((id) => ({ id, side }))),
+      players: sides.flatMap((c, side) =>
+        c.lineup.map((id) => {
+          const p = c.players.find((p) => p.id === id);
+          return { id, side, name: p.name, number: p.number, role: p.role };
+        }),
+      ),
     };
   }
   return report;

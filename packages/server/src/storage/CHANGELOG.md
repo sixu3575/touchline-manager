@@ -1,5 +1,11 @@
 # 存档模块变更记录
 
+## 0.7.0 · 2026-10-18
+
+jobs.progress新增broadcast锚点、chunkEnds和computedAt，status增加airing；不改SQLite表3或JSON3。单独更新时钟必须保留work原字节；全轮报告暂存后，播放终场才原子提交正式save/report/replay/operation。失败发布从原work重试，不重算。waiting仅取queued/running，本队优先并按最近片段时间轮转，airing不占worker但仍锁定存档。
+
+观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
+
 ## 2026-10-16 · schema 2
 
 新增 schema 1 → 2 确定性迁移，补全当前球员身份、能力与性格，保留姓名、年龄、能力摘要、价格、资金、账本、荣誉和旧回放。revision 加一拒绝旧页面写入，重复启动不再迁移。事务失败整体回滚；SQLite 表版本仍为 1。验证幂等、历史快照不变、未知版本回滚和迁移后继续比赛。

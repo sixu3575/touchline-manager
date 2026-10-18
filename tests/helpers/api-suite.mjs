@@ -11,18 +11,18 @@ import http from 'node:http';
 import { ENGINE_VERSION } from '../../packages/shared/modules/matches/index.mjs';
 import { inflateRawSync } from 'node:zlib';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-export async function startServer(data, real) {
+export async function startServer(
+  data,
+  real,
+  preload = new URL('./business-fixtures.mjs', import.meta.url).href,
+) {
   const proc = spawn(
     process.execPath,
     [
       '--no-warnings',
-      ...(!real
-        ? [
-            '--experimental-test-module-mocks',
-            '--import',
-            new URL('./business-fixtures.mjs', import.meta.url).href,
-          ]
-        : []),
+      '--experimental-test-module-mocks',
+      '--import',
+      real ? new URL('./fast-broadcast-clock.mjs', import.meta.url).href : preload,
       'packages/server/src/index.mjs',
     ],
     {
@@ -193,10 +193,10 @@ export function registerApiSuite({ season = false, real = false, onlyDurable = f
             assert.equal(joined.data.job.id, jobId, 'two clicks join one competition');
             const chunkDeadline = Date.now() + 15000;
             while (Date.now() < chunkDeadline) {
-              const chunk = await fetch(app.url + '/api/match-jobs/' + jobId + '/chunks/0', {
+              const chunk = await fetch(app.url + '/api/match-jobs/' + jobId + '/frames?from=0', {
                 headers: { cookie },
               });
-              if (chunk.status === 200) break;
+              if (chunk.status === 200 && (await chunk.arrayBuffer()).byteLength > 0) break;
               await new Promise((resolve) => setTimeout(resolve, 250));
             }
             const start = performance.now();
