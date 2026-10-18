@@ -1,4 +1,5 @@
 import { rating } from '../players/index.mjs';
+export { tacticalPreset, formationSlot, positionRoleNames } from './presets.mjs';
 export const FORMATIONS = {
   '4-4-2': { GK: 1, DEF: 4, MID: 4, FWD: 2 },
   '4-3-3': { GK: 1, DEF: 4, MID: 3, FWD: 3 },

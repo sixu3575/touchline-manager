@@ -1,5 +1,8 @@
 # matches 界面模块
 
+0.10.0：Pitch的tacticalSlots仅战术板开启，使用tactics公共槽位；旧示意回放保留旧布局。物理回放只显示本场保存的positionRole，不从当前阵容推断历史位置。delivery/phase/setPiece均为可选解释数据，既有事件分类、评分和防剧透门槛不变；不能根据未来阶段或最终报告改变实时画面。
+
+
 ## 0.9.1 独立战报
 
 公共MatchReports显示存档reports（含保留的联赛与杯赛）；查看战报打开独立只读弹层，全场比分/统计、同源事件筛选、分批事件和PlayerRatings，不挂载任何回放/球场、不请求/api/replays轨迹。回放单独调用onReplay。useArchivedReport统一已保存详情的加载、取消、格式检查与重试，Replay也复用；detailsStored摘要不能作为完整报告展示。只接受已结算game.reports，不能把进行中的job.report接入以绕过终场发布门槛。没有新端点/数据迁移，缺失统计显示“—”，不把缺数据说成零；旧评分仍同源计算。样式reports.css，关闭支持Escape并恢复入口焦点。原有评分、播放和模拟算法不变。

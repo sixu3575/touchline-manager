@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-18",
-  "baselineCommit": "07d964176bb4eb932e9a0499a8907b50bb1b6522",
-  "engineVersion": "0.8.2-goal-net",
-  "parameterVersion": "goal-net-1",
+  "baselineCommit": "8a38e2cc207f69dd2e25cabf3ff31af6fe52445c",
+  "engineVersion": "0.10.0-tactical-roles",
+  "parameterVersion": "tactics-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
   "rendering": {
@@ -12,13 +12,15 @@
     "htmlLabels": false
   },
   "sourceFiles": {
+    "packages/shared/modules/matches/tactical-plan.mjs": "e1abf6026f24eb456f5346c7613b08ea4fb7c1cd43d95e248fe5999b5269c3d1",
+    "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "42a46fe0f764fb9d9b09a30b7412bc925b9f555a4587145ef10bfd9b381c67a6",
-    "packages/shared/modules/matches/locomotion.mjs": "b3f7a4843a219a080613328fd2d3c0b0e985b1e6d5c94174546f89da6124392d",
-    "packages/shared/modules/matches/decisions.mjs": "eb5ee813ce9f0334baaaff34a1d239dd4fdfcc8ab13982914e560c7fb25e8035",
-    "packages/shared/modules/matches/carrying.mjs": "b6682e55a410020a32f272068795413def8b48f31be433b1d34c19a9bcbcf7de",
-    "packages/shared/modules/matches/simulation.mjs": "300bba3700c701ce40539d20073a3039b36d3b2fc37801a108d2f587a7100bf9",
-    "packages/shared/modules/matches/continuity.mjs": "ca40e8219074584ada8be045202a7c79661553faf157f733958f69d0b80579e0",
+    "packages/shared/modules/matches/positioning.mjs": "61c190839ca669ef7ef9b57069246620cc802cd4689f068d99edf14428ffda3a",
+    "packages/shared/modules/matches/locomotion.mjs": "650f662ab2ce2ca1b231fa20082ba9da51e8bd0b58a61cefd7f748295740a6f2",
+    "packages/shared/modules/matches/decisions.mjs": "80615d2ca156a46c630ada629f008540be0401be1e46768a4e9225643f4cf945",
+    "packages/shared/modules/matches/carrying.mjs": "9edfb7bb37fd8f0047daa80afabee79b8d0a8028f32b8874397a26e15811a95d",
+    "packages/shared/modules/matches/simulation.mjs": "3ba633c6e45d1489d29d5aea05d95b42ef45eba51d3f35729e1a1735ebd6392b",
+    "packages/shared/modules/matches/continuity.mjs": "653f3a8dde2fb738978a0760f411a776d95cbb9e259fba54f9157b9b6c196318",
     "packages/shared/modules/matches/receiving.mjs": "90bef1659050f765fbd13a593f5e27e5942d1d8047b6c5a8a4dcd579e047d283",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
     "packages/shared/modules/matches/skills.mjs": "2247076fcf27042db968d32fe8e768eac3be23381dee0919f29ccedfedc1e5cd",
@@ -30,33 +32,33 @@
     "packages/shared/modules/players/index.mjs": "6ce81484d00764aea6e71f27be84c1146a5711590a20e4af07de219776e29439",
     "packages/shared/modules/players/match-state.mjs": "68d9996b73ec714b90aa6557af6ba3cb5bc9fab434133eeb27bcd0f54a1c133f",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
-    "packages/shared/modules/tactics/index.mjs": "44d228d28a6a7d24a551782eb0841930e7a91c96a6855eb9fd70ab7395d2482d",
+    "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68"
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "baa99b748a7abf0fd61cf8709905a413ebb54ed221c611df57189bfbed147313",
-      "svgSha256": "2ce311fe2b81bf9fe43bda500eb8511fd9d4f725e71fd7776378d02479e6c3d6"
+      "mermaidSha256": "0f2bde30868f25650e0e5db9f57f34e3e32759dee8541dbb06ec19d5579428c4",
+      "svgSha256": "0a0f503d9d268d5b64414417641b295c7282c2411f9dc62bac5a2e63374275a6"
     },
     "02-roles": {
-      "mermaidSha256": "642e8d2710946a8317555d7ad65e0bb93b2c0ada185ade0cc92cd1037d91bdcc",
-      "svgSha256": "4d4836fd86cfc1f9e4c8214dc351ad0cad5c35a43931c803f415adfe6f0268da"
+      "mermaidSha256": "5a775d34c3d4c95b5fb9fca2910ed39d32d43e2717c3de9943c2a8e082e4a571",
+      "svgSha256": "cb05669783a8e8e5556860819b4f4d3f894ce3c3cdd836318c660be254dff567"
     },
     "03-positioning": {
-      "mermaidSha256": "657c549f60b3948e8eb08b6888796f8695e66995ce8d231416ca350ab77169a5",
-      "svgSha256": "6b98557610f043167dd02c42b34c94e266bad829f67af12549d317e700302928"
+      "mermaidSha256": "048d381d022007755b03e0fd521ba54c8bc238254ae659d5017deae26ffa9fba",
+      "svgSha256": "302134a21c521de6ae2a5e5b3f9c84a4d6738c0c87fa64326d03eab623f0be7a"
     },
     "04-reception": {
       "mermaidSha256": "fd865f5464c45058e6fbe369b0ad55d973d6dcb7e1ff742145ced170f05f4413",
       "svgSha256": "4af025368610d72c41774f7441c8614fb8e857bfaf9c0df3075937833613c275"
     },
     "05-actions": {
-      "mermaidSha256": "c645d3ab33b1874a26c76f141dfb7544d9d68a06d20eef69eaaae3243f86659a",
-      "svgSha256": "f862d1ae10794dc759d466262650c65995034a48b8870bbac25bb36ff825973e"
+      "mermaidSha256": "e6ca6ebf927171e17ec59a724e3b8018d889c3abac4758e1e934235cf05696b2",
+      "svgSha256": "eb9f7d1373a5817f36f9f9880e6e0aa631cef97066fcb1b8fd882654ca07db0e"
     },
     "06-profiles": {
-      "mermaidSha256": "8a148799c72d6a3cee16e6fd9d27033be7a1c87b3054202dc1fd047adfe99b59",
-      "svgSha256": "9e02f5208e75fda3eb1bad78ca65df86940700ad75d851f051e14a3202b1252b"
+      "mermaidSha256": "c2314bd15e6c4a6529070dc49e1ba5dd75e9340ceb9e587dc21054af19407173",
+      "svgSha256": "5fc8435cd10929b6321c4d888b04ec5781bc12c0bac62663f581c30e8018d425"
     }
   }
 }

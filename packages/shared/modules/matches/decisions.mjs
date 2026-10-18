@@ -4,6 +4,14 @@ import { movement } from './locomotion.mjs';
 import { groundPassPlan, airborneVelocity } from './ball-motion.mjs';
 import { distance, unit, segmentPoint, pitchValue, localX } from './spatial.mjs';
 import { carryOptions } from './carrying.mjs';
+import {
+  attackPhase,
+  deliveryOptions,
+  deliveryReceptionRisk,
+  deliveryThreat,
+  tacticalPassValue,
+} from './tactical-plan.mjs';
+import { positionRoleNames } from '../tactics/index.mjs';
 
 export function playerProfile(p, anchor = { z: 34 }) {
   const pass = (ability(p, 'passing') + ability(p, 'vision') + ability(p, 'decisions')) / 3;
@@ -152,6 +160,15 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     currentValue = pitchValue(ball, direction);
   const minute = context.minute ?? 0,
     time = context.time ?? 0;
+  const tactical = attackPhase(
+    actors,
+    ball,
+    actor.side,
+    direction,
+    tactics,
+    time,
+    context.continuity,
+  );
   const ambition =
     minute >= 70 && context.trailing ? (0.02 * ((p.personality?.ambition ?? 50) - 50)) / 50 : 0;
   const direct =
@@ -173,24 +190,25 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     const len = distance(ball, mate.pos);
     if (len < 3 || len > 18 + a('vision') * 0.45) continue;
     const forward = (mate.pos.x - ball.x) * direction;
-    const cross =
-      actor.setPiece === 'corner' ||
-      (tactics.style === 'wide' &&
-        Math.abs(ball.z - 34) > 19 &&
-        localX(ball.x, direction) > 68 &&
-        Math.abs(mate.pos.z - 34) < 17);
-    const variants = [{ intent: cross ? 'cross' : 'feet', lob: cross, lead: 0 }];
-    if (!cross && forward > 2 && !mate.isKeeper && len > 9)
+    const deliveries = deliveryOptions(actor, mate, ball, direction);
+    const variants = deliveries.length ? [] : [{ intent: 'feet', lob: false, lead: 0 }];
+    for (const option of deliveries) variants.push({ intent: 'cross', lead: 0, ...option });
+    if (!deliveries.length && forward > 2 && !mate.isKeeper && len > 9)
       variants.push({ intent: 'through', lob: false, lead: 2 + a('vision') * 0.035 });
-    if (!cross && len > 26 && (tactics.style === 'counter' || Math.abs(ball.z - mate.pos.z) > 24))
+    if (
+      !deliveries.length &&
+      len > 26 &&
+      (tactics.style === 'counter' || Math.abs(ball.z - mate.pos.z) > 24)
+    )
       variants.push({ intent: 'switch', lob: true, lead: 0 });
     for (const variant of variants) {
+      const cross = variant.intent === 'cross';
       const q = quality(
         actor.setPiece === 'corner'
           ? 'setPieces'
           : actor.isKeeper
             ? 'distribution'
-            : cross
+            : cross && variant.delivery !== 'cutback'
               ? 'crossing'
               : 'passing',
       );
@@ -217,9 +235,13 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         ),
         z: clamp(mate.pos.z + mate.velocity.z * leadTime, 2.5, 65.5),
       };
-      const risk = interceptionRisk(ball, target, speed, opponents, variant.lob, flight);
+      const laneRisk = interceptionRisk(ball, target, speed, opponents, variant.lob, flight);
+      const risk = cross
+        ? 1 - (1 - laneRisk) * (1 - deliveryReceptionRisk(mate, target, opponents, variant))
+        : laneRisk;
       // A high-risk corridor is not a viable professional pass, except a necessary clearance.
       if (risk > 0.88 && pressure < 0.7) continue;
+      if (cross && risk > 0.75) continue;
       if (mate !== nearest && a('vision') < 45 && len > 25 && risk > 0.3) continue;
       const space = Math.min(12, ...opponents.map((o) => distance(o.pos, target)));
       const offsideLine =
@@ -235,16 +257,17 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         0.98,
       );
       const success = (1 - risk) * accuracy;
-      const style = clamp(
-        tactics.style === 'possession'
-          ? 0.04 * success
-          : tactics.style === 'counter'
-            ? 0.04 * clamp(forward / 25, -1, 1)
-            : cross
-              ? 0.04
-              : 0,
-        -0.04,
-        0.04,
+      const style = tacticalPassValue(
+        tactics,
+        tactical,
+        variant,
+        actor,
+        mate,
+        ball,
+        target,
+        direction,
+        success,
+        space,
       );
       const escape = pressure * clamp(space / 7, 0, 1) * 0.14;
       const outlets = mates.filter(
@@ -261,8 +284,9 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         clamp((localX(target.x, direction) - 70) / 20, 0, 1);
       const utility =
         success * pitchValue(target, direction) -
-        currentValue -
-        (1 - success) * (0.07 + currentValue * 0.3) +
+        currentValue * (cross ? 0.65 : 1) -
+        (1 - success) * (cross ? 0.045 + currentValue * 0.15 : 0.07 + currentValue * 0.3) +
+        (cross ? deliveryThreat(mate, target, direction, variant, success) : 0) +
         escape +
         retention +
         penetration +
@@ -272,6 +296,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       candidates.push({
         type: cross ? 'cross' : 'pass',
         intent: variant.intent,
+        delivery: variant.delivery,
         receiverId: mate.player.id,
         target,
         quality: q,
@@ -284,12 +309,18 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
             : variant.intent === 'switch'
               ? '转换进攻侧，避开密集防守'
               : cross
-                ? '边路寻找禁区内接应'
-                : pressure > 0.5
-                  ? '受到压迫，交给更空闲的队友'
-                  : forward > 4
-                    ? '通过可用线路向前传递'
-                    : '利用接应点保持球权',
+                ? variant.delivery === 'cutback'
+                  ? '下底后倒三角寻找后排接应'
+                  : variant.delivery === 'low'
+                    ? '低平球横传寻找禁区接应'
+                    : '高球传中寻找禁区包抄'
+                : tactics.style === 'wide' && Math.abs(target.z - 34) > 18
+                  ? '向边路接应点出球，展开进攻宽度'
+                  : pressure > 0.5
+                    ? '受到压迫，交给更空闲的队友'
+                    : forward > 4
+                      ? '通过可用线路向前传递'
+                      : '利用接应点保持球权',
         make: () => {
           const error = (1 - q.value / 100) * (0.28 + 0.025 * len),
             aim = {
@@ -313,7 +344,16 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   }
   const q = quality('dribbling');
   if (!actor.setPiece && !actor.isKeeper) {
-    for (const option of carryOptions(actor, ball, direction, opponents, q, profile, time)) {
+    for (const option of carryOptions(
+      actor,
+      ball,
+      direction,
+      opponents,
+      q,
+      profile,
+      time,
+      tactical,
+    )) {
       const { destination, success } = option;
       candidates.push({
         type: 'dribble',
@@ -408,9 +448,13 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   return {
     type: best.type,
     intent: best.intent,
+    delivery: best.delivery,
+    phase: tactical.phase,
     receiverId: best.receiverId,
     quality: best.quality,
-    reason: best.reason,
+    reason:
+      (positionRoleNames[actor.positionRole] ? positionRoleNames[actor.positionRole] + '：' : '') +
+      best.reason,
     estimatedSuccess: best.estimatedSuccess,
     flight: best.flight,
     destination: best.destination ?? best.target,

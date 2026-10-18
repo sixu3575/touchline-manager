@@ -50,8 +50,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.8.2-goal-net';
-export const PARAMETER_VERSION = 'goal-net-1';
+export const ENGINE_VERSION = '0.10.0-tactical-roles';
+export const PARAMETER_VERSION = 'tactics-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -92,9 +92,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   const actors = options.checkpoint
     ? unpackActors(options.checkpoint.actors, physics)
     : clubs.flatMap((club, side) =>
-        formation(club).map(({ player, anchor }, i) => ({
+        formation(club).map(({ player, anchor, positionRole }, i) => ({
           player: { ...player, matchState: createMatchState(player) },
           anchor,
+          positionRole,
           profile: playerProfile(player, anchor),
           intent: null,
           movementMode: 'jog',
@@ -524,6 +525,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       passes: a.passes,
       completed: a.completed,
       style: a.profile.label,
+      positionRole: a.positionRole,
       dribbleTouches: a.carries,
       carryDistance: Math.round(a.carryDistance),
       throughBalls: a.throughBalls,
@@ -580,6 +582,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               number: a.player.number,
               name: a.player.name,
               role: a.player.role,
+              positionRole: a.positionRole,
             })),
           }
         : undefined,
@@ -648,6 +651,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           direction,
           clubs.map((c) => c.tactics),
           time,
+          continuity,
         );
         const chasers = roles.chasers;
         for (const a of actors) {
@@ -1086,6 +1090,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               time,
               trailing: score[a.side] < score[1 - a.side],
               lapse,
+              continuity,
             },
           );
           if (!kick(physics, a, action)) return;
@@ -1097,6 +1102,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             quality: action.quality,
             result: 'impulse',
             intent: action.intent,
+            delivery: action.delivery,
+            phase: action.phase,
+            setPiece: a.setPiece ?? undefined,
             decision: action.reason,
             estimatedSuccess: action.estimatedSuccess,
             velocity: { ...physics.ball.linvel() },
@@ -1138,7 +1146,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               event(
                 action.type,
                 a.side,
-                `${a.player.name}${{ through: '将球送入队友前插的空间。', switch: '长传转移到另一侧。', cross: '送出高空传中。', clearance: '将球解围到安全区域。', feet: '将球快速传到队友脚下。' }[action.intent] ?? '传球寻找队友。'}`,
+                `${a.player.name}${action.delivery === 'cutback' ? '下底倒三角回传。' : action.delivery === 'low' ? '低平球横传禁区。' : ({ through: '将球送入队友前插的空间。', switch: '长传转移到另一侧。', cross: '送出高空传中。', clearance: '将球解围到安全区域。', feet: '将球快速传到队友脚下。' }[action.intent] ?? '传球寻找队友。')}`,
                 a,
                 explanation,
               );
@@ -1438,6 +1446,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           number: a.player.number,
           name: a.player.name,
           role: a.player.role,
+          positionRole: a.positionRole,
         })),
       };
       report.trajectory = new Uint16Array(cursor + (penaltyFrames?.length ?? 0));

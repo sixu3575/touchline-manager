@@ -3,21 +3,32 @@ import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { groundTravel, AIR_DRAG } from './ball-motion.mjs';
 import { distance, localX, unit } from './spatial.mjs';
+import { formationSlot, tacticalPreset } from '../tactics/index.mjs';
+import { attackAssignments } from './tactical-plan.mjs';
 
 export function formation(club) {
   const ps = club.lineup.map((id) => club.players.find((p) => p.id === id));
   return ps.map((p) => {
     const group = ps.filter((q) => q.role === p.role);
-    return {
-      player: p,
-      anchor: {
-        x: { GK: 5, DEF: 27, MID: 49, FWD: 70 }[p.role],
-        z: 8 + ((group.indexOf(p) + 0.5) / group.length) * 52,
-      },
-    };
+    const { x, z, positionRole } = formationSlot(
+      club.tactics.formation,
+      p.role,
+      group.indexOf(p),
+      group.length,
+    );
+    return { player: p, anchor: { x, z }, positionRole };
   });
 }
-export function teamRoles(actors, ball, owner, pendingPass, direction, tactics, time = 0) {
+export function teamRoles(
+  actors,
+  ball,
+  owner,
+  pendingPass,
+  direction,
+  tactics,
+  time = 0,
+  continuity = {},
+) {
   // A missed pass becomes a loose-ball contest. Don't reserve it forever for a
   // distant intended receiver while a nearer teammate waits beside the ball.
   if (pendingPass && time > (pendingPass.expiresAt ?? pendingPass.time + 3.5)) pendingPass = null;
@@ -29,6 +40,8 @@ export function teamRoles(actors, ball, owner, pendingPass, direction, tactics, 
     runnerId: null,
     receiveTarget: pendingPass?.target,
     support: [],
+    teams: {},
+    duties: {},
     phase: owner
       ? localX(ball.x, direction(owner.side)) < 36
         ? 'buildup'
@@ -88,6 +101,19 @@ export function teamRoles(actors, ball, owner, pendingPass, direction, tactics, 
       const passer = pendingPass?.actor;
       const giveGo = passer?.side === side && passer.player.role === 'FWD' ? passer : null;
       if (giveGo || runners[0]) roles.runnerId = (giveGo ?? runners[0]).player.id;
+      const plan = attackAssignments(
+        actors,
+        ball,
+        carrier,
+        roles.receiverId,
+        direction(side),
+        tactics[side],
+        time,
+        continuity,
+      );
+      roles.teams[side] = plan;
+      Object.assign(roles.duties, plan.assignments);
+      if (plan.assignments[roles.runnerId]) roles.runnerId = null;
     }
   }
   // Assign cover one-to-one; nearest-by-lane independently sent several defenders
@@ -262,11 +288,20 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   }
   const bx = localX(ball.x, direction),
     keeper = actors.find((o) => o.side === actor.side && o.isKeeper);
+  const assigned = attacking && roles.duties?.[p.id];
+  if (assigned) {
+    const accuracy = (100 - (a('offTheBall') + a('teamwork')) / 2) / 40;
+    return {
+      x: clamp(assigned.x + actor.bias * accuracy, 3, 102),
+      z: clamp(assigned.z + actor.bias * accuracy, 3, 65),
+    };
+  }
   let x = actor.anchor.x + (bx - 52.5) * 0.43 + (attacking ? 7 : -7);
-  if (tactics.style === 'counter') x += attacking ? 3 : -6;
+  if (tactics.style === 'counter')
+    x += attacking ? (roles.teams?.[actor.side]?.fastBreak ? 3 : 0) : -6;
   if (tactics.press === 'high' && !attacking) x += 4;
   if (tactics.press === 'low' && !attacking) x -= 4;
-  let z = 34 + (actor.anchor.z - 34) * (tactics.style === 'wide' ? 1.25 : 1) + (ball.z - 34) * 0.12;
+  let z = 34 + (actor.anchor.z - 34) * tacticalPreset(tactics.style).width + (ball.z - 34) * 0.12;
   if (attacking && roles.runnerId === p.id) {
     const defenders = actors
       .filter((o) => o.side !== actor.side && !o.sentOff)

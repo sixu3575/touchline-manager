@@ -1,5 +1,8 @@
 # 比赛模块
 
+0.10.0当前算法：引擎0.10.0-tactical-roles/参数tactics-1，战术阶段与位置协同见[TACTICS_V0100.md](design/TACTICS_V0100.md)，六图见[PLAYER_DECISION_MAP.md](design/PLAYER_DECISION_MAP.md)。tactical-plan.mjs管理目标和机会估值，不绕过接球/追球/盯人或真实触球；角色不是隐藏能力。明确职责不能被通用前插/最近支援覆盖。反击时钟随continuity原样检查点保存、死球清除；禁止将队内传球刷新为新反击。三种传中仍计一次传球，setPiece区分运动战与角球。速度/球网/规则/播放/结算/评分权重保持；下方旧版本记录为历史。
+
+
 0.9.0增加独立[赛后评分](ratings/README.md)，轻量公开入口ratings/index.mjs不导入比赛引擎，server保存与client展示共用；6.5基准、3–10分，按本场位置/事件/统计给出9类依据。评分不会回读影响决策/球员状态，物理引擎仍0.8.2-goal-net/goal-net-1。新报告保存版本，旧报告只读生成评分，不重演或改轨迹；既有分层验证仅冒烟/针对性，模拟与决策参考未变。
 
 0.8.2球门与进球展示以[GOAL_NET_V082.md](design/GOAL_NET_V082.md)为准：后/侧/顶网仅与球碰撞，恢复0/Min、摩擦1/Max，门口开放、门柱弹性不变；进球后15比赛秒保留入网轨迹再重开。引擎0.8.2-goal-net/参数goal-net-1取代下方版本，带球参数/候选沿用0.8.0。新goal.scorer记录实际触球者号码姓名/side，乌龙归属不能计错；不重算旧回放，升级先排空旧引擎任务。

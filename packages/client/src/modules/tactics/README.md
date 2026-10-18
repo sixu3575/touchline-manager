@@ -1,5 +1,8 @@
 # tactics 界面模块
 
+0.10.0：战术板开启Pitch.tacticalSlots，与服务端共享三阵型槽位，悬停显示本场职责；保存后新比赛生效。运行槽位按同一大位置首发顺序分配，尚无手动职责编辑器；不能用静态展示宣称已有临场战术指令。
+
+
 公共入口 index.ts；实现从原 components/pages 提取，旧路径保留兼容导出。领域规则由 shared/modules/tactics 公共接口维护，不复制球员或比赛公式。修改此目录后同步 CHANGELOG.md，开发流程不变。
 
 0.3.0评级从players公共入口读取，自动排阵从tactics公共入口读取，禁止通过game.mjs引入比赛WASM。
