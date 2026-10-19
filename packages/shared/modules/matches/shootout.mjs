@@ -1,6 +1,7 @@
 import { random, seedFrom, clamp } from '../../core/index.mjs';
 import { keeperReaction } from './goalkeeping.mjs';
 import { chooseAction, ability, movement } from './agents.mjs';
+import { updateFacing } from './execution.mjs';
 import {
   STEP,
   BALL_RADIUS,
@@ -53,6 +54,7 @@ export function shootout({ physics, actors, seed, time, event, direction }) {
       a.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       a.pos = { x, z };
       a.velocity = { x: 0, z: 0 };
+      a.kickPlan = null;
     }
     physics.ball.setTranslation({ x: ballX, y: BALL_RADIUS + 0.015, z: 34 }, true);
     physics.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -71,6 +73,9 @@ export function shootout({ physics, actors, seed, time, event, direction }) {
         velocity = physics.ball.linvel();
       taker.pos = taker.body.translation();
       keeper.pos = keeper.body.translation();
+      // The taker has 0.8 seconds of preparation in this separate phase;
+      // orient continuously instead of inheriting the previous half's facing.
+      updateFacing(taker, ball, STEP, time);
       orientFoot(taker, ball);
       orientHands(keeper, ball, 0.45 + ability(keeper.player, 'oneOnOnes') * 0.004);
       if (tick === 16) {

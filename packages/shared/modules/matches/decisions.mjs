@@ -133,10 +133,9 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
     xg,
     utility:
       opportunity * (0.65 + q.value / 100) -
-      pitchValue(ball, direction) -
+      0.3 * pitchValue(ball, direction) -
       (1 - opportunity) * 0.025 +
-      (actor.player.role === 'FWD' ? 0.02 : 0) -
-      (direct ? 0 : 0.08 * blocked + 0.09 * q.pressure + Math.max(0, dist - 16) * 0.003),
+      (actor.player.role === 'FWD' ? 0.02 : 0),
     reason: direct
       ? '定位球按门将和球门位置瞄准'
       : blocked > 0.7
@@ -159,7 +158,8 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
       const targetY =
         0.2 +
         rng() * (0.9 + (100 - q.value) / 14 + Math.max(0, dist - 10) * 0.06 + q.pressure * 0.5);
-      return { ...airborneVelocity(ball, { ...target, y: targetY }, flight), xg };
+      const kickAim = { ...target, y: targetY };
+      return { ...airborneVelocity(ball, kickAim, flight), xg, kickAim, kickFlight: flight };
     },
   };
 }
@@ -361,8 +361,14 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
             ? actualLength / flight
             : groundPassPlan(actualLength, q.value).speed;
           const heading = unit(ball, aim);
-          if (variant.lob) return airborneVelocity(ball, { ...aim, y: 0.15 }, flight);
+          if (variant.lob)
+            return {
+              ...airborneVelocity(ball, { ...aim, y: 0.15 }, flight),
+              kickAim: { ...aim, y: 0.15 },
+              kickFlight: flight,
+            };
           return {
+            kickAim: aim,
             x: heading.x * launch,
             z: heading.z * launch,
             y: 0.08,

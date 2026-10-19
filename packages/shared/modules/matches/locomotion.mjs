@@ -51,8 +51,28 @@ export function driveMovement(actor, desired, limits, dt, responseMultiplier = 1
     mass = actor.body.mass();
   actor.body.applyImpulse({ x: dx * scale * mass, y: 0, z: dz * scale * mass }, true);
 }
+// Tracking a moving person needs both position correction and observed velocity.
+// A position-only controller necessarily trails by v/gain, even at equal ability.
+// Use the marker's last observation, not the opponent's current hidden velocity.
+export function markingVelocity(actor, owner, roles) {
+  const memory = actor.markMemory;
+  if (
+    actor === owner ||
+    actor.isKeeper ||
+    actor.kickPlan ||
+    roles.receiverId === actor.player.id ||
+    roles.chasers.includes(actor.index) ||
+    !memory ||
+    roles.marking?.[actor.player.id] !== memory.id
+  )
+    return { x: 0, z: 0 };
+  const age = Math.max(0, (roles.time ?? memory.seenAt) - memory.seenAt);
+  const fade = clamp(1 - Math.max(0, age - 0.9) / 0.5, 0, 1);
+  return { x: memory.velocity.x * fade, z: memory.velocity.z * fade };
+}
 export function movementMode(actor, ball, owner, roles, gap) {
   const fresh = sprintAvailable(actor);
+  if (actor.kickPlan) return gap > 0.15 ? 'walk' : 'stand';
   if (actor === owner) return actor.intent?.mode === 'carryFast' && fresh ? 'carryFast' : 'carry';
   if (actor.isKeeper) return gap > 0.35 ? 'run' : 'stand';
   const chasing = roles.chasers.includes(actor.index);
@@ -60,20 +80,22 @@ export function movementMode(actor, ball, owner, roles, gap) {
     if (gap < 0.4) return 'walk';
     return gap > 2 && distance(actor.pos, ball) < 18 && fresh ? 'sprint' : 'run';
   }
-  if (gap < 0.8) return 'stand';
-  if (gap < 2.5) return 'walk';
   if (roles.marking?.[actor.player.id]) {
     const speed = actor.markMemory
       ? Math.hypot(actor.markMemory.velocity.x, actor.markMemory.velocity.z)
       : 0;
-    return fresh && speed > 4.5 && gap > 2
+    return fresh && speed > movement(actor.player, actor.energy, 'run').speed
       ? 'sprint'
       : speed > 3.5 || gap > 9
         ? 'run'
         : speed > 1.8 || gap > 4
           ? 'jog'
-          : 'walk';
+          : gap < 0.8 && speed < 0.3
+            ? 'stand'
+            : 'walk';
   }
+  if (gap < 0.8) return 'stand';
+  if (gap < 2.5) return 'walk';
   if (roles.runnerId === actor.player.id) return fresh ? 'sprint' : 'jog';
   if (
     gap > 5 &&

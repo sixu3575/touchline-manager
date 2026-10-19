@@ -175,6 +175,10 @@ function scenario(direction, marker = null) {
     o.body.setEnabled(!o.sentOff);
     o.pos = { x: mirror(o === a ? 50 : 15), z: o === a ? 34 : 7 };
     o.velocity = { x: o === a ? direction * 6 : 0, z: 0 };
+    // Mirroring a prepared, forward-running reception also mirrors body facing.
+    // The separate execution tests cover genuinely back-facing receivers.
+    o.facing = direction === 1 ? 0 : Math.PI;
+    o.kickPlan = null;
     o.intent = null;
     o.setPiece = null;
     o.cooldown = 0;

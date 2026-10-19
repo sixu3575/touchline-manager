@@ -1,5 +1,7 @@
 # 项目地图
 
+0.17.0按用户纠正将节奏修正放在连续转身/支撑摆腿/收腿执行，撤回0.16新增的射门抑制。合理远射和提前准备的一脚传射保留，不用整场统计反馈决策。用户在获知专项现实性block后明确授权上线本版本；block仍记录为未通过，后续版本继续遵循原门槛。入口[EXECUTION_V0170.md](packages/shared/modules/matches/design/EXECUTION_V0170.md)，[当前验证/阻断](packages/shared/modules/matches/design/CALIBRATION_V0170.md)；旧回放、5×和既有分层/PR/发布流程保持。
+
 0.16实施获批的比赛现实性整改：独立里程/五区测量、团队过渡与近身争抢、防线保护与跟速、短时冲刺恢复、护球/射门准备和散布、门将扑救平面。[实现与校准](packages/shared/modules/matches/design/REALISM_V0160.md)，引擎0.16.0-realism/realism-1；旧回放不重算。历史[审查](packages/shared/modules/matches/design/REALISM_AUDIT_20261019.md)和[现实对照规范](packages/shared/modules/matches/design/REALISM_VALIDATION.md)保留；新增规则只对新比赛生效。
 
 0.15.1统计归属由matches/attribution.mjs维护，physics/projectedGoal以独立无球员Rapier世界检查触球前球路；助攻沿连续控球来源，shotId/shotOutcome驱动常规关键传球与评分，不按最后触球者直接判乌龙。当前引擎0.15.1-attribution/movement-1，统计opta-conventional-1、评分match-rating-2。设计与现实来源见[统计归属](packages/shared/modules/matches/design/STATISTICS_V0151.md)，第1/4决策图已同步。历史不重算，开发流程不改。

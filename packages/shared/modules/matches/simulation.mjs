@@ -13,7 +13,15 @@ import {
   originalRecipientReachable,
   receptionSource,
 } from './attribution.mjs';
-import { driveMovement } from './locomotion.mjs';
+import { driveMovement, markingVelocity } from './locomotion.mjs';
+import {
+  updateFacing,
+  prepareKick,
+  kickReady,
+  kickTarget,
+  releasedKick,
+  kickRecovery,
+} from './execution.mjs';
 import { activityState, recordMovement } from './activity.mjs';
 import { tackleWindow, tackleProbability } from './defending.mjs';
 import {
@@ -66,8 +74,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.16.0-realism';
-export const PARAMETER_VERSION = 'realism-1';
+export const ENGINE_VERSION = '0.17.0-execution';
+export const PARAMETER_VERSION = 'execution-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -114,6 +122,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           positionRole,
           profile: playerProfile(player, anchor),
           intent: null,
+          facing: side === 0 ? 0 : Math.PI,
+          kickPlan: null,
           movementMode: 'jog',
           carries: 0,
           carryDistance: 0,
@@ -328,6 +338,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     a.hold = 0;
     a.setPiece = null;
     a.intent = null;
+    a.kickPlan = null;
     a.offBallPlan = null;
     a.markMemory = null;
   }
@@ -341,6 +352,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         placeActor(a, point.x, point.z);
       } else {
         a.intent = null;
+        a.kickPlan = null;
         a.offBallPlan = null;
         a.markMemory = null;
       }
@@ -374,6 +386,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     taker.setPiece = type;
     for (const a of actors) {
       a.intent = null;
+      a.kickPlan = null;
       a.offBallPlan = null;
       a.markMemory = null;
     }
@@ -772,6 +785,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         a.velocity = a.body.linvel();
         orientFoot(a, ball);
         if (!active || touchedThisTick || a.cooldown > 0) return;
+        // During a committed wind-up there is no new touch or decision to
+        // evaluate. The ball and challengers remain independent; orientation,
+        // expiry and loss of control are handled in the outer physical step.
+        if (a.kickPlan && !kickReady(a, time)) return;
         // Goalkeepers intercept physically reachable high balls with a finite hand volume.
         if (
           a.isKeeper &&
@@ -1056,7 +1073,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.intent?.kind === 'carry' &&
           a.intent.expiresAt > time &&
           distance(a.pos, ball) < 4.2;
-        const newControl = (previous !== a || Boolean(incomingPass)) && !ownCarry;
+        const ownPreparation =
+          a.kickPlan && lastTouch === a && (!previous || previous === a) && !incomingPass;
+        const newControl =
+          (previous !== a || Boolean(incomingPass)) && !ownCarry && !ownPreparation;
         if (newControl) {
           a.intent = null;
           if (lastPass && lastPass.receiver.side !== a.side) lastPass = null;
@@ -1097,6 +1117,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         );
         if (newControl) {
           a.readyAt = time + reception.delay;
+          a.lastReceptionPreparation = a.receivePreparation
+            ? Math.max(0, time - a.receivePreparation.startedAt)
+            : 0;
           a.receivePreparation = null;
         }
         if (incomingPass && incomingPass.actor.side === a.side) receivePass(a, incomingPass);
@@ -1125,11 +1148,13 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.cooldown = 0.35 + (100 - ability(a.player, 'balance')) / 200;
         } else {
           controlBall(continuity, a, time, incomingPass, Boolean(opposingPass));
-          const oneTouch = Boolean(
-            incomingPass &&
-            ability(a.player, 'firstTouch') >= 78 &&
-            ability(a.player, 'decisions') >= 72,
-          );
+          const oneTouch =
+            a.kickPlan?.oneTouch ??
+            Boolean(
+              incomingPass &&
+              ability(a.player, 'firstTouch') >= 78 &&
+              ability(a.player, 'decisions') >= 72,
+            );
           if (newControl && incoming > 3 && !a.setPiece && !oneTouch) {
             kick(
               physics,
@@ -1198,23 +1223,19 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             0.0002,
             0.012,
           );
-          const actionRng = random(seedFrom(`${seed}:action:${++actionNumber}`));
-          const lapse = actionRng() < lapseProbability;
-          const action = chooseAction(
-            a,
-            playing(),
-            ball,
-            direction(a.side),
-            clubs[a.side].tactics,
-            actionRng,
-            {
+          const actionRng = a.kickPlan
+            ? null
+            : random(seedFrom(`${seed}:action:${++actionNumber}`));
+          const lapse = a.kickPlan?.lapse ?? actionRng() < lapseProbability;
+          let action =
+            a.kickPlan?.action ??
+            chooseAction(a, playing(), ball, direction(a.side), clubs[a.side].tactics, actionRng, {
               minute: (time * CLOCK_SCALE) / 60,
               time,
               trailing: score[a.side] < score[1 - a.side],
               lapse,
               continuity,
-            },
-          );
+            });
           if (action.type === 'hold') {
             a.cooldown = 0.25;
             if (incoming > 1.5) {
@@ -1233,33 +1254,24 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             }
             return;
           }
-          if (action.type === 'shot' && !a.setPiece) {
-            const prepared =
-              a.shotPreparation &&
-              time <= a.shotPreparation.until &&
-              distance(a.shotPreparation.ball, ball) < 2;
-            if (!prepared) {
-              const delay =
-                0.16 +
-                (100 - ability(a.player, 'balance')) * 0.002 +
-                Math.min(6, Math.hypot(a.velocity.x, a.velocity.z)) * 0.025;
-              a.shotPreparation = {
-                readyAt: time + delay,
-                until: time + delay + 0.8,
-                ball: { x: ball.x, z: ball.z },
-              };
-              a.intent = { kind: 'settle', expiresAt: time + delay };
-              a.cooldown = delay;
-              return;
-            }
-            if (time < a.shotPreparation.readyAt) return;
-            a.shotPreparation = null;
-          } else a.shotPreparation = null;
+          let execution = null;
+          if (action.type !== 'dribble') {
+            if (!a.kickPlan)
+              a.kickPlan = prepareKick(a, action, ball, time, actionNumber, lapse, oneTouch);
+            a.target = kickTarget(a, ball);
+            if (!kickReady(a, time)) return;
+            execution = a.kickPlan;
+            action = releasedKick(execution, ball);
+          }
           if (!kick(physics, a, action)) return;
+          a.kickPlan = null;
           playedBall(a, action.type, action.receiverId);
           touchedThisTick = true;
           const explanation = {
-            actionId: actionNumber,
+            actionId: execution?.actionId ?? actionNumber,
+            preparation: execution
+              ? { seconds: time - execution.startedAt, facing: a.facing }
+              : undefined,
             receiverId: action.receiverId,
             quality: action.quality,
             result: 'impulse',
@@ -1321,7 +1333,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.cooldown =
             action.type === 'dribble'
               ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
-              : 0.28;
+              : kickRecovery(a, action);
           if (action.type === 'dribble') {
             resolveAttempt();
             attributeTouch(attribution, statisticalPlayer(a), null, true);
@@ -1370,6 +1382,17 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         a.player.matchState.mental = mentalModifier(a.player.matchState);
         a.cooldown -= STEP;
         a.hold = owner === a ? a.hold + STEP : 0;
+        if (
+          a.kickPlan &&
+          (time > a.kickPlan.until ||
+            distance(a.kickPlan.ball, ball) > 2.4 ||
+            (continuity.controller !== null && continuity.controller !== a.index))
+        ) {
+          a.kickPlan = null;
+          a.intent = null;
+        }
+        if (active && a.kickPlan) a.target = kickTarget(a, ball);
+        updateFacing(a, ball, STEP, time);
         orientFoot(a, ball);
         if (a.hands) orientHands(a, ball, 0.45 + ability(a.player, 'oneOnOnes') * 0.004);
         if (active && a.isKeeper && tick % 2 === 0)
@@ -1400,6 +1423,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         // Separation steers around teammates; Rapier resolves any remaining body contacts.
         let vx = gap > 0.2 ? (dx / gap) * Math.min(m.speed, gap * 2) : 0;
         let vz = gap > 0.2 ? (dz / gap) * Math.min(m.speed, gap * 2) : 0;
+        if (active) {
+          const following = markingVelocity(a, owner, roles);
+          vx += following.x;
+          vz += following.z;
+        }
         if (gap > 1)
           for (const o of actors) {
             if (o.sentOff || o === a || o.side !== a.side) continue;
@@ -1573,6 +1601,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           pendingPass = null;
           shot = null;
           goalRestart = { side: 1 - side, at: restartUntil };
+          actors.forEach((a) => (a.kickPlan = null));
           deadBall(continuity, time, 'goal');
           const leader = scorer ?? playing().find((a) => a.side === side && !a.isKeeper);
           deadState = {

@@ -1,6 +1,7 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { AIR_DRAG, BALL_MOTION } from './ball-motion.mjs';
 import { movement } from './locomotion.mjs';
+import { angleDifference } from './execution.mjs';
 await RAPIER.init();
 
 export const FIELD = Object.freeze({ length: 105, width: 68, goalWidth: 7.32, goalHeight: 2.44 });
@@ -153,9 +154,9 @@ export function orientHands(actor, ballPosition, reach) {
 
 export function orientFoot(actor, ballPosition) {
   const p = actor.body.translation();
-  const d = Math.hypot(ballPosition.x - p.x, ballPosition.z - p.z) || 1;
-  const facing =
-    Math.hypot(actor.velocity?.x ?? 0, actor.velocity?.z ?? 0) > 0.4
+  const facing = Number.isFinite(actor.facing)
+    ? { x: Math.cos(actor.facing), z: Math.sin(actor.facing) }
+    : Math.hypot(actor.velocity?.x ?? 0, actor.velocity?.z ?? 0) > 0.4
       ? actor.velocity
       : { x: actor.direction ?? 1, z: 0 };
   const norm = Math.hypot(facing.x, facing.z) || 1;
@@ -168,12 +169,14 @@ export function orientFoot(actor, ballPosition) {
       ),
     ),
   );
+  const bearing = Math.atan2(ballPosition.z - p.z, ballPosition.x - p.x);
+  // A foot can reach to either side of the body, but cannot teleport behind it.
+  const footAngle = Number.isFinite(actor.facing)
+    ? actor.facing +
+      Math.max(-Math.PI / 2, Math.min(Math.PI / 2, angleDifference(bearing, actor.facing)))
+    : bearing;
   actor.foot.setTranslationWrtParent(
-    vector(
-      ((ballPosition.x - p.x) / d) * 0.45,
-      0.2 - actor.height / 2,
-      ((ballPosition.z - p.z) / d) * 0.45,
-    ),
+    vector(Math.cos(footAngle) * 0.45, 0.2 - actor.height / 2, Math.sin(footAngle) * 0.45),
   );
 }
 

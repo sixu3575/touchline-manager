@@ -1,5 +1,7 @@
 # 0.16.0现实性整改：验证与残余偏差
 
+历史说明：用户随后明确纠正，不以压低合理射门选择来贴近统计；后续执行层候选见[EXECUTION_V0170.md](EXECUTION_V0170.md)及[验证状态](CALIBRATION_V0170.md)。本报告保留当时参数和结果，不代表继续采用其射门抑制方向。
+
 日期2026-10-19；基线1513d5a；引擎`0.16.0-realism`、参数`realism-1`。这是[获批方案](REALISM_AUDIT_20261019.md)的实施结果，机制/数学见[REALISM_V0160.md](REALISM_V0160.md)，当前决策树见[PLAYER_DECISION_MAP.md](PLAYER_DECISION_MAP.md)。[完整汇总JSON](REALISM_EVIDENCE_V0160.json)记录源码摘要、种子、每场警报、分布及专项。旧审查保留为历史，旧14:7战报不重算。
 
 ## 范围和复现
