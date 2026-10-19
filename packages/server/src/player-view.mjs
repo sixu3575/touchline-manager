@@ -40,6 +40,7 @@ const diagnostics = new Set([
   'opponentQuality',
   'estimatedSuccess',
   'probability',
+  'preparation',
   'decision',
   'mind',
   'motion',
