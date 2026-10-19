@@ -186,6 +186,7 @@ const moduleTests = {
   players: [
     'tests/players.test.mjs',
     'tests/player-profiles.test.mjs',
+    'tests/player-assessments.test.mjs',
     'tests/approved-v1.test.mjs',
   ],
   tactics: ['tests/game.test.mjs'],
@@ -315,7 +316,17 @@ export function classifyChanges(
     if (path === 'packages/shared/modules/tactics/presets.mjs') algorithm = true;
     if (path === 'packages/shared/modules/players/profiles.mjs') algorithm = true;
     if (path === 'packages/shared/modules/players/index.mjs')
-      algorithm = intersects(keys, ['player', 'reprofilePlayer', 'observationPlayer', '@links']);
+      algorithm =
+        intersects(keys, ['player', 'reprofilePlayer', 'observationPlayer']) ||
+        // Explicit display-only public export; all other runtime links remain algorithm-sensitive.
+        (oldParts.get('@links') ?? '')
+          .replace(/export \* from "\.\/assessment\.mjs";\s*/g, '')
+          .trim() !==
+          (nextParts.get('@links') ?? '')
+            .replace(/export \* from "\.\/assessment\.mjs";\s*/g, '')
+            .trim();
+    if (path === 'packages/server/src/player-view.mjs')
+      business.add('tests/player-assessments.test.mjs');
     if (algorithm) {
       match = true;
       reasons.push('Match algorithm: ' + path + ' [' + keys.join(', ') + ']');

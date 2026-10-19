@@ -12,6 +12,22 @@ const change = (path, before, after) => ({ path, before, after });
 const engine = 'packages/shared/modules/matches/decisions.mjs';
 const flow = 'packages/shared/modules/competitions/index.mjs';
 
+test('assessment public export is display-only, but engine imports remain algorithm-sensitive', () => {
+  const path = 'packages/shared/modules/players/index.mjs';
+  const before = "export * from './match-state.mjs';";
+  const after = before + "\nexport * from './assessment.mjs';";
+  assert.equal(classifyChanges([change(path, before, after)]).match, false);
+  assert.equal(
+    classifyChanges([change(path, after, after.replace('match-state', 'other'))]).match,
+    true,
+  );
+  assert.equal(
+    classifyChanges([change(engine, '', "import {assessmentFor} from '../players/index.mjs';")])
+      .match,
+    true,
+  );
+});
+
 test('ability distribution and generation defaults require match checks without changing season flow', () => {
   for (const row of [
     change(

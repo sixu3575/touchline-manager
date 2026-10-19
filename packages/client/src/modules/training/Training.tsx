@@ -65,7 +65,10 @@ export function Training({ game, club, busy, act, onPlayer }: Props) {
         ))}
       </div>
       <section className="panel">
-        <PanelHead title="重点培养名单" subtitle="潜力较高的年轻球员，值得更多关注" />
+        <PanelHead
+          title="重点培养名单"
+          subtitle="按教练评估的潜力区间中点推荐；待观察使用中性估计"
+        />
         <div className="prospects">
           {[...club.players]
             .sort((a, b) => b.potential - b.age - (a.potential - a.age))
@@ -80,7 +83,12 @@ export function Training({ game, club, busy, act, onPlayer }: Props) {
                   </small>
                 </div>
                 <span>
-                  潜力 <b>{p.potential}</b>
+                  潜力{' '}
+                  <b>
+                    {p.assessment.bands.potential
+                      ? `${p.assessment.bands.potential.min}–${p.assessment.bands.potential.max}`
+                      : '待观察'}
+                  </b>
                 </span>
               </button>
             ))}

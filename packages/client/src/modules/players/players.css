@@ -4,6 +4,90 @@
   color: #294436;
   overflow: auto;
 }
+.player-card-six {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  background: #e7efdc;
+  padding: 16px 24px;
+  gap: 8px;
+}
+.player-card-six div {
+  text-align: center;
+}
+.player-card-six small {
+  display: block;
+  color: #587348;
+}
+.player-card-six b {
+  display: block;
+  font-size: 25px;
+  margin-top: 4px;
+}
+.assessment-office {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #d9e5ce;
+  background: #f3f7ed;
+  padding: 18px;
+  margin: 16px 0;
+  border-radius: 10px;
+}
+.assessment-office p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 6px 0;
+}
+.assessment-office small {
+  font-size: 11px;
+  color: #6c7f64;
+}
+.assessment-office button {
+  flex-shrink: 0;
+}
+.assessment-band {
+  display: grid;
+  grid-template-columns: 88px 1fr 60px;
+  gap: 8px;
+  font-size: 12px;
+  align-items: center;
+  margin: 14px 0;
+}
+.assessment-band > div {
+  position: relative;
+  height: 5px;
+  background: #edf0e6;
+  border-radius: 3px;
+}
+.assessment-band i {
+  position: absolute;
+  height: 100%;
+  background: #7c9b4a;
+}
+.assessment-band b {
+  text-align: right;
+  color: #527238;
+  font-size: 11px;
+}
+.scout-skills {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.scout-observe {
+  margin: 12px 0;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .player-card-six {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 14px;
+  }
+  .assessment-office {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
 .pm-hero {
   background: #183b31;
   color: #f6f7ee;

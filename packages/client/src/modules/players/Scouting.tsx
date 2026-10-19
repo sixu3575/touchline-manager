@@ -5,6 +5,7 @@ import { money, roles } from '../../constants';
 import type { Club, Game, Player } from '../../model';
 import './players.css';
 import { nationalityName } from './presentation';
+import { AssessmentOffice } from './AssessmentOffice';
 type Props = {
   game: Game;
   club: Club;
@@ -22,6 +23,7 @@ export function Scouting({ game, club, busy, act, onPlayer }: Props) {
         <span>每赛季更新候选名单。签约立即生效，转会费一次扣除，工资按联赛轮次结算。</span>
         <b>资金 {money(game.cash)}</b>
       </div>
+      <AssessmentOffice game={game} kind="scout" busy={busy} act={act} />
       <Filters value={filter} onChange={setFilter} />
       <div className="scout-grid">
         {game.market
@@ -44,20 +46,25 @@ export function Scouting({ game, club, busy, act, onPlayer }: Props) {
               </button>
               <h3>{p.name}</h3>
               <p>
-                {nationalityName(p.nationality)} · {p.age} 岁 · {roles[p.role]} · 潜力 {p.potential}
+                {nationalityName(p.nationality)} · {p.age} 岁 · {roles[p.role]}
               </p>
               <div className="scout-skills">
-                <span>
-                  速度 <b>{Math.round(p.skills.pace)}</b>
-                </span>
-                <span>
-                  {p.role === 'GK' ? '门将' : '传球'}{' '}
-                  <b>{Math.round(p.skills[p.role === 'GK' ? 'keeping' : 'passing'])}</b>
-                </span>
-                <span>
-                  轮薪 <b>{money(p.wage)}</b>
-                </span>
+                {p.assessment.overview.map((s) => (
+                  <span key={s.key}>
+                    {s.label} <b>{s.value ?? '—'}</b>
+                  </span>
+                ))}
               </div>
+              <p className="fine">
+                轮薪 {money(p.wage)} · 已观察 {p.assessment.observations} 次
+              </p>
+              <button
+                className="secondary scout-observe"
+                disabled={busy || p.assessment.lastScouted === game.gameDate}
+                onClick={() => void act('scout', { playerId: p.id })}
+              >
+                {p.assessment.lastScouted === game.gameDate ? '本比赛日已观察' : '派球探观察'}
+              </button>
               <div className="sign-row">
                 <div>
                   <small>签约费用</small>

@@ -28,7 +28,14 @@ export function Badge({ children, tone = 'green' }: { children: React.ReactNode;
 }
 
 export function Ovr({ player }: { player: Player }) {
-  return <span className={'ovr ' + (rating(player) >= 70 ? 'gold' : '')}>{rating(player)}</span>;
+  return (
+    <span
+      title="基于已知区间的评估综合，未知细项采用中性估计"
+      className={'ovr ' + (rating(player) >= 70 ? 'gold' : '')}
+    >
+      {rating(player)}
+    </span>
+  );
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {

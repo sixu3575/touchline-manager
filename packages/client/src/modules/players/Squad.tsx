@@ -5,6 +5,7 @@ import { money, roles } from '../../constants';
 import type { Club, Game, Player } from '../../model';
 import './players.css';
 import { nationalityName } from './presentation';
+import { AssessmentOffice } from './AssessmentOffice';
 type Props = {
   game: Game;
   club: Club;
@@ -13,7 +14,7 @@ type Props = {
   onPlayer: (p: Player) => void;
 };
 
-export function Squad({ club, onPlayer }: Props) {
+export function Squad({ game, club, busy, act, onPlayer }: Props) {
   const [filter, setFilter] = useState('ALL');
   return (
     <section className="panel">
@@ -21,6 +22,7 @@ export function Squad({ club, onPlayer }: Props) {
         title="一线队名单"
         subtitle={club.players.length + ' / 28 名球员 · 点击查看球员档案'}
       />
+      <AssessmentOffice game={game} kind="coach" busy={busy} act={act} />
       <div className="pm-roster-summary">
         <span>
           平均年龄{' '}
@@ -46,7 +48,7 @@ export function Squad({ club, onPlayer }: Props) {
               <th>球员</th>
               <th>位置</th>
               <th>年龄</th>
-              <th>能力</th>
+              <th>评估能力</th>
               <th>体能</th>
               <th>出场 / 进球</th>
               <th>轮薪</th>

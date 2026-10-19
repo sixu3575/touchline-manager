@@ -3,6 +3,7 @@ import { ATTRIBUTE_GROUPS, COUNTRIES, PERSONALITY, INTERESTS } from './catalog.m
 import { profileAttributes, ATTRIBUTE_PROFILE_VERSION } from './profiles.mjs';
 export * from './catalog.mjs';
 export * from './match-state.mjs';
+export * from './assessment.mjs';
 export { ATTRIBUTE_PROFILE_VERSION, SPECIALISMS } from './profiles.mjs';
 
 export function ageOn(birthDate, date) {

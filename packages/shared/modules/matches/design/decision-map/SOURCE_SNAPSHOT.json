@@ -1,6 +1,6 @@
 {
   "verifiedOn": "2026-10-19",
-  "baselineCommit": "6d888497edd52b016b8edd535b209a4046b66bc4",
+  "baselineCommit": "643db8b91100f9d1d760a36ce401dedb06a5254b",
   "engineVersion": "0.10.0-tactical-roles",
   "parameterVersion": "tactics-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
@@ -16,6 +16,10 @@
     "packages/shared/modules/matches/carrying.mjs": "9edfb7bb37fd8f0047daa80afabee79b8d0a8028f32b8874397a26e15811a95d",
     "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/players/profiles.mjs": "adb79bdd29224227c0dfe5938e5d8fa6604b00ec05345f8971232b771fc9186c",
+    "packages/shared/modules/players/assessment.mjs": "5e2e6ded50a4a4ae638030430a6443c50f0dd3a721afb9a116ee433e24160e4b",
+    "packages/server/src/player-view.mjs": "36890e0ec86863129cc0d52f22fbab357be5477c8e7758ffd4e3212f4a0d38cd",
+    "packages/shared/game.mjs": "d96a14fa431462f97343e5b7a1b2b6e9c31c12916f9de75820ba05f9d33ebace",
+    "packages/shared/modules/competitions/index.mjs": "f1f07918df063a759ca9e4d441d44a34f0c4b87ba3aa14134c4bebaaadd4eea5",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "61c190839ca669ef7ef9b57069246620cc802cd4689f068d99edf14428ffda3a",
     "packages/shared/modules/matches/locomotion.mjs": "650f662ab2ce2ca1b231fa20082ba9da51e8bd0b58a61cefd7f748295740a6f2",
@@ -30,7 +34,7 @@
     "packages/shared/modules/matches/ball-motion.mjs": "1093786771b1ced1ecc84c83c86d846f4154e517260512146e7b8107c0214cb9",
     "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
     "packages/shared/modules/matches/shootout.mjs": "10e4d2b5673dba4b2d1277dacede08727257d67348ac7d647bcea14e4491ebd0",
-    "packages/shared/modules/players/index.mjs": "12f6c53dfbd3498c742cce1ae992bbf9a3afd9171e0b56ebd17537f880368e6d",
+    "packages/shared/modules/players/index.mjs": "bc1401f58e78ca8e0fd0b03e6b1fb08d4e9f075e9fafd51c8d969e28b7d44ed6",
     "packages/shared/modules/players/match-state.mjs": "68d9996b73ec714b90aa6557af6ba3cb5bc9fab434133eeb27bcd0f54a1c133f",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
@@ -60,6 +64,10 @@
     "06-profiles": {
       "mermaidSha256": "bf8e2b4de13e4a0e01b58ffb9e766c147ddcf7fc346d2ae0b6589f5eb387cba8",
       "svgSha256": "60c2ef9b40c6c332efeef7b6ac86a88ed3918db3e72419b88bb34d05a962f1dc"
+    },
+    "07-knowledge": {
+      "mermaidSha256": "8c96b5d6da929747087a6a2a44587c73290f2085bc8051d42ed1ea33f2617c1a",
+      "svgSha256": "6a1b6382b8154b7e95378e663f75a0895ce7ba5ad200f366bb17b42cc2345394"
     }
   }
 }
