@@ -1,6 +1,7 @@
 // Read-only diagnostics: no engine imports, RNG calls or mutation of archived reports.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { analyzeReplay } from '../../packages/shared/modules/matches/replay-analysis.mjs';
 
 export const references = {
   version: 'realism-reference-1',
@@ -308,6 +309,7 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
     turnoversByModelDefinition: c.turnovers,
     deadCauses: c.deadCauses,
     boxEntries: c.boxEntries,
+      replayFlow: analyzeReplay(report, trajectory),
     eventSpells: {
       count: spells.length,
       medianSeconds: quantile(

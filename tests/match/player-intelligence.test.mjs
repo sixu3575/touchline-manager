@@ -21,6 +21,7 @@ import {
 } from '../../packages/shared/modules/matches/physics.mjs';
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
 import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
+import { shotCandidate } from '../../packages/shared/modules/matches/decisions.mjs';
 
 function actor(id, side, x, z, changes = {}, role = 'MID') {
   const p = structuredClone(createGame().clubs[0].players.find((p) => p.role === role));
@@ -305,6 +306,39 @@ test('a blocked passing corridor is rejected and a forward with a clear chance c
   );
   assert.equal(shot.type, 'shot');
   assert.ok(shot.x > 20);
+});
+
+test('long-shot ability keeps remote shots available and raises their candidate value without a quota', () => {
+  const ball = { x: 79, y: 0.11, z: 34 };
+  const quality = (p) => (key) => ({ value: p.player.attributes[key], pressure: 0 });
+  const high = actor('high-longshot', 0, 78.4, 34, { longShots: 100, finishing: 90 }, 'FWD');
+  const ordinary = actor('ordinary-longshot', 0, 78.4, 34, { longShots: 50, finishing: 50 }, 'FWD');
+  const highCandidate = shotCandidate(high, ball, [], 1, quality(high), () => 0.5, false);
+  const ordinaryCandidate = shotCandidate(ordinary, ball, [], 1, quality(ordinary), () => 0.5, false);
+
+  assert.ok(highCandidate, 'high long-shot ability extends the candidate range');
+  assert.equal(ordinaryCandidate, null, 'the range remains ability-based');
+  const sharedRangeBall = { x: 83.5, y: 0.11, z: 34 };
+  const highInRange = shotCandidate(
+    high,
+    sharedRangeBall,
+    [],
+    1,
+    quality(high),
+    () => 0.5,
+    false,
+  );
+  const ordinaryInRange = shotCandidate(
+    ordinary,
+    sharedRangeBall,
+    [],
+    1,
+    quality(ordinary),
+    () => 0.5,
+    false,
+  );
+  assert.ok(highInRange && ordinaryInRange);
+  assert.ok(highInRange.utility > ordinaryInRange.utility);
 });
 
 test('supporters form triangles, a loose ball is recovered, and a keeper approaches a slow ball', () => {

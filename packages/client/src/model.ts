@@ -31,6 +31,9 @@ export interface MatchEvent {
   playerId?: string;
   assistId?: string;
   shotId?: number;
+  actionId?: number;
+  receiverId?: string;
+  destination?: { x: number; z: number };
   keyPassId?: string;
   outcome?: string;
   scorer?: { id: string; number?: number; name: string; side: number };
@@ -119,6 +122,27 @@ export interface Report {
     restarts: number;
     boxEntries: number[];
     turnovers: Record<string, number>;
+    possessions?: { side: number; start: number; end: number; seconds: number; reason: string }[];
+    controlSpells?: {
+      side: number;
+      playerId: string;
+      role: string;
+      start: number;
+      end: number;
+      seconds: number;
+      reason: string;
+      looseCarryCause?: string;
+      ballSeparationAtEndMetres?: number;
+      ballHeightAtEndMetres?: number;
+      relativeSpeedAtEndMetresPerSecond?: number;
+      controlAgeAtEndSeconds?: number;
+      intentKindAtEnd?: string | null;
+      intentModeAtEnd?: string | null;
+      intentRemainingAtEndSeconds?: number | null;
+      carryRecoveryRemainingAtEndSeconds?: number | null;
+      controlRadiusAtEndMetres?: number;
+      relativeSpeedLimitAtEndMetresPerSecond?: number;
+    }[];
   };
   replay?: {
     format: string;

@@ -1,5 +1,7 @@
 import { distance } from './spatial.mjs';
 
+export const CARRY_CONTROL_RECOVERY_GRACE_SECONDS = 0.75;
+
 export function continuityState() {
   return {
     controller: null,
@@ -14,6 +16,10 @@ export function continuityState() {
     lastTeam: null,
     phase: 'dead',
     chain: 0,
+    controlPlayerId: null,
+    controlSide: null,
+    controlRole: null,
+    controlStartedAt: null,
     metrics: {
       controlledSeconds: [0, 0],
       looseSeconds: 0,
@@ -27,6 +33,7 @@ export function continuityState() {
       turnovers: { interception: 0, miscontrol: 0, dispossessed: 0, looseCarry: 0, out: 0 },
       boxEntries: [0, 0],
       possessions: [],
+      controlSpells: [],
     },
     inBox: false,
   };
@@ -42,6 +49,23 @@ function endPossession(s, time, reason) {
     });
   s.possessionAt = null;
 }
+function endControlSpell(s, time, reason, details = {}) {
+  if (s.controlStartedAt == null || !s.controlPlayerId) return;
+  (s.metrics.controlSpells ??= []).push({
+    side: s.controlSide,
+    playerId: s.controlPlayerId,
+    role: s.controlRole,
+    start: s.controlStartedAt,
+    end: time,
+    seconds: Math.max(0, time - s.controlStartedAt),
+    reason,
+    ...details,
+  });
+  s.controlPlayerId = null;
+  s.controlSide = null;
+  s.controlRole = null;
+  s.controlStartedAt = null;
+}
 // A player's short independent touch may be contestable even after losing a
 // controller. This confers neither possession nor remote kicking permission.
 export function contestOwner(s, actors, ball, time) {
@@ -55,6 +79,8 @@ function endChain(s) {
   s.chain = 0;
 }
 export function controlBall(s, actor, time, pass, opposingPass = false) {
+  if (s.controlPlayerId && s.controlPlayerId !== actor.player.id)
+    endControlSpell(s, time, s.controlSide === actor.side ? 'handoff' : 'dispossessed');
   if ((s.side ?? s.lastTeam) !== null && (s.side ?? s.lastTeam) !== actor.side) {
     endPossession(s, time, opposingPass ? 'interception' : 'dispossessed');
     s.regainedAt = time;
@@ -72,8 +98,15 @@ export function controlBall(s, actor, time, pass, opposingPass = false) {
   s.side = actor.side;
   s.lastTeam = actor.side;
   s.phase = 'controlled';
+  if (s.controlStartedAt == null) {
+    s.controlPlayerId = actor.player.id;
+    s.controlSide = actor.side;
+    s.controlRole = actor.positionRole ?? actor.player.role;
+    s.controlStartedAt = time;
+  }
 }
 export function releaseControl(s, time, kind) {
+  endControlSpell(s, time, kind);
   s.released = kind;
   s.teamUntil = time + (kind === 'shot' ? 0.6 : 3);
   s.controller = null;
@@ -81,6 +114,7 @@ export function releaseControl(s, time, kind) {
   if (kind === 'miscontrol') s.metrics.turnovers.miscontrol++;
 }
 export function deadBall(s, time, reason = 'restart') {
+  endControlSpell(s, time, reason);
   endPossession(s, time, reason);
   if (s.phase !== 'dead') {
     s.metrics.restarts++;
@@ -104,18 +138,29 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
     return null;
   }
   const a = s.controller === null ? null : actors[s.controller];
+  const separation = a ? distance(a.pos, ball) : Infinity;
+  const mode = a?.intent?.mode;
+  const controlRadius = mode === 'carryFast' ? 4.2 : 2.6;
+  const relativeSpeed = a
+    ? Math.hypot(
+        (ball.vx ?? 0) - (a.velocity?.x ?? 0),
+        (ball.vz ?? 0) - (a.velocity?.z ?? 0),
+      )
+    : Infinity;
+  const relativeSpeedLimit = mode === 'carryFast' ? 4.5 : 3.5;
+  const carryIntentWithinGrace =
+    a?.intent?.kind === 'carry' &&
+    Number.isFinite(a.intent.expiresAt) &&
+    time < a.intent.expiresAt + CARRY_CONTROL_RECOVERY_GRACE_SECONDS;
   // A short carry remains an intention, but never grants remote contact/kicks.
   const retained =
     a &&
     !a.sentOff &&
     ball.y < 1.3 &&
-    distance(a.pos, ball) < (a.intent?.mode === 'carryFast' ? 4.2 : 2.6) &&
+    separation < controlRadius &&
     (distance(a.pos, ball) < 1.3 ||
       time - s.controlledAt < 1.15 ||
-      (a.intent?.kind === 'carry' &&
-        a.intent.expiresAt > time &&
-        Math.hypot((ball.vx ?? 0) - (a.velocity?.x ?? 0), (ball.vz ?? 0) - (a.velocity?.z ?? 0)) <
-          (a.intent?.mode === 'carryFast' ? 4.5 : 3.5)));
+      (carryIntentWithinGrace && relativeSpeed < relativeSpeedLimit));
   if (retained) {
     s.lastHeldAt = time;
     s.teamUntil = time + 2.5;
@@ -128,6 +173,36 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
     return a;
   }
   if (a) {
+    const looseCarryCause =
+      ball.y >= 1.3
+        ? 'airborne'
+        : separation >= controlRadius
+          ? 'outsideRadius'
+          : relativeSpeed >= relativeSpeedLimit
+            ? 'relativeSpeed'
+            : a.intent?.kind === 'carry' && !carryIntentWithinGrace
+              ? 'carryRecoveryExpired'
+              : a.intent?.kind === 'carry'
+                ? 'other'
+                : 'noCarryIntent';
+    endControlSpell(s, time, 'looseCarry', {
+      looseCarryCause,
+      ballSeparationAtEndMetres: separation,
+      ballHeightAtEndMetres: ball.y,
+      relativeSpeedAtEndMetresPerSecond: relativeSpeed,
+      controlAgeAtEndSeconds: time - s.controlledAt,
+      intentKindAtEnd: a.intent?.kind ?? null,
+      intentModeAtEnd: a.intent?.mode ?? null,
+      intentRemainingAtEndSeconds: Number.isFinite(a.intent?.expiresAt)
+        ? a.intent.expiresAt - time
+        : null,
+      carryRecoveryRemainingAtEndSeconds:
+        a.intent?.kind === 'carry' && Number.isFinite(a.intent.expiresAt)
+          ? a.intent.expiresAt + CARRY_CONTROL_RECOVERY_GRACE_SECONDS - time
+          : null,
+      controlRadiusAtEndMetres: controlRadius,
+      relativeSpeedLimitAtEndMetresPerSecond: relativeSpeedLimit,
+    });
     s.controller = null;
     s.phase = 'loose';
     s.metrics.turnovers.looseCarry++;

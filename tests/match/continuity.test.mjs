@@ -64,7 +64,13 @@ test('finite first touches control at least 95 of 100 unopposed medium-quality 1
 
 test('controller survives a brief independent carry but never gives remote contact', () => {
   const s = continuityState(),
-    a = { index: 0, side: 0, pos: { x: 50, z: 34 }, direction: 1 };
+    a = {
+      index: 0,
+      side: 0,
+      player: { id: 'controller', role: 'MID' },
+      pos: { x: 50, z: 34 },
+      direction: 1,
+    };
   controlBall(s, a, 0, null);
   assert.equal(updateContinuity(s, [a], { x: 52, z: 34, y: 0.11 }, 0.5, true, null), a);
   assert.equal(updateContinuity(s, [a], { x: 53, z: 34, y: 0.11 }, 0.6, true, null), null);

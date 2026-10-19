@@ -39,6 +39,21 @@ export function tackleWindow(defender, carrier, ball) {
   return !protectedTouch || reachDisadvantage <= 0.08 + 0.08 * (1 - judgement);
 }
 
+// A challenge must finish its recovery and repositioning before the same player
+// can attempt another tackle. Balance improves recovery; opposing momentum adds
+// time. This regulates repeated same-player challenges, not tackle probability.
+export function tackleRecoverySeconds(defender, carrier) {
+  const relativeSpeed = Math.hypot(
+    defender.velocity.x - carrier.velocity.x,
+    defender.velocity.z - carrier.velocity.z,
+  );
+  return clamp(
+    3.4 + Math.max(0, relativeSpeed - 2) * 0.08 + (50 - ability(defender.player, 'balance')) * 0.005,
+    2.9,
+    4.8,
+  );
+}
+
 // Press, mark and protect are distinct jobs. A quick forward is not automatically
 // the best defender everywhere on the pitch; abandoning the last line has a cost.
 export function defensiveAssignments(actors, side, ball, owner, direction, tactics, time) {

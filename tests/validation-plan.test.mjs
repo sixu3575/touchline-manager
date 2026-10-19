@@ -20,6 +20,8 @@ test('statistical provenance runtime changes require real matches without a seas
   assert.equal(plan.match, true);
   assert.equal(plan.season, false);
   assert.ok(matchUnits.includes('tests/match/attribution.test.mjs'));
+  assert.ok(matchUnits.includes('tests/match/replay-analysis.test.mjs'));
+  assert.ok(matchUnits.includes('tests/match/tempo-v0180.test.mjs'));
 });
 
 test('assessment public export is display-only, but engine imports remain algorithm-sensitive', () => {

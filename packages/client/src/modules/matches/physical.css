@@ -524,3 +524,29 @@
     padding-left: 0;
   }
 }
+.replay-flow-analysis {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fbfcf8;
+}
+.replay-flow-analysis > summary {
+  color: #496733;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.replay-flow-analysis .fine {
+  margin: 10px 0 0;
+  color: #718469;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.replay-flow-table-wrap {
+  overflow-x: auto;
+}
+.replay-flow-table {
+  min-width: 620px;
+  margin-top: 8px;
+}
