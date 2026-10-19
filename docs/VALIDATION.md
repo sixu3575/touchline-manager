@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+2026-10-19用户明确要求增加比赛统计现实比较，细则见[REALISM_VALIDATION.md](../packages/shared/modules/matches/design/REALISM_VALIDATION.md)。完整比赛专项复用已有90分钟确定性样本，保存球队/球员指标、现实来源/口径与工程警报，block阻断；CI上传现实比较并在result.json标明pass/review/blocked/not-run。引擎平衡改动另附固定四战术×两个种子的分布，普通修补仍不跑真实比赛/赛季。0.15.1已知现实性未过，不得把本次工具/文档检查成功当作引擎现实性通过。其余分层、并发、Node22/24及PR/发布规则保持。
+
 0.15.1新增matches/attribution统计运行模块与tests/match/attribution.test.mjs，按既有规则映射真实比赛单元与比赛专项；比分/助攻/射正/扑救归属变化按算法验证。赛历/结算流程不改，不触发赛季。仅维护功能测试映射，分层/CI/并发/PR流程不变。
 
 0.15.0新模块风险映射维护：staff映射training-careers与评估针对性测试；players/development的真实能力成长/衰退和training的场地能力映射/结算接入映射比赛输入专项；冻结周训练、全部报告和工资接入竞赛流程触发完整赛季。声明validation/major-flow/training-v0150.json说明跨轮训练。既有层级/命令/并行/CI/审查/部署流程不变，本次同时涉及能力输入与重大流程，按现行规则执行一次完整物理赛季。

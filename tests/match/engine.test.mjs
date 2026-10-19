@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { writeComparison } from '../tools/match-realism.mjs';
 import {
   createGame,
   applyAction,
@@ -13,6 +14,12 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
   let g = createGame('测试球队', 42);
   let a = simulate(g.clubs[0], g.clubs[1], 999);
   let b = simulate(g.clubs[0], g.clubs[1], 999);
+  // Reuse the complete game already required for determinism. No extra match.
+  // Failed jobs retain the measurements; this is not a production match switch.
+  const realism = writeComparison(
+    a,
+    process.env.MATCH_REALISM_OUTPUT || 'work/validation/realism/seed-999.json',
+  );
   assert.deepEqual(a, b);
   for (let side = 0; side < 2; side++)
     assert.equal(
@@ -49,4 +56,9 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
     assert.equal(outcome.keyPassId, undefined, 'a converted chance cannot also be a key pass');
     assert.equal(outcome.assistId, goal.assistId);
   }
+  assert.notEqual(
+    realism.status,
+    'blocked',
+    JSON.stringify(realism.alerts.filter((a) => a.severity === 'block')),
+  );
 });

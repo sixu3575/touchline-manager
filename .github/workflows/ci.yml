@@ -45,5 +45,7 @@ jobs:
         if: always()
         with:
           name: validation-node-${{ matrix.node }}
-          path: work/validation/result.json
+          path: |
+            work/validation/result.json
+            work/validation/realism/*.json
           if-no-files-found: warn
