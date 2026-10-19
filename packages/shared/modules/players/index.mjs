@@ -1,6 +1,7 @@
 import { random, seedFrom, clamp, decimal } from '../../core/index.mjs';
 import { ATTRIBUTE_GROUPS, COUNTRIES, PERSONALITY, INTERESTS } from './catalog.mjs';
 import { profileAttributes, ATTRIBUTE_PROFILE_VERSION } from './profiles.mjs';
+import { developmentState, ageDevelopment, assignedTraining } from './development.mjs';
 export * from './catalog.mjs';
 export * from './match-state.mjs';
 export * from './assessment.mjs';
@@ -262,8 +263,23 @@ export function migratePlayer(p, seed, date) {
   return p;
 }
 export function updateAges(g) {
-  for (const p of [...g.clubs.flatMap((c) => c.players), ...g.market])
+  const byPlayer = {};
+  for (const p of [...g.clubs.flatMap((c) => c.players), ...g.market]) {
     p.age = ageOn(p.birthDate, g.gameDate);
+    const changes = ageDevelopment(p, g.gameDate);
+    if (changes.length) p.skills = skillSummary(p.attributes);
+    if (changes.length) byPlayer[p.id] = changes;
+  }
+  return byPlayer;
+}
+export function ensurePlayerDevelopment(g) {
+  for (const p of [...g.clubs.flatMap((c) => c.players), ...g.market])
+    developmentState(p, g.gameDate);
+}
+export function trainAssignedPlayer(p, keys, quality, level, rng, date) {
+  const changes = assignedTraining(p, keys, quality, level, rng, date);
+  p.skills = skillSummary(p.attributes);
+  return changes;
 }
 export function trainPlayer(p, focus, rng) {
   integerizePlayer(p);
@@ -381,6 +397,8 @@ export function joinClub(p) {
 }
 export function resetForSeason(p, date) {
   p.age = ageOn(p.birthDate, date);
+  ageDevelopment(p, date);
+  p.skills = skillSummary(p.attributes);
   p.goals = 0;
   p.apps = 0;
   p.assists = 0;

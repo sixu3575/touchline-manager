@@ -1,0 +1,303 @@
+.training-base-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.training-base-heading small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6e8a6c;
+}
+.training-base-heading h2 {
+  font-size: 26px;
+  margin: 8px 0;
+}
+.training-base-heading p {
+  max-width: 680px;
+  color: #728374;
+  line-height: 1.8;
+}
+.training-base-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.training-pitch {
+  min-height: 610px;
+  position: relative;
+  background: repeating-linear-gradient(
+    90deg,
+    #225e42 0,
+    #225e42 14.28%,
+    #286849 14.28%,
+    #286849 28.57%
+  );
+  border: 14px solid #173d2d;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 2px #ffffff65;
+  overflow: hidden;
+}
+.training-half-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-left: 2px solid #ffffff65;
+}
+.training-centre-circle {
+  position: absolute;
+  border: 2px solid #ffffff65;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.training-goal {
+  position: absolute;
+  top: 35%;
+  height: 30%;
+  width: 13%;
+  border: 2px solid #ffffff65;
+}
+.training-goal.left {
+  left: 0;
+  border-left: 0;
+}
+.training-goal.right {
+  right: 0;
+  border-right: 0;
+}
+.training-zone {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 25%;
+  padding: 12px 5px;
+  border: 1px solid #bdd7b68a;
+  border-radius: 10px;
+  background: #f4f7e9ed;
+  color: #173c2b;
+  box-shadow: 0 4px 14px #0a251d33;
+  cursor: pointer;
+}
+.training-zone span {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+.training-zone small {
+  display: block;
+  font-size: 10px;
+  margin-top: 6px;
+}
+.training-zone.unbuilt {
+  background: #183e31d9;
+  color: #d9e3cf;
+  border-style: dashed;
+}
+.training-zone.selected {
+  outline: 3px solid #d2ed87;
+  outline-offset: 3px;
+}
+.training-pitch-caption {
+  position: absolute;
+  bottom: 17px;
+  width: 100%;
+  text-align: center;
+  color: #d9e9cc;
+  letter-spacing: 2px;
+  font-size: 11px;
+}
+.training-assignment > p {
+  line-height: 1.8;
+}
+.training-assignment > label {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+.training-assignment select,
+.training-results select {
+  width: 100%;
+  border: 1px solid #dfe5d9;
+  background: white;
+  border-radius: 7px;
+  padding: 10px;
+  font: inherit;
+  min-width: 0;
+}
+.training-assignment fieldset {
+  border: 0;
+  padding: 0;
+  margin: 18px 0;
+}
+.training-assignment legend {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.training-player-list {
+  max-height: 320px;
+  overflow: auto;
+  display: grid;
+  gap: 3px;
+}
+.training-player-list > label {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid #e8ede4;
+  font-size: 12px;
+}
+.training-player-list input {
+  accent-color: #286849;
+}
+.training-player-list small {
+  display: block;
+  font-size: 10px;
+  color: #7d8977;
+  margin-top: 4px;
+}
+.training-player-list .icon-button {
+  margin-left: auto;
+}
+.training-player-list .unavailable {
+  opacity: 0.5;
+}
+.training-assignment > .primary,
+.training-assignment > .secondary {
+  width: 100%;
+  margin-top: 12px;
+}
+.training-results {
+  margin-bottom: 24px;
+}
+.training-results select {
+  max-width: 180px;
+}
+.training-results table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.training-results td,
+.training-results th {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid #e4e9df;
+}
+.training-coach-note {
+  display: block;
+  color: #84917a;
+  margin-top: 5px;
+}
+.staff-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.staff-title h2,
+.staff-title h3 {
+  margin: 5px 0;
+}
+.staff-management > p {
+  color: #7a8571;
+  line-height: 1.8;
+}
+.staff-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.staff-person {
+  border: 1px solid #e0e6d9;
+  border-radius: 12px;
+  padding: 18px;
+  background: #fcfdf8;
+}
+.staff-title small {
+  color: #7d8d74;
+  font-size: 10px;
+}
+.staff-title > b {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.staff-attributes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 11px;
+  margin: 14px 0;
+}
+.staff-attributes span {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: #f0f4e9;
+  border-radius: 5px;
+}
+.staff-management summary {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 12px 0;
+}
+@media (max-width: 1100px) {
+  .training-base-grid {
+    grid-template-columns: 1fr;
+  }
+  .training-pitch {
+    min-height: 560px;
+  }
+}
+@media (max-width: 680px) {
+  .training-base-heading {
+    display: block;
+  }
+  .training-base-heading h2 {
+    font-size: 23px;
+  }
+  .training-pitch {
+    min-height: 480px;
+    border-width: 9px;
+  }
+  .training-zone {
+    width: 27%;
+    padding: 10px 3px;
+  }
+  .training-zone b {
+    font-size: 11px;
+  }
+  .training-zone svg {
+    display: none;
+  }
+  .training-zone small {
+    font-size: 9px;
+  }
+  .staff-list {
+    grid-template-columns: 1fr;
+  }
+  .staff-title {
+    flex-wrap: wrap;
+  }
+}
+.training-assignment,
+.training-results,
+.staff-management {
+  padding: 24px;
+}
+@media (max-width: 680px) {
+  .training-assignment,
+  .training-results,
+  .staff-management {
+    padding: 16px;
+  }
+}

@@ -321,3 +321,28 @@ test('world schema/calendar changes and checkpoint contracts enable a business s
   assert.equal(p.season, true);
   assert.equal(p.match, false);
 });
+test('career development and round training map to ability-input and lifecycle risk without changing tiers', () => {
+  for (const path of [
+    'packages/shared/modules/players/development.mjs',
+    'packages/shared/modules/training/index.mjs',
+  ]) {
+    const plan = classifyChanges([
+      change(
+        path,
+        'export function resolveTraining(){return 1;}',
+        'export function resolveTraining(){return 2;}',
+      ),
+    ]);
+    assert.equal(plan.match, true);
+    assert.ok(plan.businessTests.includes('tests/training-careers.test.mjs'));
+  }
+  const plan = classifyChanges([
+    change(
+      'packages/shared/modules/staff/index.mjs',
+      'export const STAFF_ATTRIBUTES={};',
+      'export const STAFF_ATTRIBUTES={technical:1};',
+    ),
+  ]);
+  assert.ok(plan.businessTests.includes('tests/training-careers.test.mjs'));
+  assert.equal(plan.match, false);
+});

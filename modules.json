@@ -27,7 +27,7 @@
         "packages/shared/modules/competitions/",
         "packages/client/src/modules/competitions/"
       ],
-      "dependencies": ["players", "tactics", "matches", "economy"]
+      "dependencies": ["players", "tactics", "matches", "economy", "training", "staff"]
     },
     "world": {
       "paths": ["packages/shared/modules/world/"],
@@ -35,7 +35,11 @@
     },
     "training": {
       "paths": ["packages/shared/modules/training/", "packages/client/src/modules/training/"],
-      "dependencies": ["players", "economy"]
+      "dependencies": ["players", "economy", "staff"]
+    },
+    "staff": {
+      "paths": ["packages/shared/modules/staff/"],
+      "dependencies": ["economy"]
     },
     "transfers": {
       "paths": ["packages/shared/modules/transfers/"],

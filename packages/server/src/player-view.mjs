@@ -4,6 +4,7 @@ import {
   skillSummary,
   rating,
 } from '../../shared/modules/players/index.mjs';
+import { ensureTraining } from '../../shared/modules/training/index.mjs';
 
 // One boundary for state, action retries, full archives and live job responses.
 // Real attributes and engine diagnostics stay in SQLite, never in public DTOs.
@@ -21,6 +22,7 @@ export function publicPlayer(g, p, own = false) {
     weakFoot,
     matchState,
     trainingProgress,
+    development,
     ...identity
   } = p;
   const estimates = Object.fromEntries(Object.keys(assessment.bands).map((k) => [k, midpoint(k)]));
@@ -48,6 +50,7 @@ const diagnostics = new Set([
   'attributeProfile',
   'matchState',
   'trainingProgress',
+  'development',
 ]);
 function stripDiagnostics(value) {
   if (Array.isArray(value)) return value.map(stripDiagnostics);
@@ -71,11 +74,27 @@ export function publicJob(g, job) {
   return job ? { ...job, ...(job.report ? { report: publicReport(g, job.report) } : {}) } : job;
 }
 export function publicState(g) {
+  g = structuredClone(g);
+  ensureTraining(g);
   const { assessment, seed, ...rest } = g;
   const office = assessmentOffice(g);
   return {
     ...rest,
     assessment: { version: 1, coach: office.coach, scout: office.scout },
+    training: {
+      ...g.training,
+      history: g.training.history.map((r) => ({
+        ...r,
+        rows: r.rows.map((p) => ({
+          ...p,
+          changes: p.changes.map((c) => ({
+            attribute: c.attribute,
+            delta: c.delta,
+            reason: c.reason,
+          })),
+        })),
+      })),
+    },
     clubs: g.clubs.map((c, i) => ({
       ...c,
       players: c.players.map((p) => publicPlayer(g, p, i === 0)),

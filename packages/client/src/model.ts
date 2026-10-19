@@ -56,6 +56,9 @@ export interface MatchEvent {
   opponentQuality?: number;
 }
 export interface Report {
+  season?: number;
+  canReplay?: boolean;
+  legacySummary?: boolean;
   playerRatings?: {
     version: string;
     baseline: number;
@@ -215,10 +218,42 @@ export interface Game {
   cash: number;
   fans: number;
   stadium: { level: number; capacity: number; ticket: number };
-  training: { used: number };
+  staff: { version: number; employees: StaffPerson[]; market: StaffPerson[] };
+  training: {
+    used: number;
+    version: number;
+    facilities: Record<string, number>;
+    assignments: Record<string, { playerIds: string[]; coachId: string | null }>;
+    history: TrainingRound[];
+    lastResolved: string | null;
+  };
   market: Player[];
   ledger: { id: string; season: number; round: number; label: string; amount: number }[];
   trophies: { season: number; title: string }[];
   cup: { stage: number; eliminated: boolean; wins: number };
   lastMessage: string;
+}
+export interface StaffPerson {
+  id: string;
+  kind: 'coach' | 'scout';
+  name: string;
+  age: number;
+  nationality: string;
+  attributes: Record<string, number>;
+  wage: number;
+}
+export interface TrainingRound {
+  season: number;
+  round: number;
+  date: string;
+  cost: number;
+  rows: {
+    playerId: string;
+    name: string;
+    number: number;
+    fieldId: string;
+    coachName: string | null;
+    status: string;
+    changes: { attribute: string; delta: number; reason: string }[];
+  }[];
 }

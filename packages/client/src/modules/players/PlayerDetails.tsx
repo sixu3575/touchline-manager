@@ -46,6 +46,14 @@ function AbilityBand({ player, attr }: { player: Player; attr: string }) {
         )}
       </div>
       <b>{bandText(band)}</b>
+      {player.assessment.peaks?.[attr] !== undefined && (
+        <small className="ability-peak">
+          已确认峰值 {player.assessment.peaks[attr]}
+          {band?.min === band?.max && band && band.min < player.assessment.peaks[attr]
+            ? ` · 较峰值 −${player.assessment.peaks[attr] - band.min}`
+            : ''}
+        </small>
+      )}
     </div>
   );
 }

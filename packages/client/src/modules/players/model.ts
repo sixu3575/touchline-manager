@@ -21,6 +21,7 @@ export interface Player {
     lastScouted: string | null;
     bands: Record<string, { min: number; max: number } | null>;
     overview: { key: string; label: string; value: number | null }[];
+    peaks?: Record<string, number>;
   };
   // Compatibility estimates for auto lineup, never true skills.
   skills: Record<string, number>;

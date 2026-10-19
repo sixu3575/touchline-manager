@@ -10,13 +10,15 @@ import {
 import { validateLineup } from '../tactics/index.mjs';
 import { simulate, finishMatch, settleClubPlayers } from '../matches/index.mjs';
 import { money } from '../economy/index.mjs';
+import { ensureTraining, resolveTraining } from '../training/index.mjs';
+import { payStaff } from '../staff/index.mjs';
 import { schedule, standings } from './selectors/index.mjs';
 export { schedule, standings };
 // Freeze all inputs before queuing; fixture seeds are independent of execution order.
 export function createCompetitionPlan(source, type) {
   const g = structuredClone(source),
     me = g.clubs[0];
-  ensureAssessment(g);
+  ensureTraining(g);
   validateLineup(me, me.lineup, me.tactics.formation);
   const rng = random(g.seed + g.season * 101 + g.round * 7919 + g.revision * 31);
   let fixtures;
@@ -24,8 +26,9 @@ export function createCompetitionPlan(source, type) {
     if (g.round >= 14) throw Error('赛季已结束，请开启新赛季。');
     const round = g.round++;
     g.gameDate = addDays(g.gameDate, 7);
-    updateAges(g);
+    const ageChanges = updateAges(g);
     advanceAdaptation(g, 7);
+    resolveTraining(g, ageChanges);
     fixtures = g.schedule[round].map(([h, a]) => ({
       homeId: h,
       awayId: a,
@@ -88,10 +91,24 @@ export function settleCompetition(plan, reports) {
       });
     if (f.homeId === 'me' || f.awayId === 'me') {
       const { timeline, ...finalReport } = r; // Prefix snapshots belong to durable live jobs, not every historical save.
-      finishMatch(g, finalReport, plan.type === 'cup' ? 'cup' : 'league');
+      finishMatch(
+        g,
+        { ...finalReport, season: g.season, canReplay: true },
+        plan.type === 'cup' ? 'cup' : 'league',
+      );
+    } else {
+      const { timeline, trajectory, replay, ...finalReport } = r;
+      g.reports.unshift({
+        ...finalReport,
+        season: g.season,
+        round: g.round,
+        competition: '先锋联赛',
+        canReplay: false,
+      });
     }
   }
   if (plan.type === 'advance') {
+    payStaff(g);
     money(
       g,
       '球员工资',
@@ -119,6 +136,15 @@ export function settleCompetition(plan, reports) {
       if (g.cup.stage === 3) g.trophies.push({ season: g.season, title: '城市挑战杯冠军' });
     } else g.cup.eliminated = true;
   }
+  const reportSeason = (r) => r.season ?? Number(r.id.match(/^s(\d+)/)?.[1] ?? g.season);
+  g.reports.sort(
+    (a, b) =>
+      reportSeason(b) - reportSeason(a) ||
+      b.round - a.round ||
+      Number(b.homeId === 'me' || b.awayId === 'me') -
+        Number(a.homeId === 'me' || a.awayId === 'me'),
+  );
+  g.reports = g.reports.slice(0, 140);
   g.revision++;
   g.lastMessage =
     plan.type === 'cup' ? '杯赛已结算，查看战报了解比赛过程。' : '本轮联赛已结算，比赛回放已就绪。';
@@ -185,6 +211,7 @@ export function cup(g) {
 }
 export function newSeason(g, payload, rng) {
   const me = g.clubs[0];
+  ensureTraining(g);
 
   if (g.round !== 14) throw Error('请先完成本赛季。');
   const previousDate = g.gameDate;

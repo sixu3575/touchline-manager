@@ -190,9 +190,11 @@ const moduleTests = {
     'tests/player-assessments.test.mjs',
     'tests/player-integers.test.mjs',
     'tests/approved-v1.test.mjs',
+    'tests/training-careers.test.mjs',
   ],
   tactics: ['tests/game.test.mjs'],
-  training: ['tests/players.test.mjs', 'tests/game.test.mjs'],
+  training: ['tests/players.test.mjs', 'tests/game.test.mjs', 'tests/training-careers.test.mjs'],
+  staff: ['tests/training-careers.test.mjs', 'tests/player-assessments.test.mjs'],
   transfers: ['tests/game.test.mjs', 'tests/api.test.mjs'],
   stadium: ['tests/game.test.mjs'],
   economy: ['tests/game.test.mjs', 'tests/competition-plan.test.mjs'],
@@ -200,6 +202,7 @@ const moduleTests = {
     'tests/game.test.mjs',
     'tests/competition-plan.test.mjs',
     'tests/match-jobs.test.mjs',
+    'tests/training-careers.test.mjs',
   ],
   world: ['tests/game.test.mjs', 'tests/players.test.mjs'],
   club: ['tests/api.test.mjs'],
@@ -319,6 +322,9 @@ export function classifyChanges(
       algorithm = intersects(keys, ['FORMATIONS', '@links']);
     if (path === 'packages/shared/modules/tactics/presets.mjs') algorithm = true;
     if (path === 'packages/shared/modules/players/profiles.mjs') algorithm = true;
+    if (path === 'packages/shared/modules/players/development.mjs') algorithm = true;
+    if (path === 'packages/shared/modules/training/index.mjs')
+      algorithm = intersects(keys, ['TRAINING_FIELDS', 'resolveTraining', '@links']);
     if (path === 'packages/shared/modules/players/index.mjs')
       algorithm =
         intersects(keys, [

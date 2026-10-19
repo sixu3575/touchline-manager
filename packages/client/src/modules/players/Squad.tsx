@@ -8,7 +8,7 @@ import { AssessmentOffice } from './AssessmentOffice';
 import { AbilityRadar } from './AbilityRadar';
 
 const columns = [
-  ['name', '球员'],
+  ['number', '号码 / 球员'],
   ['role', '位置'],
   ['age', '年龄'],
   ['overall', '总能力 / 六维图'],
@@ -43,7 +43,7 @@ export function Squad({ game, club, busy, act, onPlayer }: Props) {
           ? previous.direction === 'ascending'
             ? 'descending'
             : 'ascending'
-          : key === 'name' || key === 'role'
+          : key === 'number' || key === 'role'
             ? 'ascending'
             : 'descending',
     }));

@@ -247,7 +247,15 @@ export function registerApiSuite({ season = false, real = false, onlyDurable = f
             state = (await get()).data.state;
             assert.equal(state.round, 2);
             assert.equal(state.revision, rev + 1);
-            assert.equal(state.reports.length, 2);
+            assert.equal(
+              state.reports.filter((r) => r.homeId === 'me' || r.awayId === 'me').length,
+              2,
+            );
+            assert.equal(
+              state.reports.length,
+              8,
+              'all four fixtures are archived each league round',
+            );
             const report = state.reports[0];
             assert.equal(report.engineVersion, ENGINE_VERSION);
             assert.equal(report.trajectory, undefined, 'large tracks must not enter JSON saves');
