@@ -5,6 +5,8 @@ import { groundTravel, AIR_DRAG } from './ball-motion.mjs';
 import { distance, localX, unit } from './spatial.mjs';
 import { formationSlot, tacticalPreset } from '../tactics/index.mjs';
 import { attackAssignments } from './tactical-plan.mjs';
+import { arrivalTime, pursuitMode } from './arrival.mjs';
+import { markingTarget, supportTarget } from './offball.mjs';
 
 export function formation(club) {
   const ps = club.lineup.map((id) => club.players.find((p) => p.id === id));
@@ -39,6 +41,7 @@ export function teamRoles(
     receiverId: pendingPass?.receiverId ?? null,
     runnerId: null,
     receiveTarget: pendingPass?.target,
+    passTime: pendingPass?.time,
     support: [],
     teams: {},
     duties: {},
@@ -62,8 +65,7 @@ export function teamRoles(
     );
     candidates.sort(
       (a, b) =>
-        distance(a.pos, ball) / movement(a.player, a.energy).topSpeed -
-        distance(b.pos, ball) / movement(b.player, b.energy).topSpeed,
+        arrivalTime(a, ball, pursuitMode(a, ball)) - arrivalTime(b, ball, pursuitMode(b, ball)),
     );
     if (!attack)
       roles.chasers.push(
@@ -139,7 +141,13 @@ export function teamRoles(
       )
       .sort((a, b) => localX(a.pos.x, direction(side)) - localX(b.pos.x, direction(side)));
     for (const threat of threats) {
-      defenders.sort((a, b) => distance(a.pos, threat.pos) - distance(b.pos, threat.pos));
+      defenders.sort((a, b) => {
+        const cost = (o) =>
+          arrivalTime(o, threat.pos) -
+          (o.markMemory?.id === threat.player.id ? 0.55 : 0) -
+          (ability(o.player, 'marking') + ability(o.player, 'positioning')) * 0.002;
+        return cost(a) - cost(b);
+      });
       const cover = defenders.shift();
       if (!cover) break;
       roles.marking[cover.player.id] = threat.player.id;
@@ -192,7 +200,7 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   }
   if (owner === actor) {
     const plan = actor.intent;
-    if (plan?.kind === 'settle') {
+    if (plan?.kind === 'settle' && plan.expiresAt > (roles.time ?? 0)) {
       const threat = actors
         .filter((a) => a.side !== actor.side && !a.sentOff)
         .sort((a, b) => distance(a.pos, ball) - distance(b.pos, ball))[0];
@@ -205,7 +213,24 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
         z: clamp(ball.z + shield.z * 0.55, 0.5, 67.5),
       };
     }
-    if (distance(actor.pos, ball) > 0.82) {
+    const continuous = plan?.kind === 'carry' && plan.expiresAt > (roles.time ?? 0);
+    if (
+      continuous &&
+      distance(actor.pos, ball) < 4.2 &&
+      (ball.x - actor.pos.x) * direction >= -0.8
+    ) {
+      const dest =
+        plan.destination && (plan.destination.x - ball.x) * direction > 2
+          ? plan.destination
+          : { x: ball.x + direction * 8, z: ball.z };
+      const heading = unit(actor.pos, dest),
+        length = Math.max(6, distance(actor.pos, dest));
+      return {
+        x: clamp(actor.pos.x + heading.x * length, 0.5, 104.5),
+        z: clamp(actor.pos.z + heading.z * length, 2, 66),
+      };
+    }
+    if (distance(actor.pos, ball) > 0.82 || (ball.x - actor.pos.x) * direction < -0.8) {
       const destination = plan?.destination ?? { x: ball.x + direction * 8, z: ball.z };
       const travel = unit(ball, destination);
       return {
@@ -213,31 +238,24 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
         z: clamp(ball.z - travel.z * 0.48, 0.5, 67.5),
       };
     }
-    if (plan?.destination) return plan.destination;
+    if (continuous && plan.destination) return plan.destination;
     return {
       x: clamp(actor.pos.x + direction * 8, 1, 104),
       z: clamp(actor.pos.z + (34 - actor.pos.z) * 0.15, 2, 66),
     };
   }
   if (roles.receiverId && roles.receiverId === p.id) {
+    if (actor.receivePreparation?.passTime !== roles.passTime)
+      actor.receivePreparation = { passTime: roles.passTime, startedAt: roles.time ?? 0 };
     // Intercept the incoming trajectory instead of chasing its current position backwards.
-    const m = movement(p, actor.energy, 'run'),
-      speed = Math.hypot(ball.vx, ball.vz);
+    const speed = Math.hypot(ball.vx, ball.vz);
     let target = roles.receiveTarget ?? { x: ball.x, z: ball.z };
     for (let t = 0.05; t < 3; t += 0.05) {
       const travel =
         ball.y > 0.2 ? Math.log1p(AIR_DRAG * speed * t) / AIR_DRAG : groundTravel(speed, t);
       const f = travel / Math.max(0.001, speed);
       const point = { x: ball.x + ball.vx * f, z: ball.z + ball.vz * f };
-      const heading = unit(actor.pos, point);
-      const projection = actor.velocity.x * heading.x + actor.velocity.z * heading.z;
-      const turn = Math.max(0, -projection) / m.braking;
-      const available = Math.max(0, t - turn - 0.08);
-      const reach = Math.min(
-        m.speed * available,
-        Math.max(0, projection) * available + 0.5 * m.acceleration * available * available,
-      );
-      if (distance(actor.pos, point) <= reach + 0.65) {
+      if (arrivalTime(actor, point, distance(actor.pos, ball) > 5 ? 'sprint' : 'run') <= t) {
         target = point;
         break;
       }
@@ -276,20 +294,22 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
       actors.some((o) => o.player.id === roles.receiverId && o.side === actor.side));
   if (!attacking && roles.marking?.[p.id]) {
     const threat = actors.find((o) => o.player.id === roles.marking[p.id]);
-    const read = 0.1 + a('anticipation') * 0.002;
-    return {
-      x: clamp(
-        threat.pos.x - direction * (1.1 + (100 - a('marking')) * 0.006) + threat.velocity.x * read,
-        1,
-        104,
-      ),
-      z: clamp(threat.pos.z + threat.velocity.z * read, 2, 66),
-    };
+    return markingTarget(actor, threat, ball, direction, roles.time ?? 0);
   }
   const bx = localX(ball.x, direction),
     keeper = actors.find((o) => o.side === actor.side && o.isKeeper);
   const assigned = attacking && roles.duties?.[p.id];
   if (assigned) {
+    if (assigned.duty !== 'cover')
+      return supportTarget(
+        actor,
+        assigned,
+        actors,
+        ball,
+        direction,
+        roles.time ?? 0,
+        assigned.duty,
+      );
     const accuracy = (100 - (a('offTheBall') + a('teamwork')) / 2) / 40;
     return {
       x: clamp(assigned.x + actor.bias * accuracy, 3, 102),
@@ -329,6 +349,16 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
       x = x * (1 - weight) + (localX(threats[0].pos.x, direction) - 1.6) * weight;
     }
   }
+  if (attacking)
+    return supportTarget(
+      actor,
+      { x: direction === 1 ? x : 105 - x, z },
+      actors,
+      ball,
+      direction,
+      roles.time ?? 0,
+      roles.runnerId === p.id ? 'run' : 'support',
+    );
   const accuracy =
     ((100 - (a(attacking ? 'offTheBall' : 'positioning') + a('teamwork')) / 2) / 40) *
     (attacking ? 1 : 1 - ability(keeper?.player ?? p, 'command') / 1000);

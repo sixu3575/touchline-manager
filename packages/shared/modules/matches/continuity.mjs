@@ -69,13 +69,13 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
     a &&
     !a.sentOff &&
     ball.y < 1.3 &&
-    distance(a.pos, ball) < 2.6 &&
+    distance(a.pos, ball) < (a.intent?.mode === 'carryFast' ? 4.2 : 2.6) &&
     (distance(a.pos, ball) < 1.3 ||
       time - s.controlledAt < 1.15 ||
       (a.intent?.kind === 'carry' &&
         a.intent.expiresAt > time &&
         Math.hypot((ball.vx ?? 0) - (a.velocity?.x ?? 0), (ball.vz ?? 0) - (a.velocity?.z ?? 0)) <
-          3.5));
+          (a.intent?.mode === 'carryFast' ? 4.5 : 3.5)));
   if (retained) {
     s.phase = 'controlled';
     s.metrics.controlledSeconds[a.side] += 0.05;

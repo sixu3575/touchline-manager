@@ -1,5 +1,6 @@
 import { packActors, unpackActors } from './checkpoint.mjs';
-import { firstTouchVelocity } from './receiving.mjs';
+import { firstTouchVelocity, receptionPlan } from './receiving.mjs';
+import { deadballTarget, kickoffPosition, restartReady } from './deadball.mjs';
 import { keeperReaction, diveResponse } from './goalkeeping.mjs';
 import { driveMovement } from './locomotion.mjs';
 import {
@@ -50,8 +51,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.10.0-tactical-roles';
-export const PARAMETER_VERSION = 'tactics-1';
+export const ENGINE_VERSION = '0.14.0-movement';
+export const PARAMETER_VERSION = 'movement-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -175,6 +176,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     restartSide = 0,
     restartTaker = null,
     goalRestart = null,
+    deadState = null,
     cut = true,
     cursor = 0;
   let roles = { chasers: [], receiverId: null, runnerId: null };
@@ -224,24 +226,32 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     a.hold = 0;
     a.setPiece = null;
     a.intent = null;
+    a.offBallPlan = null;
+    a.markMemory = null;
   }
-  function kickoff(side, type = 'kickoff') {
+  function kickoff(side, type = 'kickoff', natural = false) {
     goalRestart = null;
     placeBall(52.5, 34, type);
     for (const a of actors) {
       if (a.sentOff) continue;
-      const dir = direction(a.side);
-      const x = a.isKeeper ? 5 : Math.min(47, a.anchor.x * 0.68);
-      placeActor(a, dir === 1 ? x : 105 - x, a.anchor.z);
+      if (!natural) {
+        const point = kickoffPosition(a, direction(a.side));
+        placeActor(a, point.x, point.z);
+      } else {
+        a.intent = null;
+        a.offBallPlan = null;
+        a.markMemory = null;
+      }
     }
     const taker =
       actors.find((a) => a.side === side && !a.sentOff && a.player.role === 'FWD') ??
       actors.find((a) => a.side === side && !a.sentOff && !a.isKeeper);
-    placeActor(taker, 52.5 - direction(side) * 0.66, 34);
+    if (!natural) placeActor(taker, 52.5 - direction(side) * 0.66, 34);
     restartUntil = time + 10;
     restartSide = side;
     restartTaker = taker;
     taker.setPiece = 'kickoff';
+    deadState = { type, side, taker: taker.index, ball: { x: 52.5, z: 34 }, startedAt: time };
     event(type, side, type === 'half' ? '双方交换场地，下半场开始。' : '中圈开球，比赛开始。');
   }
   function restart(type, side, x, z) {
@@ -256,49 +266,15 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           (0.55 * ability(a.player, 'finishing') + 0.45 * ability(a.player, 'setPieces'))
         : distance(a.pos, { x, z }) - distance(b.pos, { x, z }),
     )[0];
-    for (const a of actors)
-      if (
-        !a.sentOff &&
-        a !== taker &&
-        distance(a.pos, { x, z }) < (['freeKick', 'indirect', 'penalty'].includes(type) ? 9.15 : 3)
-      )
-        placeActor(
-          a,
-          clamp(x - direction(side) * (type === 'penalty' ? 12 : 10), 1, 104),
-          clamp(a.pos.z + (a.index % 2 ? 4 : -4), 1, 67),
-        );
-    placeActor(taker, clamp(x - direction(side) * 0.65, 0.1, 104.9), z);
-    if (
-      type === 'freeKick' &&
-      distance({ x, z }, { x: direction(side) === 1 ? 105 : 0, z: 34 }) < 32
-    ) {
-      const defenders = playing()
-        .filter((a) => a.side !== side && !a.isKeeper)
-        .slice(0, 3);
-      const goal = { x: direction(side) === 1 ? 105 : 0, z: 34 },
-        len = distance({ x, z }, goal);
-      defenders.forEach((a, i) =>
-        placeActor(
-          a,
-          x + ((goal.x - x) / len) * 9.15,
-          z + ((goal.z - z) / len) * 9.15 + (i - 1) * 0.65,
-        ),
-      );
-    }
-    if (type === 'penalty') {
-      for (const a of actors.filter((a) => !a.sentOff)) {
-        if (a === taker) continue;
-        if (a.isKeeper && a.side !== side) placeActor(a, direction(side) === 1 ? 104.95 : 0.05, 34);
-        else placeActor(a, x - direction(side) * 12, clamp(8 + a.index * 2.3, 3, 65));
-      }
-    }
     taker.setPiece = type;
     for (const a of actors) {
-      a.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      a.velocity = { x: 0, z: 0 };
+      a.intent = null;
+      a.offBallPlan = null;
+      a.markMemory = null;
     }
     restartSide = side;
     restartTaker = taker;
+    deadState = { type, side, taker: taker.index, ball: { x, z }, startedAt: time };
     restartUntil =
       time +
       ({ throwIn: 12, goalKick: 18, corner: 18, freeKick: 20, indirect: 15, penalty: 25 }[type] ??
@@ -422,6 +398,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       restartUntil,
       restartSide,
       goalRestart,
+      deadState,
       cut,
       cursor,
       roles,
@@ -495,6 +472,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         restartSide,
         restartTaker: restartTaker?.index ?? null,
         goalRestart,
+        deadState,
         cut,
         cursor,
         roles,
@@ -601,46 +579,23 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         half = 1;
         kickoff(1, 'half');
       } else if (goalRestart && time >= goalRestart.at) {
-        kickoff(goalRestart.side);
+        kickoff(goalRestart.side, 'kickoff', true);
       }
       const bp = physics.ball.translation(),
         bv = physics.ball.linvel();
       const ball = { ...bp, vx: bv.x, vz: bv.z };
       let active = time >= restartUntil;
-      let touchedThisTick = false;
-      // Waiting for a stationary restart needs clock/recovery/samples, not 22 AI decisions
-      // and a collision solve. Goal-to-net motion still runs through the physical path.
-      if (!active && !goalRestart) {
-        continuity.metrics.deadSeconds += STEP;
-        for (const a of actors)
-          if (!a.sentOff) {
-            a.energy = Math.max(
-              20,
-              a.energy - energyCost(a.player, 0, clubs[a.side].tactics.press, false, STEP),
-            );
-            a.player.matchState.energy = a.energy;
-            a.cooldown -= STEP;
-          }
-        if (tick % 4 === 0) record();
-        if (frames && tick % 600 === 0)
-          timeline.push({
-            second: time,
-            stats: publicStats(),
-            performance: playerStats(),
-            continuity: structuredClone(continuity.metrics),
-          });
-        if (tick % sliceTicks === 0 && tick < ticks) {
-          const part = {
-            second: time,
-            trajectory: frames?.slice(chunkStart, cursor),
-            report: options.durable ? buildReport() : undefined,
-            checkpoint: options.durable ? checkpoint(tick) : undefined,
-          };
-          chunkStart = cursor;
-          yield part;
-        }
-        continue;
+      if (
+        active &&
+        deadState &&
+        deadState.type !== 'goal' &&
+        !restartReady(deadState, actors, direction)
+      ) {
+        restartUntil = time + 0.3;
+        active = false;
       }
+      if (active) deadState = null;
+      let touchedThisTick = false;
       owner = updateContinuity(continuity, actors, ball, time, active, pendingPass);
       if (active && tick % 6 === 0) {
         roles = teamRoles(
@@ -948,10 +903,15 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           time < (pendingPass.expiresAt ?? pendingPass.time + 4)
             ? pendingPass
             : null;
-        const newControl = previous !== a || Boolean(incomingPass);
+        const ownCarry =
+          lastTouch === a &&
+          !incomingPass &&
+          a.intent?.kind === 'carry' &&
+          a.intent.expiresAt > time &&
+          distance(a.pos, ball) < 4.2;
+        const newControl = (previous !== a || Boolean(incomingPass)) && !ownCarry;
         if (newControl) {
           a.intent = null;
-          a.readyAt = time + 0.65 + (100 - ability(a.player, 'decisions')) * 0.012;
         }
         if (newControl) {
           if (opposingPass) {
@@ -978,6 +938,19 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                 'firstTouch',
                 playing().filter((o) => o.side !== a.side),
               ).value;
+        const reception = receptionPlan(
+          a,
+          ball,
+          direction(a.side),
+          control,
+          incoming,
+          playing().filter((o) => o.side !== a.side),
+          time,
+        );
+        if (newControl) {
+          a.readyAt = time + reception.delay;
+          a.receivePreparation = null;
+        }
         if (newControl && incoming > 11 + control * 0.3) {
           // A difficult first touch dissipates only part of momentum and may spill loose.
           kick(physics, a, {
@@ -1027,6 +1000,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                 incoming,
                 rng,
                 playing().filter((o) => o.side !== a.side),
+                reception,
               ),
             );
             playedBall(a, 'control');
@@ -1036,12 +1010,16 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             a.cooldown = 0.14 + 0.18 * (1 - control / 100);
             a.hold = 0;
             a.intent = {
-              kind: 'settle',
-              destination: { x: clamp(a.pos.x + direction(a.side) * 7, 1, 104), z: a.pos.z },
-              expiresAt: time + 0.4,
+              kind: reception.flow ? 'carry' : 'settle',
+              mode: reception.flow ? 'carryFast' : 'carry',
+              destination: reception.destination,
+              expiresAt: time + (reception.flow ? 1.8 : reception.delay),
             };
+            a.target = reception.destination;
             event('control', a.side, `${a.player.name}调整第一脚触球，为下一步处理留出空间。`, a, {
               quality: control,
+              flow: reception.flow,
+              preparation: reception.delay,
               result: 'controlled',
             });
             return;
@@ -1059,8 +1037,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                   ? { x: (ball.x - threat.pos.x) / length, z: (ball.z - threat.pos.z) / length }
                   : { x: 0, z: 0 };
               kick(physics, a, {
-                x: a.velocity.x * 0.4 + shield.x * 0.6,
-                z: a.velocity.z * 0.4 + shield.z * 0.6,
+                x: a.velocity.x * (reception.flow ? 1 : 0.4) + shield.x * 0.6,
+                z: a.velocity.z * (reception.flow ? 1 : 0.4) + shield.z * 0.6,
                 y: 0.03,
               });
               touchedThisTick = true;
@@ -1156,6 +1134,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
               : 0.28;
           if (action.type === 'dribble') {
+            a.target = action.destination;
             a.carries++;
             event(
               'dribble',
@@ -1212,16 +1191,24 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             roles.chasers,
             roles,
           );
-        const target = active ? a.target : a.pos;
+        if (!active && deadState)
+          a.target = deadballTarget(a, playing(), deadState, direction, time);
+        const target = a.target;
         const dx = target.x - a.pos.x,
           dz = target.z - a.pos.z,
           gap = Math.hypot(dx, dz);
-        a.movementMode = active ? movementMode(a, ball, owner, roles, gap) : 'walk';
+        a.movementMode = active
+          ? movementMode(a, ball, owner, roles, gap)
+          : gap > 6
+            ? 'run'
+            : gap > 1.5
+              ? 'jog'
+              : 'walk';
         const m = movement(a.player, a.energy, a.movementMode);
         // Separation steers around teammates; Rapier resolves any remaining body contacts.
         let vx = gap > 0.2 ? (dx / gap) * Math.min(m.speed, gap * 2) : 0;
         let vz = gap > 0.2 ? (dz / gap) * Math.min(m.speed, gap * 2) : 0;
-        if (active && gap > 1)
+        if (gap > 1)
           for (const o of actors) {
             if (o.sentOff || o === a || o.side !== a.side) continue;
             const d = distance(a.pos, o.pos);
@@ -1250,6 +1237,14 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         actors,
       );
       const afterBall = physics.ball.translation();
+      if (!active && deadState && deadState.type !== 'goal') {
+        physics.ball.setTranslation(
+          { x: deadState.ball.x, y: BALL_RADIUS + 0.015, z: deadState.ball.z },
+          true,
+        );
+        physics.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        physics.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      }
       // Body deflections count as touches even without an intentional foot action.
       physics.world.contactPairsWith(physics.collider, (c) => {
         const a = actors.find(
@@ -1346,6 +1341,19 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           pendingPass = null;
           shot = null;
           goalRestart = { side: 1 - side, at: restartUntil };
+          deadBall(continuity, time, 'goal');
+          const leader = scorer ?? playing().find((a) => a.side === side && !a.isKeeper);
+          deadState = {
+            type: 'goal',
+            side: 1 - side,
+            scoringSide: side,
+            startedAt: time,
+            scorerId: leader?.player.id,
+            celebration: {
+              x: clamp(afterBall.x - direction(side) * 7, 4, 101),
+              z: afterBall.z < 34 ? 12 : 56,
+            },
+          };
         } else if (afterBall.z < -BALL_RADIUS || afterBall.z > 68 + BALL_RADIUS) {
           restart(
             'throwIn',

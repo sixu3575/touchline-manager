@@ -117,10 +117,13 @@ test('wide roles coordinate overlap, near/far-post runs, cutback support and cov
         [],
         roles,
       );
-      assert.deepEqual(target, {
-        x: roles.duties[actor.player.id].x,
-        z: roles.duties[actor.player.id].z,
-      });
+      const base = roles.duties[actor.player.id];
+      if (base.duty === 'cover') assert.deepEqual(target, { x: base.x, z: base.z });
+      else
+        assert.ok(
+          Math.hypot(target.x - base.x, target.z - base.z) <= 6.1,
+          'space search preserves tactical responsibility',
+        );
       assert.ok(target.x >= 3 && target.x <= 102 && target.z >= 3 && target.z <= 65);
     }
     const receiver = actors.find((a) => a.positionRole === 'striker');
