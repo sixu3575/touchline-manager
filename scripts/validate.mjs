@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
@@ -23,8 +23,22 @@ const report = {
   status: 'planning',
 };
 const output = resolve(root, option('--report') || 'work/validation/result.json');
+const realismOutput = resolve(
+  root,
+  'work/validation/realism',
+  `run-${Date.now()}-${process.pid}.json`,
+);
+process.env.MATCH_REALISM_OUTPUT = realismOutput;
 mkdirSync(dirname(output), { recursive: true });
 const save = () => {
+  const enabled = report.selectedTiers?.some((s) => s.name === 'real match integration');
+  const comparison =
+    enabled && existsSync(realismOutput) ? JSON.parse(readFileSync(realismOutput, 'utf8')) : null;
+  report.realism = {
+    status: comparison?.status ?? (enabled ? 'pending' : 'not-run'),
+    evidence: comparison ? realismOutput : null,
+    comparison,
+  };
   report.durationMs = Math.round(performance.now() - startedAt);
   writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
 };
@@ -123,7 +137,11 @@ try {
     (p) => p.startsWith('tests/') && p.endsWith('.mjs') && existsSync(resolve(root, p)),
   ))
     run('syntax ' + file, ['--check', file]);
-  for (const stage of selected) tests(stage.name, stage.files, stage.fixtures);
+  for (const stage of selected) {
+    tests(stage.name, stage.files, stage.fixtures);
+    if (stage.name === 'real match integration' && !existsSync(realismOutput))
+      throw Error('Real-match tier completed without a realism comparison');
+  }
   if (!only && !testsOnly)
     run('production build', [
       'node_modules/vite/bin/vite.js',

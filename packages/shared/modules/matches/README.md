@@ -1,5 +1,7 @@
 # 比赛模块
 
+2026-10-19[现实性审查及待实施方案](design/REALISM_AUDIT_20261019.md)：0.14玩家14:7与0.15.1普通球队8场均值均异常，当前算法尚未修复。用户要求的[统计现实比较](design/REALISM_VALIDATION.md)已加入既有完整比赛验证，球队/球员两层输出，block阻断后续算法；普通修补不加模拟，不能引用0.6旧校准作为新版通过证据。
+
 0.15.1当前引擎0.15.1-attribution/movement-1，统计opta-conventional-1：attribution.mjs维护进球/乌龙、连续传递与唯一射门结果；physics/projectedGoal用独立Rapier世界判断介入前球路，不能修改真实轨迹。新来源/接触集合必须随检查点保存，旧引擎任务先排空；旧报告不重算。定义、近似与边界见[STATISTICS_V0151.md](design/STATISTICS_V0151.md)。
 
 0.14.0新增连续领球与近控/快带、共享到达预测、有限候选空位选择及有条件的盯防观察失误，死球自然移动、进球庆祝后跑回开球位。引擎0.14.0-movement/movement-1；既有球阻力、限速、真实触球、5×、结算及评分保持。详见[运动设计](design/MOVEMENT_V0140.md)。

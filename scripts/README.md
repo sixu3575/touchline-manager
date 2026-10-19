@@ -1,5 +1,7 @@
 # 开发工具
 
+2026-10-19增加用户要求的比赛现实比较证据：validate为真实比赛专项收集本次唯一输出，结果嵌入result.json；CI保留详细JSON，block通过原比赛测试阻断。不会启用无关比赛/赛季。定义与显式8场校准命令见[现实比较规范](../packages/shared/modules/matches/design/REALISM_VALIDATION.md)。
+
 `collaboration.mjs`保留原模块锁、所有者及文件摘要防护；`backup.mjs`保留离机备份验证。
 
 `validate.mjs`执行用户批准的分层验证，`validation-plan.mjs`比较Git基线与当前代码语义并选择冒烟、模块、比赛或赛季。策略测试必须随新模块/契约映射维护；重大流程声明只能提高范围。真实比赛仅由算法变更启用，完整物理赛季还要求重大流程变更。

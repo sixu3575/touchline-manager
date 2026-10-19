@@ -1,0 +1,318 @@
+{
+  "commit": "22cf54a51beb3b5f58c225a5e8368979fa0e520b",
+  "dirty": true,
+  "startedAt": "2026-10-19T05:06:20.323Z",
+  "cases": [
+    {
+      "id": "realism-balanced-1001",
+      "seed": 1001,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        9,
+        7
+      ],
+      "shots": [
+        27,
+        22
+      ],
+      "passes": [
+        303,
+        321
+      ],
+      "xg": [
+        4.51,
+        3.96
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-balanced-999",
+      "seed": 999,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        4,
+        7
+      ],
+      "shots": [
+        24,
+        25
+      ],
+      "passes": [
+        321,
+        354
+      ],
+      "xg": [
+        3.84,
+        3.59
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-counter-1001",
+      "seed": 1001,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        3,
+        6
+      ],
+      "shots": [
+        17,
+        24
+      ],
+      "passes": [
+        238,
+        265
+      ],
+      "xg": [
+        3.42,
+        4.68
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-counter-999",
+      "seed": 999,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        4,
+        9
+      ],
+      "shots": [
+        21,
+        32
+      ],
+      "passes": [
+        299,
+        345
+      ],
+      "xg": [
+        3.02,
+        7.27
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-possession-1001",
+      "seed": 1001,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        2,
+        6
+      ],
+      "shots": [
+        15,
+        25
+      ],
+      "passes": [
+        365,
+        317
+      ],
+      "xg": [
+        3.7,
+        3.38
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-possession-999",
+      "seed": 999,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        3,
+        4
+      ],
+      "shots": [
+        8,
+        36
+      ],
+      "passes": [
+        401,
+        289
+      ],
+      "xg": [
+        1.59,
+        4.24
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-wide-1001",
+      "seed": 1001,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        3,
+        10
+      ],
+      "shots": [
+        12,
+        33
+      ],
+      "passes": [
+        270,
+        329
+      ],
+      "xg": [
+        2.7,
+        6.97
+      ],
+      "status": "blocked"
+    },
+    {
+      "id": "realism-wide-999",
+      "seed": 999,
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "score": [
+        4,
+        9
+      ],
+      "shots": [
+        13,
+        27
+      ],
+      "passes": [
+        271,
+        331
+      ],
+      "xg": [
+        1.64,
+        3.84
+      ],
+      "status": "blocked"
+    }
+  ],
+  "finishedAt": "2026-10-19T05:07:02.305Z",
+  "completed": 8,
+  "status": "blocked",
+  "engineVersions": [
+    "0.15.1-attribution"
+  ],
+  "matchGoals": {
+    "min": 7,
+    "p10": 7,
+    "median": 12,
+    "mean": 11.25,
+    "p90": 13,
+    "max": 16
+  },
+  "matchShots": {
+    "min": 40,
+    "p10": 40,
+    "median": 44.5,
+    "mean": 45.125,
+    "p90": 49,
+    "max": 53
+  },
+  "teamPasses": {
+    "min": 238,
+    "p10": 265,
+    "median": 319,
+    "mean": 313.6875,
+    "p90": 354,
+    "max": 401
+  },
+  "outfieldDistancePer90": {
+    "min": 7669,
+    "median": 10460,
+    "mean": 10697.170450029906,
+    "max": 14043
+  },
+  "note": "Generated fictional teams only. Runtime source unchanged from commit; dirty includes diagnostic tooling/docs. Eight-game study is a screening sample, not real football percentiles. Detailed raw private reports are outside Git.",
+  "definitions": {
+    "tracking": "5Hz planar displacement, global cut intervals excluded; per90 only when >=60min; keeper excluded from physical means",
+    "spells": "event-based proxy, not continuous stable possession"
+  },
+  "summaryPhysical": {
+    "meanLowSpeedDistanceShare": 0.11633803972203398,
+    "meanHighSpeedMetresPer90": 2049.141376123866,
+    "meanSprintMetresPer90": 713.9762732762202,
+    "meanTrackingVsReportedDifference": 0.10718957045846551
+  }
+}
