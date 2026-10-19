@@ -1,6 +1,9 @@
 import { distance } from './spatial.mjs';
 
 export const CARRY_CONTROL_RECOVERY_GRACE_SECONDS = 0.75;
+export const CARRY_CONTEST_WINDOW_SECONDS = 1.1;
+export const CARRY_CONTEST_MAX_DISTANCE_METRES = 2.6;
+export const LOOSE_POSSESSION_RECOVERY_SECONDS = 3;
 
 export function continuityState() {
   return {
@@ -12,6 +15,7 @@ export function continuityState() {
     released: null,
     controlledAt: 0,
     regainedAt: null,
+    carryContest: null,
     side: null,
     lastTeam: null,
     phase: 'dead',
@@ -69,31 +73,53 @@ function endControlSpell(s, time, reason, details = {}) {
 // A player's short independent touch may be contestable even after losing a
 // controller. This confers neither possession nor remote kicking permission.
 export function contestOwner(s, actors, ball, time) {
-  const actor = actors[s.controller ?? s.lastController];
-  if (!actor || actor.sentOff || ball.y > 1.3 || distance(actor.pos, ball) > 2.6) return null;
-  if (s.controller !== null) return actor;
-  return !s.released && time - s.lastHeldAt < 0.65 ? actor : null;
+  if (s.controller !== null) {
+    const actor = actors[s.controller];
+    return actor && !actor.sentOff && ball.y <= 1.3 && distance(actor.pos, ball) <= 2.6
+      ? actor
+      : null;
+  }
+  const contest = s.carryContest;
+  if (!contest || time > contest.until || ball.y > 1.3) return null;
+  const actor = actors[contest.actor];
+  if (
+    !actor ||
+    actor.sentOff ||
+    distance(actor.pos, ball) > CARRY_CONTEST_MAX_DISTANCE_METRES
+  )
+    return null;
+  return actor;
 }
 function endChain(s) {
   if (s.side !== null && s.chain) s.metrics.chains[s.side].push(s.chain);
   s.chain = 0;
 }
 export function controlBall(s, actor, time, pass, opposingPass = false) {
+  const priorSide =
+    s.possessionAt !== null
+      ? s.side
+      : time <= s.teamUntil
+        ? (s.side ?? s.lastTeam)
+        : null;
   if (s.controlPlayerId && s.controlPlayerId !== actor.player.id)
     endControlSpell(s, time, s.controlSide === actor.side ? 'handoff' : 'dispossessed');
-  if ((s.side ?? s.lastTeam) !== null && (s.side ?? s.lastTeam) !== actor.side) {
+  if (priorSide !== null && priorSide !== actor.side) {
     endPossession(s, time, opposingPass ? 'interception' : 'dispossessed');
     s.regainedAt = time;
     endChain(s);
     s.metrics.turnovers[opposingPass ? 'interception' : 'dispossessed']++;
   }
-  if (s.possessionAt === null) s.possessionAt = time;
+  if (s.possessionAt === null) {
+    s.possessionAt = time;
+    s.chain = 0;
+  }
   if (pass) s.chain++;
   s.controller = actor.index;
   s.lastController = actor.index;
   s.lastHeldAt = time;
   s.teamUntil = time + 2.5;
   s.released = null;
+  s.carryContest = null;
   s.controlledAt = time;
   s.side = actor.side;
   s.lastTeam = actor.side;
@@ -108,8 +134,11 @@ export function controlBall(s, actor, time, pass, opposingPass = false) {
 export function releaseControl(s, time, kind) {
   endControlSpell(s, time, kind);
   s.released = kind;
-  s.teamUntil = time + (kind === 'shot' ? 0.6 : 3);
+  // A pass, shot rebound, or miscontrol can remain recoverable by the same
+  // team for a short interval. This is team context only, never touch authority.
+  s.teamUntil = time + LOOSE_POSSESSION_RECOVERY_SECONDS;
   s.controller = null;
+  s.carryContest = null;
   s.phase = kind === 'miscontrol' ? 'loose' : kind === 'shot' ? 'loose' : 'flight';
   if (kind === 'miscontrol') s.metrics.turnovers.miscontrol++;
 }
@@ -124,6 +153,7 @@ export function deadBall(s, time, reason = 'restart') {
   endChain(s);
   s.controller = null;
   s.lastController = null;
+  s.carryContest = null;
   s.released = null;
   s.teamUntil = 0;
   s.side = null;
@@ -185,6 +215,18 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
               : a.intent?.kind === 'carry'
                 ? 'other'
                 : 'noCarryIntent';
+    if (
+      ball.y < 1.3 &&
+      separation <= CARRY_CONTEST_MAX_DISTANCE_METRES &&
+      relativeSpeed < 5.5
+    )
+      s.carryContest = {
+        actor: a.index,
+        side: a.side,
+        cause: looseCarryCause,
+        until: time + CARRY_CONTEST_WINDOW_SECONDS,
+      };
+    else s.carryContest = null;
     endControlSpell(s, time, 'looseCarry', {
       looseCarryCause,
       ballSeparationAtEndMetres: separation,
@@ -214,9 +256,16 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
     s.phase = new Set(nearby.map((a) => a.side)).size > 1 ? 'contested' : 'loose';
   }
   if (!inFlight && s.controller === null && time > s.teamUntil) {
-    endPossession(s, time, 'loose');
-    endChain(s);
+    if (s.possessionAt !== null) {
+      endPossession(s, time, 'loose');
+      endChain(s);
+    }
     s.side = null;
+    s.lastTeam = null;
+    s.lastController = null;
+    s.carryContest = null;
+    s.released = null;
+    s.teamUntil = 0;
   }
   if (s.phase === 'flight' && s.side !== null) s.metrics.flightSeconds[s.side] += 0.05;
   else if (s.phase === 'contested') s.metrics.contestedSeconds += 0.05;

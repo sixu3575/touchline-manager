@@ -46,6 +46,7 @@
   top: 0;
   bottom: 0;
   border-left: 2px solid #ffffff65;
+  pointer-events: none;
 }
 .training-centre-circle {
   position: absolute;
@@ -56,6 +57,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 .training-goal {
   position: absolute;
@@ -63,6 +65,7 @@
   height: 30%;
   width: 13%;
   border: 2px solid #ffffff65;
+  pointer-events: none;
 }
 .training-goal.left {
   left: 0;
@@ -74,6 +77,7 @@
 }
 .training-zone {
   position: absolute;
+  z-index: 1;
   transform: translate(-50%, -50%);
   width: 25%;
   padding: 12px 5px;
@@ -83,6 +87,10 @@
   color: #173c2b;
   box-shadow: 0 4px 14px #0a251d33;
   cursor: pointer;
+  touch-action: manipulation;
+}
+.training-zone:not(:disabled):active {
+  transform: translate(-50%, -50%);
 }
 .training-zone span {
   display: flex;
@@ -112,6 +120,7 @@
   color: #d9e9cc;
   letter-spacing: 2px;
   font-size: 11px;
+  pointer-events: none;
 }
 .training-assignment > p {
   line-height: 1.8;

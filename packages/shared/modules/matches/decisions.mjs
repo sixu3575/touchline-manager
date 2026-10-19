@@ -389,6 +389,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       profile,
       time,
       tactical,
+      actors,
     )) {
       const { destination, success } = option;
       candidates.push({

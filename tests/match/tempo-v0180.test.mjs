@@ -25,7 +25,9 @@ test('tackle recovery takes time to reset and responds to balance and collision 
   assert.equal(ordinary, 3.4);
   assert.ok(balanced < ordinary, 'balance helps the player reset their footing');
   assert.ok(highMomentum > ordinary, 'a high-speed challenge takes longer to recover from');
-  assert.ok([ordinary, balanced, highMomentum].every((seconds) => seconds >= 2.9 && seconds <= 4.8));
+  assert.ok(
+    [ordinary, balanced, highMomentum].every((seconds) => seconds >= 2.9 && seconds <= 4.8),
+  );
 });
 
 function controller(id, side, index) {
@@ -107,15 +109,23 @@ test('a recently expired carry keeps team continuity briefly without authorizing
 
   const recovered = updateContinuity(state, [first], ball, 2.1, true, null);
   assert.equal(CARRY_CONTROL_RECOVERY_GRACE_SECONDS, 0.75);
-  assert.equal(recovered, first, 'the expired carry remains connected inside its short recovery window');
-  assert.equal(contestOwner(state, [first], ball, 2.1), null, 'outside 2.6m, no contact permission exists');
+  assert.equal(
+    recovered,
+    first,
+    'the expired carry remains connected inside its short recovery window',
+  );
+  assert.equal(
+    contestOwner(state, [first], ball, 2.1),
+    null,
+    'outside 2.6m, no contact permission exists',
+  );
 
   const expired = updateContinuity(state, [first], ball, 2.2, true, null);
   assert.equal(expired, null);
   assert.equal(state.metrics.controlSpells[0].looseCarryCause, 'carryRecoveryExpired');
 });
 
-test('full-match control spells stay out of repeated live timeline snapshots', () => {
+test('live stamina starts at zero and full-match control spells stay out of repeated snapshots', () => {
   const game = createGame(42);
   const report = simulate(game.clubs[0], game.clubs[1], 42, 'tempo-timeline', {
     durationSeconds: 31,
@@ -123,5 +133,13 @@ test('full-match control spells stay out of repeated live timeline snapshots', (
 
   assert.ok(Array.isArray(report.continuity.controlSpells));
   assert.ok(report.timeline.length > 0);
+  assert.equal(report.timeline[0].second, 0);
+  assert.ok(report.timeline[0].performance.every((row) => row.burstReserve === 100));
+  assert.ok(
+    report.performance.every(
+      (row) =>
+        Number.isInteger(row.burstReserve) && row.burstReserve >= 0 && row.burstReserve <= 100,
+    ),
+  );
   assert.ok(report.timeline.every((row) => !('controlSpells' in row.continuity)));
 });

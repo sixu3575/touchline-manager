@@ -27,19 +27,28 @@ export function MatchReports({
               <div className="report-archive-match">
                 <small>
                   {report.competition} · 第 {report.round} 轮
+                  <span className="report-status settled">已结束</span>
                 </small>
-                <strong>
-                  {report.homeName} <span>{report.score.join(' : ')}</span> {report.awayName}
-                </strong>
-                {report.penalties && <small>点球 {report.penalties.join(' : ')}</small>}
+                <div className="report-archive-scoreline">
+                  <strong className={report.homeId === 'me' ? 'report-own-team' : ''}>
+                    {report.homeName}
+                  </strong>
+                  <span className="report-archive-score">{report.score.join(' : ')}</span>
+                  <strong className={report.awayId === 'me' ? 'report-own-team' : ''}>
+                    {report.awayName}
+                  </strong>
+                </div>
+                {report.penalties && (
+                  <small className="report-archive-subnote">点球 {report.penalties.join(' : ')}</small>
+                )}
               </div>
               <div className="report-archive-actions">
-                <button className="secondary" onClick={() => setSelected(report)}>
+                <button className="secondary report-view-button" onClick={() => setSelected(report)}>
                   <FileText size={15} /> 查看战报
                 </button>
                 {(report.homeId === 'me' || report.awayId === 'me') &&
                   report.canReplay !== false && (
-                    <button className="ghost" onClick={() => onReplay(report)}>
+                    <button className="secondary report-replay-button" onClick={() => onReplay(report)}>
                       <Play size={14} /> 观看回放
                     </button>
                   )}

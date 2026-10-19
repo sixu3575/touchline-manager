@@ -89,6 +89,7 @@ test('explicit observation striker has elite individual strengths without changi
   assert.equal(p.number, 99);
   assert.ok(rating(p) >= 94);
   assert.equal(p.attributes.finishing, 98);
+  assert.equal(p.price, 0, 'observation-player transfer price remains free');
   assert.equal(p.attributes.offTheBall, 98);
   assert.ok(p.attributes.marking < 40 && p.attributes.handling < 20);
   assert.equal(p.fitness, 100);
@@ -147,7 +148,12 @@ test('offline maintenance is scoped, preserves history and revises saves once, w
     }
   }
   const second = maintenancePlan(db, 731);
-  assert.deepEqual(applyMaintenance(db, second), { saves: 0, players: 0, grants: 0 });
+  assert.deepEqual(applyMaintenance(db, second), {
+    saves: 0,
+    players: 0,
+    wageRepairs: 0,
+    grants: 0,
+  });
   assert.throws(() => applyMaintenance(db, plan), /Stale/);
   const after = JSON.parse(db.prepare('SELECT state FROM saves WHERE id=?').get('a').state);
   const star = after.clubs[0].players.find((p) => p.id === 'observation-star-v1');
@@ -158,6 +164,40 @@ test('offline maintenance is scoped, preserves history and revises saves once, w
     false,
     'selling the player must not issue another',
   );
+  db.close();
+});
+test('offline maintenance repairs only the existing star wage, preserves all other save state and is idempotent', () => {
+  const { db } = setup();
+  const firstPlan = maintenancePlan(db, 731);
+  applyMaintenance(db, firstPlan);
+  const row = db.prepare("SELECT state FROM saves WHERE id='a'").get();
+  const before = JSON.parse(row.state),
+    star = before.clubs[0].players.find((p) => p.id === 'observation-star-v1');
+  assert.equal(star.wage, 1800);
+  star.wage = 0;
+  db.prepare("UPDATE saves SET state=? WHERE id='a'").run(JSON.stringify(before));
+  const plan = maintenancePlan(db, 731);
+  assert.equal(plan.rows.find((r) => r.target).wagesChanged, 1);
+  assert.equal(plan.rows.find((r) => r.target).star.wage, 1800);
+  assert.deepEqual(applyMaintenance(db, plan), {
+    saves: 1,
+    players: 0,
+    wageRepairs: 1,
+    grants: 0,
+  });
+  const after = JSON.parse(db.prepare("SELECT state FROM saves WHERE id='a'").get().state),
+    repaired = after.clubs[0].players.find((p) => p.id === 'observation-star-v1');
+  assert.equal(repaired.wage, 1800);
+  const normalizedBefore = structuredClone(before);
+  normalizedBefore.revision++;
+  normalizedBefore.clubs[0].players.find((p) => p.id === 'observation-star-v1').wage = 1800;
+  assert.deepEqual(after, normalizedBefore);
+  assert.deepEqual(applyMaintenance(db, maintenancePlan(db, 731)), {
+    saves: 0,
+    players: 0,
+    wageRepairs: 0,
+    grants: 0,
+  });
   db.close();
 });
 test('maintenance refuses active matches, ambiguous targets, stale plans and rolls back all writes on failure', () => {

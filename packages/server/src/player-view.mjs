@@ -47,6 +47,16 @@ const diagnostics = new Set([
   'mind',
   'motion',
   'defenceTelemetry',
+  'locomotion',
+  'continuity',
+  // Internal analysis is private by default. New replay/realism measurements
+  // belong under one of these namespaces unless explicitly approved for UI.
+  'analysis',
+  'analytics',
+  'diagnostics',
+  'telemetry',
+  'debug',
+  'replayAnalysis',
   'attributes',
   'attributeProfile',
   'matchState',

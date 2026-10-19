@@ -1,12 +1,16 @@
 import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 
+export const ADRENALINE_EFFORT_LIMIT = 1;
+
 // Actor-local state is included by packActors. SI units; no frame/RNG dependence.
 export function activityState() {
   return {
     load: 0,
     burst: 0,
     recovery: 0,
+    adrenalineRemaining: 0,
+    adrenalineEfforts: 0,
     sprinting: false,
     highDuration: 0,
     zones: [0, 0, 0, 0, 0],
@@ -18,10 +22,28 @@ export function activityState() {
   };
 }
 export function sprintAvailable(actor) {
-  return !actor.activity || (actor.activity.recovery <= 0 && actor.activity.load < 0.78);
+  return (
+    !actor.activity ||
+    actor.activity.adrenalineRemaining > 0 ||
+    (actor.activity.recovery <= 0 && actor.activity.load < 0.78)
+  );
+}
+export function triggerAdrenalineSprint(actor, critical) {
+  const a = actor.activity;
+  if (!critical || !a || sprintAvailable(actor) || a.adrenalineEfforts >= ADRENALINE_EFFORT_LIMIT)
+    return false;
+  a.adrenalineRemaining = 1.4;
+  a.adrenalineEfforts++;
+  if (actor.player.matchState) actor.player.matchState.sprintRecovering = false;
+  return true;
+}
+export function burstReserve(actor) {
+  const load = actor.activity?.load ?? 0;
+  return clamp((1 - load / 0.78) * 100, 0, 100);
 }
 export function recordMovement(actor, before, after, dt, active, carrying) {
   const a = (actor.activity ??= activityState());
+  a.adrenalineRemaining = Math.max(0, a.adrenalineRemaining - dt);
   const metres = Math.hypot(after.x - before.x, after.z - before.z);
   const speed = metres / dt,
     kmh = speed * 3.6;

@@ -22,9 +22,15 @@ try {
       JSON.stringify({
         plannedSaves: plan.rows.length,
         players: plan.rows.reduce((s, r) => s + r.changed, 0),
+        wageRepairs: plan.rows.reduce((s, r) => s + r.wagesChanged, 0),
         target: plan.rows
           .filter((r) => r.target)
-          .map((r) => ({ club: r.club, star: r.star, granted: r.granted })),
+          .map((r) => ({
+            club: r.club,
+            star: r.star,
+            wagesChanged: r.wagesChanged,
+            granted: r.granted,
+          })),
       }),
     );
   } else

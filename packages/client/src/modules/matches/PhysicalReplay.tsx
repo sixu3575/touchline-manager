@@ -11,8 +11,8 @@ import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
 import { GoalCelebration } from './GoalCelebration';
 import { PlayerRatings } from './PlayerRatings';
+import { staminaAtTime } from './stamina-view.mjs';
 import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
-import { analyzeReplay } from '../../../../shared/modules/matches/replay-analysis.mjs';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -78,10 +78,6 @@ export function PhysicalReplay({
   const visibleStats = live && !ended ? (prefix?.stats ?? report.stats) : report.stats;
   const visiblePerformance =
     live && !ended ? (prefix?.performance ?? report.performance) : report.performance;
-  const flowAnalysis = useMemo(
-    () => (data && (!live || ended) ? analyzeReplay(report, data) : null),
-    [report, data, Boolean(live && ended)],
-  );
   useEffect(() => {
     if (!live) return;
     let animation = 0;
@@ -120,6 +116,10 @@ export function PhysicalReplay({
       );
   const player = meta.players[selected];
   const performanceRow = player && visiblePerformance?.find((p) => p.id === player.id);
+  const stamina = useMemo(
+    () => (player ? staminaAtTime(report, player.id, time, Boolean(live && !ended)) : undefined),
+    [report, player?.id, time, Boolean(live && !ended)],
+  );
   const ballHeight = data ? positionAt(data, report, time).positions[45] : 0;
   const ballSpeed = data ? speedAt(data, report, time) * 3.6 : 0;
   return (
@@ -327,8 +327,7 @@ export function PhysicalReplay({
                   )}
                   {performanceRow.style && <b>{performanceRow.style} · </b>}实际跑动{' '}
                   {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
-                  成功传球 {performanceRow.completed}/{performanceRow.passes} ·{' '}
-                  {live && !ended ? '当前体能' : '赛末体能'} {performanceRow.energy}
+                  成功传球 {performanceRow.completed}/{performanceRow.passes}
                   {performanceRow.yellowCards !== undefined &&
                     ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
                   {performanceRow.dribbleTouches !== undefined &&
@@ -340,6 +339,32 @@ export function PhysicalReplay({
                 <span>球员按阵型、攻防阶段和属性寻找位置。</span>
               )}
             </div>
+            {player && stamina && (
+              <div className="physical-stamina-bars" aria-label={`${player.name}赛中体能`}>
+                <label>
+                  <span>
+                    体能 <b>{Math.round(stamina.energy)}%</b>
+                  </span>
+                  <progress
+                    aria-label={`${player.name}体能`}
+                    value={Math.max(0, Math.min(100, stamina.energy))}
+                    max={100}
+                  />
+                </label>
+                {Number.isFinite(stamina.burstReserve) && (
+                  <label>
+                    <span>
+                      爆发储备 <b>{Math.round(stamina.burstReserve!)}%</b>
+                    </span>
+                    <progress
+                      aria-label={`${player.name}爆发储备`}
+                      value={Math.max(0, Math.min(100, stamina.burstReserve!))}
+                      max={100}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
             <div className="match-stats physical-stats">
               {[
                 ['控球率', visibleStats[0].possession + '%', visibleStats[1].possession + '%'],
@@ -381,197 +406,6 @@ export function PhysicalReplay({
                 </div>
               ))}
             </div>
-            {(!live || ended) && flowAnalysis && (
-              <details className="replay-flow-analysis">
-                <summary>回放节奏与射门分析</summary>
-                {flowAnalysis.status !== 'available' ? (
-                  <p className="fine">{flowAnalysis.reason}</p>
-                ) : (
-                  <>
-                    <p className="fine">{flowAnalysis.definition}</p>
-                    <div className="replay-flow-table-wrap">
-                      <table className="report-stat-table replay-flow-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">主队</th>
-                            <th scope="col">分析指标</th>
-                            <th scope="col">客队</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>{flowAnalysis.teams[0].possessionCount ?? '—'}</td>
-                            <th scope="row">模型球权阶段</th>
-                            <td>{flowAnalysis.teams[1].possessionCount ?? '—'}</td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].possessionMedianSeconds?.toFixed(1) ?? '—'} s /{' '}
-                              {flowAnalysis.teams[0].possessionP90Seconds?.toFixed(1) ?? '—'} s
-                            </td>
-                            <th scope="row">阶段时长中位数 / P90</th>
-                            <td>
-                              {flowAnalysis.teams[1].possessionMedianSeconds?.toFixed(1) ?? '—'} s /{' '}
-                              {flowAnalysis.teams[1].possessionP90Seconds?.toFixed(1) ?? '—'} s
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].individualControlCount ?? '—'} /{' '}
-                              {flowAnalysis.teams[0].individualControlMedianSeconds?.toFixed(1) ?? '—'} s
-                            </td>
-                            <th scope="row">个人控球段数 / 中位时长</th>
-                            <td>
-                              {flowAnalysis.teams[1].individualControlCount ?? '—'} /{' '}
-                              {flowAnalysis.teams[1].individualControlMedianSeconds?.toFixed(1) ?? '—'} s
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].controlEndsByPass ?? '—'} /{' '}
-                              {flowAnalysis.teams[0].controlEndsByShot ?? '—'} /{' '}
-                              {flowAnalysis.teams[0].controlEndsByDispossession ?? '—'} /{' '}
-                              {flowAnalysis.teams[0].controlEndsByLooseCarry ?? '—'}
-                            </td>
-                            <th scope="row">个人控球结束：传球 / 射门 / 被断 / 脱控</th>
-                            <td>
-                              {flowAnalysis.teams[1].controlEndsByPass ?? '—'} /{' '}
-                              {flowAnalysis.teams[1].controlEndsByShot ?? '—'} /{' '}
-                              {flowAnalysis.teams[1].controlEndsByDispossession ?? '—'} /{' '}
-                              {flowAnalysis.teams[1].controlEndsByLooseCarry ?? '—'}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].looseCarryCauses
-                                ? `${flowAnalysis.teams[0].looseCarryCauses.airborne} / ${flowAnalysis.teams[0].looseCarryCauses.outsideRadius} / ${flowAnalysis.teams[0].looseCarryCauses.carryRecoveryExpired} / ${flowAnalysis.teams[0].looseCarryCauses.noCarryIntent} / ${flowAnalysis.teams[0].looseCarryCauses.relativeSpeed}`
-                                : '—'}
-                            </td>
-                            <th scope="row">脱控原因：球过高 / 超出半径 / 带球恢复期过 / 无带球意图 / 球人相对速度高</th>
-                            <td>
-                              {flowAnalysis.teams[1].looseCarryCauses
-                                ? `${flowAnalysis.teams[1].looseCarryCauses.airborne} / ${flowAnalysis.teams[1].looseCarryCauses.outsideRadius} / ${flowAnalysis.teams[1].looseCarryCauses.carryRecoveryExpired} / ${flowAnalysis.teams[1].looseCarryCauses.noCarryIntent} / ${flowAnalysis.teams[1].looseCarryCauses.relativeSpeed}`
-                                : '—'}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].medianBallSeparationAtLooseCarryMetres?.toFixed(1) ?? '—'} m /{' '}
-                              {flowAnalysis.teams[0].medianBallHeightAtLooseCarryMetres?.toFixed(1) ?? '—'} m /{' '}
-                              {flowAnalysis.teams[0].medianRelativeSpeedAtLooseCarryMetresPerSecond?.toFixed(1) ?? '—'} m/s
-                            </td>
-                            <th scope="row">脱控时球人间距 / 球高 / 球人相对速度（中位）</th>
-                            <td>
-                              {flowAnalysis.teams[1].medianBallSeparationAtLooseCarryMetres?.toFixed(1) ?? '—'} m /{' '}
-                              {flowAnalysis.teams[1].medianBallHeightAtLooseCarryMetres?.toFixed(1) ?? '—'} m /{' '}
-                              {flowAnalysis.teams[1].medianRelativeSpeedAtLooseCarryMetresPerSecond?.toFixed(1) ?? '—'} m/s
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].medianNearestDefenderAtDispossessionMetres?.toFixed(1) ?? '—'} m
-                            </td>
-                            <th scope="row">被断时最近防守者距离（中位）</th>
-                            <td>
-                              {flowAnalysis.teams[1].medianNearestDefenderAtDispossessionMetres?.toFixed(1) ?? '—'} m
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].completedPassChainMedian ?? '—'} /{' '}
-                              {flowAnalysis.teams[0].completedPassChainMean?.toFixed(2) ?? '—'}
-                            </td>
-                            <th scope="row">连续成功传球链中位数 / 均值</th>
-                            <td>
-                              {flowAnalysis.teams[1].completedPassChainMedian ?? '—'} /{' '}
-                              {flowAnalysis.teams[1].completedPassChainMean?.toFixed(2) ?? '—'}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].forwardPasses} /{' '}
-                              {flowAnalysis.teams[0].lateralPasses} /{' '}
-                              {flowAnalysis.teams[0].backwardPasses}
-                            </td>
-                            <th scope="row">
-                              向前 / 横向 / 回传（已分析 {flowAnalysis.teams[0].passDirectionCoverage}/
-                              {flowAnalysis.match.passDirectionTotal} 脚）
-                            </th>
-                            <td>
-                              {flowAnalysis.teams[1].forwardPasses} /{' '}
-                              {flowAnalysis.teams[1].lateralPasses} /{' '}
-                              {flowAnalysis.teams[1].backwardPasses}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].shots}（近3m防守者{' '}
-                              {flowAnalysis.teams[0].shotsWithDefenderWithinThreeMetres}）
-                            </td>
-                            <th scope="row">射门（出脚时近3米有防守者）</th>
-                            <td>
-                              {flowAnalysis.teams[1].shots}（近3m防守者{' '}
-                              {flowAnalysis.teams[1].shotsWithDefenderWithinThreeMetres}）
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].shotsInsideTwelveMetres} /{' '}
-                              {flowAnalysis.teams[0].shotsTwelveToTwentyMetres} /{' '}
-                              {flowAnalysis.teams[0].shotsTwentyToTwentyEightMetres} /{' '}
-                              {flowAnalysis.teams[0].shotsBeyondTwentyEightMetres}
-                            </td>
-                            <th scope="row">射门距离（≤12 / 12–20 / 20–28 / ＞28米）</th>
-                            <td>
-                              {flowAnalysis.teams[1].shotsInsideTwelveMetres} /{' '}
-                              {flowAnalysis.teams[1].shotsTwelveToTwentyMetres} /{' '}
-                              {flowAnalysis.teams[1].shotsTwentyToTwentyEightMetres} /{' '}
-                              {flowAnalysis.teams[1].shotsBeyondTwentyEightMetres}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].multiShotPossessions} 段 / 30秒内重复射门{' '}
-                              {flowAnalysis.teams[0].burstShotsWithinThirtySeconds} 次
-                            </td>
-                            <th scope="row">连续射门集中度</th>
-                            <td>
-                              {flowAnalysis.teams[1].multiShotPossessions} 段 / 30秒内重复射门{' '}
-                              {flowAnalysis.teams[1].burstShotsWithinThirtySeconds} 次
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              {flowAnalysis.teams[0].receptionsWithDefenderWithinThreeMetres}/
-                              {flowAnalysis.teams[0].passCompletions}
-                            </td>
-                            <th scope="row">接球时近3米有防守者 / 成功接球</th>
-                            <td>
-                              {flowAnalysis.teams[1].receptionsWithDefenderWithinThreeMetres}/
-                              {flowAnalysis.teams[1].passCompletions}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                    <p className="fine">
-                      防守方 DEF 与 MID 平均纵向间距：
-                      {flowAnalysis.match.defensiveMidfieldGapMeanMetres?.toFixed(1) ?? '—'} m（P90{' '}
-                      {flowAnalysis.match.defensiveMidfieldGapP90Metres?.toFixed(1) ?? '—'} m，样本{' '}
-                      {flowAnalysis.match.defensiveShapeSamples}）；外场平均体能{' '}
-                      {flowAnalysis.match.averageStartingEnergy?.toFixed(0) ?? '—'} →{' '}
-                      {flowAnalysis.match.averageEndingEnergy?.toFixed(0) ?? '—'}（平均消耗{' '}
-                      {flowAnalysis.match.averageEnergyDrop?.toFixed(1) ?? '—'}）。
-                    </p>
-                    <p className="fine">
-                      模型球权转换：拦截 {flowAnalysis.match.turnovers?.interception ?? '—'}、被断{' '}
-                      {flowAnalysis.match.turnovers?.dispossessed ?? '—'}、带球脱控{' '}
-                      {flowAnalysis.match.turnovers?.looseCarry ?? '—'}；指标用于定位节奏来源，不作为球员表现评分。
-                    </p>
-                  </>
-                )}
-              </details>
-            )}
             {(!live || ended) && (
               <div ref={ratingsRef} className="ratings-anchor">
                 <PlayerRatings report={report} />

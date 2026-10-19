@@ -1,6 +1,6 @@
 # 项目地图
 
-0.18.0比赛候选加入只读回放节奏诊断与射门候选xG校准，并以受距离/相对速度限制的0.75秒带球恢复窗口修正过早脱控。八场同种子平均射门从36.25降至24.25；球权阶段中位数从4.84增至5.15秒，但传球链中位数仍1脚，节奏尚未达标；候选未部署。保留远射，不设次数配额。详见[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。
+当前待发布候选0.20.0在0.18持球测量、0.19.2体能与此前玩法/UI更新上，进一步分开真实控制、团队控球语境与球的飞行/争抢；修正反弹恢复、松球超时和过渡后捡球的球权归属，并统一盘带风险与真实抢断的到达/体能/能力模型。无球权配额、无存档迁移。持球细则见[POSSESSION_V0200.md](packages/shared/modules/matches/design/POSSESSION_V0200.md)，节奏基线见[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。
 
 0.17.0按用户纠正将节奏修正放在连续转身/支撑摆腿/收腿执行，撤回0.16新增的射门抑制。合理远射和提前准备的一脚传射保留，不用整场统计反馈决策。用户在获知专项现实性block后明确授权上线本版本；block仍记录为未通过，后续版本继续遵循原门槛。入口[EXECUTION_V0170.md](packages/shared/modules/matches/design/EXECUTION_V0170.md)，[当前验证/阻断](packages/shared/modules/matches/design/CALIBRATION_V0170.md)；旧回放、5×和既有分层/PR/发布流程保持。
 

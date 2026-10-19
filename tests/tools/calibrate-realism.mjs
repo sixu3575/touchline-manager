@@ -98,6 +98,10 @@ if (!isMainThread) {
         r.players.filter((p) => p.role !== 'keeper' && p.minutes >= 60).map((p) => p.distancePer90),
       ),
     ),
+    endBurstReserve: describe(values((r) => r.teams.map((t) => t.meanEndBurstReserve))),
+    adrenalineEffortsPerMatch: describe(
+      values((r) => [r.teams.reduce((sum, team) => sum + team.adrenalineEfforts, 0)]),
+    ),
     cases: results.map((r) => ({ id: r.id, status: r.status, alerts: r.alerts })),
   };
   summary.distributionAlerts = [];

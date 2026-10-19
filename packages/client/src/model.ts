@@ -113,37 +113,6 @@ export interface Report {
     stats: Report['stats'];
     performance: NonNullable<Report['performance']>;
   }[];
-  continuity?: {
-    controlledSeconds: number[];
-    looseSeconds: number;
-    contestedSeconds: number;
-    deadSeconds: number;
-    chains: number[][];
-    restarts: number;
-    boxEntries: number[];
-    turnovers: Record<string, number>;
-    possessions?: { side: number; start: number; end: number; seconds: number; reason: string }[];
-    controlSpells?: {
-      side: number;
-      playerId: string;
-      role: string;
-      start: number;
-      end: number;
-      seconds: number;
-      reason: string;
-      looseCarryCause?: string;
-      ballSeparationAtEndMetres?: number;
-      ballHeightAtEndMetres?: number;
-      relativeSpeedAtEndMetresPerSecond?: number;
-      controlAgeAtEndSeconds?: number;
-      intentKindAtEnd?: string | null;
-      intentModeAtEnd?: string | null;
-      intentRemainingAtEndSeconds?: number | null;
-      carryRecoveryRemainingAtEndSeconds?: number | null;
-      controlRadiusAtEndMetres?: number;
-      relativeSpeedLimitAtEndMetresPerSecond?: number;
-    }[];
-  };
   replay?: {
     format: string;
     sampleHz: number;
@@ -168,6 +137,7 @@ export interface Report {
     side: number;
     distance: number;
     energy: number;
+    burstReserve?: number;
     touches: number;
     passes: number;
     completed: number;

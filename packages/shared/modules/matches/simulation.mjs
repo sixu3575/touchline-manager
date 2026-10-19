@@ -22,7 +22,7 @@ import {
   releasedKick,
   kickRecovery,
 } from './execution.mjs';
-import { activityState, recordMovement } from './activity.mjs';
+import { activityState, burstReserve, recordMovement } from './activity.mjs';
 import { tackleWindow, tackleProbability, tackleRecoverySeconds } from './defending.mjs';
 import {
   continuityState,
@@ -74,8 +74,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.18.0-tempo';
-export const PARAMETER_VERSION = 'tempo-1';
+export const ENGINE_VERSION = '0.20.0-possession';
+export const PARAMETER_VERSION = 'possession-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -544,6 +544,12 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   } else {
     kickoff(0);
     record();
+    timeline.push({
+      second: 0,
+      stats: publicStats(),
+      performance: playerStats(),
+      continuity: timelineContinuity(),
+    });
   }
   const unlink = (row) =>
     row
@@ -629,6 +635,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         deadMetres: Math.round(a.activity.deadMetres),
         sprintEfforts: a.activity.sprintEfforts,
         longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
+        adrenalineEfforts: a.activity.adrenalineEfforts,
       },
       defenceTelemetry: {
         pressSeconds: Math.round(a.pressSeconds ?? 0),
@@ -637,6 +644,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         observationLapses: a.markLapses ?? 0,
       },
       energy: Math.round(a.energy * 10) / 10,
+      burstReserve: Math.round(burstReserve(a)),
       touches: a.touches,
       passes: a.passes,
       completed: a.completed,

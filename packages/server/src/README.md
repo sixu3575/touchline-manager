@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+0.19.1以后新增的回放/现实性诊断默认只留在原始报告的`diagnostics`、`analysis`、`analytics`、`telemetry`或`debug`字段；统一player-view会递归剔除这些字段以及既有运动遥测。除明确要求展示的统计（本次的体能与爆发储备属于显式授权）外，不得将内部分析加入公开DTO。归档报告、比赛任务与状态接口均走该投影。
+
 0.15.0publicState只在克隆上初始化训练/职员默认值；合法动作才持久化。development不出站，训练历史只给delta；staff属性是公开人事资料。回放接口额外校验报告包含本队，AI不存轨迹，旧历史BLOB不改写。
 
 公开DTO新增overall实际总能力值（缺失历史数据为null），其余细项仍由知识投影过滤；不得将overall回写能力或用评估skills替代真实评级。

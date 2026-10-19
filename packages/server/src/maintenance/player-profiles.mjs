@@ -5,6 +5,7 @@ import {
   rating,
 } from '../../../shared/modules/players/index.mjs';
 export const stateDigest = (text) => createHash('sha256').update(text).digest('hex');
+const playerWage = (p) => Math.round((rating(p) * 18 + 100) / 50) * 50;
 
 // Explicit offline maintenance only. No HTTP endpoint or normal-startup rewriting.
 export function reshapeState(source, grantStar = false) {
@@ -13,6 +14,12 @@ export function reshapeState(source, grantStar = false) {
   let changed = 0;
   for (const p of [...next.clubs.flatMap((c) => c.players), ...next.market])
     changed += Number(reprofilePlayer(p, next.seed));
+  let wagesChanged = 0;
+  for (const p of [...next.clubs.flatMap((c) => c.players), ...next.market])
+    if (p.id === 'observation-star-v1' && (!Number.isFinite(p.wage) || p.wage <= 0)) {
+      p.wage = playerWage(p);
+      wagesChanged++;
+    }
   const club = next.clubs[0];
   let granted = false;
   if (
@@ -30,12 +37,13 @@ export function reshapeState(source, grantStar = false) {
     );
     if (!forwards.length) throw Error('No striker slot available');
     const replace = forwards[Math.floor((forwards.length - 1) / 2)];
+    p.wage = playerWage(p);
     club.lineup = club.lineup.map((id) => (id === replace ? p.id : id));
     club.players.push(p);
     next.playerProfileGrant = { version: 1, playerId: p.id };
     granted = true;
   }
-  if (changed || granted) next.revision++;
+  if (changed || granted || wagesChanged) next.revision++;
   return {
     state: next,
     changed,
@@ -43,8 +51,15 @@ export function reshapeState(source, grantStar = false) {
     star: grantStar
       ? club.players
           .filter((p) => p.id === 'observation-star-v1')
-          .map((p) => ({ id: p.id, name: p.name, number: p.number, rating: rating(p) }))[0]
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            number: p.number,
+            rating: rating(p),
+            wage: p.wage,
+          }))[0]
       : undefined,
+    wagesChanged,
   };
 }
 export function maintenancePlan(db, targetSeed) {
@@ -66,6 +81,7 @@ export function maintenancePlan(db, targetSeed) {
         after: stateDigest(JSON.stringify(result.state)),
         revision: source.revision,
         changed: result.changed,
+        wagesChanged: result.wagesChanged,
         granted: result.granted,
         target,
         club: source.clubs[0].name,
@@ -83,7 +99,7 @@ export function applyMaintenance(db, plan, now = new Date().toISOString()) {
       throw Error('Stale plan: current saves changed');
     const write = db.prepare('UPDATE saves SET state=?,updated_at=? WHERE id=? AND state=?');
     for (const item of plan.rows) {
-      if (!item.changed && !item.granted) continue;
+      if (!item.changed && !item.wagesChanged && !item.granted) continue;
       const row = db.prepare('SELECT state FROM saves WHERE id=?').get(item.id);
       const result = reshapeState(JSON.parse(row.state), item.target),
         text = JSON.stringify(result.state);
@@ -93,8 +109,9 @@ export function applyMaintenance(db, plan, now = new Date().toISOString()) {
     }
     db.exec('COMMIT');
     return {
-      saves: plan.rows.filter((r) => r.changed || r.granted).length,
+      saves: plan.rows.filter((r) => r.changed || r.wagesChanged || r.granted).length,
       players: plan.rows.reduce((s, r) => s + r.changed, 0),
+      wageRepairs: plan.rows.reduce((s, r) => s + r.wagesChanged, 0),
       grants: plan.rows.filter((r) => r.granted).length,
     };
   } catch (error) {

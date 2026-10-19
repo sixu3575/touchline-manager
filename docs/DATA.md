@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.20.0引擎`0.20.0-possession`/参数`possession-1`仅影响新模拟结果；不增加或迁移JSON/SQLite字段，已有报告、战报和回放不重算。actor/比赛连续性检查点结构随此引擎版本变化，必须排空旧引擎未完成任务后发布，不能使用新引擎续跑旧检查点；回滚前先排空新任务并保留完整备份。
+
 0.16.0保持JSON/SQLite3、事件3、u16回放。新报告可选performance[].locomotion（20Hz五区/活死球里程/高速段）、defenceTelemetry（私有诊断）及continuity.possessions（团队阶段，含短时松球）。旧报告保持缺失，不伪补历史。actor.activity/defenceMemory/pressUntil/shotPreparation及continuity团队记忆由既有检查点整体保存；matchState新增短时恢复字段只在单场actor内使用，出站剔除。按引擎0.16.0-realism隔离恢复，切换前排空旧任务；没有数据库迁移或长期属性调整。
 
 0.15.1引擎0.15.1-attribution新增可选statisticsVersion、shotId/shotOutcome及正式来源ID；检查点state增加attribution与statisticalContacts。JSON/SQLite3、事件3/轨迹格式不变，不迁移旧行，不重算历史。新评分match-rating-2消费唯一射门结果；已有评分仍按原版本保存。
@@ -12,7 +14,7 @@
 
 0.13.0继续JSON/SQLite3：当前attributes/skills采用整数；训练新增可选trainingProgress:{属性键:0–99整数经验}，满100转换1点能力，潜力封顶清除。该字段不发客户端。显式离线plan/apply只取整当前能力、潜力/逆足和技能缓存，有变化save的revision+1，其他状态与历史BLOB不改。详见[INTEGER_STATS.md](../packages/shared/modules/players/INTEGER_STATS.md)。
 
-0.12.0继续JSON schema3/SQLite user_version3，新增可选assessment内部version1：coach/scout与players[id]的joinedOn/sessions/visits/lastScouted。GET只读默认，合法动作或比赛计划首次建立，观察跨季保留；不修改启动迁移或旧记录。服务器attributes/skills/potential/weakFoot仍真实；HTTP不含attributes/种子/生成模板，skills等为评估中点。历史BLOB原样，响应投影。详见[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)。
+0.12.0继续JSON schema3/SQLite user_version3，新增可选assessment内部version1：coach/scout与players[id]的joinedOn/sessions/visits/lastScouted。GET只读默认，合法动作或比赛计划首次建立，观察跨季保留；不修改启动迁移或旧记录。0.17评估不改结构，仅把外部visits上限提至14；服务器attributes/skills/potential/weakFoot仍真实；HTTP不含attributes/种子/生成模板，skills等为评估中点。历史BLOB原样，响应投影。详见[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)。
 
 ## 0.11.0 显式属性重塑与观察名额
 
