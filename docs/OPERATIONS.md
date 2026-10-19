@@ -42,7 +42,7 @@
 
 ## 发布
 
-在本机执行 npm ci、npm run check、提交并推送。生产归档包含packages/server、packages/shared、scripts/backup.mjs、dist/client、package.json、package-lock.json、deploy；不打包凭据、运行数据或node_modules。上传VM临时目录，运行deploy/install.sh <archive> <commit>。安装脚本执行npm ci --omit=dev --ignore-scripts --no-audit --no-fund，仅安装锁定的运行依赖，Rapier的WASM随包提供，无需编译工具。
+在本机执行 npm ci、npm run check、提交并推送。生产归档包含packages/server、packages/shared、scripts/backup.mjs、scripts/player-integers.mjs、scripts/player-profiles.mjs、dist/client、package.json、package-lock.json、deploy；不打包凭据、运行数据或node_modules。上传VM临时目录，运行deploy/install.sh <archive> <commit>。安装脚本执行npm ci --omit=dev --ignore-scripts --no-audit --no-fund，仅安装锁定的运行依赖，Rapier的WASM随包提供，无需编译工具。
 
 安装脚本在已存在数据时先备份；校验 Caddy 配置、重启服务并检查本机健康。公网验证 /api/health 的 build 必须匹配提交。保留上一发布目录用于回滚，回滚只切换 current 并重启，数据结构变更需另行迁移。
 
