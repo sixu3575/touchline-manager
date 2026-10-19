@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.15.1引擎0.15.1-attribution新增可选statisticsVersion、shotId/shotOutcome及正式来源ID；检查点state增加attribution与statisticalContacts。JSON/SQLite3、事件3/轨迹格式不变，不迁移旧行，不重算历史。新评分match-rating-2消费唯一射门结果；已有评分仍按原版本保存。
+
 0.15.0仍JSON/SQLite3，training可选升级version2（facilities/assignments/history最近40轮/lastResolved），新增staff.version1（具名employees/market），player.development.version1（私有lastDate/30项真实peaks/decay余数/potentialDecay）；assessment记录专项trainingObservations及confirmedPeaks。GET在副本初始化默认值，不改旧存档；第一次合法动作/比赛计划保存可选字段，不追溯衰退。确认峰值只来自精确小项，公开训练仅delta，不发真值/from/to/development。每轮全部报告进入既有match_reports，摘要上限140，他队无轨迹且回放接口强校验本队；旧AI仅比分不重算。详见[训练契约](../packages/shared/modules/training/TRAINING_AND_CAREERS_V0150.md)。
 
 0.14.0保持JSON/SQLite3及旧回放不变。新比赛actor携带可序列化markMemory/offBallPlan/receivePreparation，state携带deadState；现有通用检查点保存它们，引擎0.14.0-movement/movement-1作恢复边界。发布必须排空旧任务，不跨引擎恢复；不做存档重塑或历史重算。

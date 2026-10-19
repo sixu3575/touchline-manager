@@ -277,7 +277,7 @@ function limitImpactSpeed(actor) {
   }
 }
 
-export function stepPhysics(physics, contactStep = null, actors = []) {
+export function stepPhysics(physics, contactStep = null, actors = [], observeStep = null) {
   const { ball, world } = physics;
   const p = ball.translation(),
     v = ball.linvel();
@@ -292,8 +292,16 @@ export function stepPhysics(physics, contactStep = null, actors = []) {
   world.timestep = STEP / steps;
   for (let i = 0; i < steps; i++) {
     if (i && contactStep) contactStep();
+    const before = observeStep
+      ? {
+          position: { ...ball.translation() },
+          velocity: { ...ball.linvel() },
+          spin: { ...ball.angvel() },
+        }
+      : null;
     ballResistance(ball, STEP / steps);
     world.step();
+    if (observeStep) observeStep(before);
     for (const actor of actors) if (!actor.sentOff) limitImpactSpeed(actor);
   }
   world.timestep = STEP;
@@ -302,6 +310,52 @@ export function stepPhysics(physics, contactStep = null, actors = []) {
       actor.legs.forEach((leg) => leg.setCollisionGroups(0x00020007));
       physics.legRecovery.delete(actor);
     } else physics.legRecovery.set(actor, remaining - 1);
+  }
+}
+
+let projectionSnapshot;
+// An independent, player-free Rapier world evaluates the ball's actual incoming
+// trajectory, including grass, air, gravity and the goal frame. Never step the
+// match world or use its random generator to decide statistical ownership.
+export function projectedGoal({ position, velocity, spin = { x: 0, y: 0, z: 0 } }) {
+  if (
+    ![position.x, position.y, position.z, velocity.x, velocity.y, velocity.z].every(Number.isFinite)
+  )
+    return null;
+  if (Math.abs(velocity.x) < 0.05) return null;
+  const line = velocity.x > 0 ? 105 : 0;
+  const travel = (line - position.x) / velocity.x;
+  if (travel < 0 || Math.abs(position.z + velocity.z * travel - 34) > 3.95) return null;
+  if (!projectionSnapshot) {
+    const empty = createPhysics();
+    try {
+      projectionSnapshot = {
+        world: empty.world.takeSnapshot(),
+        ball: empty.ball.handle,
+        collider: empty.collider.handle,
+      };
+    } finally {
+      empty.world.free();
+    }
+  }
+  const shadow = restorePhysics(projectionSnapshot);
+  try {
+    shadow.ball.setTranslation(position, true);
+    shadow.ball.setLinvel(velocity, true);
+    shadow.ball.setAngvel(spin, true);
+    for (let i = 0; i < 400; i++) {
+      const before = shadow.ball.translation();
+      stepPhysics(shadow);
+      const after = shadow.ball.translation();
+      const end = goalCrossing(before, after);
+      if (end !== null) return end;
+      if (after.x < -0.5 || after.x > 105.5 || after.z < 0 || after.z > 68) return null;
+      const v = shadow.ball.linvel();
+      if (after.y < BALL_RADIUS + 0.01 && Math.hypot(v.x, v.z) < 0.05) return null;
+    }
+    return null;
+  } finally {
+    shadow.world.free();
   }
 }
 

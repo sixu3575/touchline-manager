@@ -108,6 +108,28 @@ test('only completed progressive passes and a directly recorded reception-to-sho
   r.events.splice(2, 0, event('interception', '1-DEF', 1, 603));
   assert.equal(row(r).keyPasses, 0);
 });
+
+test('canonical shot outcomes credit delayed and headed chances once, and separate assists from non-goal key passes', () => {
+  const r = report();
+  r.events = [
+    event('cross', '0-MID', 0, 600, { intent: 'cross' }),
+    event('passComplete', '0-FWD', 0, 602, { passerId: '0-MID', bodyPart: 'head' }),
+    event('shot', '0-FWD', 0, 622, { shotId: 1, bodyPart: 'head', xg: 0.2 }),
+    event('shotOutcome', '0-FWD', 0, 625, { shotId: 1, outcome: 'offTarget', keyPassId: '0-MID' }),
+    event('shotOutcome', '0-FWD', 0, 625, { shotId: 1, outcome: 'offTarget', keyPassId: '0-MID' }),
+    event('shot', '0-FWD', 0, 650, { shotId: 2, xg: 0.3 }),
+    event('shotOutcome', '0-FWD', 0, 665, { shotId: 2, outcome: 'goal' }),
+    event('goal', '0-FWD', 0, 665, { shotId: 2, assistId: '0-MID' }),
+  ];
+  assert.equal(row(r).assists, 1);
+  assert.equal(row(r).keyPasses, 1);
+  assert.equal(row(r).chancesCreated, 2);
+  assert.equal(row(r).categories.find((c) => c.key === 'creation').value, 0.71);
+  assert.equal(row(r, '0-FWD').goals, 1);
+  r.events[3].keyPassId = '1-MID';
+  r.events[4].keyPassId = '1-MID';
+  assert.equal(row(r, '1-MID').keyPasses, 0, 'the creator must be a teammate');
+});
 test('routine keeper catches receive no save credit, and total credit cannot exceed official saves', () => {
   const r = report();
   r.events = Array.from({ length: 20 }, (_, i) => event('save', '0-GK', 0, 600 + i));

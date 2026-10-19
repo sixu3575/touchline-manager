@@ -1,5 +1,7 @@
 # 项目地图
 
+0.15.1统计归属由matches/attribution.mjs维护，physics/projectedGoal以独立无球员Rapier世界检查触球前球路；助攻沿连续控球来源，shotId/shotOutcome驱动常规关键传球与评分，不按最后触球者直接判乌龙。当前引擎0.15.1-attribution/movement-1，统计opta-conventional-1、评分match-rating-2。设计与现实来源见[统计归属](packages/shared/modules/matches/design/STATISTICS_V0151.md)，第1/4决策图已同步。历史不重算，开发流程不改。
+
 0.15.0新增独立staff模块，training负责七区场地/分配/每轮训练，players/development负责日期衰退与整数成长，competitions在冻结轮次应用并统一发布；所有比赛战报归档、他队无回放。设计与未实现项见[训练与生涯](packages/shared/modules/training/TRAINING_AND_CAREERS_V0150.md)。既有模块锁、验证分层、PR与部署流程不改。
 
 0.14.0新增连续领球与近控/快带、共享到达预测、有限候选空位选择及有条件的盯防观察失误，死球自然移动、进球庆祝后跑回开球位。引擎0.14.0-movement/movement-1；既有球阻力、限速、真实触球、5×、结算及评分保持。详见[运动设计](packages/shared/modules/matches/design/MOVEMENT_V0140.md)。

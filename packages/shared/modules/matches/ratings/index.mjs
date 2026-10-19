@@ -1,5 +1,5 @@
 // Lightweight public entry: post-match statistics only; never imports the engine.
-export const RATING_VERSION = 'match-rating-1';
+export const RATING_VERSION = 'match-rating-2';
 const bound = (n, low, high) => Math.max(low, Math.min(high, n));
 const number = (value) => (Number.isFinite(value) ? Math.max(0, value) : 0);
 const second = (event) => event.second ?? event.minute * 60;
@@ -81,6 +81,8 @@ export function buildPlayerRatings(report) {
   );
   const reception = new Map(),
     attempts = new Map(),
+    shotsById = new Map(),
+    resolvedShots = new Set(),
     saves = [],
     shots = [];
   let shot = null,
@@ -103,7 +105,12 @@ export function buildPlayerRatings(report) {
         row.xgShots++;
       }
       const assist = reception.get(row.id);
-      if (assist && t - assist.second <= 10 && rows.get(assist.passerId)?.side === row.side)
+      if (
+        event.shotId === undefined &&
+        assist &&
+        t - assist.second <= 10 &&
+        rows.get(assist.passerId)?.side === row.side
+      )
         rows.get(assist.passerId).keyPasses++;
       reception.delete(row.id);
       shot = {
@@ -118,7 +125,15 @@ export function buildPlayerRatings(report) {
         ),
       };
       shots.push(shot);
+      if (event.shotId !== undefined) shotsById.set(event.shotId, shot);
       penalty = null;
+    } else if (event.type === 'shotOutcome' && row && !resolvedShots.has(event.shotId)) {
+      const attempt = shotsById.get(event.shotId);
+      if (!attempt || attempt.row !== row) continue;
+      resolvedShots.add(event.shotId);
+      const creator = rows.get(event.keyPassId);
+      if (event.outcome !== 'goal' && creator && creator !== row && creator.side === row.side)
+        creator.keyPasses++;
     } else if (event.type === 'goal') {
       if (event.ownGoal) {
         const defender = rows.get(event.scorer?.id);
@@ -127,9 +142,15 @@ export function buildPlayerRatings(report) {
       const assist = rows.get(event.assistId);
       if (!event.ownGoal && assist && assist.side === event.side && assist !== row)
         assist.assists++;
-      if (shot && !event.ownGoal && shot.row === row && t - shot.second <= 10) {
-        shot.converted = true;
-        if (shot.penalty) row.penaltyGoals++;
+      const attempt = event.shotId !== undefined ? shotsById.get(event.shotId) : shot;
+      if (
+        attempt &&
+        !event.ownGoal &&
+        attempt.row === row &&
+        (event.shotId !== undefined || t - attempt.second <= 10)
+      ) {
+        attempt.converted = true;
+        if (attempt.penalty) row.penaltyGoals++;
       }
       for (const player of rows.values())
         if (player.side !== event.side && t <= player.deadline) player.conceded++;
@@ -137,14 +158,23 @@ export function buildPlayerRatings(report) {
       penalty = null;
       reception.clear();
     } else if (event.type === 'save' && row) {
+      const attempt = event.shotId !== undefined ? shotsById.get(event.shotId) : shot;
       saves.push({
         row,
-        context: Boolean(shot && shot.row.side !== row.side && t - shot.second <= 10),
-        penalty: Boolean(shot?.penalty),
+        context: Boolean(
+          attempt &&
+          attempt.row.side !== row.side &&
+          (event.shotId !== undefined || t - attempt.second <= 10),
+        ),
+        penalty: Boolean(attempt?.penalty),
       });
       shot = null;
       reception.clear();
-    } else if (['pass', 'cross', 'clearance'].includes(event.type) && row) {
+    } else if (
+      (['pass', 'cross', 'clearance'].includes(event.type) ||
+        (event.type === 'header' && event.intent === 'headedPass')) &&
+      row
+    ) {
       row.eventPasses++;
       attempts.set(row.id, event);
       reception.delete(row.id);
@@ -336,6 +366,7 @@ export function buildPlayerRatings(report) {
     } = row;
     return {
       ...publicRow,
+      chancesCreated: row.assists + row.keyPasses,
       xg: round(row.xg),
       rating,
       categories,

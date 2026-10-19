@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+0.15.1新增matches/attribution统计运行模块与tests/match/attribution.test.mjs，按既有规则映射真实比赛单元与比赛专项；比分/助攻/射正/扑救归属变化按算法验证。赛历/结算流程不改，不触发赛季。仅维护功能测试映射，分层/CI/并发/PR流程不变。
+
 0.15.0新模块风险映射维护：staff映射training-careers与评估针对性测试；players/development的真实能力成长/衰退和training的场地能力映射/结算接入映射比赛输入专项；冻结周训练、全部报告和工资接入竞赛流程触发完整赛季。声明validation/major-flow/training-v0150.json说明跨轮训练。既有层级/命令/并行/CI/审查/部署流程不变，本次同时涉及能力输入与重大流程，按现行规则执行一次完整物理赛季。
 
 0.14.0新增matches/arrival、offball、deadball为真实比赛算法；tests/match/movement-v0140.test.mjs加入既有比赛单元清单，覆盖真实连续推进/追防/死球/庆祝与条件盯防观察。算法检查含比赛专项，赛历结算未改，不触发赛季。仅维护新功能映射，测试分层、命令、并发、CI/PR与部署流程不变。

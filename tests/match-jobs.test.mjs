@@ -9,6 +9,7 @@ import { gunzipSync, gzipSync, inflateRawSync } from 'node:zlib';
 import { Worker } from 'node:worker_threads';
 import { once } from 'node:events';
 import { ENGINE_VERSION, PARAMETER_VERSION } from '../packages/shared/modules/matches/index.mjs';
+import { RATING_VERSION } from '../packages/shared/modules/matches/ratings/index.mjs';
 
 function setup() {
   const db = new DatabaseSync(':memory:');
@@ -258,7 +259,7 @@ test('long historical reports are losslessly stored outside state, while legacy 
       gunzipSync(storage.report('one', 'detail')).toString(),
     );
     assert.deepEqual(archived, expected);
-    assert.equal(playerRatings.version, 'match-rating-1');
+    assert.equal(playerRatings.version, RATING_VERSION);
     assert.equal(playerRatings.rows.length, 22);
     assert.equal(JSON.stringify(state.reports[1]), beforeLegacy);
     const saved = Buffer.from(storage.report('one', 'detail'));
