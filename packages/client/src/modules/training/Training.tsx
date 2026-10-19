@@ -19,6 +19,7 @@ export function Training({ game, club, busy, act, onPlayer }: Props) {
         <div>
           <h2>训练场上的努力，会在比赛中回响。</h2>
           <p>每轮两次，每次 £6,000。年龄和职业态度影响成长，门将使用专项训练。</p>
+          <p>能力采用 1–100 整数；每项训练经验累计满 100 点提升 1 点能力，未满部分留到后续训练。</p>
         </div>
         <Badge tone="outline">已完成 {game.training.used} / 2</Badge>
       </div>

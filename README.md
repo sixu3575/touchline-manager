@@ -1,5 +1,9 @@
 # TOUCHLINE · 临场足球经理
 
+0.13.0后续展示调整：取消评估综合，公开服务端按原位置评级计算的实际总能力值overall；一线队同一列展示总能力与六维雷达图，默认按总能力降序，各表头可切换升降序（出场/进球分列）。细项按六项主属性归类，外场门将专项/门将其他进攻技术折叠补充，并明确不计入对应概览；30项各出现一次。分组不改变汇总权重或比赛算法，细项区间及教练/球探机制保留，自动排阵继续使用已知区间。
+
+0.13.0球员采用百分制整数能力，细微训练以整数经验累计，评估区间/卡片无小数。详见[INTEGER_STATS.md](packages/shared/modules/players/INTEGER_STATS.md)，旧回放不重算。
+
 0.12.0：球员卡公开六项概览，教练与球探逐步揭示细项，详见[评估设计](packages/shared/modules/players/ASSESSMENT.md)及[属性审计](packages/shared/modules/players/ATTRIBUTE_AUDIT.md)。全部30项真实能力继续参与原比赛；未适配的新属性明确搁置。
 
 当前版本0.11.0：球员有位置与技术偏向的差异化属性，旧档显式一次重塑，指定观察存档加入综合95的99号林曜。详见[球员分布](packages/shared/modules/players/ATTRIBUTE_PROFILES.md)。

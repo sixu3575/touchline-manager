@@ -1,5 +1,7 @@
 # 决策图导出副本
 
+0.13.0第6图加入整数基础能力/培养经验，第7图加入整数评估和经验隐私。其他五图算法不变，七SVG与维护来源摘要同步，整数契约见players/INTEGER_STATS.md。
+
 0.12.0新增07-knowledge可见性图：原六张竞技图不重写，新增观察/公开摘要/服务器真值边界。SOURCE_SNAPSHOT追加知识与投影源码；新属性消费者与搁置情况见球员模块ATTRIBUTE_AUDIT.md。
 
 0.11.0第6图新增FG/FB赛前技术模板与预算保护；其他五图执行条件未改。23份源码摘要包括players/profiles.mjs；引擎/参数仍0.10.0-tactical-roles/tactics-1。

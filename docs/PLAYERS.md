@@ -1,5 +1,9 @@
 # 球员模型与扩展契约
 
+0.13.0后续展示调整：取消评估综合，公开服务端按原位置评级计算的实际总能力值overall；一线队同一列展示总能力与六维雷达图，默认按总能力降序，各表头可切换升降序（出场/进球分列）。细项按六项主属性归类，外场门将专项/门将其他进攻技术折叠补充，并明确不计入对应概览；30项各出现一次。分组不改变汇总权重或比赛算法，细项区间及教练/球探机制保留，自动排阵继续使用已知区间。
+
+0.13.0当前能力精度以[INTEGER_STATS.md](../packages/shared/modules/players/INTEGER_STATS.md)为准：30项1–100整数，skills/评估也取整，trainingProgress为私有整数培养经验。取代旧版最多一位小数的当前规则；历史原值保留。
+
 0.12.0以[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)为当前展示/可见性契约，覆盖下文旧版直接显示全部attributes的界面描述。真实30项不变；[ATTRIBUTE_AUDIT.md](../packages/shared/modules/players/ATTRIBUTE_AUDIT.md)逐项列消费者与未适配属性。公开skills/potential/weakFoot是评估中点DTO，不能写回真实球员。
 
 ## 0.11.0 技术特点

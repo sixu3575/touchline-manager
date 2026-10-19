@@ -187,6 +187,7 @@ const moduleTests = {
     'tests/players.test.mjs',
     'tests/player-profiles.test.mjs',
     'tests/player-assessments.test.mjs',
+    'tests/player-integers.test.mjs',
     'tests/approved-v1.test.mjs',
   ],
   tactics: ['tests/game.test.mjs'],
@@ -262,6 +263,8 @@ export function classifyChanges(
         business.add(t);
     if (path === 'packages/server/src/maintenance/player-profiles.mjs')
       business.add('tests/player-profiles.test.mjs');
+    if (path === 'packages/server/src/maintenance/player-integers.mjs')
+      business.add('tests/player-integers.test.mjs');
     if (path === 'packages/shared/game.mjs' || path.startsWith('packages/shared/core/'))
       for (const t of allBusiness) business.add(t);
     if (['package.json', 'package-lock.json'].includes(path)) {
@@ -317,7 +320,14 @@ export function classifyChanges(
     if (path === 'packages/shared/modules/players/profiles.mjs') algorithm = true;
     if (path === 'packages/shared/modules/players/index.mjs')
       algorithm =
-        intersects(keys, ['player', 'reprofilePlayer', 'observationPlayer']) ||
+        intersects(keys, [
+          'player',
+          'reprofilePlayer',
+          'observationPlayer',
+          'skillSummary',
+          'trainPlayer',
+          'integerizePlayer',
+        ]) ||
         // Explicit display-only public export; all other runtime links remain algorithm-sensitive.
         (oldParts.get('@links') ?? '')
           .replace(/export \* from "\.\/assessment\.mjs";\s*/g, '')

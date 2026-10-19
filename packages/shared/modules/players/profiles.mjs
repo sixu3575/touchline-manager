@@ -1,4 +1,4 @@
-import { clamp, decimal } from '../../core/index.mjs';
+import { clamp } from '../../core/index.mjs';
 
 export const ATTRIBUTE_PROFILE_VERSION = 1;
 export const SPECIALISMS = {
@@ -205,7 +205,19 @@ function fit(attributes, weights, target) {
     else high = offset;
   }
   for (const [key] of entries)
-    attributes[key] = decimal(clamp(attributes[key] + (low + high) / 2, 1, 100));
+    attributes[key] = Math.round(clamp(attributes[key] + (low + high) / 2, 1, 100));
+  // Preserve the rounded summary budget after integer quantisation.
+  const goal = Math.round(target);
+  for (let i = 0; i < 12; i++) {
+    const value = entries.reduce((sum, [key, w]) => sum + attributes[key] * w, 0);
+    if (Math.round(value) === goal) break;
+    const direction = Math.round(value) < goal ? 1 : -1;
+    const candidate = entries
+      .filter(([key]) => attributes[key] + direction >= 1 && attributes[key] + direction <= 100)
+      .sort((a, b) => b[1] - a[1])[0];
+    if (!candidate) break;
+    attributes[candidate[0]] += direction;
+  }
 }
 export function profileAttributes(role, budgets, rng, heightCm = 180) {
   const pool = roles[role];
@@ -246,7 +258,7 @@ export function profileAttributes(role, budgets, rng, heightCm = 180) {
   attributes.strength += (heightCm - 180) * 0.25;
   for (const [key, value] of Object.entries(bias[archetype])) attributes[key] += value;
   for (const key of Object.keys(attributes))
-    attributes[key] = decimal(clamp(attributes[key], 1, 100));
+    attributes[key] = Math.round(clamp(attributes[key], 1, 100));
   for (const [group, weights] of Object.entries(groups)) fit(attributes, weights, budgets[group]);
   return { attributes, archetype };
 }

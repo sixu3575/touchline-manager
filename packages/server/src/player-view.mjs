@@ -2,6 +2,7 @@ import {
   assessmentFor,
   assessmentOffice,
   skillSummary,
+  rating,
 } from '../../shared/modules/players/index.mjs';
 
 // One boundary for state, action retries, full archives and live job responses.
@@ -10,12 +11,23 @@ export function publicPlayer(g, p, own = false) {
   const assessment = assessmentFor(g, p, own);
   const midpoint = (k) => {
     const band = assessment.bands[k];
-    return band ? (band.min + band.max) / 2 : 50;
+    return band ? Math.round((band.min + band.max) / 2) : 50;
   };
-  const { attributes, skills, attributeProfile, potential, weakFoot, matchState, ...identity } = p;
+  const {
+    attributes,
+    skills,
+    attributeProfile,
+    potential,
+    weakFoot,
+    matchState,
+    trainingProgress,
+    ...identity
+  } = p;
   const estimates = Object.fromEntries(Object.keys(assessment.bands).map((k) => [k, midpoint(k)]));
   return {
     ...identity,
+    fitness: Math.round(p.fitness),
+    overall: Number.isFinite(rating(p)) ? rating(p) : null,
     assessment,
     skills: skillSummary(estimates),
     potential: midpoint('potential'),
@@ -34,6 +46,7 @@ const diagnostics = new Set([
   'attributes',
   'attributeProfile',
   'matchState',
+  'trainingProgress',
 ]);
 function stripDiagnostics(value) {
   if (Array.isArray(value)) return value.map(stripDiagnostics);

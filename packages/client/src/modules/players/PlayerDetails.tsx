@@ -8,12 +8,19 @@ import {
   TRAITS,
   personalityTraits,
   ASSESSMENT_STAGES,
+  cardDetailGroups,
 } from '../../../../shared/modules/players/index.mjs';
 import { Badge, Ovr } from '../../components/ui';
 import { money, roles } from '../../constants';
 import type { Player } from './model';
 import './players.css';
 import { footName, nationalityName } from './presentation';
+import { AbilityRadar } from './AbilityRadar';
+
+const attributeLabels = Object.assign(
+  {},
+  ...Object.values(ATTRIBUTE_GROUPS).map((g) => g.attributes),
+) as Record<string, string>;
 
 function Meter({ label, value }: { label: string; value: number }) {
   return (
@@ -22,12 +29,26 @@ function Meter({ label, value }: { label: string; value: number }) {
       <div>
         <i style={{ width: value + '%' }} />
       </div>
-      <b>{value.toFixed(1).replace('.0', '')}</b>
+      <b>{Math.round(value)}</b>
     </div>
   );
 }
 const bandText = (band: { min: number; max: number } | null | undefined) =>
   !band ? '待观察' : band.min === band.max ? String(band.min) : `${band.min}–${band.max}`;
+function AbilityBand({ player, attr }: { player: Player; attr: string }) {
+  const band = player.assessment.bands[attr];
+  return (
+    <div className="assessment-band" data-attribute={attr}>
+      <span>{attributeLabels[attr]}</span>
+      <div>
+        {band && (
+          <i style={{ left: `${band.min}%`, width: `${Math.max(1, band.max - band.min)}%` }} />
+        )}
+      </div>
+      <b>{bandText(band)}</b>
+    </div>
+  );
+}
 export function PlayerDetails({ player: p, onClose }: { player: Player; onClose: () => void }) {
   const [tab, setTab] = useState('ability');
   const dialog = useRef<HTMLElement>(null);
@@ -97,7 +118,7 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
             </div>
             <div className="pm-overall">
               <Ovr player={p} />
-              <small>评估综合</small>
+              <small>总能力值</small>
             </div>
           </div>
           <div className="pm-identity">
@@ -110,13 +131,13 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
             <span>潜力 {bandText(p.assessment.bands.potential)}</span>
           </div>
         </div>
-        <div className="player-card-six" aria-label="六项能力概览">
-          {p.assessment.overview.map((s) => (
-            <div key={s.key}>
-              <small>{s.label}</small>
-              <b>{s.value ?? '—'}</b>
-            </div>
-          ))}
+        <div className="pm-radar-summary">
+          <AbilityRadar player={p} />
+          <div>
+            <h3>六项主属性</h3>
+            <p>以 100 为满值，形状展示能力特点。</p>
+            <p>下方按主属性分组，查看对应细项。</p>
+          </div>
         </div>
         <div className="pm-facts">
           <div>
@@ -181,39 +202,28 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
               <Badge tone="outline">{roles[p.role]} 档案</Badge>
             </div>
             <div className="pm-attributes">
-              {Object.entries(ATTRIBUTE_GROUPS).map(([key, group]) => (
-                <section
-                  key={key}
-                  className={key === 'goalkeeping' && p.role !== 'GK' ? 'pm-secondary-group' : ''}
-                >
+              {cardDetailGroups(p.role).map((group) => (
+                <section key={group.key} data-ability-group={group.key}>
                   <h4>
                     <span>{group.label}</span>
-                    <small>{key.toUpperCase()}</small>
+                    <b>{p.assessment.overview.find((s) => s.key === group.key)?.value ?? '—'}</b>
                   </h4>
-                  {Object.entries(group.attributes).map(([attr, label]) => {
-                    const band = p.assessment.bands[attr];
-                    return (
-                      <div key={attr} className="assessment-band">
-                        <span>{String(label)}</span>
-                        <div>
-                          {band && (
-                            <i
-                              style={{
-                                left: `${band.min}%`,
-                                width: `${Math.max(1, band.max - band.min)}%`,
-                              }}
-                            />
-                          )}
-                        </div>
-                        <b>{bandText(band)}</b>
-                      </div>
-                    );
-                  })}
+                  {group.attributes.map((attr: string) => (
+                    <AbilityBand key={attr} attr={attr} player={p} />
+                  ))}
+                  {group.supplement && (
+                    <details className="pm-supplement">
+                      <summary>{group.supplement.label}</summary>
+                      {group.supplement.attributes.map((attr) => (
+                        <AbilityBand key={attr} attr={attr} player={p} />
+                      ))}
+                    </details>
+                  )}
                 </section>
               ))}
             </div>
             <p className="pm-note">
-              六项概览是细项的公开加权摘要；评估综合与自动排阵使用已知区间中点，未知细项暂按中性值估计。比赛始终使用服务器的全部真实细项。门将以扑救、接球、出球、反应、速度和选位概览展示。
+              总能力值按位置使用真实能力计算；六项概览是公开加权摘要，并非组内细项的简单平均。细项按主要用途归类，跨项影响不重复列出。教练与球探仍决定细项可见范围；自动排阵继续参考已知区间，比赛使用全部真实细项。门将展示专属六项。
             </p>
             <details className="pm-note">
               <summary>待适配属性（当前未启用）</summary>

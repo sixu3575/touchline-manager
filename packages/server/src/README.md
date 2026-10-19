@@ -1,5 +1,9 @@
 # HTTP与比赛计算
 
+公开DTO新增overall实际总能力值（缺失历史数据为null），其余细项仍由知识投影过滤；不得将overall回写能力或用评估skills替代真实评级。
+
+0.13.0新增显式离线maintenance/player-integers.mjs与CLI，plan/apply/摘要/事务/活跃任务防护，不能接成启动或HTTP重写。player-view隐藏trainingProgress，兼容估值和体能展示取整；历史BLOB只读投影。
+
 0.12.0 player-view.mjs是统一出站投影：state、成功/去重动作、job、archive均必须调用。原始attributes、种子和质量/局部概率/心理调试信息不得发给浏览器；报告先读取原BLOB再投影，不能破坏存储/评分/播放门槛。SSE只有进度索引，轨迹只有坐标。staff/scout仍受原并发/存档锁约束。
 
 0.9.0：仅broadcast.finished时通过matches/ratings/index.mjs生成赛后评分；此前liveReport白名单不带playerRatings。新报告持久化附评分，旧报告GET只生成响应、不写原记录。评分不改MatchJobs接纳/结算或引擎输入；storage/replays的事务与会话边界保持，规则见比赛模块ratings/README.md。

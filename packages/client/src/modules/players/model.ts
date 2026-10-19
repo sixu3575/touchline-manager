@@ -8,6 +8,8 @@ export interface Player {
   preferredFoot: 'left' | 'right' | 'both';
   weakFoot: number;
   heightCm: number;
+  // Authoritative public overall, separate from assessed compatibility skills.
+  overall: number | null;
   // Server DTO: no real attributes, even when an assessment is exact.
   assessment: {
     version: number;
@@ -20,7 +22,7 @@ export interface Player {
     bands: Record<string, { min: number; max: number } | null>;
     overview: { key: string; label: string; value: number | null }[];
   };
-  // Compatibility estimates for roster sorting/auto lineup, never true skills.
+  // Compatibility estimates for auto lineup, never true skills.
   skills: Record<string, number>;
   personality: Record<string, number>;
   wellbeing: { morale: number; confidence: number; clubAttachment: number; adaptation: number };
