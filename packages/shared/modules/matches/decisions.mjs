@@ -359,6 +359,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         type: 'dribble',
         intent: option.intent,
         destination,
+        mode: option.mode,
         quality: q,
         utility:
           success * pitchValue(destination, direction) -
@@ -372,9 +373,12 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         reason: option.reason,
         make: () => {
           const travel = unit(ball, destination),
-            m = movement(p, actor.energy, 'carry');
+            m = movement(p, actor.energy, option.mode);
           const running = Math.max(0, actor.velocity.x * travel.x + actor.velocity.z * travel.z);
-          const speed = Math.min(m.speed + 0.65, Math.max(2.2, running + 1.35));
+          const speed = Math.min(
+            m.speed + (option.mode === 'carryFast' ? 1.6 : 0.65),
+            Math.max(2.2, running + (option.mode === 'carryFast' ? 2.1 : 1.35)),
+          );
           const error = ((rng() - 0.5) * (100 - q.value)) / 350;
           return {
             x: travel.x * speed - travel.z * error,
@@ -435,6 +439,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   if (best.type === 'dribble')
     actor.intent = {
       kind: 'carry',
+      mode: best.mode,
       destination: best.destination,
       expiresAt: time + 1.6 + a('decisions') * 0.01,
     };

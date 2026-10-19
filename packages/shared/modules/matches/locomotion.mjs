@@ -17,6 +17,7 @@ export function movement(p, energy, mode = 'sprint') {
     run: 4.3 + 0.022 * pace,
     sprint: top,
     carry: top * (0.6 + 0.002 * a('dribbling')),
+    carryFast: top * (0.86 + 0.001 * a('dribbling')),
   };
   return {
     speed: speeds[mode] ?? speeds.run,
@@ -44,11 +45,17 @@ export function driveMovement(actor, desired, limits, dt, responseMultiplier = 1
   actor.body.applyImpulse({ x: dx * scale * mass, y: 0, z: dz * scale * mass }, true);
 }
 export function movementMode(actor, ball, owner, roles, gap) {
+  if (actor === owner) return actor.intent?.mode === 'carryFast' ? 'carryFast' : 'carry';
   if (gap < 1.2) return 'walk';
-  if (actor === owner) return 'carry';
   const chasing = roles.chasers.includes(actor.index);
   if (roles.receiverId === actor.player.id) return distance(actor.pos, ball) > 5 ? 'sprint' : 'run';
   if (chasing) return distance(actor.pos, ball) > 7 ? 'sprint' : 'run';
+  if (roles.marking?.[actor.player.id]) {
+    const speed = actor.markMemory
+      ? Math.hypot(actor.markMemory.velocity.x, actor.markMemory.velocity.z)
+      : 0;
+    return gap > 4 || speed > 5 ? 'sprint' : gap > 1.5 || speed > 3 ? 'run' : 'jog';
+  }
   if (roles.runnerId === actor.player.id) return 'sprint';
   if (
     gap > 5 &&

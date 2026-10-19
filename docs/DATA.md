@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.14.0保持JSON/SQLite3及旧回放不变。新比赛actor携带可序列化markMemory/offBallPlan/receivePreparation，state携带deadState；现有通用检查点保存它们，引擎0.14.0-movement/movement-1作恢复边界。发布必须排空旧任务，不跨引擎恢复；不做存档重塑或历史重算。
+
 0.13.0公开DTO新增overall:number|null，由真实能力（旧快照回退原skills）即时计算，不持久化；六项概览/细项知识继续投影。没有额外数据库迁移。
 
 0.13.0继续JSON/SQLite3：当前attributes/skills采用整数；训练新增可选trainingProgress:{属性键:0–99整数经验}，满100转换1点能力，潜力封顶清除。该字段不发客户端。显式离线plan/apply只取整当前能力、潜力/逆足和技能缓存，有变化save的revision+1，其他状态与历史BLOB不改。详见[INTEGER_STATS.md](../packages/shared/modules/players/INTEGER_STATS.md)。

@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+0.14.0新增matches/arrival、offball、deadball为真实比赛算法；tests/match/movement-v0140.test.mjs加入既有比赛单元清单，覆盖真实连续推进/追防/死球/庆祝与条件盯防观察。算法检查含比赛专项，赛历结算未改，不触发赛季。仅维护新功能映射，测试分层、命令、并发、CI/PR与部署流程不变。
+
 0.13.0新增整数维护映射player-integers.test.mjs，skillSummary/trainPlayer/integerizePlayer的数值规则变化映射真实比赛专项；新默认分布同样触发比赛。训练只改局部成长表示，不改赛历/动作分发/结算/启动迁移，离线维护不触发完整赛季；原分层、CI/PR、并发和发布流程不改。
 
 0.12.0新增players/assessment.mjs与server/player-view.mjs映射player-assessments.test.mjs；players公共入口仅新增assessment的展示导出不算比赛算法，其他运行链接与引擎接入仍触发比赛专项，并有策略测试。动作编排/知识持久契约与赛历观察接入触发完整业务赛季；比赛算法未改，match=false/physicalSeason=false。属于新功能风险映射维护，不改变分层、Node22/24、并发、CI/PR或发布流程。
