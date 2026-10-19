@@ -1,7 +1,6 @@
 import { Check, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { bestLineup } from '../../../../shared/modules/tactics/index.mjs';
-import { rating } from '../../../../shared/modules/players/index.mjs';
 import { PanelHead } from '../../components/ui';
 import { styleNames } from '../../constants';
 import type { Club, Game, Player } from '../../model';
@@ -74,7 +73,7 @@ export function Tactics({
               />
               <span className="position-label">{p.role}</span>
               <b>{p.name}</b>
-              <span>{rating(p)}</span>
+              <span title="总能力值">{p.overall ?? '—'}</span>
             </label>
           ))}
         </div>

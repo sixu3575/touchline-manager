@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.13.0公开DTO新增overall:number|null，由真实能力（旧快照回退原skills）即时计算，不持久化；六项概览/细项知识继续投影。没有额外数据库迁移。
+
 0.13.0继续JSON/SQLite3：当前attributes/skills采用整数；训练新增可选trainingProgress:{属性键:0–99整数经验}，满100转换1点能力，潜力封顶清除。该字段不发客户端。显式离线plan/apply只取整当前能力、潜力/逆足和技能缓存，有变化save的revision+1，其他状态与历史BLOB不改。详见[INTEGER_STATS.md](../packages/shared/modules/players/INTEGER_STATS.md)。
 
 0.12.0继续JSON schema3/SQLite user_version3，新增可选assessment内部version1：coach/scout与players[id]的joinedOn/sessions/visits/lastScouted。GET只读默认，合法动作或比赛计划首次建立，观察跨季保留；不修改启动迁移或旧记录。服务器attributes/skills/potential/weakFoot仍真实；HTTP不含attributes/种子/生成模板，skills等为评估中点。历史BLOB原样，响应投影。详见[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)。

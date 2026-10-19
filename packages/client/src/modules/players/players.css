@@ -4,6 +4,111 @@
   color: #294436;
   overflow: auto;
 }
+.ability-radar {
+  display: block;
+  width: 260px;
+  height: auto;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.ability-radar.compact {
+  width: 144px;
+}
+.radar-grid {
+  fill: none;
+  stroke: #cedbc1;
+  stroke-width: 0.7;
+}
+.radar-shape {
+  fill: #8fb95750;
+  stroke: #648e38;
+  stroke-width: 1.7;
+}
+.radar-label {
+  fill: #60764e;
+  font-size: 10px;
+  font-weight: 500;
+}
+.radar-value {
+  fill: #35552d;
+  font-size: 11px;
+  font-weight: 750;
+}
+.roster-ability {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.squad-table .roster-ability-cell {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.squad-table {
+  min-width: 1040px;
+}
+.roster-sort {
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 8px 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.roster-sort > span {
+  color: #6d914b;
+}
+.roster-sort:focus-visible {
+  outline: 2px solid #74994c;
+  outline-offset: 4px;
+}
+.pm-radar-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 35px;
+  background: #eaf1e1;
+  padding: 20px 28px;
+}
+.pm-radar-summary h3 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.pm-radar-summary p {
+  color: #738768;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.pm-attributes h4 > b {
+  color: #648d39;
+  font-size: 23px;
+}
+.pm-supplement {
+  color: #7b8c70;
+  font-size: 10px;
+  margin-top: 20px;
+}
+.pm-supplement summary {
+  cursor: pointer;
+  line-height: 1.8;
+}
+@media (max-width: 600px) {
+  .pm-radar-summary {
+    flex-direction: column;
+    gap: 0;
+    padding: 12px 20px;
+  }
+  .pm-radar-summary > div {
+    text-align: center;
+  }
+  .pm-radar-summary p {
+    margin: 4px 0;
+  }
+  .pm-radar-summary .ability-radar {
+    width: 240px;
+  }
+}
 .player-card-six {
   display: grid;
   grid-template-columns: repeat(6, 1fr);

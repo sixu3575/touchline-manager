@@ -12,6 +12,8 @@ import {
   cardOverview,
   ensureAssessment,
   ATTRIBUTE_GROUPS,
+  rating,
+  cardDetailGroups,
 } from '../packages/shared/modules/players/index.mjs';
 import { publicState, publicReport, publicJob } from '../packages/server/src/player-view.mjs';
 import {
@@ -57,11 +59,42 @@ test('six public summaries are derived, bounded and position-specific; public re
   noSecrets(view);
   assert.ok(view.market.every((p) => Object.values(p.assessment.bands).every((b) => b === null)));
   assert.deepEqual(g, original);
+  for (const [i, c] of g.clubs.entries())
+    for (const [j, p] of c.players.entries())
+      assert.equal(view.clubs[i].players[j].overall, rating(p));
+  for (const [i, p] of g.market.entries()) assert.equal(view.market[i].overall, rating(p));
+  ensureAssessment(g);
+  g.assessment.scout = 5;
+  g.assessment.players[g.market[0].id] = { visits: 8 };
+  assert.equal(
+    publicState(g).market[0].overall,
+    view.market[0].overall,
+    'public overall must not change with staff knowledge',
+  );
   const legacy = { id: 'legacy', role: 'FWD', skills: { pace: 80 } };
   assert.ok(
     cardOverview(legacy).every((s) => s.value === null),
     'missing historical truth must not become invented 50-point card data',
   );
+});
+
+test('six reading groups contain all 30 details exactly once for outfield and keepers, without changing summary weights', () => {
+  const g = createGame();
+  for (const role of ['FWD', 'MID', 'DEF', 'GK']) {
+    const p = g.clubs[0].players.find((p) => p.role === role);
+    const groups = cardDetailGroups(role),
+      before = cardOverview(p);
+    assert.deepEqual(
+      groups.map((s) => s.key),
+      before.map((s) => s.key),
+    );
+    const keys = groups.flatMap((s) => [...s.attributes, ...(s.supplement?.attributes ?? [])]);
+    assert.equal(keys.length, 30);
+    assert.deepEqual([...keys].sort(), [...abilityKeys].sort());
+    assert.equal(new Set(keys).size, 30);
+    assert.match(groups.find((s) => s.supplement).supplement.label, /不计入/);
+    assert.deepEqual(cardOverview(p), before);
+  }
 });
 test('reports narrow deterministically, unknown stays unknown, and exact knowledge requires both staff and observation', () => {
   const g = createGame(),
@@ -151,6 +184,7 @@ test('archive/live diagnostics are projected without changing replay, stats, sco
   noSecrets(publicJob(g, { id: 'job', report: raw }));
   assert.deepEqual(view.score, raw.score);
   assert.deepEqual(view.stats, raw.stats);
+  assert.equal(view.snapshots[0].players[0].overall, rating(p));
   assert.deepEqual(raw, original);
 });
 test('all 30 live attributes have actual executable consumers; inspection does not mistake generation/training for match use', () => {

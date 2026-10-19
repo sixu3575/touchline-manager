@@ -21,6 +21,43 @@ export const KEEPER_CARD_GROUPS = {
   pace: CARD_GROUPS.pace,
   positioning: ['选位', { oneOnOnes: 0.6, anticipation: 0.4 }],
 };
+// Reading groups are not aggregation weights. Every detail appears once, although
+// a real ability can influence several public summaries and many match decisions.
+const OUTFIELD_DETAILS = {
+  pace: ['acceleration', 'sprintSpeed'],
+  shooting: ['finishing', 'longShots', 'heading', 'setPieces', 'offTheBall', 'composure'],
+  passing: ['passing', 'crossing', 'vision', 'decisions', 'teamwork'],
+  dribbling: ['dribbling', 'firstTouch', 'agility', 'balance'],
+  defending: ['tackling', 'marking', 'positioning', 'anticipation', 'concentration'],
+  physical: ['strength', 'stamina'],
+};
+const KEEPER_DETAILS = {
+  diving: ['reflexes', 'agility'],
+  handling: ['handling', 'firstTouch', 'balance'],
+  kicking: ['distribution', 'passing', 'crossing', 'vision', 'decisions', 'teamwork', 'setPieces'],
+  reactions: ['anticipation', 'concentration', 'composure'],
+  pace: ['acceleration', 'sprintSpeed', 'stamina', 'strength'],
+  positioning: ['oneOnOnes', 'aerialReach', 'command', 'positioning', 'marking', 'tackling'],
+};
+export function cardDetailGroups(role) {
+  const keeper = role === 'GK',
+    groups = keeper ? KEEPER_CARD_GROUPS : CARD_GROUPS,
+    details = keeper ? KEEPER_DETAILS : OUTFIELD_DETAILS;
+  return Object.entries(groups).map(([key, [label]]) => ({
+    key,
+    label,
+    attributes: details[key],
+    supplement:
+      key === (keeper ? 'kicking' : 'defending')
+        ? {
+            label: keeper ? '其他进攻技术（不计入出球概览）' : '门将专项（不计入防守概览）',
+            attributes: keeper
+              ? ['finishing', 'longShots', 'heading', 'offTheBall', 'dribbling']
+              : Object.keys(ATTRIBUTE_GROUPS.goalkeeping.attributes),
+          }
+        : null,
+  }));
+}
 export const ASSESSMENT_STAGES = ['尚未观察', '初步观察', '持续观察', '深入评估', '充分了解'];
 const keys = Object.values(ATTRIBUTE_GROUPS).flatMap((g) => Object.keys(g.attributes));
 const daysBetween = (a, b) => Math.max(0, Math.floor((Date.parse(b) - Date.parse(a)) / 86400000));

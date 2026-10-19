@@ -2,6 +2,7 @@ import {
   assessmentFor,
   assessmentOffice,
   skillSummary,
+  rating,
 } from '../../shared/modules/players/index.mjs';
 
 // One boundary for state, action retries, full archives and live job responses.
@@ -26,6 +27,7 @@ export function publicPlayer(g, p, own = false) {
   return {
     ...identity,
     fitness: Math.round(p.fitness),
+    overall: Number.isFinite(rating(p)) ? rating(p) : null,
     assessment,
     skills: skillSummary(estimates),
     potential: midpoint('potential'),

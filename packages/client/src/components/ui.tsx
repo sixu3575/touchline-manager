@@ -1,6 +1,5 @@
 import React from 'react';
 import { Shield, Flag, ChevronRight, Wallet } from 'lucide-react';
-import { rating } from '../../../shared/modules/players/index.mjs';
 import { roles } from '../constants';
 import type { Player, Standing } from '../model';
 export function Crest({
@@ -30,10 +29,10 @@ export function Badge({ children, tone = 'green' }: { children: React.ReactNode;
 export function Ovr({ player }: { player: Player }) {
   return (
     <span
-      title="基于已知区间的评估综合，未知细项采用中性估计"
-      className={'ovr ' + (rating(player) >= 70 ? 'gold' : '')}
+      title="总能力值 · 按位置计算的实际综合能力"
+      className={'ovr ' + ((player.overall ?? 0) >= 70 ? 'gold' : '')}
     >
-      {rating(player)}
+      {player.overall ?? '—'}
     </span>
   );
 }
