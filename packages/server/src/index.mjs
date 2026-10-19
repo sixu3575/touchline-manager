@@ -157,7 +157,12 @@ const server = http.createServer(async (req, res) => {
         const raw = cookies(req).tl_session;
         const row = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;
         const id = decodeURIComponent(url.pathname.slice('/api/replays/'.length));
-        const payload = row && replays.find(row.id, id);
+        const summary = row && JSON.parse(row.state).reports.find((r) => r.id === id);
+        const payload =
+          row &&
+          summary &&
+          (summary.homeId === 'me' || summary.awayId === 'me') &&
+          replays.find(row.id, id);
         if (!payload) {
           send(res, 404, { error: '回放不存在或不属于此存档。' });
           return;

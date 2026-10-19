@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+0.15.0publicState只在克隆上初始化训练/职员默认值；合法动作才持久化。development不出站，训练历史只给delta；staff属性是公开人事资料。回放接口额外校验报告包含本队，AI不存轨迹，旧历史BLOB不改写。
+
 公开DTO新增overall实际总能力值（缺失历史数据为null），其余细项仍由知识投影过滤；不得将overall回写能力或用评估skills替代真实评级。
 
 0.13.0新增显式离线maintenance/player-integers.mjs与CLI，plan/apply/摘要/事务/活跃任务防护，不能接成启动或HTTP重写。player-view隐藏trainingProgress，兼容估值和体能展示取整；历史BLOB只读投影。

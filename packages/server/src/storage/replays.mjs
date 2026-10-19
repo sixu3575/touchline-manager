@@ -41,6 +41,13 @@ export function createReplayStorage(db) {
     persist(saveId, state) {
       for (let index = 0; index < state.reports.length; index++) {
         const report = state.reports[index];
+        const own = report.homeId === 'me' || report.awayId === 'me';
+        if (!own && report.homeId && report.awayId) {
+          delete report.trajectory;
+          delete report.replay;
+          report.canReplay = false;
+          remove.run(saveId, report.id);
+        }
         if (report.trajectory instanceof Uint16Array) {
           const raw = Buffer.allocUnsafe(report.trajectory.length * 2);
           for (let i = 0; i < report.trajectory.length; i++)

@@ -3,4 +3,4 @@ export { Replay } from './Replay';
 export { useMatchJob } from './useMatchJob';
 export { MatchTask } from './MatchTask';
 export { PhysicalReplay } from './PhysicalReplay';
-export { MatchReports } from './MatchReports';
+export { MatchReports, MatchReport } from './MatchReports';

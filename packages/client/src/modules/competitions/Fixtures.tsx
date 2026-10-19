@@ -4,6 +4,7 @@ import { Badge, Crest, Empty, LeagueTable, PanelHead } from '../../components/ui
 import type { Game, Report, Standing } from '../../model';
 import { AdvanceButton } from './AdvanceButton';
 import { MatchReports } from '../matches';
+import { RoundReports } from './RoundReports';
 
 export function Fixtures({
   game,
@@ -75,7 +76,11 @@ export function Fixtures({
           </div>
         </section>
       </div>
-      <MatchReports reports={game.reports} onReplay={onReport} />
+      <RoundReports game={game} onReplay={onReport} />
+      <MatchReports
+        reports={game.reports.filter((r) => r.homeId === 'me' || r.awayId === 'me')}
+        onReplay={onReport}
+      />
       <div className="dashboard-grid fixtures-grid">
         <section className="panel">
           <PanelHead title="我的赛程" subtitle="双循环赛制 · 每赛季 14 轮" />

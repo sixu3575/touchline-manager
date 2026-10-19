@@ -37,9 +37,12 @@ export function MatchReports({
                 <button className="secondary" onClick={() => setSelected(report)}>
                   <FileText size={15} /> 查看战报
                 </button>
-                <button className="ghost" onClick={() => onReplay(report)}>
-                  <Play size={14} /> 观看回放
-                </button>
+                {(report.homeId === 'me' || report.awayId === 'me') &&
+                  report.canReplay !== false && (
+                    <button className="ghost" onClick={() => onReplay(report)}>
+                      <Play size={14} /> 观看回放
+                    </button>
+                  )}
               </div>
             </div>
           ))}
@@ -54,7 +57,7 @@ export function MatchReports({
   );
 }
 
-function MatchReport({ summary, onClose }: { summary: Report; onClose: () => void }) {
+export function MatchReport({ summary, onClose }: { summary: Report; onClose: () => void }) {
   const { report, error, retry } = useArchivedReport(summary);
   const [filter, setFilter] = useState('key');
   const [limit, setLimit] = useState(40);
@@ -133,6 +136,11 @@ function MatchReport({ summary, onClose }: { summary: Report; onClose: () => voi
           </div>
         ) : (
           <>
+            {report.legacySummary && (
+              <p className="fine">
+                升级前这场比赛仅保存了比分，没有完整统计或事件；此处展示已有记录。
+              </p>
+            )}
             <div className="report-scoreboard">
               <div>
                 <Crest name={report.homeName} />

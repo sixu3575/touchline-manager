@@ -161,7 +161,7 @@ test('schema 1 upgrade preserves gameplay, money, ages, identity and immutable h
       assert.deepEqual(Object.keys(b.attributes).sort(), allAttributes);
     }
   assert.equal(migrateState(next).changed, false);
-  applyAction(next, 'train', { focus: 'defence' });
+  applyAction(next, 'train', { focus: 'fitness' });
   applyAction(next, 'advance');
   assert.equal(next.round, 2);
 });

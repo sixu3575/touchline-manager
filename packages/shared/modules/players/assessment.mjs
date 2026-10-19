@@ -75,6 +75,32 @@ export function ensureAssessment(g) {
     const r = (g.assessment.players[p.id] ??= { visits: 0, sessions: 0 });
     r.joinedOn ??= g.gameDate;
   }
+  if (g.staff)
+    for (const kind of ['coach', 'scout']) {
+      const skill = Math.max(
+        1,
+        ...g.staff.employees.filter((p) => p.kind === kind).map((p) => p.attributes.assessment),
+      );
+      g.assessment[kind] = Math.min(5, 1 + Math.floor(skill / 20));
+    }
+  for (const p of [
+    ...g.clubs[0].players,
+    ...g.market,
+    ...g.clubs.slice(1).flatMap((c) => c.players),
+  ]) {
+    const r = g.assessment.players[p.id];
+    if (!r) continue;
+    const a = assessmentFor(
+      g,
+      p,
+      g.clubs[0].players.some((q) => q.id === p.id),
+    );
+    for (const key of keys)
+      if (a.bands[key]?.min === a.bands[key]?.max && a.bands[key]) {
+        r.confirmedPeaks ??= {};
+        r.confirmedPeaks[key] = Math.max(r.confirmedPeaks[key] ?? 0, a.bands[key].min);
+      }
+  }
   return g.assessment;
 }
 export function scoutPlayer(g, { playerId }) {
@@ -97,6 +123,11 @@ export function staffUpgradeCost(g, kind) {
 export function improveAssessmentStaff(g, kind) {
   staffUpgradeCost(g, kind);
   ensureAssessment(g)[kind]++;
+  if (g.staff)
+    for (const p of g.staff.employees.filter((p) => p.kind === kind)) {
+      p.attributes.assessment = Math.min(95, p.attributes.assessment + 20);
+      p.attributes.potential = Math.min(95, p.attributes.potential + 20);
+    }
 }
 export function noteAssessmentTraining(g) {
   const office = ensureAssessment(g);
@@ -130,13 +161,36 @@ export function assessmentFor(g, p, own = false) {
   const bands = Object.fromEntries(
     [...keys, 'potential', 'weakFoot'].map((key) => {
       const hash = seedFrom(`${g.seed}:${p.id}:${key}:assessment-v1`);
-      const seen = stage > 0 && (stage >= 3 || hash % 100 < (stage === 1 ? 45 : 75));
+      const practice = r.trainingObservations?.[key] ?? 0;
+      const crew = (g.staff?.employees ?? []).filter((p) => p.kind === (own ? 'coach' : 'scout'));
+      const potentialLevel = crew.length
+        ? Math.min(5, 1 + Math.floor(Math.max(...crew.map((p) => p.attributes.potential)) / 20))
+        : level;
+      const baseStage =
+        key === 'potential'
+          ? observations === 0
+            ? 0
+            : potentialLevel === 5 && observations >= 8
+              ? 4
+              : Math.min(3, 1 + Math.floor((potentialLevel - 1) / 2) + Math.floor(observations / 4))
+          : stage;
+      const perStage =
+        own && practice > 0
+          ? Math.min(
+              4,
+              Math.max(
+                baseStage,
+                practice >= 12 && level >= 3 ? 4 : Math.min(3, 1 + Math.floor(practice / 3)),
+              ),
+            )
+          : baseStage;
+      const seen = perStage > 0 && (perStage >= 3 || hash % 100 < (perStage === 1 ? 45 : 75));
       const original = p.attributes?.[key] ?? p[key];
       if (!seen || !Number.isFinite(original)) return [key, null];
       // Archived truth is immutable; its presentation follows the current integer scale.
       const raw = Math.round(original);
-      if (stage === 4) return [key, { min: raw, max: raw }];
-      const width = { 1: 32, 2: 16, 3: 8 }[stage],
+      if (perStage === 4) return [key, { min: raw, max: raw }];
+      const width = { 1: 32, 2: 16, 3: 8 }[perStage],
         offset = hash % width;
       const min = Math.floor((raw - offset) / width) * width + offset;
       return [key, { min: clamp(min, 1, 100), max: clamp(min + width, 1, 100) }];
@@ -151,6 +205,7 @@ export function assessmentFor(g, p, own = false) {
     asOf: g.gameDate,
     lastScouted: r.lastScouted ?? null,
     bands,
+    peaks: { ...(r.confirmedPeaks ?? {}) },
     overview: cardOverview(p),
   };
 }

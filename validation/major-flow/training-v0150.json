@@ -1,0 +1,7 @@
+{
+  "reason": "训练从即时加点改为冻结联赛周计划结算，加入日期衰退、职员工资与全部比赛战报，影响跨轮、跨季和最终统一发布。",
+  "files": [
+    "packages/shared/modules/training/index.mjs",
+    "packages/shared/modules/competitions/index.mjs"
+  ]
+}

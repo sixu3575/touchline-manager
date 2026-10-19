@@ -1,0 +1,15 @@
+.round-reports {
+  margin-bottom: 24px;
+}
+.round-reports > label {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+.round-reports select {
+  padding: 8px;
+  border: 1px solid #dfe5d9;
+  border-radius: 6px;
+}

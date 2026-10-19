@@ -1,9 +1,7 @@
 # 训练模块
 
-职责：全队训练次数、费用与训练意图校验。
+职责：七个场地区域建设、每人/教练唯一分配、每轮训练及结果，调用players公共成长接口、staff公共人员接口。
 
-公共入口：index.mjs。train。
+公共入口：TRAINING_FIELDS、ensureTraining、trainingFacility、assignTraining、resolveTraining；train仅旧预约兼容。默认一级传控/体能，三级封顶，8人/级，实际参训每人£300/轮。安排持续；联赛冻结计划按日期衰退后训练，5×终场统一公布；杯赛不重复。
 
-边界：每轮最多两次，每次 6000；能力成长逻辑调用 players.trainPlayer，不复制其公式。前端对应 packages/client/src/modules/training。
-
-依赖与文件归属见根目录 modules.json。跨模块只导入公共入口；每次开发在本目录 CHANGELOG.md 记录内容、验证和新增注意事项。既有分支、检查、PR、部署流程不变，流程优化需用户批准。
+[当前规则、概率与存档契约](TRAINING_AND_CAREERS_V0150.md)。成长每项+1/不变，判断只加快观察；六大属性不记录峰值，伤病后续。跨模块只导入index.mjs，依赖/归属见modules.json。每次变更更新本目录CHANGELOG与决策图；既有流程不改。

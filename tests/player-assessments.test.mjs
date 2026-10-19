@@ -22,11 +22,27 @@ import {
 } from '../packages/shared/modules/competitions/index.mjs';
 import { simulate } from '../packages/shared/modules/matches/index.mjs';
 import { startServer } from './helpers/api-suite.mjs';
+import { ensureTraining } from '../packages/shared/modules/training/index.mjs';
 const root = new URL('../', import.meta.url);
 const abilityKeys = Object.values(ATTRIBUTE_GROUPS).flatMap((g) => Object.keys(g.attributes));
 const noSecrets = (value) => {
   if (!value || typeof value !== 'object') return;
   for (const [k, v] of Object.entries(value)) {
+    if (k === 'attributes' && ['coach', 'scout'].includes(value.kind)) {
+      assert.deepEqual(
+        Object.keys(v).sort(),
+        [
+          'technical',
+          'physical',
+          'tactical',
+          'goalkeeping',
+          'motivation',
+          'assessment',
+          'potential',
+        ].sort(),
+      );
+      continue;
+    }
     assert.ok(
       ![
         'seed',
@@ -34,6 +50,7 @@ const noSecrets = (value) => {
         'attributeProfile',
         'matchState',
         'trainingProgress',
+        'development',
         'quality',
         'opponentQuality',
         'estimatedSuccess',
@@ -123,8 +140,9 @@ test('reports narrow deterministically, unknown stays unknown, and exact knowled
   assert.throws(() => applyAction(g, 'staff', { kind: 'scout' }), /最高/);
 });
 test('staff cannot grant competitive ability; insufficient funds and invalid observations cannot charge', () => {
-  const g = createGame(),
-    original = structuredClone(g.clubs),
+  const g = createGame();
+  ensureTraining(g);
+  const original = structuredClone(g.clubs),
     wallet = g.cash;
   applyAction(g, 'staff', { kind: 'coach' });
   assert.equal(g.cash, wallet - 75000);
@@ -145,7 +163,12 @@ test('joining keeps scouting evidence, coaching grows with calendar and training
   const p = g.clubs[0].players.find((p) => p.id === id);
   assert.equal(assessmentFor(g, p, true).observations, 2);
   applyAction(g, 'train', { focus: 'fitness' });
-  assert.equal(assessmentFor(g, p, true).observations, 3);
+  assert.equal(
+    assessmentFor(g, p, true).observations,
+    2,
+    'reservation cannot grant observation or ability before a round',
+  );
+  applyAction(g, 'trainingAssign', { fieldId: 'physical', playerIds: [id] });
   const plan = createCompetitionPlan(g, 'advance');
   const reports = plan.fixtures.map((f) =>
     simulate(

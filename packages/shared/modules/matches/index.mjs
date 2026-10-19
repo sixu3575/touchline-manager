@@ -52,5 +52,5 @@ export function finishMatch(g, report, label) {
     competition: label === 'cup' ? '城市挑战杯' : '先锋联赛',
     round: g.round,
   });
-  g.reports = g.reports.slice(0, 35);
+  g.reports = g.reports.slice(0, 140);
 }
