@@ -21,8 +21,9 @@ export function actionQuality(actor, ball, key, opponents, lapse = false) {
     0,
     1,
   );
-  const facing =
-    Math.hypot(actor.velocity.x, actor.velocity.z) > 0.5
+  const facing = Number.isFinite(actor.facing)
+    ? { x: Math.cos(actor.facing), z: Math.sin(actor.facing) }
+    : Math.hypot(actor.velocity.x, actor.velocity.z) > 0.5
       ? actor.velocity
       : { x: actor.direction ?? 1, z: 0 };
   const lateral = facing.x * (ball.z - actor.pos.z) - facing.z * (ball.x - actor.pos.x);

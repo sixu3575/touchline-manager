@@ -8,6 +8,7 @@ import { attackAssignments } from './tactical-plan.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { markingTarget, supportTarget } from './offball.mjs';
 import { defensiveAssignments } from './defending.mjs';
+import { kickTarget } from './execution.mjs';
 
 export function formation(club) {
   const ps = club.lineup.map((id) => club.players.find((p) => p.id === id));
@@ -183,6 +184,7 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
     };
   }
   if (owner === actor) {
+    if (actor.kickPlan) return kickTarget(actor, ball);
     const plan = actor.intent;
     if (plan?.kind === 'settle' && plan.expiresAt > (roles.time ?? 0)) {
       const threat = actors
