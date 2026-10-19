@@ -212,6 +212,7 @@ const moduleTests = {
     'tests/approved-v1.test.mjs',
     'tests/match-jobs.test.mjs',
     'tests/live-clock.test.mjs',
+    'tests/live-frames.test.mjs',
     'tests/match-event-filter.test.mjs',
     'tests/goal-presentation.test.mjs',
     'tests/player-ratings.test.mjs',

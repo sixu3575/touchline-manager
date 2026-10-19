@@ -1,33 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Report } from '../../model';
-
-export function positionAt(data: Uint16Array, report: Report, time: number) {
-  const meta = report.replay!;
-  const frame = Math.min(meta.frameCount - 1, time * meta.sampleHz);
-  const a = Math.floor(frame),
-    b = Math.min(a + 1, meta.frameCount - 1);
-  const cut = data[b * meta.stride + 47] === 1;
-  const blend = cut ? 0 : frame - a;
-  const result = new Float64Array(47);
-  for (let i = 0; i < 47; i++) {
-    const cm = data[a * meta.stride + i] * (1 - blend) + data[b * meta.stride + i] * blend;
-    result[i] = cm / 100 - (i === 45 ? 0 : 5);
-  }
-  return { positions: result, owner: data[a * meta.stride + 48] - 1 };
-}
-
-export function speedAt(data: Uint16Array, report: Report, time: number, index = -1) {
-  const meta = report.replay!,
-    a = Math.min(meta.frameCount - 2, Math.max(0, Math.floor(time * meta.sampleHz))),
-    b = a + 1;
-  if (data[b * meta.stride + 47] || data[a * meta.stride + 47]) return 0;
-  const x = index < 0 ? 44 : index * 2,
-    z = index < 0 ? 46 : index * 2 + 1;
-  const dx = (data[b * meta.stride + x] - data[a * meta.stride + x]) / 100,
-    dz = (data[b * meta.stride + z] - data[a * meta.stride + z]) / 100;
-  const dy = index < 0 ? (data[b * meta.stride + 45] - data[a * meta.stride + 45]) / 100 : 0;
-  return Math.hypot(dx, dy, dz) * meta.sampleHz;
-}
+import { positionAt } from './frame-data.mjs';
+export { positionAt, speedAt } from './frame-data.mjs';
 
 export function PhysicalPitch({
   data,
