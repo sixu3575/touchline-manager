@@ -11,6 +11,8 @@ import {
 
 test('a complete season balances standings, pays one award, and can continue', () => {
   const g = createGame('完整赛季', 2026);
+  applyAction(g, 'staff', { kind: 'coach' });
+  const knowledge = structuredClone(g.assessment);
   for (let i = 0; i < 14; i++) applyAction(g, 'advance');
   const rows = standings(g);
   assert.equal(g.results.length, 56);
@@ -19,6 +21,8 @@ test('a complete season balances standings, pays one award, and can continue', (
     112,
   );
   assert.equal(g.reports.length, 14);
+  assert.equal(g.assessment.coach, 3);
+  assert.deepEqual(g.assessment.players, knowledge.players, 'observation anchors survive each frozen round and settlement');
   for (const club of g.clubs) {
     assert.ok(club.players.filter((p) => club.lineup.includes(p.id)).every((p) => p.apps === 14));
     assert.ok(
@@ -31,6 +35,9 @@ test('a complete season balances standings, pays one award, and can continue', (
   applyAction(g, 'season');
   assert.equal(g.round, 0);
   assert.equal(g.season, 2);
+  assert.equal(g.assessment.coach, 3);
+  assert.deepEqual(g.assessment.players, knowledge.players, 'changing season must not reset observation');
+  for (const p of g.market) assert.equal(g.assessment.players[p.id], undefined, 'new candidates must not inherit old scouting knowledge');
   applyAction(g, 'advance');
   assert.equal(g.round, 1);
 });

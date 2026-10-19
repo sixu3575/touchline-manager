@@ -1,5 +1,7 @@
 # 架构
 
+0.12.0新增players/assessment.mjs纯知识规则（经公共index.mjs导出）与server/player-view.mjs统一DTO边界；引擎不导入知识规则。原状态/任务/档案只在出站投影，SQLite仍保存原真值与调试信息。客户端不能上传真值或评估对象，staff/scout动作仍按原事务执行。
+
 开发验证与生产分离：业务测试仅通过显式Node测试预加载提供受控比赛报告，生产HTTP、SQLite、计划与结算不替换；生产没有fixture环境变量/HTTP/存档开关。真实引擎及完整物理赛季按[分层规则](VALIDATION.md)有条件运行，测试重组不改变下述运行架构。
 
 ## 单体部署

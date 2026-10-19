@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+0.12.0 player-view.mjs是统一出站投影：state、成功/去重动作、job、archive均必须调用。原始attributes、种子和质量/局部概率/心理调试信息不得发给浏览器；报告先读取原BLOB再投影，不能破坏存储/评分/播放门槛。SSE只有进度索引，轨迹只有坐标。staff/scout仍受原并发/存档锁约束。
+
 0.9.0：仅broadcast.finished时通过matches/ratings/index.mjs生成赛后评分；此前liveReport白名单不带playerRatings。新报告持久化附评分，旧报告GET只生成响应、不写原记录。评分不改MatchJobs接纳/结算或引擎输入；storage/replays的事务与会话边界保持，规则见比赛模块ratings/README.md。
 
 开发验证按[分层规则](../../../docs/VALIDATION.md)。常规测试由显式CLI预加载受控报告，仍使用真实HTTP/SQLite/任务/重启与备份；生产没有fixture开关。真实引擎HTTP链路仅算法变化执行，跨轮业务赛季仅重大流程执行；禁止通过放宽生产限流加速测试。

@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+0.12.0新增players/assessment.mjs与server/player-view.mjs映射player-assessments.test.mjs；players公共入口仅新增assessment的展示导出不算比赛算法，其他运行链接与引擎接入仍触发比赛专项，并有策略测试。动作编排/知识持久契约与赛历观察接入触发完整业务赛季；比赛算法未改，match=false/physicalSeason=false。属于新功能风险映射维护，不改变分层、Node22/24、并发、CI/PR或发布流程。
+
 0.11.0 profiles.mjs及player/reprofilePlayer/observationPlayer默认能力改变映射真实比赛专项；新增player-profiles.test.mjs验证分布统计差异、保预算、幂等、目标隔离、活跃任务阻挡、陈旧计划和事务回滚。离线维护仅修改明确授权数值，不改变存档结构/启动迁移/HTTP动作/赛历或结算，故不触发完整赛季。此为新增模块风险映射维护，分层/并发/CI/PR/发布流程不改。
 
 0.10.0新增tactics/presets.mjs和matches/tactical-plan.mjs为真实比赛算法，配置/公共导出变化映射比赛专项；新增tests/match/tactics.test.mjs加入既有比赛单元清单，真实边路集成扩展intelligence-match。属于新模块风险映射维护，不改变分层、命令、并发、CI/PR或发布流程。

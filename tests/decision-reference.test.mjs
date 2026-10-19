@@ -7,7 +7,7 @@ const dir = new URL('packages/shared/modules/matches/design/decision-map/', root
 const snapshot = JSON.parse(readFileSync(new URL('SOURCE_SNAPSHOT.json', dir), 'utf8'));
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const textSha = (value) => sha(value.replace(/\r\n?/g, '\n'));
-test('decision reference follows current sources and its six editable diagrams and SVG exports', () => {
+test('decision reference follows current sources and its editable diagrams and SVG exports', () => {
   for (const [file, expected] of Object.entries(snapshot.sourceFiles))
     assert.equal(
       textSha(readFileSync(new URL(file, root), 'utf8')),
@@ -16,7 +16,7 @@ test('decision reference follows current sources and its six editable diagrams a
     );
   const markdown = readFileSync(new URL('../PLAYER_DECISION_MAP.md', dir), 'utf8');
   const blocks = [...markdown.matchAll(/```mermaid\r?\n([\s\S]*?)```/g)];
-  assert.equal(blocks.length, 6);
+  assert.equal(blocks.length, 7);
   let i = 0;
   for (const [name, expected] of Object.entries(snapshot.diagrams)) {
     assert.equal(

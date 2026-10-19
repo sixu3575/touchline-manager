@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.12.0继续JSON schema3/SQLite user_version3，新增可选assessment内部version1：coach/scout与players[id]的joinedOn/sessions/visits/lastScouted。GET只读默认，合法动作或比赛计划首次建立，观察跨季保留；不修改启动迁移或旧记录。服务器attributes/skills/potential/weakFoot仍真实；HTTP不含attributes/种子/生成模板，skills等为评估中点。历史BLOB原样，响应投影。详见[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)。
+
 ## 0.11.0 显式属性重塑与观察名额
 
 JSON/SQLite仍3，启动迁移不变。当前球员可选attributeProfile:{version:1,archetype,source}；指定用户可选playerProfileGrant:{version:1,playerId}防重复发放。显式维护只更新当前clubs.players/market属性、skills、说明标记及revision；指定目标另加一名前锋并替换对应首发槽位。旧球员其他字段、所有reports/results/ledger/资金/日期/赛历与历史BLOB保留。原细项按授权重分配，六项预算误差≤0.1，综合舍入最多约1点。每个有变化存档revision只+1，旧页面须刷新。

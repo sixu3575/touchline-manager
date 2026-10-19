@@ -7,7 +7,7 @@ import {
   PERSONALITY,
   TRAITS,
   personalityTraits,
-  SPECIALISMS,
+  ASSESSMENT_STAGES,
 } from '../../../../shared/modules/players/index.mjs';
 import { Badge, Ovr } from '../../components/ui';
 import { money, roles } from '../../constants';
@@ -26,6 +26,8 @@ function Meter({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
+const bandText = (band: { min: number; max: number } | null | undefined) =>
+  !band ? '待观察' : band.min === band.max ? String(band.min) : `${band.min}–${band.max}`;
 export function PlayerDetails({ player: p, onClose }: { player: Player; onClose: () => void }) {
   const [tab, setTab] = useState('ability');
   const dialog = useRef<HTMLElement>(null);
@@ -95,7 +97,7 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
             </div>
             <div className="pm-overall">
               <Ovr player={p} />
-              <small>综合能力</small>
+              <small>评估综合</small>
             </div>
           </div>
           <div className="pm-identity">
@@ -103,16 +105,18 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
               <CalendarDays size={13} /> {p.birthDate} 出生
             </span>
             <span>
-              {footName(p.preferredFoot)} · 逆足 {p.weakFoot}
+              {footName(p.preferredFoot)} · 逆足 {bandText(p.assessment.bands.weakFoot)}
             </span>
-            <span>潜力 {p.potential} / 100</span>
-            {p.attributeProfile && (
-              <span>
-                {SPECIALISMS[p.attributeProfile.archetype as keyof typeof SPECIALISMS] ??
-                  '技术特点'}
-              </span>
-            )}
+            <span>潜力 {bandText(p.assessment.bands.potential)}</span>
           </div>
+        </div>
+        <div className="player-card-six" aria-label="六项能力概览">
+          {p.assessment.overview.map((s) => (
+            <div key={s.key}>
+              <small>{s.label}</small>
+              <b>{s.value ?? '—'}</b>
+            </div>
+          ))}
         </div>
         <div className="pm-facts">
           <div>
@@ -165,8 +169,14 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
           <div id="pm-ability" role="tabpanel" aria-labelledby="pm-ability-tab" className="pm-body">
             <div className="pm-section-title">
               <div>
-                <h3>每一种能力，都有用武之地。</h3>
-                <p>能力 1–100 · 技术、意识与身体共同决定场上表现</p>
+                <h3>
+                  {ASSESSMENT_STAGES[p.assessment.stage]} ·{' '}
+                  {p.assessment.source === 'coach' ? '教练' : '球探'} Lv.{p.assessment.level}
+                </h3>
+                <p>
+                  截至 {p.assessment.asOf} · 累计 {p.assessment.observations} 次观察 ·
+                  区间表示了解程度，待观察不等于能力为零
+                </p>
               </div>
               <Badge tone="outline">{roles[p.role]} 档案</Badge>
             </div>
@@ -180,15 +190,37 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
                     <span>{group.label}</span>
                     <small>{key.toUpperCase()}</small>
                   </h4>
-                  {Object.entries(group.attributes).map(([attr, label]) => (
-                    <Meter key={attr} label={String(label)} value={p.attributes[attr]} />
-                  ))}
+                  {Object.entries(group.attributes).map(([attr, label]) => {
+                    const band = p.assessment.bands[attr];
+                    return (
+                      <div key={attr} className="assessment-band">
+                        <span>{String(label)}</span>
+                        <div>
+                          {band && (
+                            <i
+                              style={{
+                                left: `${band.min}%`,
+                                width: `${Math.max(1, band.max - band.min)}%`,
+                              }}
+                            />
+                          )}
+                        </div>
+                        <b>{bandText(band)}</b>
+                      </div>
+                    );
+                  })}
                 </section>
               ))}
             </div>
             <p className="pm-note">
-              训练根据位置培养细项；年龄和职业态度影响成长速度。综合能力由位置权重计算，潜力限制后续训练成长。
+              六项概览是细项的公开加权摘要；评估综合与自动排阵使用已知区间中点，未知细项暂按中性值估计。比赛始终使用服务器的全部真实细项。门将以扑救、接球、出球、反应、速度和选位概览展示。
             </p>
+            <details className="pm-note">
+              <summary>待适配属性（当前未启用）</summary>
+              <p>
+                独立弹跳、弧线、凌空抽射、滑铲、射门力量、点球专精、侵略性和花式技巧暂未建立独立属性或完整机制，不参与六项汇总或比赛。现有头球、力量、终结/定位球和盘带承担部分相关行为；后续接入时须同步算法和决策图。
+              </p>
+            </details>
           </div>
         ) : (
           <div

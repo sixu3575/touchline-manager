@@ -1,5 +1,7 @@
 # 球员模块
 
+0.12.0当前规则见[ASSESSMENT.md](ASSESSMENT.md)：六项概览与区间评估取代旧版全部细项直接显示；技术模板保留服务器，客户端不再收到attributes。GET不写数据，原能力和引擎不改。兼容skills/potential/weakFoot为评估中点，未知不是零；界面只提交意图。后续属性变化同时更新属性审计与决策参考第9节。
+
 0.11.0分布设计见[ATTRIBUTE_PROFILES.md](ATTRIBUTE_PROFILES.md)。profiles.mjs是纯能力分配，SPECIALISMS仅解释来源；reprofilePlayer显式一次重塑、observationPlayer仅返回指定观察球员，不会自动给所有存档发放。历史六项迁移migratePlayer仍兼容，服务启动不重抽。
 
 验证按[分层规则](../../../../docs/VALIDATION.md)：生日直接构造换季边界，性格/训练/迁移使用明确标记的测试报告；真实有效能力与跑动由比赛专项覆盖。普通球员业务修补不为准备状态计算完整比赛；相关源码/默认数据变更须核对并更新决策参考图。

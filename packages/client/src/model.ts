@@ -158,7 +158,6 @@ export interface Report {
   engineVersion: string;
   rulesVersion?: string;
   eventFormatVersion?: number;
-  seed: number;
   homeId: string;
   awayId: string;
   homeName: string;
@@ -202,8 +201,8 @@ export type ArchivedPlayer = Pick<
 > &
   Partial<Player>;
 export interface Game {
+  assessment: { version: number; coach: number; scout: number };
   schemaVersion: number;
-  seed: number;
   revision: number;
   createdAt: string;
   gameDate: string;

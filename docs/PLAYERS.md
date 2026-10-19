@@ -1,5 +1,7 @@
 # 球员模型与扩展契约
 
+0.12.0以[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)为当前展示/可见性契约，覆盖下文旧版直接显示全部attributes的界面描述。真实30项不变；[ATTRIBUTE_AUDIT.md](../packages/shared/modules/players/ATTRIBUTE_AUDIT.md)逐项列消费者与未适配属性。公开skills/potential/weakFoot是评估中点DTO，不能写回真实球员。
+
 ## 0.11.0 技术特点
 
 详见[分配设计](../packages/shared/modules/players/ATTRIBUTE_PROFILES.md)。新球员由位置预算+技术偏向+相关随机+单项差异产生，不再围绕同一均值独立轻微浮动；旧平铺细项通过显式维护重塑一次。attributes与六项summary仍用原规则，attributeProfile只标记来源；国籍没有加成。

@@ -5,6 +5,7 @@ import {
   resetForSeason,
   recoverPlayer,
   advanceAdaptation,
+  ensureAssessment,
 } from '../players/index.mjs';
 import { validateLineup } from '../tactics/index.mjs';
 import { simulate, finishMatch, settleClubPlayers } from '../matches/index.mjs';
@@ -15,6 +16,7 @@ export { schedule, standings };
 export function createCompetitionPlan(source, type) {
   const g = structuredClone(source),
     me = g.clubs[0];
+  ensureAssessment(g);
   validateLineup(me, me.lineup, me.tactics.formation);
   const rng = random(g.seed + g.season * 101 + g.round * 7919 + g.revision * 31);
   let fixtures;

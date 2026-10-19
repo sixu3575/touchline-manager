@@ -8,8 +8,19 @@ export interface Player {
   preferredFoot: 'left' | 'right' | 'both';
   weakFoot: number;
   heightCm: number;
-  attributes: Record<string, number>;
-  attributeProfile?: { version: number; archetype: string; source: string };
+  // Server DTO: no real attributes, even when an assessment is exact.
+  assessment: {
+    version: number;
+    source: string;
+    level: number;
+    stage: number;
+    observations: number;
+    asOf: string;
+    lastScouted: string | null;
+    bands: Record<string, { min: number; max: number } | null>;
+    overview: { key: string; label: string; value: number | null }[];
+  };
+  // Compatibility estimates for roster sorting/auto lineup, never true skills.
   skills: Record<string, number>;
   personality: Record<string, number>;
   wellbeing: { morale: number; confidence: number; clubAttachment: number; adaptation: number };

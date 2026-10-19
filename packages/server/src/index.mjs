@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { CURRENT_SCHEMA, migrateDatabase } from './storage/migrations.mjs';
 import { createReplayStorage } from './storage/replays.mjs';
 import { MatchJobs } from './match-jobs.mjs';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { createGame, applyAction } from '../../shared/game.mjs';
+import { bestLineup } from '../../shared/modules/tactics/index.mjs';
+import { publicState, publicJob, publicReport } from './player-view.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 const DATA = resolve(process.env.DATA_DIR || resolve(ROOT, 'data'));
@@ -118,14 +120,25 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'GET' && url.pathname === '/api/state') {
         jobs.pulse();
         const row = session(req, res);
-        send(res, 200, { state: JSON.parse(row.state), version, job: jobs.latest(row.id) });
+        const state = JSON.parse(row.state);
+        send(res, 200, {
+          state: publicState(state),
+          version,
+          job: publicJob(state, jobs.latest(row.id)),
+        });
         return;
       }
       if (req.method === 'GET' && url.pathname.startsWith('/api/reports/')) {
         const raw = cookies(req).tl_session;
         const row = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;
         const id = decodeURIComponent(url.pathname.slice('/api/reports/'.length));
-        const payload = row && replays.report(row.id, id);
+        const rawReport = row && replays.report(row.id, id);
+        const payload =
+          rawReport &&
+          gzipSync(
+            JSON.stringify(publicReport(JSON.parse(row.state), JSON.parse(gunzipSync(rawReport)))),
+            { level: 3 },
+          );
         if (!payload) {
           send(res, 404, { error: '战报不存在或不属于此存档。' });
           return;
@@ -237,7 +250,10 @@ const server = http.createServer(async (req, res) => {
           send(res, 404, { error: '接口不存在。' });
           return;
         }
-        const payload = gzipSync(JSON.stringify({ job: jobs.view(row) }), { level: 1 });
+        const payload = gzipSync(
+          JSON.stringify({ job: publicJob(JSON.parse(save.state), jobs.view(row)) }),
+          { level: 1 },
+        );
         res.writeHead(200, {
           ...security,
           'Content-Type': 'application/json; charset=utf-8',
@@ -280,12 +296,12 @@ const server = http.createServer(async (req, res) => {
         if (prior) {
           if (prior.body_hash !== bodyHash)
             throw Object.assign(Error('操作标识已被使用。'), { status: 409 });
-          send(res, 200, { state: before, replayed: true });
+          send(res, 200, { state: publicState(before), replayed: true });
           return;
         }
         if (['advance', 'cup'].includes(data.type)) {
           const job = jobs.start(row.id, before, data, bodyHash);
-          send(res, 202, { job });
+          send(res, 202, { job: publicJob(before, job) });
           return;
         }
         if (jobs.locked(row.id))
@@ -304,17 +320,25 @@ const server = http.createServer(async (req, res) => {
             if (existing.body_hash !== bodyHash)
               throw Object.assign(Error('操作标识已被使用。'), { status: 409 });
             db.exec('COMMIT');
-            send(res, 200, { state: current, replayed: true });
+            send(res, 200, { state: publicState(current), replayed: true });
             return;
           }
           if (current.revision !== data.revision)
             throw Object.assign(Error('存档已更新，请重试刚才的操作。'), { status: 409 });
-          const state = applyAction(current, data.type, data.payload);
+          const payload =
+            data.type === 'tactics' && data.payload.auto
+              ? {
+                  ...data.payload,
+                  auto: false,
+                  lineup: bestLineup(publicState(current).clubs[0], data.payload.formation),
+                }
+              : data.payload;
+          const state = applyAction(current, data.type, payload);
           replays.persist(row.id, state);
           updateSave.run(JSON.stringify(state), new Date().toISOString(), row.id);
           insertOperation.run(row.id, data.requestId, bodyHash);
           db.exec('COMMIT');
-          send(res, 200, { state });
+          send(res, 200, { state: publicState(state) });
           return;
         } catch (error) {
           db.exec('ROLLBACK');
