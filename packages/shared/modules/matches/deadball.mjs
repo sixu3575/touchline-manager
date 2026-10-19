@@ -1,6 +1,32 @@
 import { clamp } from '../../core/index.mjs';
 import { distance, unit, localX } from './spatial.mjs';
 
+const isFreeKick = (state) => ['freeKick', 'indirect'].includes(state.type);
+function onOwnGoalLine(actor, direction) {
+  return localX(actor.pos.x, direction(actor.side)) < 0.3 && Math.abs(actor.pos.z - 34) < 3.66;
+}
+// Clipping a radial exclusion target to the pitch can put it back inside the
+// exclusion circle forever. Select the closest valid circle/field intersection.
+function outsideCircle(ball, target, radius) {
+  let h = unit(ball, target);
+  if (Math.hypot(h.x, h.z) < 0.1) h = { x: ball.x < 52.5 ? 1 : -1, z: 0 };
+  const projected = { x: ball.x + h.x * radius, z: ball.z + h.z * radius };
+  const inside = (p) => p.x >= 1 && p.x <= 104 && p.z >= 1 && p.z <= 67;
+  if (inside(projected)) return projected;
+  const candidates = [];
+  for (const x of [1, 104]) {
+    const square = radius ** 2 - (x - ball.x) ** 2;
+    if (square >= 0)
+      for (const sign of [-1, 1]) candidates.push({ x, z: ball.z + sign * Math.sqrt(square) });
+  }
+  for (const z of [1, 67]) {
+    const square = radius ** 2 - (z - ball.z) ** 2;
+    if (square >= 0)
+      for (const sign of [-1, 1]) candidates.push({ x: ball.x + sign * Math.sqrt(square), z });
+  }
+  return candidates.filter(inside).sort((a, b) => distance(a, target) - distance(b, target))[0];
+}
+
 export function kickoffPosition(actor, direction) {
   const x = actor.isKeeper ? 5 : Math.min(47, actor.anchor.x * 0.68);
   return { x: direction === 1 ? x : 105 - x, z: actor.anchor.z };
@@ -29,6 +55,9 @@ export function deadballTarget(actor, actors, state, direction, time) {
       : home;
   }
   if (actor.index === state.taker) return { x: clamp(b.x - attackDir * 0.65, 0.1, 104.9), z: b.z };
+  // IFAB Law 13: opponents may remain on their own goal line between the posts.
+  if (isFreeKick(state) && actor.side !== state.side && actor.isKeeper && localX(b.x, dir) < 9.15)
+    return { x: dir === 1 ? 0.05 : 104.95, z: clamp(b.z, 30.8, 37.2) };
   if (state.type === 'kickoff' || state.type === 'half') {
     const target = kickoffPosition(actor, dir);
     if (actor.side !== state.side && distance(target, b) < 9.65) {
@@ -94,12 +123,7 @@ export function deadballTarget(actor, actors, state, direction, time) {
         ? 9.15
         : 3;
   if (distance(target, b) < exclusion) {
-    let h = unit(b, target);
-    if (Math.hypot(h.x, h.z) < 0.1) h = { x: -attackDir, z: 0 };
-    target = {
-      x: clamp(b.x + h.x * (exclusion + 0.5), 1, 104),
-      z: clamp(b.z + h.z * (exclusion + 0.5), 1, 67),
-    };
+    target = outsideCircle(b, target, exclusion + 0.5);
   }
   return target;
 }
@@ -120,6 +144,7 @@ export function restartReady(state, actors, direction) {
       a.sentOff ||
       a.side === state.side ||
       (state.type === 'penalty' && a.isKeeper) ||
+      (isFreeKick(state) && onOwnGoalLine(a, direction)) ||
       distance(a.pos, state.ball) >=
         (['freeKick', 'indirect', 'corner', 'goalKick', 'penalty'].includes(state.type) ? 9.15 : 3),
   );

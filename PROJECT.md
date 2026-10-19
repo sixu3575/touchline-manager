@@ -1,6 +1,6 @@
 # 项目地图
 
-2026-10-19比赛现实性审查未通过：0.14玩家14:7，当前0.15.1普通球队8场平均11.25球。[诊断与待实施方案](packages/shared/modules/matches/design/REALISM_AUDIT_20261019.md)、[新增统计对照规范](packages/shared/modules/matches/design/REALISM_VALIDATION.md)。本次仅补诊断与验证，运动/决策未修复；后续算法检查复用完整比赛报告输出球队/球员现实比较，平衡改动附八场分布，普通修补不加模拟。
+0.16实施获批的比赛现实性整改：独立里程/五区测量、团队过渡与近身争抢、防线保护与跟速、短时冲刺恢复、护球/射门准备和散布、门将扑救平面。[实现与校准](packages/shared/modules/matches/design/REALISM_V0160.md)，引擎0.16.0-realism/realism-1；旧回放不重算。历史[审查](packages/shared/modules/matches/design/REALISM_AUDIT_20261019.md)和[现实对照规范](packages/shared/modules/matches/design/REALISM_VALIDATION.md)保留；新增规则只对新比赛生效。
 
 0.15.1统计归属由matches/attribution.mjs维护，physics/projectedGoal以独立无球员Rapier世界检查触球前球路；助攻沿连续控球来源，shotId/shotOutcome驱动常规关键传球与评分，不按最后触球者直接判乌龙。当前引擎0.15.1-attribution/movement-1，统计opta-conventional-1、评分match-rating-2。设计与现实来源见[统计归属](packages/shared/modules/matches/design/STATISTICS_V0151.md)，第1/4决策图已同步。历史不重算，开发流程不改。
 

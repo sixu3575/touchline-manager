@@ -108,7 +108,7 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
     27,
     opponents.filter((o) => !o.isKeeper),
   );
-  const xg =
+  const opportunity =
     actor.setPiece === 'penalty'
       ? 0.76
       : clamp(
@@ -120,30 +120,45 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
           0.005,
           0.8,
         );
+  // Geometry-based action value and calibrated expected-goal probability have
+  // separate jobs. Calibration changes reported expectation, never goal physics.
+  const xg =
+    actor.setPiece === 'penalty'
+      ? 0.76
+      : opportunity / (opportunity + Math.exp(0.9) * (1 - opportunity));
   return {
     type: 'shot',
     intent: actor.setPiece === 'penalty' ? 'penalty' : direct ? 'freeKick' : 'shoot',
     quality: q,
     xg,
     utility:
-      xg * (0.65 + q.value / 100) -
-      pitchValue(ball, direction) * 0.3 -
-      (1 - xg) * 0.025 +
-      (actor.player.role === 'FWD' ? 0.02 : 0),
+      opportunity * (0.65 + q.value / 100) -
+      pitchValue(ball, direction) -
+      (1 - opportunity) * 0.025 +
+      (actor.player.role === 'FWD' ? 0.02 : 0) -
+      (direct ? 0 : 0.08 * blocked + 0.09 * q.pressure + Math.max(0, dist - 16) * 0.003),
     reason: direct
       ? '定位球按门将和球门位置瞄准'
       : blocked > 0.7
         ? '射门线路有封堵，需权衡传球'
         : '已有射门角度，尝试完成进攻',
     make: () => {
-      const error = 0.18 + 0.045 * (100 - q.value),
-        aim = 34 + (rng() < 0.5 ? -1 : 1) * (1.2 + rng() * 1.35) + (rng() - 0.5) * error * 2;
+      // Angular error grows with range and pressure; quality narrows dispersion.
+      // Opportunity ranks actions; xG records expectation, neither awards a goal.
+      const speed = Math.hypot(actor.velocity.x, actor.velocity.z);
+      const lateral = Math.abs(actor.velocity.z) / Math.max(1, speed);
+      const error =
+        0.7 + dist * (0.05 + 0.35 * (1 - q.value / 100)) + q.pressure * 1.2 + lateral * 0.5;
+      const aim =
+        34 + (rng() < 0.5 ? -1 : 1) * (1.1 + rng() * 1.2) + (rng() + rng() - 1) * error * 2;
       const target = { x: goalX + direction * 1.5, z: aim },
         flight = Math.max(
           0.15,
           distance(ball, target) / (23 + 0.1 * ability(actor.player, 'strength')),
         );
-      const targetY = 0.25 + rng() * (0.7 + (100 - q.value) / 30);
+      const targetY =
+        0.2 +
+        rng() * (0.9 + (100 - q.value) / 14 + Math.max(0, dist - 10) * 0.06 + q.pressure * 0.5);
       return { ...airborneVelocity(ball, { ...target, y: targetY }, flight), xg };
     },
   };
@@ -183,6 +198,20 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     candidates.push(shot);
   }
   const mates = actors.filter((o) => o.side === actor.side && o !== actor && !o.sentOff);
+  if (!actor.setPiece && !actor.isKeeper && pressure < 0.65 && (actor.hold ?? 0) < 1.2) {
+    candidates.push({
+      type: 'hold',
+      intent: 'shield',
+      quality: quality('firstTouch'),
+      utility:
+        0.004 +
+        (tactics.style === 'possession' ? 0.008 : 0) -
+        pressure * 0.035 -
+        Math.min(2, actor.hold ?? 0) * 0.03,
+      reason: '护住球观察接应，等待安全线路',
+      make: () => ({ x: 0, y: 0, z: 0 }),
+    });
+  }
   const nearest = mates
     .slice()
     .sort((a, b) => distance(actor.pos, a.pos) - distance(actor.pos, b.pos))[0];
@@ -389,7 +418,11 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       });
     }
   }
-  if (actor.isKeeper || (pressure > 0.7 && localX(ball.x, direction) < 30)) {
+  if (
+    actor.isKeeper ||
+    (pressure > 0.7 && localX(ball.x, direction) < 30) ||
+    (pressure > 0.55 && (actor.hold ?? 0) > 1.2)
+  ) {
     const target = { x: clamp(ball.x + direction * 40, 1, 104), z: ball.z < 34 ? 5 : 63 };
     candidates.push({
       type: 'pass',
@@ -436,7 +469,8 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       best = c;
     }
   }
-  if (best.type === 'dribble')
+  if (best.type === 'hold') actor.intent = { kind: 'settle', expiresAt: time + 0.6 };
+  else if (best.type === 'dribble')
     actor.intent = {
       kind: 'carry',
       mode: best.mode,

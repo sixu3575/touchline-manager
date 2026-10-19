@@ -142,6 +142,9 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       (e) => e.playerId === p.id || (e.type === 'goal' && e.scorer?.id === p.id),
     );
     const t = tracking.players?.find((row) => row.id === p.id);
+    const native = p.locomotion?.version === 1 ? p.locomotion : null;
+    const zones = native?.zones ?? t?.zones;
+    const measuredMetres = native ? p.distance : t?.metres;
     const minutes = Math.min(5400, p.dismissedAt ?? 5400) / 60,
       per90 = 90 / minutes;
     const ref = references.physical.positions[p.positionRole];
@@ -155,9 +158,13 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       distancePer90: p.distance * per90,
       trackedMetres: t?.metres ?? null,
       distanceDifference: t ? ratio(t.metres - p.distance, p.distance) : null,
-      lowSpeedDistanceShare: t ? ratio(t.zones[0], t.metres) : null,
-      highSpeedMetresPer90: t ? (t.zones[3] + t.zones[4]) * per90 : null,
-      sprintMetresPer90: t ? t.zones[4] * per90 : null,
+      lowSpeedDistanceShare: zones ? ratio(zones[0], measuredMetres) : null,
+      highSpeedMetresPer90: zones ? (zones[3] + zones[4]) * per90 : null,
+      sprintMetresPer90: zones ? zones[4] * per90 : null,
+      physicalSource: native ? '20Hz independent odometer' : '5Hz replay estimate',
+      sprintEfforts: native?.sprintEfforts ?? null,
+      longestSprintSeconds: native?.longestSprint ?? null,
+      defending: p.defenceTelemetry ?? null,
       trackingCoverage: t?.coverage ?? null,
       excludedTrackingSeconds: t?.excludedSeconds ?? null,
       maxKmh: p.maxSpeed * 3.6,
@@ -313,11 +320,24 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       ),
       openTurnovers: spells.filter((s) => s.turnover).length,
     },
+    teamPossessions: c.possessions
+      ? {
+          count: c.possessions.length,
+          medianSeconds: quantile(
+            c.possessions.map((p) => p.seconds),
+            0.5,
+          ),
+          p90Seconds: quantile(
+            c.possessions.map((p) => p.seconds),
+            0.9,
+          ),
+        }
+      : null,
     unavailable: [
       'Exact stable-possession duration distribution (not archived)',
       'Official take-ons (dribbleTouches are touches)',
       'Official sprint-effort counts',
-      'Marking errors/pressure success by player (not archived)',
+      'Validated marking errors/pressure success (observation lapses and task time are diagnostics only)',
       'Cross-provider player-rating benchmark (no universal official rating scale)',
     ],
   };

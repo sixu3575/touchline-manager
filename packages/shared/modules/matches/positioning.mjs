@@ -7,6 +7,7 @@ import { formationSlot, tacticalPreset } from '../tactics/index.mjs';
 import { attackAssignments } from './tactical-plan.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { markingTarget, supportTarget } from './offball.mjs';
+import { defensiveAssignments } from './defending.mjs';
 
 export function formation(club) {
   const ps = club.lineup.map((id) => club.players.find((p) => p.id === id));
@@ -34,8 +35,13 @@ export function teamRoles(
   // A missed pass becomes a loose-ball contest. Don't reserve it forever for a
   // distant intended receiver while a nearer teammate waits beside the ball.
   if (pendingPass && time > (pendingPass.expiresAt ?? pendingPass.time + 3.5)) pendingPass = null;
+  const teamSide =
+    owner?.side ??
+    pendingPass?.actor.side ??
+    (time <= (continuity.teamUntil ?? 0) ? continuity.side : null);
   const roles = {
     time,
+    teamSide,
     marking: {},
     chasers: [],
     receiverId: pendingPass?.receiverId ?? null,
@@ -55,7 +61,7 @@ export function teamRoles(
   };
   for (const side of [0, 1]) {
     const mates = actors.filter((a) => a.side === side && !a.sentOff);
-    const attack = owner?.side === side || pendingPass?.actor.side === side;
+    const attack = teamSide === side;
     // The carrier and designated receiver have separate jobs; don't send a second teammate into their feet.
     const candidates = mates.filter(
       (a) =>
@@ -67,15 +73,25 @@ export function teamRoles(
       (a, b) =>
         arrivalTime(a, ball, pursuitMode(a, ball)) - arrivalTime(b, ball, pursuitMode(b, ball)),
     );
-    if (!attack)
-      roles.chasers.push(
-        ...candidates
-          .slice(0, tactics[side].press === 'high' || localX(ball.x, direction(side)) < 35 ? 2 : 1)
-          .map((a) => a.index),
+    if (!attack) {
+      const defence = defensiveAssignments(
+        actors,
+        side,
+        ball,
+        owner,
+        direction(side),
+        tactics[side],
+        time,
       );
-    else if (!owner && !roles.receiverId && candidates[0]) roles.chasers.push(candidates[0].index);
-    if (attack && (owner || pendingPass?.actor.side === side)) {
-      const carrier = owner ?? pendingPass.actor;
+      roles.chasers.push(...defence.chasers);
+      Object.assign(roles.marking, defence.marking);
+    } else if (!owner && !roles.receiverId && candidates[0])
+      roles.chasers.push(candidates[0].index);
+    const carrier =
+      owner ??
+      pendingPass?.actor ??
+      actors.find((a) => a.index === continuity.lastController && !a.sentOff);
+    if (attack && carrier) {
       roles.support = mates
         .filter(
           (a) =>
@@ -118,41 +134,6 @@ export function teamRoles(
       if (plan.assignments[roles.runnerId]) roles.runnerId = null;
     }
   }
-  // Assign cover one-to-one; nearest-by-lane independently sent several defenders
-  // toward the same forward and left the other receiver unmarked.
-  for (const side of [0, 1]) {
-    if (owner?.side === side || pendingPass?.actor.side === side) continue;
-    const defenders = actors.filter(
-      (a) =>
-        a.side === side &&
-        !a.sentOff &&
-        !a.isKeeper &&
-        a.player.role === 'DEF' &&
-        !roles.chasers.includes(a.index),
-    );
-    const threats = actors
-      .filter(
-        (a) =>
-          a.side !== side &&
-          !a.sentOff &&
-          !a.isKeeper &&
-          ['FWD', 'MID'].includes(a.player.role) &&
-          localX(a.pos.x, direction(side)) < 48,
-      )
-      .sort((a, b) => localX(a.pos.x, direction(side)) - localX(b.pos.x, direction(side)));
-    for (const threat of threats) {
-      defenders.sort((a, b) => {
-        const cost = (o) =>
-          arrivalTime(o, threat.pos) -
-          (o.markMemory?.id === threat.player.id ? 0.55 : 0) -
-          (ability(o.player, 'marking') + ability(o.player, 'positioning')) * 0.002;
-        return cost(a) - cost(b);
-      });
-      const cover = defenders.shift();
-      if (!cover) break;
-      roles.marking[cover.player.id] = threat.player.id;
-    }
-  }
   return roles;
 }
 
@@ -181,9 +162,12 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
             localX(o.pos.x, direction) < localX(owner.pos.x, direction) &&
             distance(o.pos, owner.pos) < 7,
         ),
-      depth = behind
-        ? clamp(dist * (0.25 + a('oneOnOnes') * 0.003), 2, 8)
-        : clamp(dist * 0.065, 1, 5),
+      incomingShot = ball.vx * direction < -8 && dist < 35,
+      depth = incomingShot
+        ? clamp(Math.abs(actor.pos.x - ownGoal), 0.3, 7)
+        : behind && dist < 16
+          ? clamp(dist * (0.1 + a('oneOnOnes') * 0.0015), 1.2, 4)
+          : clamp(dist * 0.065, 1, 5),
       x = ownGoal + direction * depth;
     const t = Math.abs(ball.vx) > 1 ? (x - ball.x) / ball.vx : -1,
       intercept = t > 0 && t < 1.5 && ball.vx * direction < 0;
@@ -277,18 +261,28 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
         (index) => actors.find((a) => a.index === index)?.side === actor.side,
       );
       const covering = firstPresser !== actor.index;
-      const stand = covering ? 2.6 : recovering ? 1.7 : separation > 2.5 ? 1.5 : 0.35;
+      const shotThreat = localX(owner.pos.x, direction) < 26 && separation < 5;
+      const stand = covering
+        ? shotThreat && !recovering
+          ? 0.65
+          : 2.6
+        : recovering
+          ? 1.7
+          : separation > 2.5
+            ? 1.5
+            : 0.35;
       return {
         x: clamp(owner.pos.x + front.x * stand + owner.velocity.x * anticipation * 0.4, 1, 104),
         z: clamp(owner.pos.z + front.z * stand + owner.velocity.z * anticipation * 0.4, 1, 67),
       };
     }
     return {
-      x: clamp(ball.x + ball.vx * anticipation, 1, 104),
-      z: clamp(ball.z + ball.vz * anticipation, 1, 67),
+      x: clamp(ball.x + ball.vx * anticipation, 0.1, 104.9),
+      z: clamp(ball.z + ball.vz * anticipation, 0.1, 67.9),
     };
   }
   const attacking =
+    roles.teamSide === actor.side ||
     owner?.side === actor.side ||
     (roles.receiverId &&
       actors.some((o) => o.player.id === roles.receiverId && o.side === actor.side));

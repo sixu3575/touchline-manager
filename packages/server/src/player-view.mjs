@@ -46,6 +46,7 @@ const diagnostics = new Set([
   'decision',
   'mind',
   'motion',
+  'defenceTelemetry',
   'attributes',
   'attributeProfile',
   'matchState',
