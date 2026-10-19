@@ -107,14 +107,18 @@ test('training uses age and professionalism, trains keepers separately, and neve
   trainPlayer(young, 'attack', random(12));
   trainPlayer(old, 'attack', random(12));
   trainPlayer(casual, 'attack', random(12));
-  assert.ok(young.attributes.finishing > old.attributes.finishing);
-  assert.ok(young.attributes.finishing > casual.attributes.finishing);
+  const growth = (p, key) =>
+    (p.attributes[key] - original.attributes[key]) * 100 + (p.trainingProgress?.[key] ?? 0);
+  assert.ok(growth(young, 'finishing') > growth(old, 'finishing'));
+  assert.ok(growth(young, 'finishing') > growth(casual, 'finishing'));
   assert.equal(young.attributes.tackling, original.attributes.tackling);
   assert.deepEqual(young.skills, skillSummary(young.attributes));
   const keeper = player('gk', 'GK', 60, random(9));
   const before = structuredClone(keeper);
   trainPlayer(keeper, 'defence', random(3));
-  assert.ok(keeper.attributes.reflexes > before.attributes.reflexes);
+  assert.ok(
+    keeper.attributes.reflexes > before.attributes.reflexes || keeper.trainingProgress.reflexes > 0,
+  );
   assert.equal(keeper.attributes.tackling, before.attributes.tackling);
   keeper.attributes.reflexes = 99;
   keeper.potential = 70;

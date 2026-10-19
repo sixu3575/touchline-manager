@@ -1,5 +1,7 @@
 # 球员模型与扩展契约
 
+0.13.0当前能力精度以[INTEGER_STATS.md](../packages/shared/modules/players/INTEGER_STATS.md)为准：30项1–100整数，skills/评估也取整，trainingProgress为私有整数培养经验。取代旧版最多一位小数的当前规则；历史原值保留。
+
 0.12.0以[ASSESSMENT.md](../packages/shared/modules/players/ASSESSMENT.md)为当前展示/可见性契约，覆盖下文旧版直接显示全部attributes的界面描述。真实30项不变；[ATTRIBUTE_AUDIT.md](../packages/shared/modules/players/ATTRIBUTE_AUDIT.md)逐项列消费者与未适配属性。公开skills/potential/weakFoot是评估中点DTO，不能写回真实球员。
 
 ## 0.11.0 技术特点

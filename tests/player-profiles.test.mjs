@@ -26,9 +26,7 @@ test('seeded specialisms have distinct strengths across positions, coherent arch
       assert.deepEqual(p, player('p-' + seed, role, 60, random(seed)));
       assert.equal(Object.keys(p.attributes).length, 30);
       assert.ok(
-        Object.values(p.attributes).every(
-          (v) => v >= 1 && v <= 100 && Math.abs(v * 10 - Math.round(v * 10)) < 1e-8,
-        ),
+        Object.values(p.attributes).every((v) => v >= 1 && v <= 100 && Number.isInteger(v)),
       );
       assert.ok(SPECIALISMS[p.attributeProfile.archetype]);
       assert.deepEqual(p.skills, skillSummary(p.attributes));

@@ -1,5 +1,7 @@
 # 球员模块
 
+0.13.0当前精度见[INTEGER_STATS.md](INTEGER_STATS.md)：attributes/skills为整数，训练未满1点的成长用私有整数经验累计；公开区间/兼容评估取整，赛内有效能力仍连续计算。现有球员仅显式四舍五入，不重塑技术特点/历史。以后属性/训练精度变化同次维护该契约与决策图。
+
 0.12.0当前规则见[ASSESSMENT.md](ASSESSMENT.md)：六项概览与区间评估取代旧版全部细项直接显示；技术模板保留服务器，客户端不再收到attributes。GET不写数据，原能力和引擎不改。兼容skills/potential/weakFoot为评估中点，未知不是零；界面只提交意图。后续属性变化同时更新属性审计与决策参考第9节。
 
 0.11.0分布设计见[ATTRIBUTE_PROFILES.md](ATTRIBUTE_PROFILES.md)。profiles.mjs是纯能力分配，SPECIALISMS仅解释来源；reprofilePlayer显式一次重塑、observationPlayer仅返回指定观察球员，不会自动给所有存档发放。历史六项迁移migratePlayer仍兼容，服务启动不重抽。

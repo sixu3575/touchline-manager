@@ -28,6 +28,21 @@ test('assessment public export is display-only, but engine imports remain algori
   );
 });
 
+test('integer attributes, summaries and training ability changes require real matches without adding a season', () => {
+  for (const name of ['skillSummary', 'trainPlayer', 'integerizePlayer']) {
+    const plan = classifyChanges([
+      change(
+        'packages/shared/modules/players/index.mjs',
+        `export function ${name}(){return 1;}`,
+        `export function ${name}(){return 2;}`,
+      ),
+    ]);
+    assert.equal(plan.match, true);
+    assert.equal(plan.season, false);
+    assert.ok(plan.businessTests.includes('tests/player-integers.test.mjs'));
+  }
+});
+
 test('ability distribution and generation defaults require match checks without changing season flow', () => {
   for (const row of [
     change(

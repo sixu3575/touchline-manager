@@ -32,7 +32,7 @@ export function skillSummary(attributes) {
         a.oneOnOnes * 0.2 +
         a.aerialReach * 0.15 +
         a.command * 0.1,
-    }).map(([key, value]) => [key, decimal(value)]),
+    }).map(([key, value]) => [key, Math.round(value)]),
   );
 }
 export function rating(p) {
@@ -111,7 +111,7 @@ export function player(id, role, level, rng, youth = false, date = '2026-07-01')
     stamina: level + (rng() - 0.5) * 10,
     keeping: role === 'GK' ? level + 4 + (rng() - 0.5) * 8 : 12,
   };
-  for (const key of Object.keys(budgets)) budgets[key] = decimal(clamp(budgets[key], 1, 95));
+  for (const key of Object.keys(budgets)) budgets[key] = Math.round(clamp(budgets[key], 1, 95));
   const { attributes, archetype } = profileAttributes(role, budgets, rng, identity.heightCm);
   const p = {
     id,
@@ -266,6 +266,7 @@ export function updateAges(g) {
     p.age = ageOn(p.birthDate, g.gameDate);
 }
 export function trainPlayer(p, focus, rng) {
+  integerizePlayer(p);
   const groups = {
     attack: [
       'finishing',
@@ -299,13 +300,41 @@ export function trainPlayer(p, focus, rng) {
   };
   const ageFactor = p.age <= 21 ? 1.2 : p.age >= 30 ? 0.65 : 1;
   const attitude = 0.75 + p.personality.professionalism / 200;
-  for (const k of (p.role === 'GK' ? keeper : groups)[focus])
-    p.attributes[k] = Math.max(
-      p.attributes[k],
-      decimal(Math.min(p.potential, p.attributes[k] + (0.6 + rng() * 0.7) * ageFactor * attitude)),
-    );
+  const progress = (p.trainingProgress ??= {});
+  for (const k of (p.role === 'GK' ? keeper : groups)[focus]) {
+    // Integer hundredths are training experience, never hidden fractional ability.
+    const earned = Math.round((0.6 + rng() * 0.7) * ageFactor * attitude * 100);
+    const cap = Math.max(p.attributes[k], p.potential);
+    if (p.attributes[k] >= cap) {
+      delete progress[k];
+      continue;
+    }
+    const total = (progress[k] ?? 0) + earned;
+    p.attributes[k] = Math.min(cap, p.attributes[k] + Math.floor(total / 100));
+    if (p.attributes[k] >= cap) delete progress[k];
+    else progress[k] = total % 100;
+  }
   p.skills = skillSummary(p.attributes);
   p.fitness = clamp(p.fitness + (focus === 'fitness' ? 8 : -4), 30, 100);
+}
+export function integerizePlayer(p) {
+  const keys = Object.values(ATTRIBUTE_GROUPS).flatMap((g) => Object.keys(g.attributes));
+  if (
+    !p.attributes ||
+    Object.keys(p.attributes).length !== keys.length ||
+    keys.some(
+      (k) => !Number.isFinite(p.attributes[k]) || p.attributes[k] < 1 || p.attributes[k] > 100,
+    ) ||
+    !Number.isFinite(p.potential) ||
+    !Number.isFinite(p.weakFoot)
+  )
+    throw Error('Valid current player abilities required');
+  const before = JSON.stringify([p.attributes, p.skills, p.potential, p.weakFoot]);
+  for (const key of Object.keys(p.attributes)) p.attributes[key] = Math.round(p.attributes[key]);
+  p.skills = skillSummary(p.attributes);
+  p.potential = Math.round(clamp(p.potential, 1, 100));
+  p.weakFoot = Math.round(clamp(p.weakFoot, 0, 100));
+  return JSON.stringify([p.attributes, p.skills, p.potential, p.weakFoot]) !== before;
 }
 export function settlePlayerMatch(
   p,

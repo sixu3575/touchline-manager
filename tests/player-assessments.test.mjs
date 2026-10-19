@@ -31,6 +31,7 @@ const noSecrets = (value) => {
         'attributes',
         'attributeProfile',
         'matchState',
+        'trainingProgress',
         'quality',
         'opponentQuality',
         'estimatedSuccess',

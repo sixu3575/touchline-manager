@@ -1,5 +1,9 @@
 # 服务端变更
 
+## 0.13.0 · 2026-10-19
+
+整数维护离线plan/apply，活动比赛阻挡、全存档摘要/陈旧校验和事务回滚；仅取整当前球员，有变化revision+1。统一投影隐藏trainingProgress、整数估值/体能，原历史BLOB/会话/事务不改。
+
 ## 0.12.0 · 2026-10-19
 
 新增player-view统一投影state/action/retry/job/archive；去除真实能力、种子和算法调试数值，保留真实历史BLOB；HTTP auto排阵用已知评估。原会话/去重/revision/结算/播放锁保留。HTTP重复扣费、重启、全接口隐私及业务赛季验证。

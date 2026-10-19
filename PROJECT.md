@@ -1,10 +1,12 @@
 # 项目地图
 
+0.13.0当前球员能力改为1–100整数，训练经验整数累计满100点再提升1点能力；评估和状态面板同步取整，物理/概率/评分保持原精度。现有球员只显式四舍五入，不随机重塑或改历史。规则见[INTEGER_STATS.md](packages/shared/modules/players/INTEGER_STATS.md)。
+
 0.12.0新增六项公开卡片、教练/球探观察与区间评估；30项真实能力仍只在服务器参与比赛。文档见[ASSESSMENT.md](packages/shared/modules/players/ASSESSMENT.md)、[属性审计与搁置清单](packages/shared/modules/players/ATTRIBUTE_AUDIT.md)及决策参考第9节。旧数据/历史不重抽；新可选知识契约执行业务赛季验证，未改变比赛算法，不模拟物理比赛。
 
 0.11.0球员技术特点采用位置预算、技术偏向与相关随机差异；球员详情展示分配模板。旧球员通过显式离线维护只重分配一次，原六项预算/生涯/历史保留。指定用户获得99号林曜综合95的观察名额；没有强制比分或评分。设计见[ATTRIBUTE_PROFILES.md](packages/shared/modules/players/ATTRIBUTE_PROFILES.md)，原引擎/评分/开发流程不变。
 
-版本 0.12.0（比赛引擎0.10.0-tactical-roles）。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。“赛程与杯赛”新增独立赛后战报入口，不打开回放即可查阅球队统计、全场事件和[赛后评分](packages/shared/modules/matches/ratings/README.md)。保留[入网与进球展示](packages/shared/modules/matches/design/GOAL_NET_V082.md)、关键/其他事件、持球选择、播放修复、五倍速与终场发布门槛。
+版本 0.13.0（比赛引擎0.10.0-tactical-roles）。低成本、可持续扩展的足球经理游戏；当前为独立存档的 AI 联赛。“赛程与杯赛”新增独立赛后战报入口，不打开回放即可查阅球队统计、全场事件和[赛后评分](packages/shared/modules/matches/ratings/README.md)。保留[入网与进球展示](packages/shared/modules/matches/design/GOAL_NET_V082.md)、关键/其他事件、持球选择、播放修复、五倍速与终场发布门槛。
 
 当前球员跑位/接球/传带射和球风决策图： [PLAYER_DECISION_MAP.md](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。已随0.10.0战术阶段、位置协同和传中机会算法同步，六图节点含触发数值、概率类别和属性影响，配可放大SVG、30能力/8性格等完整实战索引；按用户要求用相关性说明，不列公式。相关算法或固定数据修改须同次同步更新，维护范围见其第8节及AGENTS.md。
 

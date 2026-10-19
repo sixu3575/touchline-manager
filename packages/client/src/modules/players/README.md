@@ -1,5 +1,7 @@
 # 球员界面模块
 
+0.13.0卡片、细项区间和百分制状态条显示整数；10分制状态评分保留原精度。不得展示或接收trainingProgress培养经验，不以小数能力缓存代替服务器整数真值。
+
 0.12.0当前规则见[共享设计](../../../../shared/modules/players/ASSESSMENT.md)：六项概览与区间评估取代旧版全部细项直接显示；技术模板保留服务器，客户端不再收到attributes。GET不写数据，原能力和引擎不改。兼容skills/potential/weakFoot为评估中点，未知不是零；界面只提交意图。后续属性变化同时更新属性审计与决策参考第9节。
 
 0.11.0详情页展示可选attributeProfile的技术偏向，名称来自players公共入口SPECIALISMS；历史球员缺字段不显示该标签，所有能力条仍读取attributes。

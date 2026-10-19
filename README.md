@@ -1,5 +1,7 @@
 # TOUCHLINE · 临场足球经理
 
+0.13.0球员采用百分制整数能力，细微训练以整数经验累计，评估区间/卡片无小数。详见[INTEGER_STATS.md](packages/shared/modules/players/INTEGER_STATS.md)，旧回放不重算。
+
 0.12.0：球员卡公开六项概览，教练与球探逐步揭示细项，详见[评估设计](packages/shared/modules/players/ASSESSMENT.md)及[属性审计](packages/shared/modules/players/ATTRIBUTE_AUDIT.md)。全部30项真实能力继续参与原比赛；未适配的新属性明确搁置。
 
 当前版本0.11.0：球员有位置与技术偏向的差异化属性，旧档显式一次重塑，指定观察存档加入综合95的99号林曜。详见[球员分布](packages/shared/modules/players/ATTRIBUTE_PROFILES.md)。

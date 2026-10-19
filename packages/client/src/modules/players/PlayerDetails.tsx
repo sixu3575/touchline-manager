@@ -22,7 +22,7 @@ function Meter({ label, value }: { label: string; value: number }) {
       <div>
         <i style={{ width: value + '%' }} />
       </div>
-      <b>{value.toFixed(1).replace('.0', '')}</b>
+      <b>{Math.round(value)}</b>
     </div>
   );
 }

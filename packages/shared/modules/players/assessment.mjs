@@ -94,8 +94,10 @@ export function assessmentFor(g, p, own = false) {
     [...keys, 'potential', 'weakFoot'].map((key) => {
       const hash = seedFrom(`${g.seed}:${p.id}:${key}:assessment-v1`);
       const seen = stage > 0 && (stage >= 3 || hash % 100 < (stage === 1 ? 45 : 75));
-      const raw = p.attributes?.[key] ?? p[key];
-      if (!seen || !Number.isFinite(raw)) return [key, null];
+      const original = p.attributes?.[key] ?? p[key];
+      if (!seen || !Number.isFinite(original)) return [key, null];
+      // Archived truth is immutable; its presentation follows the current integer scale.
+      const raw = Math.round(original);
       if (stage === 4) return [key, { min: raw, max: raw }];
       const width = { 1: 32, 2: 16, 3: 8 }[stage],
         offset = hash % width;
