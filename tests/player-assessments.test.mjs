@@ -38,6 +38,7 @@ const noSecrets = (value) => {
         'opponentQuality',
         'estimatedSuccess',
         'probability',
+        'preparation',
         'mind',
         'motion',
       ].includes(k),
@@ -172,7 +173,10 @@ test('archive/live diagnostics are projected without changing replay, stats, sco
   const raw = {
     id: 'r',
     score: [1, 0],
-    events: [{ type: 'goal', quality: { base: 95 }, probability: 0.8, estimatedSuccess: 0.9 }],
+    events: [
+      { type: 'goal', quality: { base: 95 }, probability: 0.8, estimatedSuccess: 0.9 },
+      { type: 'control', preparation: 0.18, flow: true },
+    ],
     stats: [{ shots: 1 }],
     performance: [{ id: p.id, mind: { confidence: 95 }, saves: 2 }],
     timeline: [{ performance: [{ quality: 91 }] }],
@@ -184,6 +188,7 @@ test('archive/live diagnostics are projected without changing replay, stats, sco
   noSecrets(publicJob(g, { id: 'job', report: raw }));
   assert.deepEqual(view.score, raw.score);
   assert.deepEqual(view.stats, raw.stats);
+  assert.equal(view.events[1].flow, true, 'observable first-touch kind remains public');
   assert.equal(view.snapshots[0].players[0].overall, rating(p));
   assert.deepEqual(raw, original);
 });

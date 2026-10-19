@@ -1,6 +1,6 @@
 {
   "verifiedOn": "2026-10-19",
-  "baselineCommit": "9a2052bb4fff353c6f059fd71a2f38bace5be81a",
+  "baselineCommit": "e933d12d29cb5c9b44002df0ecbccc4037d2f91e",
   "engineVersion": "0.14.0-movement",
   "parameterVersion": "movement-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
@@ -20,7 +20,7 @@
     "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
     "packages/shared/modules/players/assessment.mjs": "92ab3f102b5ba6e3998c4165ff2cd59edaf717ac0762970e248a4b0e346e52a8",
-    "packages/server/src/player-view.mjs": "da29f9cf83fe3d125b50983cb2c167faeeef2dff5f773163788c9e672ee76549",
+    "packages/server/src/player-view.mjs": "3125bf32b860e9a933e54e1cde24e6737f5787cc9349fdda9d49eefd181c701d",
     "packages/server/src/maintenance/player-integers.mjs": "c5fff4326c6f82d075699b9b9fa0b8cad448ed113989ea8eee5ee5fcd588a6f8",
     "scripts/player-integers.mjs": "56c114f0f24c2efb47660dec6ab088eb3d66511e56df54200b528573fc1a2f35",
     "packages/shared/game.mjs": "d96a14fa431462f97343e5b7a1b2b6e9c31c12916f9de75820ba05f9d33ebace",
@@ -71,8 +71,8 @@
       "svgSha256": "fdee28037a0ca81376b17d015b94386849481330148ad94455f3cfdb1b9c79c4"
     },
     "07-knowledge": {
-      "mermaidSha256": "50cada577a9f1d9df9040e0d046f844ef59850db5d00a42e6911b584ce52813f",
-      "svgSha256": "4635f8549aaa6d1db8b6bde02b83b7c11f3e15fa17269f76f9cba5a6456b07c2"
+      "mermaidSha256": "5e9c6adc676ec2c96903d3470c9a332adab66b551373484ff1a4d00b2594ae99",
+      "svgSha256": "bafd1843044d9b6d8cf25f35337fa4b04530d9f42111a6851187b6d55a426417"
     }
   }
 }
