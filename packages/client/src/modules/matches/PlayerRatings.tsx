@@ -64,9 +64,9 @@ export function PlayerRatings({ report }: { report: Report }) {
               </summary>
               <div className="rating-breakdown">
                 <p>
-                  {row.goals}进球 · {row.assists}助攻 · {row.shots}射门 · {row.completed}/
-                  {row.passes}传球 · {row.wonTackles}成功抢断 · {row.interceptions}拦截 ·{' '}
-                  {row.saves}扑救
+                  {row.goals}进球 · {row.assists}助攻 · {row.keyPasses}关键传球 · {row.shots}射门 ·{' '}
+                  {row.completed}/{row.passes}传球 · {row.wonTackles}成功抢断 · {row.interceptions}
+                  拦截 · {row.saves}扑救
                 </p>
                 <p>
                   推进 {row.carryDistance}米 · 黄牌 {row.yellowCards} / 红牌 {row.redCards}

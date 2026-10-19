@@ -2,6 +2,17 @@ import { packActors, unpackActors } from './checkpoint.mjs';
 import { firstTouchVelocity, receptionPlan } from './receiving.mjs';
 import { deadballTarget, kickoffPosition, restartReady } from './deadball.mjs';
 import { keeperReaction, diveResponse } from './goalkeeping.mjs';
+import {
+  STATISTICS_VERSION,
+  attributionState,
+  attributeTouch,
+  startAttempt,
+  recordIntervention,
+  finishAttempt,
+  goalCredit,
+  originalRecipientReachable,
+  receptionSource,
+} from './attribution.mjs';
 import { driveMovement } from './locomotion.mjs';
 import {
   continuityState,
@@ -35,6 +46,7 @@ import {
   touchesBall,
   stepPhysics,
   goalCrossing,
+  projectedGoal,
   STEP,
   BALL_RADIUS,
 } from './physics.mjs';
@@ -51,7 +63,7 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.14.0-movement';
+export const ENGINE_VERSION = '0.15.1-attribution';
 export const PARAMETER_VERSION = 'movement-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -133,6 +145,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         })),
       );
   for (const a of actors) if (a.isKeeper && !a.hands) a.hands = createHands(physics, a);
+  const colliderActors = new Map(
+    actors.flatMap((a) => [a.collider, ...a.legs].map((c) => [c.handle, a])),
+  );
   const stats = clubs.map(() => ({
     shots: 0,
     onTarget: 0,
@@ -150,6 +165,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     possessionTicks: 0,
   }));
   const continuity = continuityState();
+  const attribution = attributionState();
+  let statisticalContacts = new Set();
   const timeline = [];
   const score = [0, 0],
     events = [];
@@ -202,7 +219,88 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       ...extra,
     });
   };
+  const statisticalPlayer = (a) => ({ id: a.player.id, side: a.side, isKeeper: a.isKeeper });
+  const actorById = (id) => actors.find((a) => a.player.id === id);
+  const goalSide = (end) => (end === null ? null : direction(0) === (end === 1 ? 1 : -1) ? 0 : 1);
+  function resolveAttempt(scorerId = null) {
+    const result = finishAttempt(attribution, scorerId);
+    if (!result) return null;
+    if (result.onTarget) stats[result.side].onTarget++;
+    if (result.keeper) {
+      stats[result.keeper.side].saves++;
+      event(
+        'save',
+        result.keeper.side,
+        `${actorById(result.keeper.id).player.name}扑救化解射门。`,
+        actorById(result.keeper.id),
+        { shotId: result.shotId },
+      );
+    }
+    const { keeper, ...outcome } = result;
+    event('shotOutcome', result.side, '本次射门统计已确认。', actorById(result.playerId), outcome);
+    return result;
+  }
+  function receivePass(a, pass, bodyPart = 'foot') {
+    if (!pass || pass.actor === a || pass.actor.side !== a.side) return;
+    pass.actor.completed++;
+    stats[a.side].completedPasses++;
+    const source = receptionSource(pass, a.player.id);
+    lastPass = { actor: pass.actor, receiver: a, time, source };
+    event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
+      passerId: pass.actor.player.id,
+      bodyPart,
+    });
+  }
+  function registerAttempt(a) {
+    resolveAttempt();
+    const source = lastPass?.receiver === a ? lastPass.source : null;
+    const details = startAttempt(attribution, statisticalPlayer(a), source);
+    lastPass = null; // A rebound is a new opportunity, not a second use of the pass.
+    return details;
+  }
+  function statisticalDeflection(a, sample, hands = false) {
+    if (
+      attribution.credit?.id === a.player.id &&
+      (!attribution.attempt || attribution.attempt.side === a.side)
+    )
+      return;
+    const incomingSide = goalSide(projectedGoal(sample));
+    const ownGoalX = direction(a.side) === 1 ? 0 : 105;
+    const lastLine = !actors.some(
+      (other) =>
+        other !== a &&
+        !other.sentOff &&
+        other.side === a.side &&
+        Math.abs(other.body.translation().x - ownGoalX) + 0.3 <
+          Math.abs(a.body.translation().x - ownGoalX),
+    );
+    const outgoingSide =
+      attribution.attempt?.side === incomingSide
+        ? goalSide(
+            projectedGoal({
+              position: { ...physics.ball.translation() },
+              velocity: { ...physics.ball.linvel() },
+              spin: { ...physics.ball.angvel() },
+            }),
+          )
+        : null;
+    recordIntervention(attribution, statisticalPlayer(a), incomingSide, lastLine, outgoingSide);
+    attributeTouch(attribution, statisticalPlayer(a), incomingSide);
+    if (pendingPass && pendingPass.actor.side !== a.side) {
+      pendingPass.originalReachable =
+        (pendingPass.originalReachable ?? true) &&
+        originalRecipientReachable(pendingPass, sample.position, sample.velocity);
+      pendingPass.deflected = true;
+    }
+    if (lastPass && lastPass.actor.side !== a.side) {
+      lastPass.source.keyPassEligible = false;
+      if (hands) lastPass = null;
+    }
+  }
   function placeBall(x, z, reason) {
+    resolveAttempt();
+    attribution.credit = null;
+    statisticalContacts.clear();
     physics.ball.setTranslation({ x, y: BALL_RADIUS + 0.015, z }, true);
     physics.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
     physics.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -403,6 +501,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       cursor,
       roles,
     } = c.state);
+    Object.assign(attribution, c.state.attribution);
+    statisticalContacts = new Set(c.state.statisticalContacts ?? []);
     lastTouch = actorAt(c.state.lastTouch);
     owner = actorAt(c.state.owner);
     restartTaker = actorAt(c.state.restartTaker);
@@ -476,6 +576,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         cut,
         cursor,
         roles,
+        attribution: structuredClone(attribution),
+        statisticalContacts: [...statisticalContacts],
       },
     };
   }
@@ -524,6 +626,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       engineVersion: ENGINE_VERSION,
       rulesVersion: RULES_VERSION,
       parameterVersion: PARAMETER_VERSION,
+      statisticsVersion: STATISTICS_VERSION,
       eventFormatVersion: 3,
       ...(penalties ? { penalties } : {}),
       ...(abandoned ? { abandoned: true } : {}),
@@ -633,6 +736,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       const attemptTouch = (a) => {
         const bv = physics.ball.linvel(),
           bp = physics.ball.translation();
+        const incomingSample = {
+          position: { ...bp },
+          velocity: { ...bv },
+          spin: { ...physics.ball.angvel() },
+        };
         const ball = { ...bp, vx: bv.x, vz: bv.z };
         a.pos = a.body.translation();
         a.velocity = a.body.linvel();
@@ -683,6 +791,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               z: ((rng() - 0.5) * (retain ? 1 : 10) - bv.z) * physics.ball.mass(),
             };
             physics.ball.applyImpulse(impulse, true);
+            statisticalDeflection(a, incomingSample, true);
             lastTouch = a;
             if (retain && ball.y < 1.3)
               controlBall(
@@ -695,12 +804,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             else releaseControl(continuity, time, 'shot');
             pendingPass = null;
             a.cooldown = 0.4;
-            if (shot && shot.side !== a.side) {
-              stats[a.side].saves++;
-              stats[shot.side].onTarget++;
-            }
             event(
-              'save',
+              attribution.attempt ? 'keeperTouch' : 'claim',
               a.side,
               `${a.player.name}${retain ? '近身卸下来球。' : '将球扑出，皮球仍在比赛中！'}`,
               a,
@@ -740,32 +845,43 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               a.head,
             )
           ) {
-            if (
-              pendingPass &&
-              pendingPass.actor.side === a.side &&
-              pendingPass.actor !== a &&
-              time - pendingPass.time < 10
-            ) {
-              pendingPass.actor.completed++;
-              stats[a.side].completedPasses++;
-              lastPass = { actor: pendingPass.actor, receiver: a, time };
-            } else if (lastTouch?.side !== a.side) lastPass = null;
+            if (pendingPass && pendingPass.actor.side === a.side && pendingPass.actor !== a)
+              receivePass(a, pendingPass, 'head');
+            else if (lastTouch?.side !== a.side) lastPass = null;
             playedBall(a, 'header');
             touchedThisTick = true;
             lastTouch = a;
             a.touches++;
             a.cooldown = 0.8;
-            pendingPass = null;
+            let shotDetails;
             if (headerShot) {
               stats[a.side].shots++;
               stats[a.side].xg += 0.1;
               shot = { side: a.side, actor: a, time };
+              shotDetails = registerAttempt(a);
+              pendingPass = null;
+            } else {
+              resolveAttempt();
+              attributeTouch(attribution, statisticalPlayer(a), null, true);
+              a.passes++;
+              stats[a.side].passes++;
+              pendingPass = {
+                actor: a,
+                time,
+                target,
+                arrivalAt: time + flight,
+                expiresAt: time + flight + 1.8,
+              };
+              lastPass = null;
             }
             event(
               headerShot ? 'shot' : 'header',
               a.side,
               `${a.player.name}${headerShot ? '头球攻门！' : '争到高球并顶向前场。'}`,
               a,
+              headerShot
+                ? { ...shotDetails, xg: 0.1, bodyPart: 'head' }
+                : { intent: 'headedPass', bodyPart: 'head' },
             );
             return;
           }
@@ -912,6 +1028,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         const newControl = (previous !== a || Boolean(incomingPass)) && !ownCarry;
         if (newControl) {
           a.intent = null;
+          if (lastPass && lastPass.receiver.side !== a.side) lastPass = null;
         }
         if (newControl) {
           if (opposingPass) {
@@ -951,6 +1068,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.readyAt = time + reception.delay;
           a.receivePreparation = null;
         }
+        if (incomingPass && incomingPass.actor.side === a.side) receivePass(a, incomingPass);
         if (newControl && incoming > 11 + control * 0.3) {
           // A difficult first touch dissipates only part of momentum and may spill loose.
           kick(physics, a, {
@@ -958,6 +1076,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             y: Math.max(0.2, bv.y * 0.2),
             z: bv.z * 0.45 + (rng() - 0.5) * 3,
           });
+          statisticalDeflection(a, incomingSample);
           playedBall(a, 'control');
           touchedThisTick = true;
           matchShock(a.player, 0, -2);
@@ -975,14 +1094,6 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.cooldown = 0.35 + (100 - ability(a.player, 'balance')) / 200;
         } else {
           controlBall(continuity, a, time, incomingPass, Boolean(opposingPass));
-          if (incomingPass && incomingPass.actor.side === a.side && time - incomingPass.time < 10) {
-            incomingPass.actor.completed++;
-            stats[a.side].completedPasses++;
-            lastPass = { actor: incomingPass.actor, receiver: a, time };
-            event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
-              passerId: incomingPass.actor.player.id,
-            });
-          }
           const oneTouch = Boolean(
             incomingPass &&
             ability(a.player, 'firstTouch') >= 78 &&
@@ -1003,6 +1114,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                 reception,
               ),
             );
+            statisticalDeflection(a, incomingSample);
             playedBall(a, 'control');
             touchedThisTick = true;
             lastTouch = a;
@@ -1041,6 +1153,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                 z: a.velocity.z * (reception.flow ? 1 : 0.4) + shield.z * 0.6,
                 y: 0.03,
               });
+              statisticalDeflection(a, incomingSample);
               touchedThisTick = true;
               lastTouch = a;
               a.cooldown = 0.2;
@@ -1099,12 +1212,17 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             stats[a.side].shots++;
             stats[a.side].xg += action.xg;
             shot = { side: a.side, actor: a, time };
+            const shotDetails = registerAttempt(a);
             event('shot', a.side, `${a.player.name}起脚射门！`, a, {
               xg: action.xg,
               ...explanation,
+              ...shotDetails,
             });
             pendingPass = null;
           } else if (action.type !== 'dribble') {
+            resolveAttempt();
+            attributeTouch(attribution, statisticalPlayer(a), null, true);
+            lastPass = null;
             a.passes++;
             if (action.intent === 'through') a.throughBalls++;
             if (['switch', 'cross', 'clearance'].includes(action.intent)) a.longPasses++;
@@ -1134,6 +1252,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
               : 0.28;
           if (action.type === 'dribble') {
+            resolveAttempt();
+            attributeTouch(attribution, statisticalPlayer(a), null, true);
             a.target = action.destination;
             a.carries++;
             event(
@@ -1235,6 +1355,27 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             }
           : null,
         actors,
+        (sample) => {
+          if (!active) return;
+          const contacts = new Set();
+          physics.world.contactPairsWith(physics.collider, (collider) => {
+            let touching = false;
+            physics.world.contactPair(physics.collider, collider, (m) => {
+              if (m.numSolverContacts() > 0) touching = true;
+            });
+            if (!touching) return;
+            contacts.add(collider.handle);
+            if (statisticalContacts.has(collider.handle)) return;
+            const a = colliderActors.get(collider.handle);
+            if (a && !a.sentOff) statisticalDeflection(a, sample);
+            else if (!collider.parent() && attribution.attempt) {
+              const p = collider.translation();
+              if ((Math.abs(p.x) < 0.1 || Math.abs(p.x - 105) < 0.1) && p.y > 1)
+                attribution.attempt.woodwork = true;
+            }
+          });
+          statisticalContacts = contacts;
+        },
       );
       const afterBall = physics.ball.translation();
       if (!active && deadState && deadState.type !== 'goal') {
@@ -1259,9 +1400,6 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             if (checkInvolvement(a)) {
               active = false;
               return;
-            }
-            if (lastTouch?.side !== a.side) {
-              lastPass = null;
             }
             if (deliberate?.side !== a.side) deliberate = null;
             if (restartPlay && restartPlay.taker !== a.player.id) restartPlay.touched = true;
@@ -1303,12 +1441,25 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         } else if (end !== null) {
           const side = direction(0) === (end === 1 ? 1 : -1) ? 0 : 1;
           score[side]++;
-          const scorer = lastTouch?.side === side ? lastTouch : null;
-          const credited = scorer ?? lastTouch;
+          const credit = goalCredit(
+            attribution,
+            side,
+            lastTouch ? statisticalPlayer(lastTouch) : null,
+          );
+          const scorer = actorById(credit.playerId);
+          const credited = scorer ?? actorById(credit.ownGoalId);
           const identity = credited
             ? `${credited.player.number}号 ${credited.player.name}`
             : '对方球员';
-          if (shot?.side === side) stats[side].onTarget++;
+          if (scorer && attribution.attempt?.playerId !== scorer.player.id) {
+            const details = registerAttempt(scorer);
+            stats[side].shots++;
+            event('shot', side, `${scorer.player.name}的触球直接入网。`, scorer, {
+              ...details,
+              attributedFrom: 'goal',
+            });
+          }
+          const outcome = resolveAttempt(scorer?.player.id);
           event(
             'goal',
             side,
@@ -1316,6 +1467,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             scorer,
             {
               score: [...score],
+              ...(outcome ? { shotId: outcome.shotId } : {}),
               ...(credited
                 ? {
                     scorer: {
@@ -1327,9 +1479,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                   }
                 : {}),
               ...(scorer ? {} : { ownGoal: true }),
-              ...(scorer && lastPass?.receiver === scorer && time - lastPass.time < 10
-                ? { assistId: lastPass.actor.player.id }
-                : {}),
+              ...(scorer && outcome?.assistId ? { assistId: outcome.assistId } : {}),
             },
           );
           shock(side, 2, scorer, 3);
@@ -1412,6 +1562,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         yield part;
       }
     }
+    resolveAttempt();
     event(
       'fulltime',
       0,

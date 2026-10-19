@@ -16,6 +16,7 @@ export const matchUnits = [
   'continuity',
   'tactics',
   'movement-v0140',
+  'attribution',
 ].map((n) => `tests/match/${n}.test.mjs`);
 export const matchScenarios = [
   'engine',

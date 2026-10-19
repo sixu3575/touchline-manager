@@ -1,7 +1,7 @@
 {
   "verifiedOn": "2026-10-19",
-  "baselineCommit": "63834d9d86eaf9ecc3144eaaf18a045c8545f7af",
-  "engineVersion": "0.14.0-movement",
+  "baselineCommit": "8fe7299ea21043fe1b12ab903bd7dd4de0b7a5dc",
+  "engineVersion": "0.15.1-attribution",
   "parameterVersion": "movement-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
@@ -33,13 +33,13 @@
     "packages/shared/modules/matches/positioning.mjs": "649b2a62dce4c2790a5207ba88de98ebcdf37c5e99e8956f33958fd8bb271cb0",
     "packages/shared/modules/matches/locomotion.mjs": "d29cd82bd72e19eaad121cdf9de7605c86549b7a9e50969a20d91557fd8761f2",
     "packages/shared/modules/matches/decisions.mjs": "3f8571423141ed3bee172a50415c7e6834622f3224e4542fefa4794bbdc7054f",
-    "packages/shared/modules/matches/simulation.mjs": "4838a75d64f20e78bda64c259bb49df67e10f4b7b36a6a395765bbe5be282f05",
+    "packages/shared/modules/matches/simulation.mjs": "c0fc9d3bf9478a5bbb8c457dd1a832212ccd4a44e3b3a52abd361d01f98fc753",
     "packages/shared/modules/matches/continuity.mjs": "8cc0c54c25d4941336315d12b07fd5d9d032fb58dce008c86bfef5cb06690bcf",
     "packages/shared/modules/matches/receiving.mjs": "be094739427f309719a8625a7bff1546a233f23327ebb0708a7ce2da16fbb727",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
     "packages/shared/modules/matches/skills.mjs": "2247076fcf27042db968d32fe8e768eac3be23381dee0919f29ccedfedc1e5cd",
     "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
-    "packages/shared/modules/matches/physics.mjs": "488cce274e3871aa59ab5d89f373f72839280979e93986495777c089024c99c5",
+    "packages/shared/modules/matches/physics.mjs": "dd3df82f7529371cd6ea8e2d9aa2d4532c7217012a6d01f61d97ac021f5dfec1",
     "packages/shared/modules/matches/ball-motion.mjs": "1093786771b1ced1ecc84c83c86d846f4154e517260512146e7b8107c0214cb9",
     "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
     "packages/shared/modules/matches/shootout.mjs": "10e4d2b5673dba4b2d1277dacede08727257d67348ac7d647bcea14e4491ebd0",
@@ -47,12 +47,14 @@
     "packages/shared/modules/players/match-state.mjs": "68d9996b73ec714b90aa6557af6ba3cb5bc9fab434133eeb27bcd0f54a1c133f",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
-    "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68"
+    "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
+    "packages/shared/modules/matches/attribution.mjs": "1c88bdd241832544516bb2c9910e147a49ff93d00497e67f6f5b6db9688c3d9c",
+    "packages/shared/modules/matches/ratings/index.mjs": "d68025690ba778f21d029ac33c8f69670e738a7b1a0d4e988a93d94e9dea5233"
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "b2b9ea46a21f564ebd8ff7b483095ae8a55564b4d5fb624bdd8af1756ba6f66b",
-      "svgSha256": "3ee137f189d968582c7207c55ad5ed158dd6519141c49a4345a0dbbbd4ded9d3"
+      "mermaidSha256": "1d92977291dddd0f7566433629bd7731fbf352135d501acc02a68f792e0aad80",
+      "svgSha256": "0d635443112411de826f117eb7c4c6d37fb3d52afa70900e6f352b48c2e636e7"
     },
     "02-roles": {
       "mermaidSha256": "50a5972867f940114a004880efcc3b5eeffa22881f0fb389bb4c6702c71980f5",
@@ -63,8 +65,8 @@
       "svgSha256": "2aa65e11af92c782c8cb20caf33e4954bd4ee54525422b4cc106b611a810eecb"
     },
     "04-reception": {
-      "mermaidSha256": "87cd15f925eae13510bcb7e910134955ea321a66f1c3de9b11f489dd1f2ff779",
-      "svgSha256": "ff9633da5eb9941f8575487a03ec21aff83db1ae0a32f6bab62bff0a7f05d669"
+      "mermaidSha256": "783a5853b09be825bf6492fcfbde52ea09e5c1e367745ca30b8026d0f2cab2ac",
+      "svgSha256": "9507b8ac4590dd152a2c5d14103f3f32f853503a24baf302fd443f47eea6fd2a"
     },
     "05-actions": {
       "mermaidSha256": "fd3b1e0f70e20972fda0f73c6a239e75bcf445e29a5a28c3b3d30de329fac8a9",

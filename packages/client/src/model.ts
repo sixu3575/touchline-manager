@@ -29,6 +29,10 @@ export interface MatchEvent {
   x: number;
   y: number;
   playerId?: string;
+  assistId?: string;
+  shotId?: number;
+  keyPassId?: string;
+  outcome?: string;
   scorer?: { id: string; number?: number; name: string; side: number };
   score?: number[];
   penalties?: number[];
@@ -78,6 +82,7 @@ export interface Report {
       shots: number;
       xg: number;
       keyPasses: number;
+      chancesCreated?: number;
       progressivePasses: number;
       passes: number;
       completed: number;

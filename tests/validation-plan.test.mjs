@@ -12,6 +12,16 @@ const change = (path, before, after) => ({ path, before, after });
 const engine = 'packages/shared/modules/matches/decisions.mjs';
 const flow = 'packages/shared/modules/competitions/index.mjs';
 
+test('statistical provenance runtime changes require real matches without a season', () => {
+  const path = 'packages/shared/modules/matches/attribution.mjs';
+  const plan = classifyChanges([
+    change(path, 'export const version=1;', 'export const version=2;'),
+  ]);
+  assert.equal(plan.match, true);
+  assert.equal(plan.season, false);
+  assert.ok(matchUnits.includes('tests/match/attribution.test.mjs'));
+});
+
 test('assessment public export is display-only, but engine imports remain algorithm-sensitive', () => {
   const path = 'packages/shared/modules/players/index.mjs';
   const before = "export * from './match-state.mjs';";
