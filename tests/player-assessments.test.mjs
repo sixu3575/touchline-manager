@@ -58,6 +58,7 @@ const noSecrets = (value) => {
         'preparation',
         'mind',
         'motion',
+        'defenceTelemetry',
       ].includes(k),
       k,
     );
@@ -201,7 +202,9 @@ test('archive/live diagnostics are projected without changing replay, stats, sco
       { type: 'control', preparation: 0.18, flow: true },
     ],
     stats: [{ shots: 1 }],
-    performance: [{ id: p.id, mind: { confidence: 95 }, saves: 2 }],
+    performance: [
+      { id: p.id, mind: { confidence: 95 }, defenceTelemetry: { observationLapses: 3 }, saves: 2 },
+    ],
     timeline: [{ performance: [{ quality: 91 }] }],
     snapshots: [{ id: 'me', players: [p] }],
   };

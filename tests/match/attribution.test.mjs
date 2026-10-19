@@ -238,6 +238,9 @@ function physicalScenario(direction, offset = null) {
     goalkeeper.pos = { x: mirror(104), z: 34 + offset };
     goalkeeper.target = { ...goalkeeper.pos };
     goalkeeper.body.setTranslation({ ...goalkeeper.pos, y: goalkeeper.height / 2 }, true);
+    // Isolate statistical credit from the goalkeeper's changing navigation AI.
+    // The ball and capsule still undergo a real Rapier contact/deflection.
+    goalkeeper.body.setEnabledTranslations(false, false, false, true);
     p.ball.setTranslation({ x: mirror(102), y: 0.12, z: 34 }, true);
     p.ball.setLinvel({ x: direction * 10, y: 0, z: 0 }, true);
     const details = startAttempt(
@@ -293,7 +296,7 @@ test('actual keeper body deflections into the net do not turn on-target shots in
   for (const direction of [-1, 1]) {
     let touchedGoal = false;
     const diagnostics = [];
-    for (const offset of [0.18, 0.22, 0.26, 0.3]) {
+    for (const offset of [0.18, 0.22, 0.26, 0.3, 0.36, 0.38, 0.4, 0.42, 0.43]) {
       const { report, attacker, goalkeeper } = physicalScenario(direction, offset);
       const goal = report.events.find((e) => e.type === 'goal');
       const outcome = report.events.find(

@@ -4,6 +4,7 @@ import { movement } from './locomotion.mjs';
 import { distance, unit, segmentPoint, localX } from './spatial.mjs';
 import { tacticalPreset } from '../tactics/index.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
+import { sprintAvailable } from './activity.mjs';
 
 // Opportunity estimates rank routes only. Actual touches, tackles and collisions
 // still decide whether the player keeps the independently simulated ball.
@@ -51,28 +52,28 @@ export function carryOptions(
         distance(o.pos, ball) < 4.5 ||
         (segmentPoint(ball, destination, o.pos).gap < 2.7 && distance(o.pos, ball) < 6),
     );
-    const mode = clear ? 'carryFast' : 'carry';
+    const mode = clear && sprintAvailable(actor) ? 'carryFast' : 'carry';
     const speed = movement(actor.player, actor.energy, mode).speed;
     const defenders = opponents
       .filter((o) => distance(o.pos, ball) < 24)
       .map((opponent) => {
         let risk = 0;
-        for (const fraction of [0.25, 0.55, 1]) {
+        for (const fraction of [0.2, 0.4, 0.65, 1]) {
           const point = {
             x: ball.x + heading.x * length * fraction,
             z: ball.z + heading.z * length * fraction,
           };
-          const own = arrivalTime(actor, point, mode, 0);
+          const own = arrivalTime(actor, point, mode, 0.08);
           const theirs = arrivalTime(
             opponent,
             point,
-            pursuitMode(opponent, ball),
-            0.1 + (100 - ability(opponent.player, 'anticipation')) * 0.002,
+            'sprint',
+            0.08 + (100 - ability(opponent.player, 'anticipation')) * 0.001,
           );
-          risk = Math.max(risk, clamp((own + 0.45 - theirs) / 1.1, 0, 1) * Math.exp(-own / 2.8));
+          risk = Math.max(risk, clamp((own + 0.35 - theirs) / 1.1, 0, 1) / (1 + own * 0.12));
         }
         // Immediate pressure still matters before a predicted interception point.
-        risk = Math.max(risk, clamp((3.5 - distance(opponent.pos, ball)) / 3.5, 0, 1));
+        risk = clamp(risk + 0.6 * clamp((4 - distance(opponent.pos, ball)) / 4, 0, 1), 0, 1);
         return { opponent, risk, gap: segmentPoint(ball, destination, opponent.pos).gap };
       })
       .sort((a, b) => b.risk - a.risk);
@@ -90,9 +91,7 @@ export function carryOptions(
         : 0.55 * ability(defender.player, 'tackling') +
           0.25 * ability(defender.player, 'positioning') +
           0.2 * ability(defender.player, 'balance');
-    const pace = defender
-      ? speed - movement(defender.player, defender.energy, pursuitMode(defender, ball)).speed
-      : 0;
+    const pace = defender ? speed - movement(defender.player, defender.energy, 'sprint').speed : 0;
     const duel = clamp(0.5 + 0.006 * (quality.value - defending) + 0.025 * pace, 0.12, 0.88);
     const success = clamp(0.97 - danger * (1 - duel) - 0.14 * cover, 0.12, 0.98);
     const spaceBonus = 0.08 * clamp((near - 2.5) / 6, 0, 1) * clamp(progress / 8, 0, 1);
@@ -107,8 +106,8 @@ export function carryOptions(
         bonus:
           spaceBonus +
           0.045 * profile.inclination +
-          (0.1 * danger * Math.max(0, duel - 0.45)) / (1 + cover) +
-          (destination === persistent ? 0.035 : 0) -
+          (0.22 * danger * Math.max(0, duel - 0.45)) / (1 + cover) +
+          (destination === persistent ? 0.015 : 0) -
           0.035 * cover +
           (wide
             ? 0.055 *

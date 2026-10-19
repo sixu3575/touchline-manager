@@ -1,9 +1,12 @@
 import { movement } from './locomotion.mjs';
 import { distance, unit } from './spatial.mjs';
+import { sprintAvailable } from './activity.mjs';
 
 // Shared bounded arrival estimate, not a teleport or a claim of possession.
 // Include momentum, braking a wrong-way velocity, acceleration and observation.
 export function arrivalTime(actor, point, mode = 'sprint', reaction = 0.08) {
+  if (!sprintAvailable(actor))
+    mode = mode === 'carryFast' ? 'carry' : mode === 'sprint' ? 'run' : mode;
   const m = movement(actor.player, actor.energy, mode),
     h = unit(actor.pos, point);
   const v = actor.velocity ?? { x: 0, z: 0 };

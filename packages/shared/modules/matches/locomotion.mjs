@@ -1,6 +1,7 @@
 import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 import { distance } from './spatial.mjs';
+import { sprintAvailable } from './activity.mjs';
 
 export function movement(p, energy, mode = 'sprint') {
   if (!p.matchState)
@@ -14,11 +15,17 @@ export function movement(p, energy, mode = 'sprint') {
   const speeds = {
     walk: 1.5,
     jog: 2.7 + 0.014 * pace,
-    run: 4.3 + 0.022 * pace,
+    run: 4.1 + 0.012 * pace,
+    stand: 0,
     sprint: top,
     carry: top * (0.6 + 0.002 * a('dribbling')),
     carryFast: top * (0.86 + 0.001 * a('dribbling')),
   };
+  if (p.matchState?.sprintRecovering) {
+    speeds.sprint = speeds.run;
+    speeds.carry = Math.min(speeds.carry, 4.5 + 0.003 * a('dribbling'));
+    speeds.carryFast = speeds.carry;
+  }
   return {
     speed: speeds[mode] ?? speeds.run,
     topSpeed: top,
@@ -45,22 +52,33 @@ export function driveMovement(actor, desired, limits, dt, responseMultiplier = 1
   actor.body.applyImpulse({ x: dx * scale * mass, y: 0, z: dz * scale * mass }, true);
 }
 export function movementMode(actor, ball, owner, roles, gap) {
-  if (actor === owner) return actor.intent?.mode === 'carryFast' ? 'carryFast' : 'carry';
-  if (gap < 1.2) return 'walk';
+  const fresh = sprintAvailable(actor);
+  if (actor === owner) return actor.intent?.mode === 'carryFast' && fresh ? 'carryFast' : 'carry';
+  if (actor.isKeeper) return gap > 0.35 ? 'run' : 'stand';
   const chasing = roles.chasers.includes(actor.index);
-  if (roles.receiverId === actor.player.id) return distance(actor.pos, ball) > 5 ? 'sprint' : 'run';
-  if (chasing) return distance(actor.pos, ball) > 7 ? 'sprint' : 'run';
+  if (chasing || roles.receiverId === actor.player.id) {
+    if (gap < 0.4) return 'walk';
+    return gap > 2 && distance(actor.pos, ball) < 18 && fresh ? 'sprint' : 'run';
+  }
+  if (gap < 0.8) return 'stand';
+  if (gap < 2.5) return 'walk';
   if (roles.marking?.[actor.player.id]) {
     const speed = actor.markMemory
       ? Math.hypot(actor.markMemory.velocity.x, actor.markMemory.velocity.z)
       : 0;
-    return gap > 4 || speed > 5 ? 'sprint' : gap > 1.5 || speed > 3 ? 'run' : 'jog';
+    return fresh && speed > 4.5 && gap > 2
+      ? 'sprint'
+      : speed > 3.5 || gap > 9
+        ? 'run'
+        : speed > 1.8 || gap > 4
+          ? 'jog'
+          : 'walk';
   }
-  if (roles.runnerId === actor.player.id) return 'sprint';
+  if (roles.runnerId === actor.player.id) return fresh ? 'sprint' : 'jog';
   if (
     gap > 5 &&
     ['overlap', 'nearPost', 'farPost', 'break'].includes(roles.duties?.[actor.player.id]?.duty)
   )
-    return 'sprint';
-  return gap > 18 ? 'run' : 'jog';
+    return fresh && gap > 9 ? 'sprint' : 'jog';
+  return gap > 14 ? 'jog' : 'walk';
 }

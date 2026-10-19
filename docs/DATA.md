@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.16.0保持JSON/SQLite3、事件3、u16回放。新报告可选performance[].locomotion（20Hz五区/活死球里程/高速段）、defenceTelemetry（私有诊断）及continuity.possessions（团队阶段，含短时松球）。旧报告保持缺失，不伪补历史。actor.activity/defenceMemory/pressUntil/shotPreparation及continuity团队记忆由既有检查点整体保存；matchState新增短时恢复字段只在单场actor内使用，出站剔除。按引擎0.16.0-realism隔离恢复，切换前排空旧任务；没有数据库迁移或长期属性调整。
+
 0.15.1引擎0.15.1-attribution新增可选statisticsVersion、shotId/shotOutcome及正式来源ID；检查点state增加attribution与statisticalContacts。JSON/SQLite3、事件3/轨迹格式不变，不迁移旧行，不重算历史。新评分match-rating-2消费唯一射门结果；已有评分仍按原版本保存。
 
 0.15.0仍JSON/SQLite3，training可选升级version2（facilities/assignments/history最近40轮/lastResolved），新增staff.version1（具名employees/market），player.development.version1（私有lastDate/30项真实peaks/decay余数/potentialDecay）；assessment记录专项trainingObservations及confirmedPeaks。GET在副本初始化默认值，不改旧存档；第一次合法动作/比赛计划保存可选字段，不追溯衰退。确认峰值只来自精确小项，公开训练仅delta，不发真值/from/to/development。每轮全部报告进入既有match_reports，摘要上限140，他队无轨迹且回放接口强校验本队；旧AI仅比分不重算。详见[训练契约](../packages/shared/modules/training/TRAINING_AND_CAREERS_V0150.md)。

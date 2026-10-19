@@ -3,9 +3,15 @@ import { distance } from './spatial.mjs';
 export function continuityState() {
   return {
     controller: null,
+    lastController: null,
+    lastHeldAt: -Infinity,
+    teamUntil: 0,
+    possessionAt: null,
+    released: null,
     controlledAt: 0,
     regainedAt: null,
     side: null,
+    lastTeam: null,
     phase: 'dead',
     chain: 0,
     metrics: {
@@ -20,32 +26,62 @@ export function continuityState() {
       errors: { forced: 0, unforced: 0, deflected: 0, carryOut: 0, shotOut: 0 },
       turnovers: { interception: 0, miscontrol: 0, dispossessed: 0, looseCarry: 0, out: 0 },
       boxEntries: [0, 0],
+      possessions: [],
     },
     inBox: false,
   };
+}
+function endPossession(s, time, reason) {
+  if (s.possessionAt !== null)
+    s.metrics.possessions.push({
+      side: s.side,
+      start: s.possessionAt,
+      end: time,
+      seconds: Math.max(0, time - s.possessionAt),
+      reason,
+    });
+  s.possessionAt = null;
+}
+// A player's short independent touch may be contestable even after losing a
+// controller. This confers neither possession nor remote kicking permission.
+export function contestOwner(s, actors, ball, time) {
+  const actor = actors[s.controller ?? s.lastController];
+  if (!actor || actor.sentOff || ball.y > 1.3 || distance(actor.pos, ball) > 2.6) return null;
+  if (s.controller !== null) return actor;
+  return !s.released && time - s.lastHeldAt < 0.65 ? actor : null;
 }
 function endChain(s) {
   if (s.side !== null && s.chain) s.metrics.chains[s.side].push(s.chain);
   s.chain = 0;
 }
 export function controlBall(s, actor, time, pass, opposingPass = false) {
-  if (s.side !== null && s.side !== actor.side) {
+  if ((s.side ?? s.lastTeam) !== null && (s.side ?? s.lastTeam) !== actor.side) {
+    endPossession(s, time, opposingPass ? 'interception' : 'dispossessed');
     s.regainedAt = time;
     endChain(s);
     s.metrics.turnovers[opposingPass ? 'interception' : 'dispossessed']++;
   }
+  if (s.possessionAt === null) s.possessionAt = time;
   if (pass) s.chain++;
   s.controller = actor.index;
+  s.lastController = actor.index;
+  s.lastHeldAt = time;
+  s.teamUntil = time + 2.5;
+  s.released = null;
   s.controlledAt = time;
   s.side = actor.side;
+  s.lastTeam = actor.side;
   s.phase = 'controlled';
 }
 export function releaseControl(s, time, kind) {
+  s.released = kind;
+  s.teamUntil = time + (kind === 'shot' ? 0.6 : 3);
   s.controller = null;
   s.phase = kind === 'miscontrol' ? 'loose' : kind === 'shot' ? 'loose' : 'flight';
   if (kind === 'miscontrol') s.metrics.turnovers.miscontrol++;
 }
 export function deadBall(s, time, reason = 'restart') {
+  endPossession(s, time, reason);
   if (s.phase !== 'dead') {
     s.metrics.restarts++;
     s.metrics.deadCauses[reason] = (s.metrics.deadCauses[reason] ?? 0) + 1;
@@ -53,7 +89,11 @@ export function deadBall(s, time, reason = 'restart') {
   }
   endChain(s);
   s.controller = null;
+  s.lastController = null;
+  s.released = null;
+  s.teamUntil = 0;
   s.side = null;
+  s.lastTeam = null;
   s.regainedAt = null;
   s.phase = 'dead';
   s.inBox = false;
@@ -77,6 +117,8 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
         Math.hypot((ball.vx ?? 0) - (a.velocity?.x ?? 0), (ball.vz ?? 0) - (a.velocity?.z ?? 0)) <
           (a.intent?.mode === 'carryFast' ? 4.5 : 3.5)));
   if (retained) {
+    s.lastHeldAt = time;
+    s.teamUntil = time + 2.5;
     s.phase = 'controlled';
     s.metrics.controlledSeconds[a.side] += 0.05;
     const box =
@@ -90,10 +132,16 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
     s.phase = 'loose';
     s.metrics.turnovers.looseCarry++;
   }
-  if (pending && time < (pending.expiresAt ?? pending.time + 4)) s.phase = 'flight';
+  const inFlight = pending && time < (pending.expiresAt ?? pending.time + 4);
+  if (inFlight) s.phase = 'flight';
   else {
     const nearby = actors.filter((a) => !a.sentOff && distance(a.pos, ball) < 2.5);
     s.phase = new Set(nearby.map((a) => a.side)).size > 1 ? 'contested' : 'loose';
+  }
+  if (!inFlight && s.controller === null && time > s.teamUntil) {
+    endPossession(s, time, 'loose');
+    endChain(s);
+    s.side = null;
   }
   if (s.phase === 'flight' && s.side !== null) s.metrics.flightSeconds[s.side] += 0.05;
   else if (s.phase === 'contested') s.metrics.contestedSeconds += 0.05;

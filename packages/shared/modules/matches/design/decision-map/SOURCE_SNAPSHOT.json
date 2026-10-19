@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-19",
-  "baselineCommit": "8fe7299ea21043fe1b12ab903bd7dd4de0b7a5dc",
-  "engineVersion": "0.15.1-attribution",
-  "parameterVersion": "movement-1",
+  "baselineCommit": "1513d5a6bdc9396af666b0e8ef981d8f5a8a45ef",
+  "engineVersion": "0.16.0-realism",
+  "parameterVersion": "realism-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
   "rendering": {
@@ -16,25 +16,25 @@
     "packages/shared/modules/training/index.mjs": "8d55edd45a1275cef85b2dc2226e5253be8d1ab20b2ceae1e0cc7391651a301b",
     "packages/shared/modules/staff/index.mjs": "e843fb9815c0d8b5bf7b189e64a5c5baa6bfdb7c85083b35ac5070f773421d24",
     "packages/shared/modules/matches/index.mjs": "4e791d4724f99bcc95c7295e1dbe76989a3cf1e922cd086579be043b4c5f3638",
-    "packages/shared/modules/matches/arrival.mjs": "c7ff9c81e26560785e3d31b2d3d8b75799ec2eda9a303bf39a913845930e256d",
+    "packages/shared/modules/matches/arrival.mjs": "8931ced36a90c329dd7382401a74f9b0b16403209c8a7aa60555caef660730a3",
     "packages/shared/modules/matches/offball.mjs": "dd85db2fe9ddbb90d5a1b4b0961eee6f863f36a020cd4b123aa150cff0a4e3a7",
-    "packages/shared/modules/matches/deadball.mjs": "32ca561e2b740081c72ea343baa2cebff2cad7c7cf70469471b80d9a06ca8a4f",
+    "packages/shared/modules/matches/deadball.mjs": "6e7d16eec454a7a496b70f8b056b9496c11cd06fe28965bbc9b3b15fe72cd267",
     "packages/shared/modules/matches/tactical-plan.mjs": "e1abf6026f24eb456f5346c7613b08ea4fb7c1cd43d95e248fe5999b5269c3d1",
-    "packages/shared/modules/matches/carrying.mjs": "75695e586b75a2b7ee402813f2eef5015cb7fd9ad59ee0325bda8ad5522fb0de",
+    "packages/shared/modules/matches/carrying.mjs": "a3e18bb06719a2ede5785979705c7db2cabf91c43eea001dc852532d4ecad422",
     "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
     "packages/shared/modules/players/assessment.mjs": "728a96336139c5adbbb676cfd107d604940d0a9b3bf3a86b20f6755f185475d6",
-    "packages/server/src/player-view.mjs": "7e2c577cf2c21e60c6662dd8e4b686f11941401557b0d7ca7b5036ef4948ee2e",
+    "packages/server/src/player-view.mjs": "707d2975fee65006dd7ceea62005be1c5b1b31afccef2878f48282d67dff242e",
     "packages/server/src/maintenance/player-integers.mjs": "c5fff4326c6f82d075699b9b9fa0b8cad448ed113989ea8eee5ee5fcd588a6f8",
     "scripts/player-integers.mjs": "56c114f0f24c2efb47660dec6ab088eb3d66511e56df54200b528573fc1a2f35",
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "77d4bb2d59f783a5b237f20782051beb2490833d07296701289fdf60bd81f58f",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "649b2a62dce4c2790a5207ba88de98ebcdf37c5e99e8956f33958fd8bb271cb0",
-    "packages/shared/modules/matches/locomotion.mjs": "d29cd82bd72e19eaad121cdf9de7605c86549b7a9e50969a20d91557fd8761f2",
-    "packages/shared/modules/matches/decisions.mjs": "3f8571423141ed3bee172a50415c7e6834622f3224e4542fefa4794bbdc7054f",
-    "packages/shared/modules/matches/simulation.mjs": "c0fc9d3bf9478a5bbb8c457dd1a832212ccd4a44e3b3a52abd361d01f98fc753",
-    "packages/shared/modules/matches/continuity.mjs": "8cc0c54c25d4941336315d12b07fd5d9d032fb58dce008c86bfef5cb06690bcf",
+    "packages/shared/modules/matches/positioning.mjs": "01e3e776935f121f61ae0477d5a600f43cac1a914167033c2351ec18a1b47070",
+    "packages/shared/modules/matches/locomotion.mjs": "3773ad40fe49f0b1a1ee1c37edf50976cc6f481c982b3eee7edeb86f0e465306",
+    "packages/shared/modules/matches/decisions.mjs": "b1fb42e48ed97f05e2685909ac6f8612ffcb148d6e4970e681eb7cad37a2bcf1",
+    "packages/shared/modules/matches/simulation.mjs": "41cf997092d2df18267c85c8f6a4275718c42861c62b827a96023897f65d1838",
+    "packages/shared/modules/matches/continuity.mjs": "22fbe7c30585cded0b4fc90a0f379213210fbe55f6aa461055f87822ee47fda2",
     "packages/shared/modules/matches/receiving.mjs": "be094739427f309719a8625a7bff1546a233f23327ebb0708a7ce2da16fbb727",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
     "packages/shared/modules/matches/skills.mjs": "2247076fcf27042db968d32fe8e768eac3be23381dee0919f29ccedfedc1e5cd",
@@ -49,32 +49,34 @@
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
     "packages/shared/modules/matches/attribution.mjs": "1c88bdd241832544516bb2c9910e147a49ff93d00497e67f6f5b6db9688c3d9c",
-    "packages/shared/modules/matches/ratings/index.mjs": "d68025690ba778f21d029ac33c8f69670e738a7b1a0d4e988a93d94e9dea5233"
+    "packages/shared/modules/matches/ratings/index.mjs": "d68025690ba778f21d029ac33c8f69670e738a7b1a0d4e988a93d94e9dea5233",
+    "packages/shared/modules/matches/activity.mjs": "093bbf7960f4844779dba4145d90c9298893130f954173f1ed02c70171e6bf5d",
+    "packages/shared/modules/matches/defending.mjs": "8a98edcac87bdab1f713ef764e7ab227498d34f43863a5eab95b5840e50758c6"
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "1d92977291dddd0f7566433629bd7731fbf352135d501acc02a68f792e0aad80",
-      "svgSha256": "0d635443112411de826f117eb7c4c6d37fb3d52afa70900e6f352b48c2e636e7"
+      "mermaidSha256": "8f8b889760c264e5a5600aad99c3db806cb976707c3364dec7da150a8f645538",
+      "svgSha256": "010fb77dccc2b4c7094e82368ff22ad15f808fe8a697b94874b62ed7a60a5f7d"
     },
     "02-roles": {
-      "mermaidSha256": "50a5972867f940114a004880efcc3b5eeffa22881f0fb389bb4c6702c71980f5",
-      "svgSha256": "00dbb5fbdd899f51ac11465b06eeb7376e3acc8255392a238a1a396f802078f2"
+      "mermaidSha256": "197ef6ab645072f950ef9323231f01f345b035d2995be6dc00626bf6ad3e45f4",
+      "svgSha256": "fcfe23d3c2663d42ae7c0ea25bb7b2aaa26d1645014d29389e283b1c6a7ce4b6"
     },
     "03-positioning": {
-      "mermaidSha256": "f22e0959e3372bf42b36943d3b96bbd8acd3742d1d09218e27cf0e2f66de605b",
-      "svgSha256": "2aa65e11af92c782c8cb20caf33e4954bd4ee54525422b4cc106b611a810eecb"
+      "mermaidSha256": "0aaf866690ae4d6d4565394503fb781aece05692e81647f18f5f9e925ff50106",
+      "svgSha256": "7c937047d97f20f9654be7216055e98408c63cb73290527532e6bf9fd36ffa5f"
     },
     "04-reception": {
-      "mermaidSha256": "783a5853b09be825bf6492fcfbde52ea09e5c1e367745ca30b8026d0f2cab2ac",
-      "svgSha256": "9507b8ac4590dd152a2c5d14103f3f32f853503a24baf302fd443f47eea6fd2a"
+      "mermaidSha256": "b47f8251aa78605c2625693a48fdda9d48d95ba7d6da5a1d1558da8286eb95a0",
+      "svgSha256": "dc84f9aa97768c090c4a71e69a0aaab3620ef8390d87e38178236d8c7cfdabb7"
     },
     "05-actions": {
-      "mermaidSha256": "fd3b1e0f70e20972fda0f73c6a239e75bcf445e29a5a28c3b3d30de329fac8a9",
-      "svgSha256": "4a250506dd8435061b27bad9630a8f4433c783a4cbbfe0e706e5e170e18ea04b"
+      "mermaidSha256": "aea4f6864da61ad94fc9b4a9515fe3a8650f3d993bc33dab47e291c7cd8220d3",
+      "svgSha256": "66b765066a60b76a87ad0835abb47f99a5c0e2882d063bb6e66825da9f36e077"
     },
     "06-profiles": {
-      "mermaidSha256": "1d07bec74d91c609ebf43572d17767bc716aa35413925a1ba3b372af1e8b3965",
-      "svgSha256": "2f4634ee11472444472d86393d28d36a4269418b2d08655dc11431239e9d8fb6"
+      "mermaidSha256": "4eb540ef7bc49ed7fffdd9c29b1694c8851b933599da2b48ec3729c0eb6bf2a8",
+      "svgSha256": "788ce559f47ba7ef78a19aa5004b265d57139de9dbce6b16d579c3d58976ec59"
     },
     "07-knowledge": {
       "mermaidSha256": "55584a12bc58a85cf7f4b5e2ba4733fb14a2d748f5fbcf571412e6d127b44035",

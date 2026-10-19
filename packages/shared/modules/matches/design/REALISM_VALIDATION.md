@@ -4,6 +4,8 @@
 
 ## 自动检查与证据
 
+0.16执行结果见[校准与残余偏差](CALIBRATION_V0160.md)和[汇总证据](REALISM_EVIDENCE_V0160.json)。新增20Hz原生五区/活动测量，5Hz保留作独立距离对账；团队阶段时长有档案，但含短时松球，仍不是每个个人稳定控制片段。观察延迟次数/压迫任务时间只作诊断，不冒充实际盯人失误/成功压迫。既有review/block阈值保持。
+
 - `tests/tools/match-realism.mjs`只读已有详细报告/轨迹，不导入引擎、不改变随机数或旧报告。`tests/match/engine.test.mjs`复用既有90分钟确定性样本，不额外打一场。
 - `scripts/validate.mjs`为本次运行分配独立证据文件，`work/validation/result.json.realism`嵌入比较结果，CI上传`work/validation/realism/*.json`；不会将上一次报告当本次证据。
 - `pass`为未越线；`review`有需解释的警报；`blocked`阻断比赛专项。检查在原断言之后失败，先保存报告。没有运行真实层级时为`not-run`，不能声称现实性通过。

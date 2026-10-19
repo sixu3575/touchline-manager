@@ -32,6 +32,13 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
   assert.equal(a.events.find((e) => e.type === 'half').minute, 45);
   assert.equal(a.events.at(-1).minute, 90);
   assert.ok(a.performance.every((p) => p.energy >= 20 && p.energy <= 100));
+  for (const p of a.performance) {
+    assert.ok(Math.abs(p.locomotion.zones.reduce((s, x) => s + x, 0) - p.distance) <= 3);
+    assert.ok(
+      Math.abs(p.locomotion.seconds.reduce((s, x) => s + x, 0) - (p.dismissedAt ?? 5400)) < 0.12,
+    );
+  }
+  assert.ok(a.continuity.possessions.every((p) => p.start <= p.end && p.end <= 5400));
   const attempts = a.events.filter((e) => e.type === 'shot');
   const outcomes = a.events.filter((e) => e.type === 'shotOutcome');
   assert.equal(new Set(attempts.map((e) => e.shotId)).size, attempts.length);
