@@ -24,7 +24,7 @@
     "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
     "packages/shared/modules/players/assessment.mjs": "81fab9459b8b7ce7f919ff92da3acf8c0141f6fe6ab34af3202283097237dfeb",
-    "packages/server/src/player-view.mjs": "e79240a718dbcf48d3e6b5850c4a1cdde2fb2ab835df3ff154192dd57828eaea",
+    "packages/server/src/player-view.mjs": "abd7603efc339cc748073e84d8b33fb7b680cd4d38a768c37ce57a393efd8ebf",
     "packages/server/src/maintenance/player-integers.mjs": "c5fff4326c6f82d075699b9b9fa0b8cad448ed113989ea8eee5ee5fcd588a6f8",
     "scripts/player-integers.mjs": "56c114f0f24c2efb47660dec6ab088eb3d66511e56df54200b528573fc1a2f35",
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",

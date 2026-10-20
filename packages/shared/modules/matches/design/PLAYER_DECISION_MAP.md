@@ -338,6 +338,8 @@ FG/FB是赛前数值分配，不是新的赛内抽签。服务器技术模板只
 
 ## 9. 知识可见性：玩家知道什么，比赛使用什么
 
+2026-10-20直播展示修复复用并导出server/player-view.mjs既有stripDiagnostics过滤函数；只新增导出，不改变过滤内容、知识边界或比赛决策。源码摘要同步更新，七张图的节点和SVG保持有效。0.27校准证据仍对应原始源码摘要；44份其他维护源码未变，不将本次展示修复称为重新执行比赛校准。
+
 [知识图SVG](decision-map/07-knowledge.svg) · [评估契约](../../players/ASSESSMENT.md) · [属性消费者与搁置清单](../../players/ATTRIBUTE_AUDIT.md)
 
 ```mermaid
