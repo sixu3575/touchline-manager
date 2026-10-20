@@ -316,6 +316,9 @@ export class MatchJobs extends EventEmitter {
       const { done, part } = result,
         own = work.index === 0;
       const progress = JSON.parse(row.progress);
+      // An existing job may already be computing AI fixtures when this repair
+      // is deployed. Its next ordinary checkpoint also sheds the old live copy.
+      if (!own && progress.report) progress.report = compactBroadcastReport(progress.report);
       const beforeClock = broadcastAt(progress, this.now());
       if (beforeClock) progress.broadcast = beforeClock.clock;
       this.db.exec('BEGIN IMMEDIATE');
