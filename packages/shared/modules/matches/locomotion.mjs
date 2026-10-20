@@ -1,7 +1,7 @@
 import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 import { distance } from './spatial.mjs';
-import { sprintAvailable } from './activity.mjs';
+import { sprintAvailable, triggerAdrenalineSprint } from './activity.mjs';
 
 export function movement(p, energy, mode = 'sprint') {
   if (!p.matchState)
@@ -72,19 +72,29 @@ export function markingVelocity(actor, owner, roles) {
 }
 export function movementMode(actor, ball, owner, roles, gap) {
   const fresh = sprintAvailable(actor);
+  const criticalSprint = (critical) => fresh || triggerAdrenalineSprint(actor, critical);
+  const attackingDepth = actor.direction === -1 ? 105 - ball.x : ball.x;
+  const ownGoalDistance = attackingDepth;
   if (actor.kickPlan) return gap > 0.15 ? 'walk' : 'stand';
   if (actor === owner) return actor.intent?.mode === 'carryFast' && fresh ? 'carryFast' : 'carry';
   if (actor.isKeeper) return gap > 0.35 ? 'run' : 'stand';
   const chasing = roles.chasers.includes(actor.index);
   if (chasing || roles.receiverId === actor.player.id) {
     if (gap < 0.4) return 'walk';
-    return gap > 2 && distance(actor.pos, ball) < 18 && fresh ? 'sprint' : 'run';
+    const ballGap = distance(actor.pos, ball);
+    const urgent =
+      ballGap <= 8 &&
+      ((chasing && (attackingDepth >= 70 || ownGoalDistance < 26)) ||
+        (roles.receiverId === actor.player.id && attackingDepth >= 70));
+    return gap > 2 && ballGap < 18 && criticalSprint(urgent) ? 'sprint' : 'run';
   }
   if (roles.marking?.[actor.player.id]) {
     const speed = actor.markMemory
       ? Math.hypot(actor.markMemory.velocity.x, actor.markMemory.velocity.z)
       : 0;
-    return fresh && speed > movement(actor.player, actor.energy, 'run').speed
+    const emergencyCover = ownGoalDistance < 26 && gap > 4 && speed > 3.5;
+    return criticalSprint(emergencyCover) &&
+      speed > movement(actor.player, actor.energy, 'run').speed
       ? 'sprint'
       : speed > 3.5 || gap > 9
         ? 'run'
@@ -96,11 +106,17 @@ export function movementMode(actor, ball, owner, roles, gap) {
   }
   if (gap < 0.8) return 'stand';
   if (gap < 2.5) return 'walk';
-  if (roles.runnerId === actor.player.id) return fresh ? 'sprint' : 'jog';
+  if (roles.runnerId === actor.player.id) {
+    const urgent = attackingDepth >= 70 && distance(actor.pos, ball) < 24 && gap > 9;
+    return criticalSprint(urgent) ? 'sprint' : 'jog';
+  }
   if (
     gap > 5 &&
     ['overlap', 'nearPost', 'farPost', 'break'].includes(roles.duties?.[actor.player.id]?.duty)
   )
-    return fresh && gap > 9 ? 'sprint' : 'jog';
+    return criticalSprint(attackingDepth >= 74 && distance(actor.pos, ball) < 18 && gap > 9) &&
+      gap > 9
+      ? 'sprint'
+      : 'jog';
   return gap > 14 ? 'jog' : 'walk';
 }

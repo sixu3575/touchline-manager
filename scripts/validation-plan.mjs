@@ -19,6 +19,9 @@ export const matchUnits = [
   'attribution',
   'realism-v0160',
   'execution',
+  'replay-analysis',
+  'stamina-view',
+  'tempo-v0180',
 ].map((n) => `tests/match/${n}.test.mjs`);
 export const matchScenarios = [
   'engine',

@@ -9,6 +9,8 @@ import ts from 'typescript';
 import { createGame, applyAction } from '../packages/shared/game.mjs';
 import {
   assessmentFor,
+  exactObservationThreshold,
+  scoutPlayer,
   cardOverview,
   ensureAssessment,
   ATTRIBUTE_GROUPS,
@@ -59,6 +61,14 @@ const noSecrets = (value) => {
         'mind',
         'motion',
         'defenceTelemetry',
+        'locomotion',
+        'continuity',
+        'analysis',
+        'analytics',
+        'diagnostics',
+        'telemetry',
+        'debug',
+        'replayAnalysis',
       ].includes(k),
       k,
     );
@@ -140,6 +150,49 @@ test('reports narrow deterministically, unknown stays unknown, and exact knowled
   for (const key of abilityKeys) assert.equal(exact.bands[key].min, p.attributes[key]);
   assert.throws(() => applyAction(g, 'staff', { kind: 'scout' }), /最高/);
 });
+test('all 30 details, potential and weak foot are exactly known within one 14-round season at every staff level', () => {
+  for (let level = 1; level <= 5; level++) {
+    const g = createGame('一季内精确评估', 1000 + level),
+      p = g.market[0],
+      threshold = exactObservationThreshold(level);
+    delete g.staff;
+    g.assessment = {
+      version: 1,
+      coach: level,
+      scout: level,
+      players: { [p.id]: { visits: threshold - 1, sessions: 0 } },
+    };
+    assert.equal(assessmentFor(g, p).stage, 3, `level ${level} before threshold`);
+    for (const key of [...abilityKeys, 'potential', 'weakFoot']) {
+      const band = assessmentFor(g, p).bands[key];
+      assert.ok(band && band.min < band.max, `level ${level}, ${key} should remain estimated`);
+    }
+    g.assessment.players[p.id].visits = threshold;
+    const exact = assessmentFor(g, p);
+    assert.equal(exact.stage, 4, `level ${level}`);
+    for (const key of [...abilityKeys, 'potential', 'weakFoot']) {
+      const raw = p.attributes?.[key] ?? p[key];
+      assert.deepEqual(exact.bands[key], { min: raw, max: raw }, `level ${level}, ${key}`);
+    }
+    assert.ok(threshold <= 14);
+  }
+});
+test('external scouting allows one observation per day up to fourteen rounds', () => {
+  const g = createGame('球探观察', 144),
+    p = g.market[0];
+  delete g.staff;
+  let current = new Date('2026-01-01T00:00:00.000Z');
+  for (let i = 0; i < 14; i++) {
+    g.gameDate = current.toISOString().slice(0, 10);
+    scoutPlayer(g, { playerId: p.id });
+    if (i === 0) assert.throws(() => scoutPlayer(g, { playerId: p.id }), /已观察/);
+    current = new Date(current.getTime() + 86400000);
+  }
+  assert.equal(g.assessment.players[p.id].visits, 14);
+  assert.equal(assessmentFor(g, p).stage, 4);
+  for (const key of [...abilityKeys, 'potential', 'weakFoot'])
+    assert.equal(assessmentFor(g, p).bands[key].min, p.attributes?.[key] ?? p[key]);
+});
 test('staff cannot grant competitive ability; insufficient funds and invalid observations cannot charge', () => {
   const g = createGame();
   ensureTraining(g);
@@ -191,7 +244,7 @@ test('joining keeps scouting evidence, coaching grows with calendar and training
   );
   assert.equal(next.assessment.players[id].lastScouted, g.gameDate);
 });
-test('archive/live diagnostics are projected without changing replay, stats, scores, or private snapshots', () => {
+test('archive/live diagnostics stay private while requested match stats and stamina remain public', () => {
   const g = createGame(),
     p = g.clubs[0].players[0];
   const raw = {
@@ -203,9 +256,23 @@ test('archive/live diagnostics are projected without changing replay, stats, sco
     ],
     stats: [{ shots: 1 }],
     performance: [
-      { id: p.id, mind: { confidence: 95 }, defenceTelemetry: { observationLapses: 3 }, saves: 2 },
+      {
+        id: p.id,
+        mind: { confidence: 95 },
+        defenceTelemetry: { observationLapses: 3 },
+        locomotion: { sprintEfforts: 12 },
+        burstReserve: 45,
+        saves: 2,
+      },
     ],
-    timeline: [{ performance: [{ quality: 91 }] }],
+    timeline: [
+      {
+        performance: [{ quality: 91, locomotion: { sprintEfforts: 12 }, burstReserve: 45 }],
+        diagnostics: { replayAnalysis: { possessionSpellSeconds: [2.1] } },
+      },
+    ],
+    continuity: { controlSpells: [{ playerId: p.id, seconds: 1.3 }] },
+    diagnostics: { shotsUnderPressure: 4 },
     snapshots: [{ id: 'me', players: [p] }],
   };
   const original = structuredClone(raw),
@@ -215,6 +282,20 @@ test('archive/live diagnostics are projected without changing replay, stats, sco
   assert.deepEqual(view.score, raw.score);
   assert.deepEqual(view.stats, raw.stats);
   assert.equal(view.events[1].flow, true, 'observable first-touch kind remains public');
+  assert.equal(
+    view.performance[0].burstReserve,
+    45,
+    'the requested stamina bar value stays public',
+  );
+  assert.equal(view.performance[0].locomotion, undefined);
+  assert.equal(view.timeline[0].performance[0].locomotion, undefined);
+  assert.equal(view.timeline[0].diagnostics, undefined);
+  assert.equal(view.diagnostics, undefined);
+  assert.equal(
+    view.continuity,
+    undefined,
+    'internal control-flow diagnostics are not sent to players',
+  );
   assert.equal(view.snapshots[0].players[0].overall, rating(p));
   assert.deepEqual(raw, original);
 });

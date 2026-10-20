@@ -4,6 +4,22 @@ import { distance, localX } from './spatial.mjs';
 import { sprintAvailable } from './activity.mjs';
 import { clamp } from '../../core/index.mjs';
 
+export function duelProbability(defendingQuality, carryingQuality, reachEdge = 0, support = 0) {
+  return clamp(
+    1 /
+      (1 +
+        Math.exp(
+          -(
+            (defendingQuality - carryingQuality) / 28 +
+            clamp(reachEdge, -1, 1) * 1.2 +
+            clamp(support, 0, 2) * 0.35
+          ),
+        )),
+    0.02,
+    0.98,
+  );
+}
+
 export function tackleProbability(
   defender,
   carrier,
@@ -12,24 +28,12 @@ export function tackleProbability(
   defendingQuality,
   carryingQuality,
 ) {
-  const reachEdge = clamp(
-    (distance(carrier.pos, ball) - distance(defender.pos, ball)) / 0.6,
-    -1,
-    1,
-  );
-  const support = Math.min(
-    2,
-    actors.filter(
-      (o) => !o.sentOff && o.side === defender.side && o !== defender && distance(o.pos, ball) < 3,
-    ).length,
-  );
-  return clamp(
-    1 /
-      (1 +
-        Math.exp(-((defendingQuality - carryingQuality) / 28 + reachEdge * 1.2 + support * 0.35))),
-    0.02,
-    0.98,
-  );
+  const reachEdge =
+    (distance(carrier.pos, ball) - distance(defender.pos, ball)) / 0.6;
+  const support = actors.filter(
+    (o) => !o.sentOff && o.side === defender.side && o !== defender && distance(o.pos, ball) < 3,
+  ).length;
+  return duelProbability(defendingQuality, carryingQuality, reachEdge, support);
 }
 
 export function tackleWindow(defender, carrier, ball) {
@@ -37,6 +41,21 @@ export function tackleWindow(defender, carrier, ball) {
   const reachDisadvantage = distance(defender.pos, ball) - distance(carrier.pos, ball);
   const judgement = ability(defender.player, 'decisions') / 100;
   return !protectedTouch || reachDisadvantage <= 0.08 + 0.08 * (1 - judgement);
+}
+
+// A challenge must finish its recovery and repositioning before the same player
+// can attempt another tackle. Balance improves recovery; opposing momentum adds
+// time. This regulates repeated same-player challenges, not tackle probability.
+export function tackleRecoverySeconds(defender, carrier) {
+  const relativeSpeed = Math.hypot(
+    defender.velocity.x - carrier.velocity.x,
+    defender.velocity.z - carrier.velocity.z,
+  );
+  return clamp(
+    3.4 + Math.max(0, relativeSpeed - 2) * 0.08 + (50 - ability(defender.player, 'balance')) * 0.005,
+    2.9,
+    4.8,
+  );
 }
 
 // Press, mark and protect are distinct jobs. A quick forward is not automatically

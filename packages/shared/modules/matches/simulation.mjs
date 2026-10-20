@@ -22,8 +22,8 @@ import {
   releasedKick,
   kickRecovery,
 } from './execution.mjs';
-import { activityState, recordMovement } from './activity.mjs';
-import { tackleWindow, tackleProbability } from './defending.mjs';
+import { activityState, burstReserve, recordMovement } from './activity.mjs';
+import { tackleWindow, tackleProbability, tackleRecoverySeconds } from './defending.mjs';
 import {
   continuityState,
   updateContinuity,
@@ -74,8 +74,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.17.0-execution';
-export const PARAMETER_VERSION = 'execution-1';
+export const ENGINE_VERSION = '0.20.0-possession';
+export const PARAMETER_VERSION = 'possession-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -262,6 +262,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     lastPass = { actor: pass.actor, receiver: a, time, source };
     event('passComplete', a.side, `${a.player.name}接到队友传球。`, a, {
       passerId: pass.actor.player.id,
+      actionId: pass.actionId,
       bodyPart,
     });
   }
@@ -543,6 +544,12 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   } else {
     kickoff(0);
     record();
+    timeline.push({
+      second: 0,
+      stats: publicStats(),
+      performance: playerStats(),
+      continuity: timelineContinuity(),
+    });
   }
   const unlink = (row) =>
     row
@@ -628,6 +635,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         deadMetres: Math.round(a.activity.deadMetres),
         sprintEfforts: a.activity.sprintEfforts,
         longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
+        adrenalineEfforts: a.activity.adrenalineEfforts,
       },
       defenceTelemetry: {
         pressSeconds: Math.round(a.pressSeconds ?? 0),
@@ -636,6 +644,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         observationLapses: a.markLapses ?? 0,
       },
       energy: Math.round(a.energy * 10) / 10,
+      burstReserve: Math.round(burstReserve(a)),
       touches: a.touches,
       passes: a.passes,
       completed: a.completed,
@@ -654,6 +663,12 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       dismissedAt: a.dismissedAt,
       mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
     }));
+  }
+  function timelineContinuity() {
+    // Individual control spells are full-match replay diagnostics, not live snapshots.
+    // Duplicating the growing list every 30 seconds bloats durable checkpoints and broadcasts.
+    const { controlSpells, ...summary } = continuity.metrics;
+    return structuredClone(summary);
   }
   function buildReport(penalties, abandoned = false) {
     return {
@@ -965,7 +980,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             // retreat here, which otherwise renews forever against close control.
             return;
           }
-          a.tackleAt = time + 2.4;
+          a.tackleAt = time + tackleRecoverySeconds(a, previous);
           a.tackles++;
           const qa = actionQuality(
             a,
@@ -1273,6 +1288,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               ? { seconds: time - execution.startedAt, facing: a.facing }
               : undefined,
             receiverId: action.receiverId,
+            destination: action.destination,
             quality: action.quality,
             result: 'impulse',
             intent: action.intent,
@@ -1315,6 +1331,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               actor: a,
               time,
               receiverId: action.receiverId,
+              actionId: explanation.actionId,
               target: action.destination,
               arrivalAt: time + (action.flight ?? 2),
               expiresAt: time + (action.flight ?? 2) + 1.8,
@@ -1659,7 +1676,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           second: time,
           stats: publicStats(),
           performance: playerStats(),
-          continuity: structuredClone(continuity.metrics),
+          continuity: timelineContinuity(),
         });
       if (abandoned) break;
       if (tick % sliceTicks === 0 && tick < ticks) {

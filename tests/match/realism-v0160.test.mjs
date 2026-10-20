@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   activityState,
+  burstReserve,
   recordMovement,
   sprintAvailable,
 } from '../../packages/shared/modules/matches/activity.mjs';
@@ -16,6 +17,7 @@ import {
 } from '../../packages/shared/modules/matches/continuity.mjs';
 import {
   defensiveAssignments,
+  duelProbability,
   tackleWindow,
   tackleProbability,
 } from '../../packages/shared/modules/matches/defending.mjs';
@@ -112,6 +114,7 @@ test('sprint load requires recovery without erasing acceleration or penalising f
   for (let i = 0; i < 200; i++)
     recordMovement(a, { x: 0, z: 0 }, { x: 0.4, z: 0 }, 0.05, true, false);
   assert.equal(sprintAvailable(a), false);
+  assert.equal(burstReserve(a), 0);
   assert.equal(movementMode(a, ball, null, roles, 10), 'jog');
   for (let i = 0; i < 500; i++)
     recordMovement(a, { x: 0, z: 0 }, { x: 0.05, z: 0 }, 0.05, true, false);
@@ -119,23 +122,129 @@ test('sprint load requires recovery without erasing acceleration or penalising f
   assert.equal(movementMode(a, ball, null, { chasers: [] }, 0.4), 'stand');
 });
 
+test('adrenaline grants one brief critical sprint and cannot bypass recovery or repeat this match', () => {
+  const a = actor(0, 0, 79);
+  a.activity.load = 1;
+  a.activity.recovery = 30;
+  assert.equal(burstReserve(a), 0);
+  const ball = { x: 80, z: 34 };
+  const urgentRoles = { chasers: [a.index] };
+  assert.equal(movementMode(a, ball, null, urgentRoles, 5), 'sprint');
+  assert.equal(a.activity.adrenalineEfforts, 1);
+  assert.ok(a.activity.adrenalineRemaining > 1.3);
+  assert.equal(
+    burstReserve(a),
+    0,
+    'the emergency effort does not refill the normal sprint reserve',
+  );
+
+  for (let i = 0; i < 30; i++)
+    recordMovement(a, { x: 79, z: 34 }, { x: 79, z: 34 }, 0.05, true, false);
+  assert.equal(sprintAvailable(a), false);
+  assert.equal(a.activity.adrenalineRemaining, 0);
+  assert.equal(movementMode(a, ball, null, urgentRoles, 5), 'run');
+  assert.equal(
+    a.activity.adrenalineEfforts,
+    1,
+    'one emergency burst is allowed per player per match',
+  );
+});
+
+test('adrenaline has a strict one-per-match cap even when another critical moment occurs', () => {
+  const a = actor(0, 0, 79);
+  a.activity.load = 1;
+  a.activity.recovery = 30;
+  a.activity.adrenalineEfforts = 1;
+  assert.equal(movementMode(a, { x: 80, z: 34 }, null, { chasers: [a.index] }, 5), 'run');
+  assert.equal(a.activity.adrenalineEfforts, 1);
+});
+
+test('adrenaline is reserved for final-third runs and last-ditch defensive cover', () => {
+  const runner = actor(0, 0, 80),
+    deepBall = { x: 82, z: 34 };
+  runner.activity.load = 1;
+  runner.activity.recovery = 20;
+  assert.equal(
+    movementMode(runner, deepBall, null, { chasers: [], runnerId: runner.player.id }, 10),
+    'sprint',
+  );
+  assert.equal(runner.activity.adrenalineEfforts, 1);
+
+  const ordinaryRunner = actor(1, 0, 50);
+  ordinaryRunner.activity.load = 1;
+  ordinaryRunner.activity.recovery = 20;
+  assert.equal(
+    movementMode(
+      ordinaryRunner,
+      { x: 52, z: 34 },
+      null,
+      { chasers: [], runnerId: ordinaryRunner.player.id },
+      10,
+    ),
+    'jog',
+  );
+  assert.equal(ordinaryRunner.activity.adrenalineEfforts, 0);
+  const ordinaryChaser = actor(3, 0, 50);
+  ordinaryChaser.activity.load = 1;
+  ordinaryChaser.activity.recovery = 20;
+  assert.equal(
+    movementMode(ordinaryChaser, { x: 51, z: 34 }, null, { chasers: [ordinaryChaser.index] }, 5),
+    'run',
+  );
+  assert.equal(ordinaryChaser.activity.adrenalineEfforts, 0);
+
+  const cover = actor(2, 0, 8);
+  cover.activity.load = 1;
+  cover.activity.recovery = 20;
+  cover.markMemory = { velocity: { x: 6, z: 0 } };
+  assert.equal(
+    movementMode(
+      cover,
+      { x: 8, z: 34 },
+      null,
+      { chasers: [], marking: { [cover.player.id]: 'opponent' } },
+      5,
+    ),
+    'sprint',
+  );
+  assert.equal(cover.activity.adrenalineEfforts, 1);
+
+  const awayCover = actor(4, 1, 100);
+  awayCover.activity.load = 1;
+  awayCover.activity.recovery = 20;
+  awayCover.markMemory = { velocity: { x: -6, z: 0 } };
+  assert.equal(
+    movementMode(
+      awayCover,
+      { x: 100, z: 34 },
+      null,
+      { chasers: [], marking: { [awayCover.player.id]: 'opponent' } },
+      5,
+    ),
+    'sprint',
+  );
+  assert.equal(awayCover.activity.adrenalineEfforts, 1);
+});
+
 test('brief loss preserves team organisation and contest responsibility but not remote possession or a released pass', () => {
   const s = continuityState(),
     a = actor(0),
     d = actor(1, 1, 53);
+  a.velocity.x = 1.8;
   controlBall(s, a, 0, null);
-  const ball = { x: 52.5, z: 34, y: 0.11, vx: 8, vz: 0 };
-  a.intent = { kind: 'carry', mode: 'carryFast', expiresAt: 2 };
-  updateContinuity(s, [a, d], { ...ball, x: 55 }, 0.1, true, null);
+  const ball = { x: 52.13, z: 34, y: 0.11, vx: 1.8, vz: 0 };
+  a.intent = { kind: 'carry', mode: 'carry', expiresAt: 0.5 };
+  updateContinuity(s, [a, d], ball, 1.6, true, null);
   assert.equal(s.controller, null);
   assert.equal(s.side, 0);
-  assert.equal(contestOwner(s, [a, d], ball, 0.2), a);
-  releaseControl(s, 0.2, 'pass');
-  assert.equal(contestOwner(s, [a, d], ball, 0.3), null);
-  controlBall(s, d, 1, null, true);
+  assert.equal(contestOwner(s, [a, d], ball, 1.7), a);
+  d.pos = { x: 52.8, z: 34 };
+  releaseControl(s, 1.8, 'pass');
+  assert.equal(contestOwner(s, [a, d], ball, 1.9), null);
+  controlBall(s, d, 2.5, null, true);
   assert.equal(s.metrics.possessions[0].side, 0);
-  assert.equal(s.metrics.possessions[0].seconds, 1);
-  deadBall(s, 2, 'throwIn');
+  assert.equal(s.metrics.possessions[0].seconds, 2.5);
+  deadBall(s, 3.5, 'throwIn');
   assert.equal(s.metrics.possessions.length, 2);
   assert.equal(s.side, null);
 });
@@ -229,4 +338,12 @@ test('a shielded close touch invites jockeying, while an exposed touch remains p
     Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) < 1,
     'cover steps in at shot range instead of retreating forever',
   );
+});
+
+test('carry prediction and actual tackles share the same reach, skill and cover duel model', () => {
+  assert.equal(duelProbability(65, 65), 0.5);
+  assert.ok(duelProbability(80, 65) > duelProbability(65, 65));
+  assert.ok(duelProbability(65, 65, 1) > duelProbability(65, 65));
+  assert.ok(duelProbability(65, 65, 0, 2) > duelProbability(65, 65));
+  assert.ok(duelProbability(50, 80, -1) < duelProbability(50, 80));
 });

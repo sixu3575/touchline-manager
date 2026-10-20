@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Pause, Play, SkipForward, X } from 'lucide-react';
 import type { Report } from '../../model';
 import { Badge, Crest } from '../../components/ui';
@@ -11,6 +11,7 @@ import { visibleMatchEvents } from './event-filter.mjs';
 import { EventFilter, EmptyEvents } from './EventFilter';
 import { GoalCelebration } from './GoalCelebration';
 import { PlayerRatings } from './PlayerRatings';
+import { staminaAtTime } from './stamina-view.mjs';
 import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
 
 const clock = (t: number) =>
@@ -115,6 +116,10 @@ export function PhysicalReplay({
       );
   const player = meta.players[selected];
   const performanceRow = player && visiblePerformance?.find((p) => p.id === player.id);
+  const stamina = useMemo(
+    () => (player ? staminaAtTime(report, player.id, time, Boolean(live && !ended)) : undefined),
+    [report, player?.id, time, Boolean(live && !ended)],
+  );
   const ballHeight = data ? positionAt(data, report, time).positions[45] : 0;
   const ballSpeed = data ? speedAt(data, report, time) * 3.6 : 0;
   return (
@@ -322,8 +327,7 @@ export function PhysicalReplay({
                   )}
                   {performanceRow.style && <b>{performanceRow.style} · </b>}实际跑动{' '}
                   {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
-                  成功传球 {performanceRow.completed}/{performanceRow.passes} ·{' '}
-                  {live && !ended ? '当前体能' : '赛末体能'} {performanceRow.energy}
+                  成功传球 {performanceRow.completed}/{performanceRow.passes}
                   {performanceRow.yellowCards !== undefined &&
                     ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
                   {performanceRow.dribbleTouches !== undefined &&
@@ -335,6 +339,32 @@ export function PhysicalReplay({
                 <span>球员按阵型、攻防阶段和属性寻找位置。</span>
               )}
             </div>
+            {player && stamina && (
+              <div className="physical-stamina-bars" aria-label={`${player.name}赛中体能`}>
+                <label>
+                  <span>
+                    体能 <b>{Math.round(stamina.energy)}%</b>
+                  </span>
+                  <progress
+                    aria-label={`${player.name}体能`}
+                    value={Math.max(0, Math.min(100, stamina.energy))}
+                    max={100}
+                  />
+                </label>
+                {Number.isFinite(stamina.burstReserve) && (
+                  <label>
+                    <span>
+                      爆发储备 <b>{Math.round(stamina.burstReserve!)}%</b>
+                    </span>
+                    <progress
+                      aria-label={`${player.name}爆发储备`}
+                      value={Math.max(0, Math.min(100, stamina.burstReserve!))}
+                      max={100}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
             <div className="match-stats physical-stats">
               {[
                 ['控球率', visibleStats[0].possession + '%', visibleStats[1].possession + '%'],

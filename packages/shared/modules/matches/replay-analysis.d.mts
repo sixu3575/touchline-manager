@@ -1,0 +1,87 @@
+interface ReplayFlowTeam {
+  possessionCount: number | null;
+  possessionMedianSeconds: number | null;
+  possessionP90Seconds: number | null;
+  possessionsUnderFiveSeconds: number | null;
+  possessionsOverFifteenSeconds: number | null;
+  individualControlCount: number | null;
+  individualControlMedianSeconds: number | null;
+  individualControlMeanSeconds: number | null;
+  controlEndsByPass: number | null;
+  controlEndsByShot: number | null;
+  controlEndsByDispossession: number | null;
+  controlEndsByLooseCarry: number | null;
+  looseCarryCauses: Record<string, number> | null;
+  medianBallSeparationAtLooseCarryMetres: number | null;
+  medianBallHeightAtLooseCarryMetres: number | null;
+  shareLooseCarryAboveControlHeight: number | null;
+  medianRelativeSpeedAtLooseCarryMetresPerSecond: number | null;
+  medianNearestDefenderAtDispossessionMetres: number | null;
+  completedPassChainMedian: number | null;
+  completedPassChainMean: number | null;
+  completedPassChainP90: number | null;
+  forwardPasses: number;
+  lateralPasses: number;
+  backwardPasses: number;
+  passDirectionCoverage: number;
+  shots: number;
+  shotsInsideTwelveMetres: number;
+  shotsTwelveToTwentyMetres: number;
+  shotsTwentyToTwentyEightMetres: number;
+  shotsBeyondTwentyEightMetres: number;
+  multiShotPossessions: number;
+  burstShotsWithinThirtySeconds: number;
+  nearestDefenderAtShotMedianMetres: number | null;
+  shotsWithDefenderWithinThreeMetres: number;
+  unpressuredAtDecision: number;
+  receptionsWithDefenderWithinThreeMetres: number;
+  passCompletions: number;
+}
+interface ReplayFlowMatch {
+  possessionCount: number | null;
+  possessionMedianSeconds: number | null;
+  possessionP90Seconds: number | null;
+  possessionsUnderFiveSeconds: number | null;
+  possessionsOverFifteenSeconds: number | null;
+  meanCompletedPassChain: number | null;
+  medianCompletedPassChain: number | null;
+  individualControlCount: number | null;
+  individualControlMedianSeconds: number | null;
+  individualControlP90Seconds: number | null;
+  controlEndsByLooseCarry: number | null;
+  looseCarryCauses: Record<string, number> | null;
+  medianBallSeparationAtLooseCarryMetres: number | null;
+  medianBallHeightAtLooseCarryMetres: number | null;
+  shareLooseCarryAboveControlHeight: number | null;
+  medianRelativeSpeedAtLooseCarryMetresPerSecond: number | null;
+  controlEndsByDispossession: number | null;
+  medianNearestDefenderAtDispossessionMetres: number | null;
+  passDirectionCoverage: number;
+  passDirectionTotal: number;
+  shots: number;
+  shotsPerMinute: number | null;
+  medianInterShotSeconds: number | null;
+  shotsWithDefenderWithinThreeMetres: number;
+  medianNearestDefenderAtShotMetres: number | null;
+  decisionUnpressuredShots: number;
+  receptionCount: number;
+  receptionsWithDefenderWithinThreeMetres: number;
+  medianNearestDefenderAtReceptionMetres: number | null;
+  defensiveMidfieldGapMeanMetres: number | null;
+  defensiveMidfieldGapP90Metres: number | null;
+  defensiveShapeSamples: number;
+  averageStartingEnergy: number | null;
+  averageEndingEnergy: number | null;
+  averageEnergyDrop: number | null;
+  turnovers: Record<string, number> | null;
+}
+export type ReplayFlowAnalysis =
+  | { status: 'missing'; reason: string }
+  | {
+      status: 'available';
+      version: string;
+      definition: string;
+      teams: [ReplayFlowTeam, ReplayFlowTeam];
+      match: ReplayFlowMatch;
+    };
+export function analyzeReplay(report: any, trajectory: Uint16Array | null): ReplayFlowAnalysis;

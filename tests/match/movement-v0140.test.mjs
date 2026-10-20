@@ -106,6 +106,33 @@ test('arrival estimates include acceleration, braking and behind-the-carrier pur
   assert.equal(route([near]).mode, 'carry');
 });
 
+test('carry risk uses the same duel probabilities and respects a tired defender\'s recovery limit', () => {
+  const carrier = actor('carrier', 0, 50, 34),
+    ball = { x: 50.6, y: 0.11, z: 34 },
+    defender = actor('defender', 1, 68, 34),
+    options = (opponent) =>
+      carryOptions(
+        carrier,
+        ball,
+        1,
+        [opponent],
+        actionQuality(carrier, ball, 'dribbling', [opponent]),
+        playerProfile(carrier.player),
+        1,
+        {},
+        [carrier, opponent],
+      ),
+    danger = (values) => values.find((option) => option.destination.z === 34).danger,
+    rested = structuredClone(defender),
+    tired = structuredClone(defender);
+  rested.activity = { load: 0, recovery: 0, adrenalineRemaining: 0 };
+  tired.activity = { load: 0.9, recovery: 4, adrenalineRemaining: 0 };
+  assert.ok(
+    danger(options(rested)) > danger(options(tired)),
+    'a defender whose burst is recovering is not predicted to sprint at full speed',
+  );
+});
+
 test('support searches unblocked passing angles while preserving role and stable plans', () => {
   const a = actor('support', 0, 54, 34, { offTheBall: 95, decisions: 95 }),
     owner = actor('owner', 0, 45, 34),

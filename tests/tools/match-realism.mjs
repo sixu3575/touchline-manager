@@ -1,6 +1,7 @@
 // Read-only diagnostics: no engine imports, RNG calls or mutation of archived reports.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { analyzeReplay } from '../../packages/shared/modules/matches/replay-analysis.mjs';
 
 export const references = {
   version: 'realism-reference-1',
@@ -163,6 +164,8 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       sprintMetresPer90: zones ? zones[4] * per90 : null,
       physicalSource: native ? '20Hz independent odometer' : '5Hz replay estimate',
       sprintEfforts: native?.sprintEfforts ?? null,
+      adrenalineEfforts: native?.adrenalineEfforts ?? null,
+      burstReserve: p.burstReserve ?? null,
       longestSprintSeconds: native?.longestSprint ?? null,
       defending: p.defenceTelemetry ?? null,
       trackingCoverage: t?.coverage ?? null,
@@ -242,6 +245,8 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       tackles: sum(own.map((p) => p.tackles)),
       wonTackles: sum(own.map((p) => p.wonTackles)),
       floorEnergyPlayers: outfield.filter((p) => p.energy <= 20).length,
+      meanEndBurstReserve: mean(outfield.map((p) => p.burstReserve).filter(Number.isFinite)),
+      adrenalineEfforts: sum(outfield.map((p) => p.adrenalineEfforts ?? 0)),
       chains: {
         count: chains.length,
         mean: mean(chains),
@@ -308,6 +313,7 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
     turnoversByModelDefinition: c.turnovers,
     deadCauses: c.deadCauses,
     boxEntries: c.boxEntries,
+    replayFlow: analyzeReplay(report, trajectory),
     eventSpells: {
       count: spells.length,
       medianSeconds: quantile(

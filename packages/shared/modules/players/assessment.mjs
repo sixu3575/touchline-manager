@@ -59,6 +59,9 @@ export function cardDetailGroups(role) {
   }));
 }
 export const ASSESSMENT_STAGES = ['尚未观察', '初步观察', '持续观察', '深入评估', '充分了解'];
+export function exactObservationThreshold(level) {
+  return Math.max(6, 14 - 2 * (Math.max(1, Math.min(5, level)) - 1));
+}
 const keys = Object.values(ATTRIBUTE_GROUPS).flatMap((g) => Object.keys(g.attributes));
 const daysBetween = (a, b) => Math.max(0, Math.floor((Date.parse(b) - Date.parse(a)) / 86400000));
 export function assessmentOffice(g) {
@@ -111,7 +114,7 @@ export function scoutPlayer(g, { playerId }) {
   const office = ensureAssessment(g);
   const r = (office.players[p.id] ??= { visits: 0, sessions: 0 });
   if (r.lastScouted === g.gameDate) throw Error('本比赛日已观察过该球员，下个比赛日可继续。');
-  r.visits = Math.min(12, r.visits + 1);
+  r.visits = Math.min(14, r.visits + 1);
   r.lastScouted = g.gameDate;
 }
 export function staffUpgradeCost(g, kind) {
@@ -152,12 +155,13 @@ export function assessmentFor(g, p, own = false) {
     (own
       ? 1 + Math.floor(daysBetween(r.joinedOn ?? g.gameDate, g.gameDate) / 7) + (r.sessions ?? 0)
       : 0);
-  const stage =
+  const stageFor = (skillLevel) =>
     observations === 0
       ? 0
-      : level === 5 && observations >= 8
+      : observations >= exactObservationThreshold(skillLevel)
         ? 4
-        : Math.min(3, 1 + Math.floor((level - 1) / 2) + Math.floor(observations / 4));
+        : Math.min(3, 1 + Math.floor((skillLevel - 1) / 2) + Math.floor(observations / 4));
+  const stage = stageFor(level);
   const bands = Object.fromEntries(
     [...keys, 'potential', 'weakFoot'].map((key) => {
       const hash = seedFrom(`${g.seed}:${p.id}:${key}:assessment-v1`);
@@ -166,14 +170,7 @@ export function assessmentFor(g, p, own = false) {
       const potentialLevel = crew.length
         ? Math.min(5, 1 + Math.floor(Math.max(...crew.map((p) => p.attributes.potential)) / 20))
         : level;
-      const baseStage =
-        key === 'potential'
-          ? observations === 0
-            ? 0
-            : potentialLevel === 5 && observations >= 8
-              ? 4
-              : Math.min(3, 1 + Math.floor((potentialLevel - 1) / 2) + Math.floor(observations / 4))
-          : stage;
+      const baseStage = key === 'potential' ? stageFor(potentialLevel) : stage;
       const perStage =
         own && practice > 0
           ? Math.min(

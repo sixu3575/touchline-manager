@@ -68,7 +68,7 @@ export function interceptionRisk(
   return 1 - survival;
 }
 
-function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) {
+export function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) {
   const goalX = direction === 1 ? 105 : 0,
     dist = distance(ball, { x: goalX, z: 34 });
   if (
@@ -126,15 +126,16 @@ function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) 
     actor.setPiece === 'penalty'
       ? 0.76
       : opportunity / (opportunity + Math.exp(0.9) * (1 - opportunity));
+  const shotReturnScore = clamp(xg * (0.65 + q.value / 100), 0, 0.98);
   return {
     type: 'shot',
     intent: actor.setPiece === 'penalty' ? 'penalty' : direct ? 'freeKick' : 'shoot',
     quality: q,
     xg,
     utility:
-      opportunity * (0.65 + q.value / 100) -
+      shotReturnScore -
       0.3 * pitchValue(ball, direction) -
-      (1 - opportunity) * 0.025 +
+      (1 - shotReturnScore) * 0.025 +
       (actor.player.role === 'FWD' ? 0.02 : 0),
     reason: direct
       ? '定位球按门将和球门位置瞄准'
@@ -388,6 +389,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       profile,
       time,
       tactical,
+      actors,
     )) {
       const { destination, success } = option;
       candidates.push({

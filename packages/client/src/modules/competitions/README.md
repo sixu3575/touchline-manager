@@ -1,5 +1,7 @@
 # Fixtures 界面模块
 
+RoundReports采用紧凑对阵卡片样式；`report.canReplay`与本队ID的双重限制保留，不能给其他比赛添加回放入口。
+
 0.15.0RoundReports从schedule/results/reports选轮显示四场；不存在结果不提前显示，旧AI摘要明确缺统计。本队回放入口需本队ID且canReplay不为false；服务器另做权限校验。
 
 0.9.1：赛程上方通过matches公共入口组合“赛后战报”列表，直接查看已保存联赛/杯赛的统计、事件和评分，回放为另一按钮。只传game.reports，不传进行中的任务报告；暂无记录显示终场结算后可见的说明。原有赛程回放、杯赛和开赛操作不变，无规则/流程改动。

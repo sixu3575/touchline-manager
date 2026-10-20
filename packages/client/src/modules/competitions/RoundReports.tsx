@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FileText, Play } from 'lucide-react';
 import type { Game, Report } from '../../model';
 import { PanelHead } from '../../components/ui';
 import { MatchReport } from '../matches';
@@ -56,26 +57,39 @@ export function RoundReports({ game, onReplay }: { game: Game; onReplay: (r: Rep
                   legacySummary: true,
                 }
               : undefined);
+          const ownMatch = h === 'me' || a === 'me';
           return (
-            <div className="report-archive-row" key={h}>
-              <strong>
-                {home.name} <span>{result ? result.score.join(' : ') : '— : —'}</span> {away.name}
-              </strong>
+            <article className="report-archive-row" key={h}>
+              <div className="report-archive-match">
+                <small>
+                  <span>先锋联赛 · 第{round}轮</span>
+                  <span className={result ? 'report-status settled' : 'report-status'}>
+                    {result ? '已结束' : '未公布'}
+                  </span>
+                </small>
+                <div className="report-archive-scoreline">
+                  <strong className={h === 'me' ? 'report-own-team' : ''}>{home.name}</strong>
+                  <span className="report-archive-score">
+                    {result ? result.score.join(' : ') : '— : —'}
+                  </span>
+                  <strong className={a === 'me' ? 'report-own-team' : ''}>{away.name}</strong>
+                </div>
+              </div>
               <div className="report-archive-actions">
                 <button
-                  className="secondary"
+                  className="secondary report-view-button"
                   disabled={!summary}
                   onClick={() => summary && setSelected(summary)}
                 >
-                  查看战报
+                  <FileText size={16} aria-hidden="true" /> 查看战报
                 </button>
-                {report && (h === 'me' || a === 'me') && report.canReplay !== false && (
-                  <button className="ghost" onClick={() => onReplay(report)}>
-                    观看回放
+                {report && ownMatch && report.canReplay !== false && (
+                  <button className="secondary report-replay-button" onClick={() => onReplay(report)}>
+                    <Play size={16} aria-hidden="true" /> 观看回放
                   </button>
                 )}
               </div>
-            </div>
+            </article>
           );
         })}
       </div>

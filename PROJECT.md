@@ -1,5 +1,7 @@
 # 项目地图
 
+当前待发布候选0.20.0在0.18持球测量、0.19.2体能与此前玩法/UI更新上，进一步分开真实控制、团队控球语境与球的飞行/争抢；修正反弹恢复、松球超时和过渡后捡球的球权归属，并统一盘带风险与真实抢断的到达/体能/能力模型。无球权配额、无存档迁移。持球细则见[POSSESSION_V0200.md](packages/shared/modules/matches/design/POSSESSION_V0200.md)，节奏基线见[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。
+
 0.17.0按用户纠正将节奏修正放在连续转身/支撑摆腿/收腿执行，撤回0.16新增的射门抑制。合理远射和提前准备的一脚传射保留，不用整场统计反馈决策。用户在获知专项现实性block后明确授权上线本版本；block仍记录为未通过，后续版本继续遵循原门槛。入口[EXECUTION_V0170.md](packages/shared/modules/matches/design/EXECUTION_V0170.md)，[当前验证/阻断](packages/shared/modules/matches/design/CALIBRATION_V0170.md)；旧回放、5×和既有分层/PR/发布流程保持。
 
 0.16实施获批的比赛现实性整改：独立里程/五区测量、团队过渡与近身争抢、防线保护与跟速、短时冲刺恢复、护球/射门准备和散布、门将扑救平面。[实现与校准](packages/shared/modules/matches/design/REALISM_V0160.md)，引擎0.16.0-realism/realism-1；旧回放不重算。历史[审查](packages/shared/modules/matches/design/REALISM_AUDIT_20261019.md)和[现实对照规范](packages/shared/modules/matches/design/REALISM_VALIDATION.md)保留；新增规则只对新比赛生效。
