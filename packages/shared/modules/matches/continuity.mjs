@@ -82,11 +82,7 @@ export function contestOwner(s, actors, ball, time) {
   const contest = s.carryContest;
   if (!contest || time > contest.until || ball.y > 1.3) return null;
   const actor = actors[contest.actor];
-  if (
-    !actor ||
-    actor.sentOff ||
-    distance(actor.pos, ball) > CARRY_CONTEST_MAX_DISTANCE_METRES
-  )
+  if (!actor || actor.sentOff || distance(actor.pos, ball) > CARRY_CONTEST_MAX_DISTANCE_METRES)
     return null;
   return actor;
 }
@@ -96,11 +92,7 @@ function endChain(s) {
 }
 export function controlBall(s, actor, time, pass, opposingPass = false) {
   const priorSide =
-    s.possessionAt !== null
-      ? s.side
-      : time <= s.teamUntil
-        ? (s.side ?? s.lastTeam)
-        : null;
+    s.possessionAt !== null ? s.side : time <= s.teamUntil ? (s.side ?? s.lastTeam) : null;
   if (s.controlPlayerId && s.controlPlayerId !== actor.player.id)
     endControlSpell(s, time, s.controlSide === actor.side ? 'handoff' : 'dispossessed');
   if (priorSide !== null && priorSide !== actor.side) {
@@ -139,7 +131,7 @@ export function releaseControl(s, time, kind) {
   s.teamUntil = time + LOOSE_POSSESSION_RECOVERY_SECONDS;
   s.controller = null;
   s.carryContest = null;
-  s.phase = kind === 'miscontrol' ? 'loose' : kind === 'shot' ? 'loose' : 'flight';
+  s.phase = ['miscontrol', 'shot', 'tackle'].includes(kind) ? 'loose' : 'flight';
   if (kind === 'miscontrol') s.metrics.turnovers.miscontrol++;
 }
 export function deadBall(s, time, reason = 'restart') {
@@ -172,10 +164,7 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
   const mode = a?.intent?.mode;
   const controlRadius = mode === 'carryFast' ? 4.2 : 2.6;
   const relativeSpeed = a
-    ? Math.hypot(
-        (ball.vx ?? 0) - (a.velocity?.x ?? 0),
-        (ball.vz ?? 0) - (a.velocity?.z ?? 0),
-      )
+    ? Math.hypot((ball.vx ?? 0) - (a.velocity?.x ?? 0), (ball.vz ?? 0) - (a.velocity?.z ?? 0))
     : Infinity;
   const relativeSpeedLimit = mode === 'carryFast' ? 4.5 : 3.5;
   const carryIntentWithinGrace =
@@ -186,7 +175,7 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
   const retained =
     a &&
     !a.sentOff &&
-    ball.y < 1.3 &&
+    (a.keeperHold || ball.y < 1.3) &&
     separation < controlRadius &&
     (distance(a.pos, ball) < 1.3 ||
       time - s.controlledAt < 1.15 ||
@@ -215,11 +204,7 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
               : a.intent?.kind === 'carry'
                 ? 'other'
                 : 'noCarryIntent';
-    if (
-      ball.y < 1.3 &&
-      separation <= CARRY_CONTEST_MAX_DISTANCE_METRES &&
-      relativeSpeed < 5.5
-    )
+    if (ball.y < 1.3 && separation <= CARRY_CONTEST_MAX_DISTANCE_METRES && relativeSpeed < 5.5)
       s.carryContest = {
         actor: a.index,
         side: a.side,
@@ -255,18 +240,11 @@ export function updateContinuity(s, actors, ball, time, active, pending) {
     const nearby = actors.filter((a) => !a.sentOff && distance(a.pos, ball) < 2.5);
     s.phase = new Set(nearby.map((a) => a.side)).size > 1 ? 'contested' : 'loose';
   }
-  if (!inFlight && s.controller === null && time > s.teamUntil) {
-    if (s.possessionAt !== null) {
-      endPossession(s, time, 'loose');
-      endChain(s);
-    }
-    s.side = null;
-    s.lastTeam = null;
-    s.lastController = null;
-    s.carryContest = null;
-    s.released = null;
-    s.teamUntil = 0;
-  }
+  // A loose touch is not an established change of team possession. Keep the
+  // team's organisation until the opponent actually controls it or play stops.
+  // Individual control and loose/contested clocks above remain independent.
+  // No fixed number of seconds ends a possession or grants touch permission.
+  if (s.controller === null && time > s.teamUntil) s.carryContest = null;
   if (s.phase === 'flight' && s.side !== null) s.metrics.flightSeconds[s.side] += 0.05;
   else if (s.phase === 'contested') s.metrics.contestedSeconds += 0.05;
   else s.metrics.looseSeconds += 0.05;

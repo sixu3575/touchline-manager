@@ -57,3 +57,15 @@ export function groundTravel(speed, time) {
   const remaining = Math.max(0, angle - Math.sqrt(a * k) * time);
   return Math.log(Math.cos(remaining) / Math.cos(angle)) / k;
 }
+
+export function groundArrivalTime(speed, length) {
+  const a = BALL_MOTION.rollingDeceleration,
+    k = AIR_DRAG;
+  const remainingSquared = (speed ** 2 + a / k) * Math.exp(-2 * k * length) - a / k;
+  if (remainingSquared < 0) return Infinity;
+  return (
+    (Math.atan(speed * Math.sqrt(k / a)) -
+      Math.atan(Math.sqrt(remainingSquared) * Math.sqrt(k / a))) /
+    Math.sqrt(a * k)
+  );
+}

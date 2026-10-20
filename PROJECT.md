@@ -1,5 +1,7 @@
 # 项目地图
 
+0.27.0系统重构见[控球与节奏模型](packages/shared/modules/matches/design/CONTROL_MODEL_V0270.md)：持球感知与重复脚触分离，统一保球/传/带/射的后续机会价值；身体跟随滚动球准备，脚部连续摆动，实际触球后确认控球；防线阵块/交接与压迫速度跟随；团队阶段不再按散球超时切断。数学、原始根因、现实样本口径和未解决偏差归档，七张决策图同步。新onball/opportunity仅为matches内部模块，无新运行依赖、schema迁移或开发流程变更；历史回放不重算。以下为历史版本记录。
+
 当前待发布候选0.25.0基于0.20控球/转换状态分离，修改带球脚触冲量：按沿路线跑速推球，盘带越高额外前送越小；球员跑速、传带射选择、传射参数、接触形状与控球宽限不变。固定八场中带球脱控均值191.38→118次，成功传球链1.76→2.12，每队传球664.75→806.5；控球阶段中位数仅5.06→5.29秒，约48%仍短于5秒，因此问题未解决。八场均review、无block。细节见[POSSESSION_V0250.md](packages/shared/modules/matches/design/POSSESSION_V0250.md)与[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。
 
 0.17.0按用户纠正将节奏修正放在连续转身/支撑摆腿/收腿执行，撤回0.16新增的射门抑制。合理远射和提前准备的一脚传射保留，不用整场统计反馈决策。用户在获知专项现实性block后明确授权上线本版本；block仍记录为未通过，后续版本继续遵循原门槛。入口[EXECUTION_V0170.md](packages/shared/modules/matches/design/EXECUTION_V0170.md)，[当前验证/阻断](packages/shared/modules/matches/design/CALIBRATION_V0170.md)；旧回放、5×和既有分层/PR/发布流程保持。

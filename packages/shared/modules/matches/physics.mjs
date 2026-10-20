@@ -1,6 +1,7 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { AIR_DRAG, BALL_MOTION } from './ball-motion.mjs';
 import { movement } from './locomotion.mjs';
+import { ability } from './skills.mjs';
 import { angleDifference } from './execution.mjs';
 await RAPIER.init();
 
@@ -111,10 +112,10 @@ export function createBody(physics, heightCm, strength, x, z) {
       body,
     ),
   );
-  // A finite foot contact volume; it can be oriented toward the ball, not extended.
+  // A finite foot contact volume; later motion keeps leg extension within reach.
   const foot = physics.world.createCollider(
-    RAPIER.ColliderDesc.ball(0.34)
-      .setTranslation(0.45, 0.2 - height / 2, 0)
+    RAPIER.ColliderDesc.ball(0.18)
+      .setTranslation(0.6, 0.2 - height / 2, 0)
       .setSensor(true)
       .setCollisionGroups(0x00100001),
     body,
@@ -139,17 +140,73 @@ export function createHands(physics, actor) {
   );
 }
 
-export function orientHands(actor, ballPosition, reach) {
+export function orientHands(actor, ballPosition, reach, dt = null) {
   const p = actor.body.translation();
   const d = Math.hypot(ballPosition.x - p.x, ballPosition.z - p.z) || 1;
   const extension = Math.min(d, reach);
-  actor.hands.setTranslationWrtParent(
-    vector(
-      ((ballPosition.x - p.x) / d) * extension,
-      Math.max(0.3, Math.min(actor.height + 0.35, ballPosition.y)) - actor.height / 2,
-      ((ballPosition.z - p.z) / d) * extension,
-    ),
+  const desired = vector(
+    ((ballPosition.x - p.x) / d) * extension,
+    Math.max(0.3, Math.min(actor.height + 0.35, ballPosition.y)) - actor.height / 2,
+    ((ballPosition.z - p.z) / d) * extension,
   );
+  if (dt === null) actor.handOffset = desired;
+  else {
+    actor.handOffset ??= vector(0, 0, 0);
+    const delta = vector(
+      desired.x - actor.handOffset.x,
+      desired.y - actor.handOffset.y,
+      desired.z - actor.handOffset.z,
+    );
+    const rate = 2.5 + 0.025 * ability(actor.player, 'reflexes');
+    const fraction = Math.min(
+      1,
+      (rate * dt) / Math.max(0.001, Math.hypot(delta.x, delta.y, delta.z)),
+    );
+    actor.handOffset = vector(
+      actor.handOffset.x + delta.x * fraction,
+      actor.handOffset.y + delta.y * fraction,
+      actor.handOffset.z + delta.z * fraction,
+    );
+  }
+  actor.hands.setTranslationWrtParent(actor.handOffset);
+}
+
+// Catching is an actual constraint after finite hand contact, rather than a
+// low-speed rebound labelled 'retained'. Store only its numeric handle in actors.
+export function secureCatch(physics, actor) {
+  if (!actor.hands || !touchesBall(physics, actor.hands)) return null;
+  const p = actor.body.translation(),
+    b = physics.ball.translation();
+  const identity = { x: 0, y: 0, z: 0, w: 1 };
+  return physics.world.createImpulseJoint(
+    RAPIER.JointData.fixed(
+      vector(b.x - p.x, b.y - p.y, b.z - p.z),
+      identity,
+      vector(0, 0, 0),
+      physics.ball.rotation(),
+    ),
+    actor.body,
+    physics.ball,
+    true,
+  ).handle;
+}
+export function releaseCatch(physics, actor) {
+  if (!actor.keeperHold) return;
+  const joint = physics.world.getImpulseJoint(actor.keeperHold.joint);
+  if (joint) physics.world.removeImpulseJoint(joint, true);
+  actor.keeperHold = null;
+}
+export function moveCatch(physics, actor) {
+  if (!actor.keeperHold) return;
+  const joint = physics.world.getImpulseJoint(actor.keeperHold.joint);
+  const anchor = joint.anchor1();
+  const heading = actor.facing ?? 0;
+  const desired = vector(Math.cos(heading) * 0.55, actor.height * 0.2, Math.sin(heading) * 0.55);
+  const dx = desired.x - anchor.x,
+    dy = desired.y - anchor.y,
+    dz = desired.z - anchor.z;
+  const scale = Math.min(1, (2 * STEP) / Math.max(0.001, Math.hypot(dx, dy, dz)));
+  joint.setAnchor1(vector(anchor.x + dx * scale, anchor.y + dy * scale, anchor.z + dz * scale));
 }
 
 export function orientFoot(actor, ballPosition) {
@@ -171,12 +228,31 @@ export function orientFoot(actor, ballPosition) {
   );
   const bearing = Math.atan2(ballPosition.z - p.z, ballPosition.x - p.x);
   // A foot can reach to either side of the body, but cannot teleport behind it.
-  const footAngle = Number.isFinite(actor.facing)
+  const desiredFootAngle = Number.isFinite(actor.facing)
     ? actor.facing +
       Math.max(-Math.PI / 2, Math.min(Math.PI / 2, angleDifference(bearing, actor.facing)))
     : bearing;
+  // A finite leg must swing towards the observed ball. Contact substeps do not
+  // re-aim it, otherwise a passer-by gets several instantaneous traps in 50ms.
+  actor.footAngle ??= Number.isFinite(actor.facing) ? actor.facing : desiredFootAngle;
+  const swing = (7 + (actor.player ? ability(actor.player, 'agility') : 50) * 0.05) * STEP;
+  actor.footAngle += Math.max(
+    -swing,
+    Math.min(swing, angleDifference(desiredFootAngle, actor.footAngle)),
+  );
+  const footAngle = actor.footAngle;
+  const reach = Math.max(
+    0.24,
+    Math.min(0.65, Math.hypot(ballPosition.x - p.x, ballPosition.z - p.z)),
+  );
+  actor.footReach ??= 0.6;
+  actor.footReach += Math.max(-2 * STEP, Math.min(2 * STEP, reach - actor.footReach));
   actor.foot.setTranslationWrtParent(
-    vector(Math.cos(footAngle) * 0.45, 0.2 - actor.height / 2, Math.sin(footAngle) * 0.45),
+    vector(
+      Math.cos(footAngle) * actor.footReach,
+      0.2 - actor.height / 2,
+      Math.sin(footAngle) * actor.footReach,
+    ),
   );
 }
 

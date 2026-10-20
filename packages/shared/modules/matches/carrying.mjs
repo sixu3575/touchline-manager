@@ -35,6 +35,13 @@ export function carryOptions(
     x: clamp(ball.x + direction * forward, 1, 104),
     z: clamp(ball.z + lane + (34 - ball.z) * (wide ? 0 : 0.07), 3.5, 64.5),
   }));
+  for (const lane of [-5, 5]) {
+    routes.push({ x: clamp(ball.x + direction * 0.5, 1, 104), z: clamp(ball.z + lane, 3.5, 64.5) });
+    routes.push({
+      x: clamp(ball.x - direction * 3, 1, 104),
+      z: clamp(ball.z + lane * 0.6, 3.5, 64.5),
+    });
+  }
   if (wide) {
     const flank = Math.abs(ball.z - 34) > 8 ? (ball.z < 34 ? -1 : 1) : actor.anchor.z < 34 ? -1 : 1;
     routes.push({
@@ -45,7 +52,6 @@ export function carryOptions(
   if (persistent) routes.unshift(persistent);
   return routes.flatMap((destination) => {
     const progress = (destination.x - ball.x) * direction;
-    if (progress < 0.5) return [];
     const heading = unit(ball, destination),
       length = distance(ball, destination);
     const clear = !opponents.some(
@@ -79,23 +85,11 @@ export function carryOptions(
             defendersAtRoute = allActors
               .filter((a) => !a.sentOff && a.side === opponent.side)
               .map((a) => (a === opponent ? defenderAt : a)),
-            carryingQuality = actionQuality(
-              carrierAt,
-              point,
-              'dribbling',
-              defendersAtRoute,
-            ).value,
-            defendingQuality = actionQuality(
-              defenderAt,
-              point,
-              'tackling',
-              attackers,
-            ).value,
+            carryingQuality = actionQuality(carrierAt, point, 'dribbling', defendersAtRoute).value,
+            defendingQuality = actionQuality(defenderAt, point, 'tackling', attackers).value,
             support = Math.min(
               2,
-              defendersAtRoute.filter(
-                (a) => a !== defenderAt && distance(a.pos, point) < 3,
-              ).length,
+              defendersAtRoute.filter((a) => a !== defenderAt && distance(a.pos, point) < 3).length,
             ),
             tackleChance = duelProbability(
               defendingQuality,
@@ -103,20 +97,14 @@ export function carryOptions(
               (own - theirs) / 0.6,
               support,
             ),
-            arrivalChance =
-              clamp((own + 0.35 - theirs) / 1.1, 0, 1) / (1 + own * 0.12);
+            arrivalChance = clamp((own + 0.35 - theirs) / 1.1, 0, 1) / (1 + own * 0.12);
           if (arrivalChance > risk) {
             risk = arrivalChance;
             carrierAdvantage = 1 - tackleChance;
           }
         }
         // Immediate pressure still matters before a predicted interception point.
-        risk = clamp(
-          risk +
-            0.6 * clamp((4 - distance(opponent.pos, ball)) / 4, 0, 1),
-          0,
-          1,
-        );
+        risk = clamp(risk + 0.6 * clamp((4 - distance(opponent.pos, ball)) / 4, 0, 1), 0, 1);
         return {
           opponent,
           risk,
@@ -142,6 +130,9 @@ export function carryOptions(
         intent: takeOn ? 'takeOn' : 'carry',
         bonus:
           spaceBonus +
+          quality.pressure *
+            0.05 *
+            clamp((near - distance(first?.opponent?.pos ?? destination, ball)) / 5, 0, 1) +
           0.045 * profile.inclination +
           (0.22 * danger * Math.max(0, duel - 0.45)) / (1 + cover) +
           (destination === persistent ? 0.015 : 0) -
@@ -152,18 +143,19 @@ export function carryOptions(
               clamp((near - 1) / 5, 0, 1)
             : 0) +
           (tactical.fastBreak ? 0.025 * success : 0),
-        ownRisk:
-          actor.player.role === 'DEF' && localX(ball.x, direction) < 35 ? 0.02 + 0.05 * danger : 0,
+        ownRisk: actor.player.role === 'DEF' && localX(ball.x, direction) < 35 ? 0.05 * danger : 0,
         reason:
-          cover > 0 && takeOn
-            ? '防线有协防，权衡带球路线与出球'
-            : takeOn
-              ? '比较个人盘带与单防能力，变向挑战防守者'
-              : wide && Math.abs(destination.z - 34) > 18
-                ? '沿边路空地推进，等待套边或包抄接应'
-                : tactical.fastBreak
-                  ? '夺回球权后利用空地快速向前'
-                  : '前方空地可利用，持球向前推进',
+          progress < 1
+            ? '横向或回撤护球，离开上抢线路并寻找接应'
+            : cover > 0 && takeOn
+              ? '防线有协防，权衡带球路线与出球'
+              : takeOn
+                ? '比较个人盘带与单防能力，变向挑战防守者'
+                : wide && Math.abs(destination.z - 34) > 18
+                  ? '沿边路空地推进，等待套边或包抄接应'
+                  : tactical.fastBreak
+                    ? '夺回球权后利用空地快速向前'
+                    : '前方空地可利用，持球向前推进',
       },
     ];
   });

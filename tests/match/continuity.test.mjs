@@ -97,10 +97,14 @@ test('a dropped grounded carry remains challengeable only while the last carrier
   assert.equal(contestOwner(s, [carrier], ball, 1.7), carrier);
   assert.equal(contestOwner(s, [carrier], ball, 2.71), null, 'challenge memory expires');
   carrier.pos = { x: 48, z: 34 };
-  assert.equal(contestOwner(s, [carrier], ball, 2), null, 'a distant carrier cannot contest remotely');
+  assert.equal(
+    contestOwner(s, [carrier], ball, 2),
+    null,
+    'a distant carrier cannot contest remotely',
+  );
 });
 
-test('loose-ball recovery preserves a live phase briefly but stale team memory cannot create a turnover', () => {
+test('a loose ball preserves organisation until actual opposing control, with no possession timeout', () => {
   const s = continuityState(),
     carrier = {
       index: 0,
@@ -130,12 +134,13 @@ test('loose-ball recovery preserves a live phase briefly but stale team memory c
   assert.equal(s.metrics.possessions.length, 0);
   releaseControl(s, 1.6, 'shot');
   updateContinuity(s, [carrier, defender, teammate], { x: 60, z: 34, y: 0.11 }, 4.55, true, null);
-  assert.equal(s.possessionAt, 0, 'loose recovery stays open until its bounded window expires');
+  assert.equal(s.possessionAt, 0);
   updateContinuity(s, [carrier, defender, teammate], { x: 60, z: 34, y: 0.11 }, 4.7, true, null);
-  assert.equal(s.possessionAt, null);
-  assert.equal(s.lastTeam, null);
+  assert.equal(s.possessionAt, 0);
+  assert.equal(s.lastTeam, 0);
+  assert.equal(s.controller, null, 'team context never grants individual ball control');
   controlBall(s, defender, 4.8, null);
-  assert.equal(s.metrics.turnovers.dispossessed, 0, 'new control after neutral play is not a turnover');
+  assert.equal(s.metrics.turnovers.dispossessed, 1, 'opposing established control ends the phase');
   assert.equal(s.possessionAt, 4.8);
 });
 

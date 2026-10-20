@@ -188,7 +188,7 @@ test('overlap requires protection and an open route; pressing remains a separate
   const defenceBall = { x: 60, z: 34 },
     opponent = { ...d, pos: defenceBall };
   for (const [press, count] of [
-    ['low', 1],
+    ['low', 0],
     ['high', 2],
   ]) {
     const roles = teamRoles(

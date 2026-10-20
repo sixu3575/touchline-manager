@@ -20,6 +20,7 @@ import {
   duelProbability,
   tackleWindow,
   tackleProbability,
+  tackleRelease,
 } from '../../packages/shared/modules/matches/defending.mjs';
 import { targetFor } from '../../packages/shared/modules/matches/positioning.mjs';
 import { deadballTarget, restartReady } from '../../packages/shared/modules/matches/deadball.mjs';
@@ -61,6 +62,22 @@ test('restart exclusion targets remain reachable at pitch edges and allow the le
   }
 });
 
+test('a retreat target just outside the legal circle includes movement parking tolerance', () => {
+  const defender = actor(0);
+  defender.anchor = { x: 45, z: 28 };
+  const state = {
+    type: 'freeKick',
+    side: 1,
+    taker: 21,
+    ball: { x: 40.48279571533203, z: 36.29047393798828 },
+  };
+  const target = deadballTarget(defender, [defender], state, (side) => (side ? -1 : 1), 500);
+  assert.ok(
+    Math.hypot(target.x - state.ball.x, target.z - state.ball.z) - 0.2 > 9.15,
+    'parking 20cm short cannot make a legal restart wait forever',
+  );
+});
+
 function actor(id, side = 0, x = 50, role = 'MID', positionRole = 'centralMid') {
   return {
     index: id,
@@ -74,6 +91,9 @@ function actor(id, side = 0, x = 50, role = 'MID', positionRole = 'centralMid') 
         acceleration: 65,
         agility: 65,
         balance: 65,
+        tackling: 65,
+        strength: 65,
+        dribbling: 65,
         marking: 65,
         positioning: 65,
       },
@@ -122,7 +142,43 @@ test('sprint load requires recovery without erasing acceleration or penalising f
   assert.equal(movementMode(a, ball, null, { chasers: [] }, 0.4), 'stand');
 });
 
-test('adrenaline grants one brief critical sprint and cannot bypass recovery or repeat this match', () => {
+test('a high-momentum successful challenge pokes a loose ball; a balanced slow challenge can trap it', () => {
+  const defender = actor(0, 0, 51.1),
+    carrier = actor(1, 1, 50);
+  defender.direction = 1;
+  const ball = { x: 50.6, z: 34, y: 0.11, vx: 0, vz: 0 };
+  assert.equal(tackleRelease(defender, carrier, ball, [defender, carrier], 60), null);
+  defender.velocity = { x: -6, z: 0 };
+  carrier.velocity = { x: 4, z: 0 };
+  const poke = tackleRelease(defender, carrier, ball, [defender, carrier], 60);
+  assert.ok(poke && Math.abs(poke.z) > Math.abs(poke.x));
+  assert.ok(Math.hypot(poke.x, poke.z) > 2 && Math.hypot(poke.x, poke.z) < 12);
+  const state = continuityState();
+  controlBall(state, carrier, 0, false);
+  releaseControl(state, 1, 'tackle');
+  assert.equal(state.controller, null, 'winning a poke does not grant remote stable possession');
+  assert.equal(state.phase, 'loose');
+  assert.equal(state.side, carrier.side, 'team organisation awaits actual new control');
+});
+
+test('repeated physically finite starts consume reserve even below the high-speed threshold', () => {
+  const steady = actor(0),
+    intermittent = actor(1);
+  let x = 0;
+  for (let cycle = 0; cycle < 5; cycle++) {
+    for (let tick = 0; tick < 52; tick++) {
+      const t = tick * 0.05;
+      const speed = t < 1.6 ? t * 2.5 : Math.max(0, 4 - (t - 1.6) * 4);
+      recordMovement(intermittent, { x, z: 0 }, { x: x + speed * 0.05, z: 0 }, 0.05, true, false);
+      recordMovement(steady, { x: 0, z: 0 }, { x: 0.15, z: 0 }, 0.05, true, false);
+      x += speed * 0.05;
+    }
+  }
+  assert.ok(intermittent.activity.load > steady.activity.load + 0.05);
+  assert.ok(burstReserve(intermittent) < burstReserve(steady));
+});
+
+test('adrenaline grants a brief critical sprint and cannot immediately bypass its recovery debt', () => {
   const a = actor(0, 0, 79);
   a.activity.load = 1;
   a.activity.recovery = 30;
@@ -146,17 +202,24 @@ test('adrenaline grants one brief critical sprint and cannot bypass recovery or 
   assert.equal(
     a.activity.adrenalineEfforts,
     1,
-    'one emergency burst is allowed per player per match',
+    'excess exertion must recover before another emergency burst',
   );
 });
 
-test('adrenaline has a strict one-per-match cap even when another critical moment occurs', () => {
+test('emergency exertion can recur after physical recovery without a per-match quota', () => {
   const a = actor(0, 0, 79);
   a.activity.load = 1;
   a.activity.recovery = 30;
   a.activity.adrenalineEfforts = 1;
+  a.activity.emergencyDebt = 1;
   assert.equal(movementMode(a, { x: 80, z: 34 }, null, { chasers: [a.index] }, 5), 'run');
   assert.equal(a.activity.adrenalineEfforts, 1);
+  for (let i = 0; i < 8000; i++)
+    recordMovement(a, { x: 79, z: 34 }, { x: 79, z: 34 }, 0.05, true, false);
+  a.activity.load = 1;
+  a.activity.recovery = 30;
+  assert.equal(movementMode(a, { x: 80, z: 34 }, null, { chasers: [a.index] }, 5), 'sprint');
+  assert.equal(a.activity.adrenalineEfforts, 2);
 });
 
 test('adrenaline is reserved for final-third runs and last-ditch defensive cover', () => {
@@ -280,11 +343,15 @@ test('defensive job cost protects the last line and avoids sending a fast forwar
     { press: 'normal' },
     2,
   );
-  assert.equal(emergency.chasers[0], close.index);
   assert.equal(
-    emergency.chasers[1],
+    emergency.chasers[0],
     cover.index,
-    'second defender protects the forward lane instead of joining a chase from behind',
+    'goal-side protection matters more than chasing from behind',
+  );
+  assert.equal(
+    emergency.chasers.length,
+    1,
+    'a controlled dribble draws one challenger while the others protect and mark',
   );
 });
 
@@ -336,9 +403,45 @@ test('a shielded close touch invites jockeying, while an exposed touch remains p
     roles,
   );
   assert.ok(
-    Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) < 1,
-    'cover steps in at shot range instead of retreating forever',
+    Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) > 2,
+    'cover stays staggered while the first presser still protects the goal side',
   );
+  firstPresser.pos.x = 22;
+  const emergency = targetFor(
+    defender,
+    [firstPresser, defender, carrier],
+    { x: 19.5, z: 34 },
+    carrier,
+    1,
+    {},
+    roles.chasers,
+    roles,
+  );
+  assert.ok(
+    Math.hypot(emergency.x - carrier.pos.x, emergency.z - carrier.pos.z) < 1,
+    'cover steps in once the first defender has actually been beaten',
+  );
+});
+
+test('an outmatched defender contains a close dribble but still challenges a genuinely exposed ball', () => {
+  const defender = actor(0, 0, 51.8),
+    carrier = actor(1, 1, 50);
+  Object.keys(defender.player.attributes).forEach((k) => (defender.player.attributes[k] = 30));
+  Object.keys(carrier.player.attributes).forEach((k) => (carrier.player.attributes[k] = 90));
+  assert.equal(tackleWindow(defender, carrier, { x: 50.95, z: 34 }), false);
+  assert.equal(tackleWindow(defender, carrier, { x: 51.4, z: 34 }), true);
+  const roles = { chasers: [0], time: 10 };
+  const target = targetFor(
+    defender,
+    [defender, carrier],
+    { x: 50.95, z: 34 },
+    carrier,
+    1,
+    { press: 'normal' },
+    roles.chasers,
+    roles,
+  );
+  assert.ok(Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) > 1.5);
 });
 
 test('a central presser closes to jockeying distance without driving into the carrier', () => {
