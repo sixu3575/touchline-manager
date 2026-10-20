@@ -133,6 +133,35 @@ function sideSummary(report, side, possessions, shots, passes, receptionPressure
   };
 }
 
+function possessionTurnoverDiagnostics(report, possessions) {
+  if (!Array.isArray(report.continuity?.possessions)) return null;
+  const completedPasses = (report.events ?? []).filter((event) => event.type === 'passComplete'),
+    rows = possessions.map((row) => ({
+      ...row,
+      completedPasses: completedPasses.filter(
+        (event) =>
+          event.side === row.side && event.second >= row.start && event.second <= row.end,
+      ).length,
+    })),
+    short = rows.filter((row) => row.seconds < 5),
+    tally = (field, values) =>
+      Object.fromEntries(
+        [...new Set(values.map((row) => row[field] ?? 'unknown'))]
+          .sort()
+          .map((key) => [key, values.filter((row) => (row[field] ?? 'unknown') === key).length]),
+      ),
+    passBand = (count) =>
+      count === null ? 'unknown' : count >= 3 ? '3+' : String(count);
+  return {
+    endReasons: tally('reason', rows),
+    underFiveEndReasons: tally('reason', short),
+    underFiveByCompletedPasses: tally(
+      'passBand',
+      short.map((row) => ({ ...row, passBand: passBand(row.completedPasses) })),
+    ),
+  };
+}
+
 /**
  * Read-only metrics derived from a saved report and its original 5Hz trajectory.
  * Model-defined possession spells and proximity are explicitly not official event definitions.
@@ -359,7 +388,7 @@ export function analyzeReplay(report, trajectory) {
 
   return {
     status: 'available',
-    version: 'replay-flow-1',
+    version: 'replay-flow-2',
     definition:
       '团队球权区间可能包含短暂松球记忆；个人控制区间按真实控制者记录，结束原因为出球、射门、脱控或被夺球；球人/防守者距离按5Hz回放最近帧估算。传球方向按出球点与目标点；防线间距为防守方DEF与MID组平均纵向差。均为诊断指标，不等同官方统计定义。',
     teams: [0, 1].map((side) =>
@@ -383,6 +412,7 @@ export function analyzeReplay(report, trajectory) {
       possessionsOverFifteenSeconds: Array.isArray(report.continuity?.possessions)
         ? possessions.filter((row) => row.seconds > 15).length
         : null,
+      possessionTurnovers: possessionTurnoverDiagnostics(report, possessions),
       meanCompletedPassChain: mean(chainValues),
       medianCompletedPassChain: quantile(chainValues, 0.5),
       individualControlCount: Array.isArray(report.continuity?.controlSpells)
