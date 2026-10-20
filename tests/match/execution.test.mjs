@@ -37,7 +37,13 @@ import {
   controlMovement,
   motorTouch,
   canReactToPass,
+  boundaryAwareness,
+  boundaryVelocity,
 } from '../../packages/shared/modules/matches/onball.mjs';
+import {
+  firstTouchVelocity,
+  receptionPlan,
+} from '../../packages/shared/modules/matches/receiving.mjs';
 import {
   groundPassPlan,
   groundTravel,
@@ -83,6 +89,90 @@ function actor(changes = {}) {
     hold: 1,
   };
 }
+
+test('a byline approach brakes through real foot contacts and inertia while a late spill can still go out', () => {
+  const run = (late, direction) => {
+    const physics = createPhysics(),
+      start = late ? 103.7 : 98;
+    const x = (n) => (direction === 1 ? n : 105 - n);
+    const a = {
+      ...actor({ anticipation: 90, dribbling: 90, balance: 90, agility: 90 }),
+      direction,
+      facing: direction === 1 ? 0 : Math.PI,
+      ...createBody(physics, 180, 70, x(start), 44),
+    };
+    a.intent = { kind: 'carry', mode: 'carryFast', destination: { x: x(104), z: 49 } };
+    a.body.setLinvel({ x: direction * (late ? 8 : 5), y: 0, z: 0 }, true);
+    physics.ball.setTranslation({ x: x(start + 0.6), y: 0.11, z: 44 }, true);
+    physics.ball.setLinvel({ x: direction * (late ? 8 : 5), y: 0, z: 0 }, true);
+    let next = 0,
+      max = 0,
+      touches = 0;
+    try {
+      for (let tick = 0; tick < 120; tick++) {
+        a.pos = a.body.translation();
+        a.velocity = a.body.linvel();
+        const p = physics.ball.translation(),
+          v = physics.ball.linvel(),
+          ball = { ...p, vx: v.x, vz: v.z };
+        a.target = a.intent.destination;
+        updateFacing(a, ball, 0.05);
+        orientFoot(a, ball);
+        driveMovement(a, controlMovement(a, ball), movement(a.player, 100, 'carryFast'), 0.05);
+        if (
+          tick * 0.05 >= next &&
+          touchesBall(physics, a.foot) &&
+          kick(
+            physics,
+            a,
+            motorTouch(a, ball, () => 0.5),
+          )
+        ) {
+          next = tick * 0.05 + 0.25;
+          touches++;
+        }
+        stepPhysics(physics, null, [a]);
+        const depth =
+          direction === 1 ? physics.ball.translation().x : 105 - physics.ball.translation().x;
+        max = Math.max(max, depth);
+        if (depth > 105.11) break;
+      }
+      return { max, touches };
+    } finally {
+      physics.world.free();
+    }
+  };
+  for (const direction of [1, -1]) {
+    const prepared = run(false, direction),
+      late = run(true, direction);
+    assert.ok(prepared.touches > 2, 'real repeated contacts keep the ball under control');
+    assert.ok(prepared.max <= 105.11, `early braking keeps ball on pitch: ${prepared.max}`);
+    assert.ok(
+      late.max > 105.11,
+      'a physically unrecoverable ball is not stopped by an invisible boundary',
+    );
+  }
+});
+
+test('receivers recognize an approaching end line, with attribute-dependent braking and no blanket loss of open-field speed', () => {
+  const high = actor({ anticipation: 95, balance: 95, agility: 95 }),
+    low = actor({ anticipation: 20, balance: 20, agility: 20 });
+  const ball = { x: 103, z: 44, vx: 5, vz: 0 };
+  high.pos = { x: 102.4, z: 44 };
+  high.velocity = { x: 5, z: 0 };
+  assert.ok(boundaryAwareness(high, ball).risk > 0);
+  assert.equal(receptionPlan(high, ball, 1, 90, 5, [], 0).flow, false);
+  assert.ok(
+    boundaryVelocity(high, ball, { x: 5, z: 0 }).x > boundaryVelocity(low, ball, { x: 5, z: 0 }).x,
+    'a stronger brake allows more usable speed',
+  );
+  const first = firstTouchVelocity(high, ball, 1, 90, 5, () => 0.5, [], { flow: true });
+  const open = firstTouchVelocity(high, { ...ball, x: 50 }, 1, 90, 5, () => 0.5, [], {
+    flow: true,
+  });
+  assert.ok(first.x < open.x);
+  assert.deepEqual(boundaryVelocity(high, { x: 50, z: 34 }, { x: 5, z: 2 }), { x: 5, z: 2 });
+});
 
 test('a keeper intercepts by remaining flight time rather than braking short of the ball', () => {
   const a = { ...actor(), pos: { x: 2, z: 34 } };

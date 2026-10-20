@@ -29,7 +29,13 @@ test('finite first touches control at least 95 of 100 unopposed medium-quality 1
   for (let seed = 0; seed < 100; seed++) {
     const physics = createPhysics(),
       rng = random(seed),
-      a = { ...createBody(physics, 180, 50, 50.65, 34), velocity: { x: 0, z: 0 }, direction: 1 };
+      a = {
+        ...createBody(physics, 180, 50, 50.65, 34),
+        player: { attributes: { anticipation: 50, agility: 50, balance: 50 } },
+        energy: 100,
+        velocity: { x: 0, z: 0 },
+        direction: 1,
+      };
     try {
       physics.ball.setTranslation({ x: 40.65, y: 0.12, z: 34 }, true);
       physics.ball.setLinvel({ x: passSpeed(10, 50), y: 0.04, z: (rng() - 0.5) * 0.35 }, true);

@@ -5,6 +5,8 @@ import { tacticalPreset } from '../tactics/index.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { sprintAvailable } from './activity.mjs';
 import { duelProbability } from './defending.mjs';
+import { boundaryAwareness, boundaryVelocity } from './onball.mjs';
+import { movement } from './locomotion.mjs';
 
 // Opportunity estimates rank routes only. Actual touches, tackles and collisions
 // still decide whether the player keeps the independently simulated ball.
@@ -59,7 +61,12 @@ export function carryOptions(
         distance(o.pos, ball) < 4.5 ||
         (segmentPoint(ball, destination, o.pos).gap < 2.7 && distance(o.pos, ball) < 6),
     );
-    const mode = clear && sprintAvailable(actor) ? 'carryFast' : 'carry';
+    let mode = clear && sprintAvailable(actor) ? 'carryFast' : 'carry';
+    const pace = movement(actor.player, actor.energy, mode).speed;
+    const planned = { x: heading.x * pace, z: heading.z * pace };
+    const boundary = boundaryAwareness(actor, ball, planned);
+    const safe = boundaryVelocity(actor, ball, planned);
+    if (Math.hypot(safe.x, safe.z) < pace * 0.85) mode = 'carry';
     const defenders = opponents
       .filter((o) => distance(o.pos, ball) < 24)
       .map((opponent) => {
@@ -118,7 +125,14 @@ export function carryOptions(
     const danger = first?.risk ?? 0;
     const cover = Math.min(2, defenders.slice(1).filter((d) => d.risk > 0.22).length);
     const duel = first?.carrierAdvantage ?? 0.5;
-    const success = clamp(0.97 - danger * (1 - duel) - 0.14 * cover, 0.12, 0.98);
+    const success = clamp(
+      0.97 -
+        danger * (1 - duel) -
+        0.14 * cover -
+        boundary.risk * (0.35 + 0.35 * (1 - a('dribbling') / 100)),
+      0.12,
+      0.98,
+    );
     const spaceBonus = 0.08 * clamp((near - 2.5) / 6, 0, 1) * clamp(progress / 8, 0, 1);
     const takeOn = danger > 0.15;
     return [

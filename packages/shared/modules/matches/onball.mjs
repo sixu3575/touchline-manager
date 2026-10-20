@@ -1,6 +1,50 @@
 import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { distance, unit } from './spatial.mjs';
+import { groundArrivalTime, BALL_MOTION } from './ball-motion.mjs';
+
+// Estimate whether the next reachable touch/turn fits before a real pitch edge.
+// This never moves a ball, clamps its position, or changes the physical solver.
+export function boundaryAwareness(actor, ball, velocity = { x: ball.vx ?? 0, z: ball.vz ?? 0 }) {
+  const speed = Math.hypot(velocity.x, velocity.z);
+  if (speed < 0.01) return { time: Infinity, risk: 0 };
+  let travel = Infinity;
+  for (const [p, v, end] of [
+    [ball.x, velocity.x, 105],
+    [ball.z, velocity.z, 68],
+  ]) {
+    if (Math.abs(v) < 0.001) continue;
+    const gap = v > 0 ? end + BALL_MOTION.radius - p : p + BALL_MOTION.radius;
+    travel = Math.min(travel, (Math.max(0, gap) * speed) / Math.abs(v));
+  }
+  const time = groundArrivalTime(speed, travel);
+  const m = movement(actor.player, actor.energy, 'carry');
+  const response = 0.25 + (100 - ability(actor.player, 'anticipation')) * 0.002;
+  const turn = speed / (m.braking * m.response * 0.6);
+  return {
+    time,
+    risk: Math.max(0, Math.min(1, (response + turn - time) / Math.max(0.2, response + turn))),
+  };
+}
+
+export function boundaryVelocity(actor, point, desired, interval = 0.3) {
+  const m = movement(actor.player, actor.energy, 'carry');
+  // The gait touch can use the same 60% of the body's braking response that
+  // motorTouch actually executes; assuming the full body brake reacts too late.
+  const brake = m.braking * m.response * 0.6;
+  const anticipation = 0.08 + (100 - ability(actor.player, 'anticipation')) * 0.002;
+  const delay = interval + anticipation;
+  const safe = (gap) =>
+    Math.max(
+      0,
+      Math.sqrt((brake * delay) ** 2 + 2 * brake * Math.max(0, gap - BALL_MOTION.radius)) -
+        brake * delay,
+    );
+  return {
+    x: Math.max(-safe(point.x), Math.min(safe(105 - point.x), desired.x)),
+    z: Math.max(-safe(point.z), Math.min(safe(68 - point.z), desired.z)),
+  };
+}
 
 // Strategic perception and the repeated motor touches are different clocks.
 // A touch never draws a new action lottery merely because a foot reached the ball.
@@ -8,7 +52,10 @@ export function needsOnBallScan(actor, ball, opponents, time) {
   const plan = actor.onBallPlan;
   if (!plan || !actor.intent || time >= plan.scanAt) return true;
   const pressureDistance = Math.min(12, ...opponents.map((o) => distance(o.pos, ball)));
+  const boundary = boundaryAwareness(actor, ball);
   return (
+    (boundary.risk > 0.05 &&
+      time >= plan.scanAt - (0.2 * ability(actor.player, 'anticipation')) / 100) ||
     distance(ball, plan.ball) > 4 ||
     (pressureDistance < 2 && plan.pressureDistance - pressureDistance > 0.8) ||
     (plan.action.destination && distance(ball, plan.action.destination) < 1)
@@ -42,12 +89,13 @@ export function controlMovement(actor, ball) {
   }
   const offset = actor.kickPlan ? 0.5 : 0.6;
   const settle = actor.intent?.kind === 'settle';
-  return {
+  const desired = {
     x: (ball.vx ?? 0) + (ball.x - actor.pos.x - heading.x * offset) * 3,
     z: (ball.vz ?? 0) + (ball.z - actor.pos.z - heading.z * offset) * 3,
     // A stationary shield should not inherit a long-range navigation target.
     ...(settle ? { settling: true } : {}),
   };
+  return { ...desired, ...boundaryVelocity(actor, actor.pos, desired, 0.1) };
 }
 
 export function motorTouch(actor, ball, rng = () => 0.5) {
@@ -61,7 +109,11 @@ export function motorTouch(actor, ball, rng = () => 0.5) {
   // Predict the next gait contact, including acceleration and grass resistance.
   // This is a physical touch interval, never a required possession duration.
   const contactInterval = 0.25 + (100 - ability(actor.player, 'dribbling')) * 0.001;
-  const desired = settle ? { x: 0, z: 0 } : { x: h.x * m.speed, z: h.z * m.speed };
+  const routeGap = intent?.destination ? distance(ball, intent.destination) : Infinity;
+  const approach = Math.min(m.speed, Math.sqrt(2 * m.braking * m.response * routeGap));
+  const desired = settle
+    ? { x: 0, z: 0 }
+    : boundaryVelocity(actor, ball, { x: h.x * approach, z: h.z * approach }, contactInterval);
   const dx = desired.x - actor.velocity.x,
     dz = desired.z - actor.velocity.z;
   const change = Math.hypot(dx, dz);

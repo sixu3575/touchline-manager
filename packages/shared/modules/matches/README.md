@@ -1,5 +1,7 @@
 # 比赛模块
 
+0.28底线修复见[边界控制](design/BOUNDARY_V0280.md)和[八场校准](design/CALIBRATION_V0280.md)：提前判断越线与可用制动、收步/卸球，仍保留真实惯性和失误。仅引擎0.28.0-boundary / boundary-1用于新比赛；本次不发布四场调度、增量记录或新表结构，生产继续逐场计算。旧任务先完成，旧回放不重算，流程不变。
+
 0.27最终25场结果与残余偏差见[校准记录](design/CALIBRATION_V0270.md)和[逐场证据](design/REALISM_EVIDENCE_V0270.json)，不得将review称为全部现实分布通过。未来拦截需要真实actor位置/速度，预判通过观察反应起作用，不为身体凭空增加前送距离；测试须使用完整场景。门将持球关节只保存数字句柄和普通姿态数据，不能把Rapier对象放入领域检查点。
 
 当前开发分支为0.27.0系统重构。onball管理感知记忆/脚下运动执行，opportunity统一比较保球、传带射的后续机会；移动、接球、传射准备、防守阵块与观察跟速、真实控制确认及死球衔接一起修正。无传球/射门/比分/控球时长配额，合理远射保留。详见[模型与数学](design/CONTROL_MODEL_V0270.md)、[七张现行决策图](design/PLAYER_DECISION_MAP.md)、[24场现实参考](design/REAL_FOOTBALL_REFERENCE_V0270.json)。新引擎0.27.0-control-model / control-model-1，无schema迁移，旧回放不重算，旧任务排空后才能升级；流程不变。以下为历史演进记录。

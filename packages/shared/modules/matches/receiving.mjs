@@ -3,6 +3,7 @@ import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { distance } from './spatial.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
+import { boundaryAwareness, boundaryVelocity } from './onball.mjs';
 
 export function receptionPlan(actor, ball, direction, quality, incoming, opponents = [], time = 0) {
   const space = Math.min(20, ...opponents.map((o) => distance(o.pos, ball)));
@@ -17,7 +18,14 @@ export function receptionPlan(actor, ball, direction, quality, incoming, opponen
     (actor.reaction ?? 0.1 + (100 - ability(actor.player, 'decisions')) / 180) +
     0.14 +
     0.18 * (1 - quality / 100);
-  const flow = space > 4 && pressArrival > usableTouch && forward && easy && quality >= 35;
+  const boundary = boundaryAwareness(actor, ball, actor.velocity);
+  const flow =
+    space > 4 &&
+    pressArrival > usableTouch &&
+    forward &&
+    easy &&
+    quality >= 35 &&
+    boundary.risk < 0.15;
   const delay = flow
     ? 0.08 + (100 - ability(actor.player, 'decisions')) * 0.002 + (100 - quality) * 0.001
     : 0.22 +
@@ -94,15 +102,13 @@ export function firstTouchVelocity(
       )
     : 0.55 + clamp(incoming - 8, 0, 15) * (1 - quality / 100) * 0.06;
   const error = (rng() - 0.5) * (1 - quality / 100) * (0.3 + incoming / 12);
+  const nominal = boundaryVelocity(actor, ball, {
+    x: (plan?.flow ? 0 : actor.velocity.x * 0.85) + (heading.x / length) * speed,
+    z: (plan?.flow ? 0 : actor.velocity.z * 0.85) + (heading.z / length) * speed,
+  });
   return {
-    x:
-      (plan?.flow ? 0 : actor.velocity.x * 0.85) +
-      (heading.x / length) * speed -
-      (heading.z / length) * error,
-    z:
-      (plan?.flow ? 0 : actor.velocity.z * 0.85) +
-      (heading.z / length) * speed +
-      (heading.x / length) * error,
+    x: nominal.x - (heading.z / length) * error,
+    z: nominal.z + (heading.x / length) * error,
     y: 0.04,
   };
 }
