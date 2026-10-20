@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-20",
-  "baselineCommit": "970475bada59d67cf3d7847226857e301469c673",
-  "engineVersion": "0.25.0-possession-touch",
-  "parameterVersion": "possession-5",
+  "baselineCommit": "8dd41e7dfe409b3e606e01002562bcbbcc9f72a3",
+  "engineVersion": "0.26.0-possession-screen",
+  "parameterVersion": "possession-6",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
   "rendering": {
@@ -30,10 +30,10 @@
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "77d4bb2d59f783a5b237f20782051beb2490833d07296701289fdf60bd81f58f",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "ee6438d4f0d648bd6cf1fc030314ef5bb7d42092ccda06d6e5377d9748faefac",
+    "packages/shared/modules/matches/positioning.mjs": "d31f2b36c59011aa109484c6de4a2d951a5f3bb636edcc3532aed001b3808fc0",
     "packages/shared/modules/matches/locomotion.mjs": "4eef488448aa7176facb2981d74d4a8244b63206c51615a6b1751ff8919387e4",
     "packages/shared/modules/matches/decisions.mjs": "09ceb488d57fcf46783ba48459702ae4f188959b02457b51884d727f2e375267",
-    "packages/shared/modules/matches/simulation.mjs": "0e06111614805eee1c27c67fab3506a7ff6ebbc5a2650a23fddb83e1699243ea",
+    "packages/shared/modules/matches/simulation.mjs": "18419ba1c8a88128ad90dc70e61b5335c27ca6517f038777117d6fb4d2cae15e",
     "packages/shared/modules/matches/continuity.mjs": "b7e6854cdd8c27a298c0d605598a9fe196448d4205617cfd3d9fa8b8fb1bed45",
     "packages/shared/modules/matches/receiving.mjs": "be094739427f309719a8625a7bff1546a233f23327ebb0708a7ce2da16fbb727",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
@@ -66,8 +66,8 @@
       "svgSha256": "fcfe23d3c2663d42ae7c0ea25bb7b2aaa26d1645014d29389e283b1c6a7ce4b6"
     },
     "03-positioning": {
-      "mermaidSha256": "31eaa1a847a692be026ca3ba3cedc883f3908721c31a2d0a63cfe2b8e28848ab",
-      "svgSha256": "27def3e34068d532458ef68fe7245c55a6a5087ad1bbd2a937d9729376cba50d"
+      "mermaidSha256": "6ecaabb1c43b97d683313a4a68891c5c4a02bbe35d13285c6f137a0e3027cab3",
+      "svgSha256": "0e2ed14a8f234c03a7efc43a0d3fe63a90d6e89d91ad73e67c38e6f4f762b810"
     },
     "04-reception": {
       "mermaidSha256": "509c8e07e62b234aefebca7dc5881160238280af9f3037c86c9b1c33064d9396",

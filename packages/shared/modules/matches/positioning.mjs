@@ -272,7 +272,7 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
           ? 1.7
           : separation > 2.5
             ? 1.5
-            : 0.35;
+            : 1.05;
       return {
         x: clamp(owner.pos.x + front.x * stand + owner.velocity.x * anticipation * 0.4, 1, 104),
         z: clamp(owner.pos.z + front.z * stand + owner.velocity.z * anticipation * 0.4, 1, 67),
