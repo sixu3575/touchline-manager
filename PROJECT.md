@@ -1,5 +1,7 @@
 # 项目地图
 
+0.28本次只发布[底线控球修复](packages/shared/modules/matches/design/BOUNDARY_V0280.md)，引擎0.28.0-boundary / boundary-1，其他算法与任务结构沿用0.27。用户在[现机四场容量未过](packages/server/src/design/CAPACITY_V0280_20261020.md)后选择保留现机、先修底线，四场暂不开启。并发候选另行保留；不要把方案或候选状态当作生产已启用。
+
 0.27.0系统重构见[控球与节奏模型](packages/shared/modules/matches/design/CONTROL_MODEL_V0270.md)：持球感知与重复脚触分离，统一保球/传/带/射的后续机会价值；身体跟随滚动球准备，脚部连续摆动，实际触球后确认控球；防线阵块/交接与压迫速度跟随；团队阶段不再按散球超时切断。数学、原始根因、现实样本口径和未解决偏差归档，七张决策图同步。新onball/opportunity仅为matches内部模块，无新运行依赖、schema迁移或开发流程变更；历史回放不重算。以下为历史版本记录。
 
 当前待发布候选0.25.0基于0.20控球/转换状态分离，修改带球脚触冲量：按沿路线跑速推球，盘带越高额外前送越小；球员跑速、传带射选择、传射参数、接触形状与控球宽限不变。固定八场中带球脱控均值191.38→118次，成功传球链1.76→2.12，每队传球664.75→806.5；控球阶段中位数仅5.06→5.29秒，约48%仍短于5秒，因此问题未解决。八场均review、无block。细节见[POSSESSION_V0250.md](packages/shared/modules/matches/design/POSSESSION_V0250.md)与[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。

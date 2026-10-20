@@ -98,8 +98,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.27.0-control-model';
-export const PARAMETER_VERSION = 'control-model-1';
+export const ENGINE_VERSION = '0.28.0-boundary';
+export const PARAMETER_VERSION = 'boundary-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.

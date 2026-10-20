@@ -1,0 +1,681 @@
+{
+  "date": "2026-10-20",
+  "engineVersion": "0.28.0-boundary",
+  "parameterVersion": "boundary-1",
+  "worldSeed": 42,
+  "regulationSeconds": 5400,
+  "scope": "Four home styles; default away style; two fixed seeds. Synthetic matches; no production save advanced.",
+  "references": {
+    "version": "realism-reference-1",
+    "physical": {
+      "url": "https://editorial.uefa.com/resources/0297-1d4e3592fbf1-f11d4e1c826a-1000/uefa_euro_2024_physical_analysis_report_20250318094958.pdf",
+      "pages": "9–10, 13",
+      "scope": "EURO 2024 men; regulation 90-minute portions; goalkeepers excluded; positional starters >70min. Elite anchor, not lower-league percentiles.",
+      "positions": {
+        "striker": [
+          9534,
+          1011,
+          4346,
+          495,
+          141
+        ],
+        "winger": [
+          9780,
+          1254,
+          4201,
+          547,
+          131
+        ],
+        "wideMid": [
+          9780,
+          1254,
+          4201,
+          547,
+          131
+        ],
+        "centreBack": [
+          9793,
+          720,
+          4672,
+          359,
+          84
+        ],
+        "fullback": [
+          10209,
+          957,
+          4467,
+          609,
+          166
+        ],
+        "wingBack": [
+          10209,
+          957,
+          4467,
+          609,
+          166
+        ],
+        "centralMid": [
+          10924,
+          1054,
+          4171,
+          497,
+          96
+        ],
+        "holdingMid": [
+          10924,
+          1054,
+          4171,
+          497,
+          96
+        ]
+      },
+      "teamOutfieldMetres": 115351
+    },
+    "technical": {
+      "url": "https://www.fifatrainingcentre.com/media/native/world-cup-2022/report_133012.pdf",
+      "scope": "England–USA, 2022-11-25, includes added time; illustrative single match, not a population range. FIFA and game pass/turnover definitions differ.",
+      "passes": [
+        550,
+        427
+      ],
+      "completed": [
+        488,
+        368
+      ],
+      "shots": [
+        8,
+        10
+      ],
+      "onTarget": [
+        3,
+        2
+      ]
+    },
+    "goals": {
+      "url": "https://www.uefa.com/uefaeuro/history/seasons/2024/statistics/",
+      "scope": "EURO 2024, 117 goals / 51 matches; includes extra-time goals. Context only, not a per-90 target.",
+      "total": 117,
+      "matches": 51
+    }
+  },
+  "reports": [
+    {
+      "id": "possession-1001",
+      "style": "possession",
+      "seed": 1001,
+      "status": "review",
+      "score": [
+        0,
+        3
+      ],
+      "bylineControlOut": 2,
+      "recentDribbleOut": 0,
+      "allOut": 60,
+      "shots": [
+        10,
+        26
+      ],
+      "passes": [
+        639,
+        511
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.212061131763734,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.19745222929936307,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 97138,
+          "completion": 0.8325508607198748,
+          "shots": 10,
+          "passes": 639
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 93724,
+          "completion": 0.8101761252446184,
+          "shots": 26,
+          "passes": 511
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "possession-999",
+      "style": "possession",
+      "seed": 999,
+      "status": "review",
+      "score": [
+        1,
+        1
+      ],
+      "bylineControlOut": 3,
+      "recentDribbleOut": 2,
+      "allOut": 63,
+      "shots": [
+        5,
+        27
+      ],
+      "passes": [
+        617,
+        544
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.19616685456595265,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.1885754694743459,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 99697,
+          "completion": 0.8168557536466775,
+          "shots": 5,
+          "passes": 617
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 95455,
+          "completion": 0.8235294117647058,
+          "shots": 27,
+          "passes": 544
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "balanced-999",
+      "style": "balanced",
+      "seed": 999,
+      "status": "review",
+      "score": [
+        2,
+        2
+      ],
+      "bylineControlOut": 4,
+      "recentDribbleOut": 2,
+      "allOut": 56,
+      "shots": [
+        22,
+        19
+      ],
+      "passes": [
+        514,
+        456
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.6649787874640756,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p3"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22892561983471074,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "shotsPer90",
+          "actual": 13,
+          "engineeringRange": [
+            0,
+            12
+          ],
+          "scope": "c0-p17"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.24169392322258565,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.17125145292522279,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        },
+        {
+          "severity": "review",
+          "metric": "matchShots",
+          "actual": 41,
+          "engineeringRange": [
+            10,
+            40
+          ],
+          "scope": "match"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 93742,
+          "completion": 0.8365758754863813,
+          "shots": 22,
+          "passes": 514
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 97484,
+          "completion": 0.8026315789473685,
+          "shots": 19,
+          "passes": 456
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "balanced-1001",
+      "style": "balanced",
+      "seed": 1001,
+      "status": "review",
+      "score": [
+        2,
+        1
+      ],
+      "bylineControlOut": 5,
+      "recentDribbleOut": 1,
+      "allOut": 55,
+      "shots": [
+        22,
+        17
+      ],
+      "passes": [
+        526,
+        496
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.21450819672131147,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.24616724738675957,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.16612428327909498,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 96001,
+          "completion": 0.8174904942965779,
+          "shots": 22,
+          "passes": 526
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 96700,
+          "completion": 0.7983870967741935,
+          "shots": 17,
+          "passes": 496
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "counter-999",
+      "style": "counter",
+      "seed": 999,
+      "status": "review",
+      "score": [
+        1,
+        1
+      ],
+      "bylineControlOut": 4,
+      "recentDribbleOut": 2,
+      "allOut": 78,
+      "shots": [
+        18,
+        19
+      ],
+      "passes": [
+        514,
+        540
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.19971893857981318,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.15054091116867285,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 96136,
+          "completion": 0.7723735408560312,
+          "shots": 18,
+          "passes": 514
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 96583,
+          "completion": 0.7814814814814814,
+          "shots": 19,
+          "passes": 540
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "wide-999",
+      "style": "wide",
+      "seed": 999,
+      "status": "review",
+      "score": [
+        1,
+        2
+      ],
+      "bylineControlOut": 5,
+      "recentDribbleOut": 2,
+      "allOut": 77,
+      "shots": [
+        14,
+        23
+      ],
+      "passes": [
+        487,
+        492
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.23345421577515865,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.19523962688967514,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 98456,
+          "completion": 0.7638603696098563,
+          "shots": 14,
+          "passes": 487
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 92887,
+          "completion": 0.8089430894308943,
+          "shots": 23,
+          "passes": 492
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "wide-1001",
+      "style": "wide",
+      "seed": 1001,
+      "status": "review",
+      "score": [
+        0,
+        1
+      ],
+      "bylineControlOut": 4,
+      "recentDribbleOut": 2,
+      "allOut": 78,
+      "shots": [
+        9,
+        29
+      ],
+      "passes": [
+        487,
+        465
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.23850601082866843,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.19793473771168937,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 97163,
+          "completion": 0.7864476386036962,
+          "shots": 9,
+          "passes": 487
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 90608,
+          "completion": 0.8236559139784946,
+          "shots": 29,
+          "passes": 465
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    },
+    {
+      "id": "counter-1001",
+      "style": "counter",
+      "seed": 1001,
+      "status": "review",
+      "score": [
+        1,
+        1
+      ],
+      "bylineControlOut": 5,
+      "recentDribbleOut": 4,
+      "allOut": 61,
+      "shots": [
+        16,
+        18
+      ],
+      "passes": [
+        439,
+        629
+      ],
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.18966482681385488,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.1438253012048193,
+          "engineeringRange": [
+            0.25,
+            0.65
+          ],
+          "scope": "c1-p11"
+        }
+      ],
+      "teams": [
+        {
+          "side": 0,
+          "outfieldMetres": 100391,
+          "completion": 0.715261958997722,
+          "shots": 16,
+          "passes": 439
+        },
+        {
+          "side": 1,
+          "outfieldMetres": 97500,
+          "completion": 0.8076311605723371,
+          "shots": 18,
+          "passes": 629
+        }
+      ],
+      "engineVersion": "0.28.0-boundary"
+    }
+  ],
+  "completeBranchParity": {
+    "matches": 8,
+    "equal": "complete reports and every trajectory frame; version label excluded"
+  },
+  "validation": {
+    "status": "passed",
+    "match": true,
+    "season": false,
+    "physicalSeason": false,
+    "durationMs": 393554,
+    "stages": [
+      {
+        "name": "typecheck",
+        "durationMs": 2296,
+        "exitCode": 0
+      },
+      {
+        "name": "syntax tests/match/continuity.test.mjs",
+        "durationMs": 46,
+        "exitCode": 0
+      },
+      {
+        "name": "syntax tests/match/execution.test.mjs",
+        "durationMs": 43,
+        "exitCode": 0
+      },
+      {
+        "name": "smoke + targeted business (real engine forbidden)",
+        "durationMs": 1117,
+        "exitCode": 0
+      },
+      {
+        "name": "targeted match units",
+        "durationMs": 2919,
+        "exitCode": 0
+      },
+      {
+        "name": "real match integration",
+        "durationMs": 382478,
+        "exitCode": 0
+      },
+      {
+        "name": "production build",
+        "durationMs": 3550,
+        "exitCode": 0
+      }
+    ]
+  }
+}
