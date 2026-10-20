@@ -63,7 +63,7 @@ const diagnostics = new Set([
   'trainingProgress',
   'development',
 ]);
-function stripDiagnostics(value) {
+export function stripDiagnostics(value) {
   if (Array.isArray(value)) return value.map(stripDiagnostics);
   if (!value || typeof value !== 'object') return value;
   return Object.fromEntries(

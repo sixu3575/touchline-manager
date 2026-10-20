@@ -524,6 +524,33 @@
     padding-left: 0;
   }
 }
+.physical-player-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 1px;
+  margin: 12px 0;
+  overflow: hidden;
+  border: 1px solid #dde5d7;
+  border-radius: 10px;
+  background: #dde5d7;
+}
+.physical-player-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: #f6f8f2;
+}
+.physical-player-stats span {
+  color: #6d7865;
+  font-size: 11px;
+}
+.physical-player-stats b {
+  color: #27442f;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
 .physical-stamina-bars {
   display: grid;
   grid-template-columns: repeat(2, minmax(140px, 1fr));

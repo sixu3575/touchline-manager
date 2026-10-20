@@ -192,7 +192,7 @@ const server = http.createServer(async (req, res) => {
             return;
           }
           const emit = () => {
-            const view = jobs.view(jobs.store.get(row.id), { summary: true });
+            const view = jobs.view(jobs.store.presentation(row.id), { summary: true });
             const { report, ...summary } = view;
             res.write('id: ' + (view.seq ?? 0) + '\ndata: ' + JSON.stringify(summary) + '\n\n');
           };
