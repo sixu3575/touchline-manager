@@ -1,5 +1,7 @@
 # 存档迁移模块
 
+2026-10-20：jobs.presentation/owned/latest仅供展示，不返回work；恢复或调度须使用get/pending。progress.report仅为可压缩的展示副本，完整模拟状态和报告以work/checkpoint及归档为准。无表结构或启动迁移；旧进度仍可读取，逐片生成时自然使用更轻副本。
+
 0.9.0：replays.persist在原有事务内将withPlayerRatings生成的完整战报压缩，summary剥离playerRatings。GET旧战报可补评分响应，但不更新历史payload；新报告已带版本时原样返回。无schema升级，无轨迹重算；评分不是资金/比赛结算输入。专项tests/player-ratings.test.mjs检查原BLOB、隔离、事务回滚和摘要体积边界。
 
 migrateState 为复制后迁移，migrateDatabase 在单个 BEGIN IMMEDIATE 事务升级所有旧档。仅接收支持的版本；遇到未知版本启动失败并回滚，禁止重建存档。生产发布前沿用既有部署备份。

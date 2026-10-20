@@ -1,5 +1,7 @@
 # 数据与迁移
 
+2026-10-20观看修补：match_jobs.progress.report为展示副本，剔除原本就不公开的连续性/物理诊断；完整私有检查点/报告保留在work和正式归档。新旧进度均可读取，无schema变化或启动重写。观赛owned/latest/presentation查询不含work BLOB，恢复仍读内部get。进球/助攻等展示只读原有确认事件，不写回历史。
+
 0.20.0引擎`0.20.0-possession`/参数`possession-1`仅影响新模拟结果；不增加或迁移JSON/SQLite字段，已有报告、战报和回放不重算。actor/比赛连续性检查点结构随此引擎版本变化，必须排空旧引擎未完成任务后发布，不能使用新引擎续跑旧检查点；回滚前先排空新任务并保留完整备份。
 
 0.16.0保持JSON/SQLite3、事件3、u16回放。新报告可选performance[].locomotion（20Hz五区/活死球里程/高速段）、defenceTelemetry（私有诊断）及continuity.possessions（团队阶段，含短时松球）。旧报告保持缺失，不伪补历史。actor.activity/defenceMemory/pressUntil/shotPreparation及continuity团队记忆由既有检查点整体保存；matchState新增短时恢复字段只在单场actor内使用，出站剔除。按引擎0.16.0-realism隔离恢复，切换前排空旧任务；没有数据库迁移或长期属性调整。

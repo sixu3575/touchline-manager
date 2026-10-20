@@ -12,6 +12,7 @@ import { EventFilter, EmptyEvents } from './EventFilter';
 import { GoalCelebration } from './GoalCelebration';
 import { PlayerRatings } from './PlayerRatings';
 import { staminaAtTime } from './stamina-view.mjs';
+import { playerEventStatistics } from './player-statistics.mjs';
 import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
 
 const clock = (t: number) =>
@@ -41,6 +42,11 @@ export function PhysicalReplay({
   const [selected, setSelected] = useState(-1);
   const [eventFilter, setEventFilter] = useState('key');
   const ratingsRef = useRef<HTMLDivElement>(null);
+  const playbackTime = useRef(0);
+  const seekTo = (second: number) => {
+    playbackTime.current = second;
+    setTime(second);
+  };
   const liveFrame = useRef({ job: live?.job, duration: meta.duration });
   liveFrame.current = { job: live?.job, duration: meta.duration };
   const regulation = meta.regulationDuration ?? meta.duration;
@@ -72,18 +78,29 @@ export function PhysicalReplay({
     return () => controller.abort();
   }, [report.id, meta, retry, Boolean(live)]);
   const ownComplete = !live || Boolean(live.job.ownComplete);
-  const ended = ownComplete && time >= meta.duration;
-  const buffering = Boolean(live && !ownComplete && time >= Math.max(0, meta.duration - 0.4));
+  const endSecond =
+    live && ownComplete ? (live.job.broadcast?.seconds ?? meta.duration) : meta.duration;
+  const ended = ownComplete && time >= endSecond;
+  const buffering = Boolean(live && !ended && time >= Math.max(0, meta.duration - 0.4));
   const prefix = live ? report.timeline?.filter((row) => row.second <= time).at(-1) : null;
-  const visibleStats = live && !ended ? (prefix?.stats ?? report.stats) : report.stats;
-  const visiblePerformance =
-    live && !ended ? (prefix?.performance ?? report.performance) : report.performance;
+  const visibleStats = live && !ended ? prefix?.stats : report.stats;
+  const visiblePerformance = live && !ended ? (prefix?.performance ?? []) : report.performance;
   useEffect(() => {
     if (!live) return;
-    let animation = 0;
-    const advance = () => {
+    let animation = 0,
+      lastHud = -Infinity;
+    const advance = (now = performance.now()) => {
       const { job, duration } = liveFrame.current;
-      if (job) setTime((t) => Math.max(t, Math.min(duration, liveSecond(job))));
+      if (job) {
+        const next = Math.max(playbackTime.current, Math.min(duration, liveSecond(job, now)));
+        playbackTime.current = next;
+        // Canvas reads the continuous ref at display refresh. React's event,
+        // stats and stamina panels do not need rebuilding sixty times a second.
+        if (now - lastHud >= 100) {
+          setTime(next);
+          lastHud = now;
+        }
+      }
       animation = requestAnimationFrame(advance);
     };
     advance();
@@ -92,30 +109,35 @@ export function PhysicalReplay({
   useEffect(() => {
     if (live || !playing || !data || ended || buffering) return;
     let animation = 0,
-      last = performance.now();
+      last = performance.now(),
+      lastHud = -Infinity;
     const advance = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      setTime((t) =>
-        Math.min(ownComplete ? meta.duration : Math.max(0, meta.duration - 0.4), t + dt * speed),
-      );
+      const next = Math.min(meta.duration, playbackTime.current + dt * speed);
+      playbackTime.current = next;
+      if (now - lastHud >= 100 || next >= meta.duration) {
+        setTime(next);
+        lastHud = now;
+      }
       animation = requestAnimationFrame(advance);
     };
     animation = requestAnimationFrame(advance);
     return () => cancelAnimationFrame(animation);
   }, [playing, speed, data, meta.duration, ended, buffering, ownComplete]);
   const events = visibleMatchEvents(report.events, time, eventFilter);
-  const score = live
-    ? report.score
-    : [0, 1].map(
-        (side) =>
-          report.events.filter(
-            (e) =>
-              (e.second ?? 0) <= time && e.type === 'goal' && e.minute <= 90 && e.side === side,
-          ).length,
-      );
+  const score = [0, 1].map(
+    (side) =>
+      report.events.filter(
+        (e) => (e.second ?? 0) <= time && e.type === 'goal' && e.minute <= 90 && e.side === side,
+      ).length,
+  );
   const player = meta.players[selected];
   const performanceRow = player && visiblePerformance?.find((p) => p.id === player.id);
+  const eventStats = useMemo(
+    () => (player ? playerEventStatistics(report, player.id, time) : null),
+    [report.events, player?.id, time],
+  );
   const stamina = useMemo(
     () => (player ? staminaAtTime(report, player.id, time, Boolean(live && !ended)) : undefined),
     [report, player?.id, time, Boolean(live && !ended)],
@@ -222,6 +244,7 @@ export function PhysicalReplay({
                   data={data}
                   report={report}
                   time={time}
+                  playbackTime={playbackTime}
                   selected={selected}
                   onSelect={setSelected}
                 />
@@ -256,7 +279,7 @@ export function PhysicalReplay({
                   className="icon-button"
                   aria-label={playing && !ended ? '暂停回放' : '播放回放'}
                   onClick={() => {
-                    if (ended) setTime(0);
+                    if (ended) seekTo(0);
                     setPlaying(ended || !playing);
                   }}
                 >
@@ -270,7 +293,7 @@ export function PhysicalReplay({
                   step="0.1"
                   value={time}
                   onChange={(e) => {
-                    setTime(+e.target.value);
+                    seekTo(+e.target.value);
                     setPlaying(false);
                   }}
                 />
@@ -294,7 +317,7 @@ export function PhysicalReplay({
                     const next = report.events.find(
                       (e) => ['shot', 'goal'].includes(e.type) && (e.second ?? 0) > time + 5,
                     );
-                    setTime(next ? Math.max(0, next.second! - 4) : meta.duration);
+                    seekTo(next ? Math.max(0, next.second! - 4) : meta.duration);
                     setPlaying(false);
                   }}
                 >
@@ -304,11 +327,11 @@ export function PhysicalReplay({
             )}
             <div className="physical-player-detail">
               <select
-                aria-label="查看球员跑动"
+                aria-label="查看球员数据"
                 value={selected}
                 onChange={(e) => setSelected(+e.target.value)}
               >
-                <option value={-1}>选择球员 · 查看跑动数据</option>
+                <option value={-1}>选择球员 · 查看赛中数据</option>
                 {meta.players.map((p, i) => (
                   <option key={p.id} value={i}>
                     {p.side ? '客' : '主'} {p.number} · {p.name}
@@ -339,6 +362,31 @@ export function PhysicalReplay({
                 <span>球员按阵型、攻防阶段和属性寻找位置。</span>
               )}
             </div>
+            {player && eventStats && (
+              <div className="physical-player-stats" aria-label={`${player.name}赛中数据`}>
+                {[
+                  ['进球', eventStats.goals],
+                  ['助攻', eventStats.assists],
+                  ['射门 / 射正', `${eventStats.shots} / ${eventStats.onTarget ?? '—'}`],
+                  ['扑救', eventStats.saves],
+                  ['拦截', eventStats.interceptions],
+                  [
+                    '抢断成功 / 尝试',
+                    performanceRow
+                      ? `${performanceRow.wonTackles ?? '—'} / ${performanceRow.tackles ?? '—'}`
+                      : '—',
+                  ],
+                  ['关键传球', eventStats.keyPasses],
+                  ['犯规', eventStats.fouls],
+                  ['越位', eventStats.offsides],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <span>{label}</span>
+                    <b>{value}</b>
+                  </div>
+                ))}
+              </div>
+            )}
             {player && stamina && (
               <div className="physical-stamina-bars" aria-label={`${player.name}赛中体能`}>
                 <label>
@@ -365,47 +413,49 @@ export function PhysicalReplay({
                 )}
               </div>
             )}
-            <div className="match-stats physical-stats">
-              {[
-                ['控球率', visibleStats[0].possession + '%', visibleStats[1].possession + '%'],
-                [
-                  '射门 / 射正',
-                  visibleStats[0].shots + ' / ' + visibleStats[0].onTarget,
-                  visibleStats[1].shots + ' / ' + visibleStats[1].onTarget,
-                ],
-                [
-                  '成功传球',
-                  visibleStats[0].completedPasses + ' / ' + visibleStats[0].passes,
-                  visibleStats[1].completedPasses + ' / ' + visibleStats[1].passes,
-                ],
-                ['预期进球', visibleStats[0].xg, visibleStats[1].xg],
-                ...(visibleStats[0].fouls !== undefined
-                  ? [
-                      [
-                        '犯规 / 越位',
-                        `${visibleStats[0].fouls} / ${visibleStats[0].offsides}`,
-                        `${visibleStats[1].fouls} / ${visibleStats[1].offsides}`,
-                      ],
-                      [
-                        '黄牌 / 红牌',
-                        `${visibleStats[0].yellowCards} / ${visibleStats[0].redCards}`,
-                        `${visibleStats[1].yellowCards} / ${visibleStats[1].redCards}`,
-                      ],
-                    ]
-                  : []),
-              ].map(([label, a, b]) => (
-                <div key={label}>
-                  <b>{a}</b>
-                  <span>
-                    {label}
-                    <small>
-                      {live && !ended ? '截至 ' + clock(prefix?.second ?? 0) : '全场统计'}
-                    </small>
-                  </span>
-                  <b>{b}</b>
-                </div>
-              ))}
-            </div>
+            {visibleStats && (
+              <div className="match-stats physical-stats">
+                {[
+                  ['控球率', visibleStats[0].possession + '%', visibleStats[1].possession + '%'],
+                  [
+                    '射门 / 射正',
+                    visibleStats[0].shots + ' / ' + visibleStats[0].onTarget,
+                    visibleStats[1].shots + ' / ' + visibleStats[1].onTarget,
+                  ],
+                  [
+                    '成功传球',
+                    visibleStats[0].completedPasses + ' / ' + visibleStats[0].passes,
+                    visibleStats[1].completedPasses + ' / ' + visibleStats[1].passes,
+                  ],
+                  ['预期进球', visibleStats[0].xg, visibleStats[1].xg],
+                  ...(visibleStats[0].fouls !== undefined
+                    ? [
+                        [
+                          '犯规 / 越位',
+                          `${visibleStats[0].fouls} / ${visibleStats[0].offsides}`,
+                          `${visibleStats[1].fouls} / ${visibleStats[1].offsides}`,
+                        ],
+                        [
+                          '黄牌 / 红牌',
+                          `${visibleStats[0].yellowCards} / ${visibleStats[0].redCards}`,
+                          `${visibleStats[1].yellowCards} / ${visibleStats[1].redCards}`,
+                        ],
+                      ]
+                    : []),
+                ].map(([label, a, b]) => (
+                  <div key={label}>
+                    <b>{a}</b>
+                    <span>
+                      {label}
+                      <small>
+                        {live && !ended ? '截至 ' + clock(prefix?.second ?? 0) : '全场统计'}
+                      </small>
+                    </span>
+                    <b>{b}</b>
+                  </div>
+                ))}
+              </div>
+            )}
             {(!live || ended) && (
               <div ref={ratingsRef} className="ratings-anchor">
                 <PlayerRatings report={report} />

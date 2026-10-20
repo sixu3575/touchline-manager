@@ -8,7 +8,12 @@ import {
 import { ENGINE_VERSION, PARAMETER_VERSION } from '../../shared/modules/matches/index.mjs';
 import { createJobStorage, unpack } from './storage/jobs.mjs';
 import { gunzipSync } from 'node:zlib';
-import { broadcastAt, liveReport } from './broadcast.mjs';
+import {
+  broadcastAt,
+  liveReport,
+  broadcastFrameCount,
+  compactBroadcastReport,
+} from './broadcast.mjs';
 
 const problem = (message, status = 409) => Object.assign(Error(message), { status });
 // One bounded worker, durable input/checkpoint/chunks. It never owns SQLite.
@@ -21,6 +26,7 @@ export class MatchJobs extends EventEmitter {
   workerKey = null;
   retryTimer = null;
   retiring = null;
+  progressCache = new Map();
   constructor(db, replays, { now = () => Date.now() } = {}) {
     super();
     this.db = db;
@@ -31,9 +37,20 @@ export class MatchJobs extends EventEmitter {
     this.clockTimer.unref();
     queueMicrotask(() => this.pump());
   }
+  readProgress(row) {
+    const cached = this.progressCache.get(row.id);
+    if (cached?.raw === row.progress) return cached.value;
+    const value = JSON.parse(row.progress);
+    // Old running jobs remain readable; no startup rewrite or migration.
+    if (value.report) value.report = compactBroadcastReport(value.report);
+    if (this.progressCache.size >= 2)
+      this.progressCache.delete(this.progressCache.keys().next().value);
+    this.progressCache.set(row.id, { raw: row.progress, value });
+    return value;
+  }
   view(row, { summary = false } = {}) {
     if (!row) return null;
-    const p = JSON.parse(row.progress);
+    const p = this.readProgress(row);
     const broadcast = broadcastAt(p, this.now())?.public;
     const report = summary ? undefined : broadcast ? liveReport(p.report, broadcast) : p.report;
     return {
@@ -130,11 +147,10 @@ export class MatchJobs extends EventEmitter {
     if (this.closing) return;
     for (const row of this.store.pendingRows()) {
       try {
-        const p = JSON.parse(row.progress),
+        const p = this.readProgress(row),
           clock = broadcastAt(p, this.now());
         if (clock?.changed) {
-          p.broadcast = clock.clock;
-          this.store.progress(row.id, p);
+          this.store.progress(row.id, { ...p, broadcast: clock.clock });
         }
         if (row.status === 'airing' && clock?.public.finished)
           this.finishAiring(this.store.get(row.id));
@@ -160,9 +176,8 @@ export class MatchJobs extends EventEmitter {
     }
   }
   frames(row, from) {
-    const p = JSON.parse(row.progress),
-      view = this.view(row);
-    const end = view.report?.replay?.frameCount ?? 0;
+    const p = this.readProgress(row);
+    const end = broadcastFrameCount(p.report, broadcastAt(p, this.now())?.public);
     if (!Number.isSafeInteger(from) || from < 0 || from > end) throw problem('轨迹范围无效。', 416);
     let offset = 0;
     const parts = [];
@@ -317,7 +332,7 @@ export class MatchJobs extends EventEmitter {
         delete report.trajectory;
         report.competition = work.plan.type === 'cup' ? '城市挑战杯' : '先锋联赛';
         report.round = work.plan.state.round;
-        progress.report = report;
+        progress.report = compactBroadcastReport(report);
         progress.seq = work.seq;
         progress.frameCount = report.replay.frameCount;
         progress.generatedSeconds = report.replay.duration;
@@ -387,5 +402,6 @@ export class MatchJobs extends EventEmitter {
     this.active = null;
     this.working = null;
     await this.retire(worker);
+    this.progressCache.clear();
   }
 }

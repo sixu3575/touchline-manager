@@ -5,7 +5,13 @@ import { createGame, simulate } from '../packages/shared/game.mjs';
 import { MatchJobs } from '../packages/server/src/match-jobs.mjs';
 import { createReplayStorage } from '../packages/server/src/storage/replays.mjs';
 import { unpack } from '../packages/server/src/storage/jobs.mjs';
-import { broadcastAt, newBroadcast, liveReport } from '../packages/server/src/broadcast.mjs';
+import {
+  broadcastAt,
+  newBroadcast,
+  liveReport,
+  compactBroadcastReport,
+} from '../packages/server/src/broadcast.mjs';
+import { playerEventStatistics } from '../packages/client/src/modules/matches/player-statistics.mjs';
 
 function setup() {
   const db = new DatabaseSync(':memory:');
@@ -62,6 +68,92 @@ function setup() {
     now: () => now,
   };
 }
+
+test('long broadcasts retain earlier player statistics without retaining private analysis or future events', () => {
+  const events = [
+    { type: 'shot', second: 10, minute: 1, side: 0, playerId: 'a', shotId: 1 },
+    {
+      type: 'shotOutcome',
+      second: 11,
+      minute: 1,
+      side: 0,
+      playerId: 'a',
+      shotId: 1,
+      onTarget: true,
+      outcome: 'saved',
+    },
+    { type: 'goal', second: 20, minute: 1, side: 0, playerId: 'b', assistId: 'a' },
+    ...Array.from({ length: 500 }, (_, i) => ({
+      type: 'control',
+      second: 30 + i,
+      minute: 1,
+      side: 0,
+      playerId: 'a',
+    })),
+    { type: 'goal', second: 700, minute: 12, side: 0, playerId: 'b', assistId: 'a' },
+  ];
+  const raw = {
+    id: 'long-live',
+    eventFormatVersion: 3,
+    score: [2, 0],
+    events,
+    stats: [{ shots: 1 }, { shots: 0 }],
+    snapshots: [],
+    performance: [],
+    timeline: [],
+    replay: { duration: 5400, frameCount: 27001, sampleHz: 5, players: [{ id: 'a', side: 0 }] },
+    continuity: { controlSpells: Array(10000).fill({ seconds: 1, playerId: 'a' }) },
+    diagnostics: { analysis: Array(10000).fill(42) },
+  };
+  const compact = compactBroadcastReport(raw);
+  assert.ok(JSON.stringify(compact).length < JSON.stringify(raw).length / 4);
+  assert.ok(
+    raw.continuity.controlSpells.length === 10000,
+    'private original remains intact for the worker/archive',
+  );
+  assert.equal(compact.continuity, undefined);
+  const view = liveReport(compact, { seconds: 600, finished: false });
+  assert.equal(view.events.filter((e) => e.type === 'control').length, 120);
+  assert.ok(view.events.every((e) => e.second <= 600));
+  assert.equal(playerEventStatistics(view, 'a', 600).shots, 1);
+  assert.equal(playerEventStatistics(view, 'a', 600).onTarget, 1);
+  assert.equal(playerEventStatistics(view, 'a', 600).assists, 1);
+  assert.equal(playerEventStatistics(view, 'a', 19).assists, 0);
+});
+
+test('presentation reads reuse progress without checkpoint blobs and a failed clock write does not mutate cached time', async () => {
+  const x = setup();
+  try {
+    const row = x.jobs.store.get(x.job.id),
+      work = Buffer.from(row.work);
+    assert.equal(x.jobs.store.presentation(x.job.id).work, undefined);
+    assert.equal(x.jobs.store.owned(x.job.id, 'one').work, undefined);
+    assert.equal(x.jobs.store.latest('one').work, undefined);
+    const first = x.jobs.readProgress(row);
+    assert.equal(x.jobs.readProgress(x.jobs.store.get(x.job.id)), first);
+    const progress = {
+      ...first,
+      generatedSeconds: 15,
+      broadcast: { ...first.broadcast, anchorAt: x.now(), anchorSecond: 0 },
+    };
+    x.jobs.store.progress(x.job.id, progress);
+    const before = x.jobs.readProgress(x.jobs.store.get(x.job.id));
+    assert.notEqual(before, first);
+    const originalClock = structuredClone(before.broadcast),
+      write = x.jobs.store.progress;
+    x.jobs.store.progress = () => {
+      throw Error('temporary writer');
+    };
+    x.setNow(x.now() + 20000);
+    x.pulse();
+    assert.deepEqual(before.broadcast, originalClock);
+    assert.ok(Buffer.from(x.jobs.store.get(x.job.id).work).equals(work));
+    x.jobs.store.progress = write;
+  } finally {
+    await x.jobs.close();
+    x.db.close();
+  }
+});
 
 test('a five-times server clock continues without viewers and pauses only for a genuine buffer underrun', () => {
   const p = { broadcast: newBroadcast(), generatedSeconds: 15, ownComplete: false };

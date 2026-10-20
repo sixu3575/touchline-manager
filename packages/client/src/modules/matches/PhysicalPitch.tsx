@@ -7,23 +7,27 @@ export function PhysicalPitch({
   data,
   report,
   time,
+  playbackTime,
   selected,
   onSelect,
 }: {
   data: Uint16Array;
   report: Report;
   time: number;
+  playbackTime?: { current: number };
   selected: number;
   onSelect: (index: number) => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef({ time, selected });
-  frameRef.current = { time, selected };
+  const frameRef = useRef({ data, report, time, selected, playbackTime });
+  frameRef.current = { data, report, time, selected, playbackTime };
   useEffect(() => {
     const canvas = ref.current!;
     const ctx = canvas.getContext('2d')!;
     let animation = 0;
     const draw = () => {
+      const { data, report, time, selected, playbackTime } = frameRef.current;
+      const second = playbackTime?.current ?? time;
       const width = canvas.clientWidth,
         height = canvas.clientHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -65,20 +69,19 @@ export function PhysicalPitch({
         ctx.strokeStyle = '#c7dfc28c';
         ellipse(x(end === 0 ? 11 : 94), z(34), 0.17 * sx, 0.17 * sy);
       }
-      const { positions: pos, owner } = positionAt(data, report, frameRef.current.time);
+      const { positions: pos, owner } = positionAt(data, report, second);
       const radius = Math.max(6, sx * 0.85);
       report.replay!.players.forEach((p, i) => {
         const dismissed = report.performance?.find((row) => row.id === p.id)?.dismissedAt;
-        if (dismissed !== null && dismissed !== undefined && frameRef.current.time >= dismissed)
-          return;
+        if (dismissed !== null && dismissed !== undefined && second >= dismissed) return;
         const px = x(pos[i * 2]),
           py = z(pos[i * 2 + 1]);
         ctx.fillStyle = '#0005';
         ctx.beginPath();
         ctx.ellipse(px + 1, py + radius * 0.7, radius, radius * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
-        if (owner === i || frameRef.current.selected === i) {
-          ctx.strokeStyle = frameRef.current.selected === i ? '#fff' : '#e9f995aa';
+        if (owner === i || selected === i) {
+          ctx.strokeStyle = selected === i ? '#fff' : '#e9f995aa';
           ctx.lineWidth = 1.4;
           ellipse(px, py, radius + 3, radius + 3);
         }
@@ -120,7 +123,7 @@ export function PhysicalPitch({
     };
     draw();
     return () => cancelAnimationFrame(animation);
-  }, [data, report]);
+  }, []);
   return (
     <canvas
       ref={ref}
@@ -133,7 +136,7 @@ export function PhysicalPitch({
           x: ((e.clientX - rect.left) / rect.width) * 115 - 5,
           z: ((e.clientY - rect.top) / rect.height) * 78 - 5,
         };
-        const { positions } = positionAt(data, report, time);
+        const { positions } = positionAt(data, report, playbackTime?.current ?? time);
         let closest = -1,
           gap = 4;
         report.replay!.players.forEach((_, i) => {

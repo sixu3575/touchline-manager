@@ -36,6 +36,7 @@ export interface MatchEvent {
   destination?: { x: number; z: number };
   keyPassId?: string;
   outcome?: string;
+  onTarget?: boolean;
   scorer?: { id: string; number?: number; name: string; side: number };
   score?: number[];
   penalties?: number[];
@@ -158,6 +159,7 @@ export interface Report {
   }[];
   id: string;
   engineVersion: string;
+  statisticsVersion?: string;
   rulesVersion?: string;
   eventFormatVersion?: number;
   homeId: string;

@@ -16,14 +16,17 @@ export function createJobStorage(db) {
       PRIMARY KEY(job_id,seq));
     PRAGMA user_version=3; COMMIT;`);
   const get = db.prepare('SELECT * FROM match_jobs WHERE id=?');
+  const columns =
+    'id,save_id,identity,request_id,body_hash,revision,status,progress,error,created_at';
   return {
     get: (id) => get.get(id),
+    presentation: (id) => db.prepare(`SELECT ${columns} FROM match_jobs WHERE id=?`).get(id),
     owned: (id, saveId) =>
-      db.prepare('SELECT * FROM match_jobs WHERE id=? AND save_id=?').get(id, saveId),
+      db.prepare(`SELECT ${columns} FROM match_jobs WHERE id=? AND save_id=?`).get(id, saveId),
     latest: (saveId) =>
       db
         .prepare(
-          'SELECT * FROM match_jobs WHERE save_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1',
+          `SELECT ${columns} FROM match_jobs WHERE save_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1`,
         )
         .get(saveId),
     pending: (saveId) =>
