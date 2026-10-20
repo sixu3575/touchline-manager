@@ -1,0 +1,2270 @@
+{
+  "dateUTC": "2026-10-20T07:35:35.077Z",
+  "engineVersion": "0.27.0-control-model",
+  "parameterVersion": "control-model-1",
+  "baselineCommit": "220d41a30ee6386b25019f67231829e6bfd5d6d9",
+  "sourceFiles": {
+    "packages/shared/modules/players/development.mjs": "4a63e99b28c62ca0786932a77b51cf7a8390cfb866ee2b932df8a1803de136bc",
+    "packages/shared/modules/training/index.mjs": "8d55edd45a1275cef85b2dc2226e5253be8d1ab20b2ceae1e0cc7391651a301b",
+    "packages/shared/modules/staff/index.mjs": "e843fb9815c0d8b5bf7b189e64a5c5baa6bfdb7c85083b35ac5070f773421d24",
+    "packages/shared/modules/matches/index.mjs": "4e791d4724f99bcc95c7295e1dbe76989a3cf1e922cd086579be043b4c5f3638",
+    "packages/shared/modules/matches/arrival.mjs": "a08483377bce968702cd488f080f7efd981e87ad3e6c383a44c33590368fb4a6",
+    "packages/shared/modules/matches/offball.mjs": "dd85db2fe9ddbb90d5a1b4b0961eee6f863f36a020cd4b123aa150cff0a4e3a7",
+    "packages/shared/modules/matches/deadball.mjs": "d148162fed99a80c0d962220c5ce539cb8a27e7dcd06fbf2ad2f97336eac8629",
+    "packages/shared/modules/matches/tactical-plan.mjs": "181bbaabbd2c6ccd78e93de220ab8a70850b751e115ab7eb617cdf2f66337196",
+    "packages/shared/modules/matches/carrying.mjs": "b0aa63b30f79d8691c52dccd2fac2e833ee7c9d479a0d656cd49eb0b61d4434f",
+    "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
+    "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
+    "packages/shared/modules/players/assessment.mjs": "81fab9459b8b7ce7f919ff92da3acf8c0141f6fe6ab34af3202283097237dfeb",
+    "packages/server/src/player-view.mjs": "e79240a718dbcf48d3e6b5850c4a1cdde2fb2ab835df3ff154192dd57828eaea",
+    "packages/server/src/maintenance/player-integers.mjs": "c5fff4326c6f82d075699b9b9fa0b8cad448ed113989ea8eee5ee5fcd588a6f8",
+    "scripts/player-integers.mjs": "56c114f0f24c2efb47660dec6ab088eb3d66511e56df54200b528573fc1a2f35",
+    "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
+    "packages/shared/modules/competitions/index.mjs": "77d4bb2d59f783a5b237f20782051beb2490833d07296701289fdf60bd81f58f",
+    "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
+    "packages/shared/modules/matches/positioning.mjs": "5aa998b8bc212a0b5b33444fdf042ea72e11eb02eb0116c3218f53983fc84925",
+    "packages/shared/modules/matches/locomotion.mjs": "7a3bd75e7db6eca7cbdd23e01fc9592a869e5632b487fc55b58427bcbed45672",
+    "packages/shared/modules/matches/decisions.mjs": "c1381381da0ae32fa1515f334d74759f82de17a451d20fd2dee3de7f87b061fb",
+    "packages/shared/modules/matches/simulation.mjs": "ce5f15fdb7c7f9cf223ffd60985fa144c7d515811b517b46309e656ee4450525",
+    "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
+    "packages/shared/modules/matches/receiving.mjs": "eab370b71c4c495a496a238a08dd08d8bc357490ea48ee28b700867073738a97",
+    "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
+    "packages/shared/modules/matches/skills.mjs": "d2840033c663741f2c0fee717155858c544db7cd176614a07be30c182faf4387",
+    "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
+    "packages/shared/modules/matches/physics.mjs": "1892215c7980b1354bfa54270feb08fcafa4442cf47e2e7613d6f0f3951c82c3",
+    "packages/shared/modules/matches/ball-motion.mjs": "63a4bf259b47bd7e0721d99983d2703fc5802f06b1e64d31d24355301872df38",
+    "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
+    "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
+    "packages/shared/modules/players/index.mjs": "68e328941a5642861a36fa5b80047df9344b7893c77b7a42892f8e24d92d1f7a",
+    "packages/shared/modules/players/match-state.mjs": "68d9996b73ec714b90aa6557af6ba3cb5bc9fab434133eeb27bcd0f54a1c133f",
+    "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
+    "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
+    "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
+    "packages/shared/modules/matches/attribution.mjs": "1c88bdd241832544516bb2c9910e147a49ff93d00497e67f6f5b6db9688c3d9c",
+    "packages/shared/modules/matches/ratings/index.mjs": "d68025690ba778f21d029ac33c8f69670e738a7b1a0d4e988a93d94e9dea5233",
+    "packages/shared/modules/matches/activity.mjs": "9714514c683e30e3da4ce41f558a22ae73ad6c1d6d690c3cade9867e1fb1b3bc",
+    "packages/shared/modules/matches/defending.mjs": "eec884d5ef9e42e136f6189408caff7e187787c863f381fe616bc7030e299b17",
+    "packages/shared/modules/matches/execution.mjs": "69aeae1444d6a8e4a518ffd59513984427cabb97f73ef329298b08af11d9f1be",
+    "packages/shared/modules/matches/replay-analysis.mjs": "aa43d8ca08c570c694a50eba30ae8a8cbad9c48e93891f0ec68c81bd432dfafb",
+    "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56",
+    "packages/shared/modules/matches/onball.mjs": "5c87473836af4ecd275c8630a75b3219ed8c814aa72a939b0f3eeb81811b8548",
+    "packages/shared/modules/matches/opportunity.mjs": "ff114ae4f6961d61d70225acf0a7773e7ba22620e4da8af489335652abce7e24"
+  },
+  "sourceFingerprint": "1596fbc579d322176eda4eff66b07a51c59e1f87629fbde91a3d5e88d8b342f6",
+  "realismThresholdSha256": "ab34f6b1552891114e2dab6914b37784dd5868c328081129dda79a45e2606252",
+  "reference": "REAL_FOOTBALL_REFERENCE_V0270.json",
+  "definitions": "Per-match median/P90 means; positive completed-pass chains and short-phase shares weighted by observations. Team-phase definition changed; event proxy retained independently. Fixture worlds are not a league population.",
+  "baseline": {
+    "matches": 8,
+    "meanPhaseCount": 454.5,
+    "meanPhaseMedianSeconds": 5.618749999999949,
+    "meanPhaseP90Seconds": 16.76874999999994,
+    "shortPhaseShare": 0.4537953795379538,
+    "positiveCompletedPassChain": 2.1747397012222724,
+    "eventProxyMedianMean": 8.618749999999864,
+    "individualMedianMean": 1.1093749999999645,
+    "passesPerTeam": 422.625,
+    "completedPassRate": 0.7238982549541556,
+    "matchShots": 26.25,
+    "matchGoals": 3.5,
+    "liveSeconds": 3956.281249999223,
+    "outfieldDistancePer90": 9330.43949044586,
+    "maxPlayerKmh": 30.276,
+    "blocks": [],
+    "reviewCounts": {
+      "lowSpeedDistanceShare": 12,
+      "tacklesPer90": 3
+    }
+  },
+  "candidate": {
+    "matches": 8,
+    "meanPhaseCount": 271.125,
+    "meanPhaseMedianSeconds": 12.574999999999989,
+    "meanPhaseP90Seconds": 31.612499999999926,
+    "shortPhaseShare": 0.16874135546334718,
+    "positiveCompletedPassChain": 3.80327868852459,
+    "eventProxyMedianMean": 11.968749999999972,
+    "individualMedianMean": 1.1781250000000423,
+    "passesPerTeam": 525.625,
+    "completedPassRate": 0.8059453032104638,
+    "matchShots": 27.75,
+    "matchGoals": 2,
+    "liveSeconds": 4194.212499998511,
+    "outfieldDistancePer90": 9687.25625,
+    "maxPlayerKmh": 29.916000000000004,
+    "blocks": [],
+    "reviewCounts": {
+      "lowSpeedDistanceShare": 18
+    }
+  },
+  "additionalOrdinary": {
+    "matches": 8,
+    "meanPhaseCount": 261.125,
+    "meanPhaseMedianSeconds": 13.73124999999996,
+    "meanPhaseP90Seconds": 34.32499999999996,
+    "shortPhaseShare": 0.17280995691718526,
+    "positiveCompletedPassChain": 4.33855981416957,
+    "eventProxyMedianMean": 12.500000000000028,
+    "individualMedianMean": 1.1718750000000728,
+    "passesPerTeam": 563.875,
+    "completedPassRate": 0.8316337840833518,
+    "matchShots": 29.25,
+    "matchGoals": 1.5,
+    "liveSeconds": 4385.137499998343,
+    "outfieldDistancePer90": 9648.75,
+    "maxPlayerKmh": 31.068000000000005,
+    "blocks": [],
+    "reviewCounts": {
+      "lowSpeedDistanceShare": 13,
+      "shotsPer90": 1
+    }
+  },
+  "fresh": {
+    "matches": 4,
+    "meanPhaseCount": 256.5,
+    "meanPhaseMedianSeconds": 13.437499999999929,
+    "meanPhaseP90Seconds": 32.80000000000008,
+    "shortPhaseShare": 0.18128654970760233,
+    "positiveCompletedPassChain": 4.169267707082833,
+    "eventProxyMedianMean": 12.524999999999977,
+    "individualMedianMean": 1.1937499999999375,
+    "passesPerTeam": 530,
+    "completedPassRate": 0.8254716981132075,
+    "matchShots": 28.5,
+    "matchGoals": 1.75,
+    "liveSeconds": 4178.174999998522,
+    "outfieldDistancePer90": 9459.7625,
+    "maxPlayerKmh": 30.6,
+    "blocks": [],
+    "reviewCounts": {
+      "lowSpeedDistanceShare": 6
+    }
+  },
+  "fixedCases": [
+    {
+      "id": "realism-balanced-1001",
+      "world": 42,
+      "seed": 1001,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 0],
+      "shots": [12, 22],
+      "passes": [519, 454],
+      "completedPasses": [423, 357],
+      "phase": {
+        "count": 269,
+        "medianSeconds": 11.850000000000364,
+        "p90Seconds": 32.94999999999982
+      },
+      "eventProxy": {
+        "count": 278,
+        "medianSeconds": 10.900000000000546,
+        "p90Seconds": 32.84999999999991,
+        "openTurnovers": 198
+      },
+      "chains": [
+        {
+          "count": 111,
+          "mean": 3.774774774774775,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 34
+        },
+        {
+          "count": 114,
+          "mean": 3.0964912280701755,
+          "median": 2,
+          "p90": 7,
+          "fivePlus": 21
+        }
+      ],
+      "liveSeconds": 4122.499999998598,
+      "deadSeconds": 1277.4999999993859,
+      "turnovers": {
+        "interception": 130,
+        "miscontrol": 0,
+        "dispossessed": 58,
+        "looseCarry": 8,
+        "out": 75
+      },
+      "boxEntries": [34, 42],
+      "playerRanges": {
+        "distancePer90": [7646, 12686],
+        "maxKmh": 29.916000000000004,
+        "maxShots": 10
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22681564245810057,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.24492545356565476,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.16664039098218508,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-balanced-999",
+      "world": 42,
+      "seed": 999,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [1, 1],
+      "shots": [13, 13],
+      "passes": [506, 523],
+      "completedPasses": [409, 428],
+      "phase": {
+        "count": 248,
+        "medianSeconds": 15.5,
+        "p90Seconds": 34.25
+      },
+      "eventProxy": {
+        "count": 258,
+        "medianSeconds": 14.199999999999818,
+        "p90Seconds": 32.950000000000045,
+        "openTurnovers": 192
+      },
+      "chains": [
+        {
+          "count": 104,
+          "mean": 3.8846153846153846,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 31
+        },
+        {
+          "count": 108,
+          "mean": 3.9537037037037037,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 33
+        }
+      ],
+      "liveSeconds": 4313.39999999836,
+      "deadSeconds": 1086.5999999995595,
+      "turnovers": {
+        "interception": 134,
+        "miscontrol": 1,
+        "dispossessed": 46,
+        "looseCarry": 3,
+        "out": 64
+      },
+      "boxEntries": [40, 42],
+      "playerRanges": {
+        "distancePer90": [7735, 13139],
+        "maxKmh": 29.628000000000004,
+        "maxShots": 7
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.21855515836727907,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.162112793972144,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-counter-1001",
+      "world": 42,
+      "seed": 1001,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [1, 2],
+      "shots": [16, 14],
+      "passes": [530, 506],
+      "completedPasses": [417, 404],
+      "phase": {
+        "count": 293,
+        "medianSeconds": 10.049999999999272,
+        "p90Seconds": 30.299999999999727
+      },
+      "eventProxy": {
+        "count": 303,
+        "medianSeconds": 9.399999999999636,
+        "p90Seconds": 28.450000000000045,
+        "openTurnovers": 227
+      },
+      "chains": [
+        {
+          "count": 119,
+          "mean": 3.4873949579831933,
+          "median": 2,
+          "p90": 8,
+          "fivePlus": 28
+        },
+        {
+          "count": 118,
+          "mean": 3.406779661016949,
+          "median": 2,
+          "p90": 7,
+          "fivePlus": 33
+        }
+      ],
+      "liveSeconds": 4137.54999999858,
+      "deadSeconds": 1262.4499999993996,
+      "turnovers": {
+        "interception": 146,
+        "miscontrol": 0,
+        "dispossessed": 69,
+        "looseCarry": 9,
+        "out": 69
+      },
+      "boxEntries": [29, 33],
+      "playerRanges": {
+        "distancePer90": [7725, 13058],
+        "maxKmh": 29.843999999999998,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.21845068055788944,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2432068872746839,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.15078878848215654,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-counter-999",
+      "world": 42,
+      "seed": 999,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 0],
+      "shots": [16, 9],
+      "passes": [509, 582],
+      "completedPasses": [384, 457],
+      "phase": {
+        "count": 309,
+        "medianSeconds": 9.699999999999818,
+        "p90Seconds": 29
+      },
+      "eventProxy": {
+        "count": 304,
+        "medianSeconds": 9.199999999999818,
+        "p90Seconds": 28.699999999999818,
+        "openTurnovers": 230
+      },
+      "chains": [
+        {
+          "count": 120,
+          "mean": 3.158333333333333,
+          "median": 2,
+          "p90": 7,
+          "fivePlus": 29
+        },
+        {
+          "count": 116,
+          "mean": 3.896551724137931,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 37
+        }
+      ],
+      "liveSeconds": 4206.399999998523,
+      "deadSeconds": 1193.5999999994622,
+      "turnovers": {
+        "interception": 167,
+        "miscontrol": 0,
+        "dispossessed": 65,
+        "looseCarry": 11,
+        "out": 72
+      },
+      "boxEntries": [38, 20],
+      "playerRanges": {
+        "distancePer90": [8100, 13098],
+        "maxKmh": 29.843999999999998,
+        "maxShots": 12
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.20737745502558178,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.14712169796915558,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-possession-1001",
+      "world": 42,
+      "seed": 1001,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [1, 2],
+      "shots": [10, 23],
+      "passes": [697, 452],
+      "completedPasses": [581, 351],
+      "phase": {
+        "count": 281,
+        "medianSeconds": 12.400000000000091,
+        "p90Seconds": 30.09999999999991
+      },
+      "eventProxy": {
+        "count": 288,
+        "medianSeconds": 12,
+        "p90Seconds": 28.950000000000273,
+        "openTurnovers": 221
+      },
+      "chains": [
+        {
+          "count": 114,
+          "mean": 5.052631578947368,
+          "median": 4,
+          "p90": 11,
+          "fivePlus": 50
+        },
+        {
+          "count": 110,
+          "mean": 3.1818181818181817,
+          "median": 3,
+          "p90": 6,
+          "fivePlus": 24
+        }
+      ],
+      "liveSeconds": 4312.049999998406,
+      "deadSeconds": 1087.9499999995583,
+      "turnovers": {
+        "interception": 151,
+        "miscontrol": 0,
+        "dispossessed": 63,
+        "looseCarry": 10,
+        "out": 59
+      },
+      "boxEntries": [31, 37],
+      "playerRanges": {
+        "distancePer90": [7713, 12744],
+        "maxKmh": 29.7,
+        "maxShots": 11
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.20986174378646208,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.18408662900188325,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-possession-999",
+      "world": 42,
+      "seed": 999,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 3],
+      "shots": [10, 20],
+      "passes": [677, 478],
+      "completedPasses": [580, 392],
+      "phase": {
+        "count": 261,
+        "medianSeconds": 13.550000000000182,
+        "p90Seconds": 33.149999999999636
+      },
+      "eventProxy": {
+        "count": 256,
+        "medianSeconds": 13.549999999999955,
+        "p90Seconds": 33,
+        "openTurnovers": 186
+      },
+      "chains": [
+        {
+          "count": 113,
+          "mean": 5.097345132743363,
+          "median": 4,
+          "p90": 11,
+          "fivePlus": 43
+        },
+        {
+          "count": 103,
+          "mean": 3.796116504854369,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 28
+        }
+      ],
+      "liveSeconds": 4237.09999999846,
+      "deadSeconds": 1162.89999999949,
+      "turnovers": {
+        "interception": 131,
+        "miscontrol": 0,
+        "dispossessed": 60,
+        "looseCarry": 7,
+        "out": 56
+      },
+      "boxEntries": [40, 39],
+      "playerRanges": {
+        "distancePer90": [7704, 12979],
+        "maxKmh": 29.772,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2081135902636917,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.17497495955004239,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-wide-1001",
+      "world": 42,
+      "seed": 1001,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [2, 2],
+      "shots": [5, 13],
+      "passes": [523, 461],
+      "completedPasses": [426, 370],
+      "phase": {
+        "count": 244,
+        "medianSeconds": 14.5,
+        "p90Seconds": 33.299999999999955
+      },
+      "eventProxy": {
+        "count": 248,
+        "medianSeconds": 13.849999999999909,
+        "p90Seconds": 31.5,
+        "openTurnovers": 172
+      },
+      "chains": [
+        {
+          "count": 100,
+          "mean": 4.23,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 34
+        },
+        {
+          "count": 101,
+          "mean": 3.633663366336634,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 27
+        }
+      ],
+      "liveSeconds": 4152.049999998531,
+      "deadSeconds": 1247.9499999994127,
+      "turnovers": {
+        "interception": 112,
+        "miscontrol": 2,
+        "dispossessed": 55,
+        "looseCarry": 10,
+        "out": 68
+      },
+      "boxEntries": [26, 34],
+      "playerRanges": {
+        "distancePer90": [7668, 12659],
+        "maxKmh": 29.7,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.241140350877193,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.17742317718619163,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "realism-wide-999",
+      "world": 42,
+      "seed": 999,
+      "cohort": "fixed-matrix",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 1],
+      "shots": [11, 15],
+      "passes": [533, 460],
+      "completedPasses": [437, 362],
+      "phase": {
+        "count": 264,
+        "medianSeconds": 13.050000000000182,
+        "p90Seconds": 29.850000000000364
+      },
+      "eventProxy": {
+        "count": 262,
+        "medianSeconds": 12.650000000000091,
+        "p90Seconds": 28.350000000000364,
+        "openTurnovers": 182
+      },
+      "chains": [
+        {
+          "count": 122,
+          "mean": 3.5655737704918034,
+          "median": 3,
+          "p90": 6,
+          "fivePlus": 34
+        },
+        {
+          "count": 96,
+          "mean": 3.7395833333333335,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 28
+        }
+      ],
+      "liveSeconds": 4072.649999998625,
+      "deadSeconds": 1327.3499999993405,
+      "turnovers": {
+        "interception": 110,
+        "miscontrol": 0,
+        "dispossessed": 70,
+        "looseCarry": 9,
+        "out": 78
+      },
+      "boxEntries": [32, 26],
+      "playerRanges": {
+        "distancePer90": [7670, 12272],
+        "maxKmh": 29.843999999999998,
+        "maxShots": 6
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2245654283949528,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.19532268578878748,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    }
+  ],
+  "additionalCases": [
+    {
+      "id": "holdout-balanced-2027",
+      "world": 84,
+      "seed": 2027,
+      "cohort": "ordinary",
+      "inputSha256": "72e2c4c7105b92e72b7110ddc0c786fe5f2ba37992e9fe52b9ec913627085656",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [2, 2],
+      "shots": [16, 17],
+      "passes": [535, 554],
+      "completedPasses": [441, 471],
+      "phase": {
+        "count": 252,
+        "medianSeconds": 15.049999999999955,
+        "p90Seconds": 34.899999999999864
+      },
+      "eventProxy": {
+        "count": 266,
+        "medianSeconds": 14.050000000000182,
+        "p90Seconds": 34.049999999999955,
+        "openTurnovers": 210
+      },
+      "chains": [
+        {
+          "count": 103,
+          "mean": 4.281553398058253,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 36
+        },
+        {
+          "count": 109,
+          "mean": 4.3119266055045875,
+          "median": 3,
+          "p90": 10,
+          "fivePlus": 37
+        }
+      ],
+      "liveSeconds": 4462.549999998266,
+      "deadSeconds": 937.4499999996951,
+      "turnovers": {
+        "interception": 120,
+        "miscontrol": 1,
+        "dispossessed": 76,
+        "looseCarry": 11,
+        "out": 47
+      },
+      "boxEntries": [33, 31],
+      "playerRanges": {
+        "distancePer90": [7879, 13373],
+        "maxKmh": 29.988,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.1804381963658117,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22899309688169484,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "holdout-balanced-3181",
+      "world": 84,
+      "seed": 3181,
+      "cohort": "ordinary",
+      "inputSha256": "8277dad59dec5df44dc8ae606271eb9a2f62ffb0dc1e78b604a9b9fd55e63272",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [2, 0],
+      "shots": [25, 11],
+      "passes": [599, 484],
+      "completedPasses": [518, 396],
+      "phase": {
+        "count": 242,
+        "medianSeconds": 14.949999999999818,
+        "p90Seconds": 34.79999999999927
+      },
+      "eventProxy": {
+        "count": 252,
+        "medianSeconds": 14.599999999999909,
+        "p90Seconds": 34.149999999999636,
+        "openTurnovers": 191
+      },
+      "chains": [
+        {
+          "count": 108,
+          "mean": 4.796296296296297,
+          "median": 4,
+          "p90": 9,
+          "fivePlus": 48
+        },
+        {
+          "count": 102,
+          "mean": 3.8529411764705883,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 33
+        }
+      ],
+      "liveSeconds": 4365.299999998333,
+      "deadSeconds": 1034.6999999996067,
+      "turnovers": {
+        "interception": 111,
+        "miscontrol": 0,
+        "dispossessed": 69,
+        "looseCarry": 6,
+        "out": 54
+      },
+      "boxEntries": [57, 26],
+      "playerRanges": {
+        "distancePer90": [7628, 13095],
+        "maxKmh": 31.068000000000005,
+        "maxShots": 10
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.18770523100420008,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.21481422547537593,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "holdout-counter-2027",
+      "world": 84,
+      "seed": 2027,
+      "cohort": "ordinary",
+      "inputSha256": "10af872f734894974cfb9cdf372cb142c1e09b23e082b9828256c217e5187aac",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 1],
+      "shots": [18, 17],
+      "passes": [655, 521],
+      "completedPasses": [547, 419],
+      "phase": {
+        "count": 287,
+        "medianSeconds": 11.25,
+        "p90Seconds": 33.399999999999636
+      },
+      "eventProxy": {
+        "count": 300,
+        "medianSeconds": 9.849999999999909,
+        "p90Seconds": 32.40000000000009,
+        "openTurnovers": 236
+      },
+      "chains": [
+        {
+          "count": 120,
+          "mean": 4.541666666666667,
+          "median": 3,
+          "p90": 10,
+          "fivePlus": 47
+        },
+        {
+          "count": 107,
+          "mean": 3.9158878504672896,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 35
+        }
+      ],
+      "liveSeconds": 4400.549999998364,
+      "deadSeconds": 999.4499999996387,
+      "turnovers": {
+        "interception": 142,
+        "miscontrol": 0,
+        "dispossessed": 80,
+        "looseCarry": 13,
+        "out": 60
+      },
+      "boxEntries": [35, 29],
+      "playerRanges": {
+        "distancePer90": [7938, 13194],
+        "maxKmh": 29.952,
+        "maxShots": 10
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.1836440806427164,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.21947798987144526,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "holdout-counter-3181",
+      "world": 84,
+      "seed": 3181,
+      "cohort": "ordinary",
+      "inputSha256": "a893bbbe3c46a8431075ae9ed1baf6b9ab4227025385ac5026fd3bdf60bb86f9",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 1],
+      "shots": [10, 17],
+      "passes": [557, 569],
+      "completedPasses": [442, 476],
+      "phase": {
+        "count": 273,
+        "medianSeconds": 12.25,
+        "p90Seconds": 32.5
+      },
+      "eventProxy": {
+        "count": 280,
+        "medianSeconds": 11.600000000000136,
+        "p90Seconds": 32.34999999999991,
+        "openTurnovers": 213
+      },
+      "chains": [
+        {
+          "count": 113,
+          "mean": 3.9026548672566372,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 32
+        },
+        {
+          "count": 117,
+          "mean": 4.05982905982906,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 42
+        }
+      ],
+      "liveSeconds": 4307.9999999983975,
+      "deadSeconds": 1091.9999999995546,
+      "turnovers": {
+        "interception": 141,
+        "miscontrol": 1,
+        "dispossessed": 63,
+        "looseCarry": 6,
+        "out": 63
+      },
+      "boxEntries": [30, 40],
+      "playerRanges": {
+        "distancePer90": [8011, 12922],
+        "maxKmh": 29.988,
+        "maxShots": 8
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.18867048444513232,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2107234839616015,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "holdout-possession-2027",
+      "world": 84,
+      "seed": 2027,
+      "cohort": "ordinary",
+      "inputSha256": "7d81ad25e9d84cbe2806c526604fc0fa55f0bbc0e2043b92a2adba661f928686",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 0],
+      "shots": [8, 18],
+      "passes": [677, 603],
+      "completedPasses": [575, 512],
+      "phase": {
+        "count": 261,
+        "medianSeconds": 14,
+        "p90Seconds": 36.600000000000364
+      },
+      "eventProxy": {
+        "count": 280,
+        "medianSeconds": 12.100000000000364,
+        "p90Seconds": 35.549999999999955,
+        "openTurnovers": 230
+      },
+      "chains": [
+        {
+          "count": 108,
+          "mean": 5.305555555555555,
+          "median": 4,
+          "p90": 11,
+          "fivePlus": 53
+        },
+        {
+          "count": 104,
+          "mean": 4.913461538461538,
+          "median": 4,
+          "p90": 10,
+          "fivePlus": 48
+        }
+      ],
+      "liveSeconds": 4606.399999998134,
+      "deadSeconds": 793.599999999826,
+      "turnovers": {
+        "interception": 138,
+        "miscontrol": 3,
+        "dispossessed": 73,
+        "looseCarry": 10,
+        "out": 44
+      },
+      "boxEntries": [19, 43],
+      "playerRanges": {
+        "distancePer90": [7481, 12459],
+        "maxKmh": 29.916000000000004,
+        "maxShots": 10
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.6537654159013382,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p7"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.6721026600721829,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p4"
+        }
+      ]
+    },
+    {
+      "id": "holdout-possession-3181",
+      "world": 84,
+      "seed": 3181,
+      "cohort": "ordinary",
+      "inputSha256": "b147d2e18b682eba89e627927f17751cbc8f971be93a7339690103bca7132f04",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [1, 2],
+      "shots": [10, 22],
+      "passes": [632, 551],
+      "completedPasses": [533, 463],
+      "phase": {
+        "count": 263,
+        "medianSeconds": 13.699999999999818,
+        "p90Seconds": 34.34999999999991
+      },
+      "eventProxy": {
+        "count": 267,
+        "medianSeconds": 13.099999999999454,
+        "p90Seconds": 34.100000000000364,
+        "openTurnovers": 208
+      },
+      "chains": [
+        {
+          "count": 103,
+          "mean": 5.135922330097087,
+          "median": 4,
+          "p90": 10,
+          "fivePlus": 47
+        },
+        {
+          "count": 108,
+          "mean": 4.2592592592592595,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 37
+        }
+      ],
+      "liveSeconds": 4432.899999998267,
+      "deadSeconds": 967.0999999996682,
+      "turnovers": {
+        "interception": 139,
+        "miscontrol": 1,
+        "dispossessed": 65,
+        "looseCarry": 3,
+        "out": 53
+      },
+      "boxEntries": [23, 38],
+      "playerRanges": {
+        "distancePer90": [7522, 12464],
+        "maxKmh": 29.952,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2490372272143774,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        }
+      ]
+    },
+    {
+      "id": "holdout-wide-2027",
+      "world": 84,
+      "seed": 2027,
+      "cohort": "ordinary",
+      "inputSha256": "f5c717f3ad1b089d072608d268a4ade4f18c04b566d7e70bb7b9811462259028",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 1],
+      "shots": [3, 21],
+      "passes": [505, 533],
+      "completedPasses": [418, 452],
+      "phase": {
+        "count": 235,
+        "medianSeconds": 16.25,
+        "p90Seconds": 35.84999999999991
+      },
+      "eventProxy": {
+        "count": 258,
+        "medianSeconds": 13.400000000000091,
+        "p90Seconds": 33.89999999999998,
+        "openTurnovers": 189
+      },
+      "chains": [
+        {
+          "count": 104,
+          "mean": 3.9615384615384617,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 31
+        },
+        {
+          "count": 98,
+          "mean": 4.581632653061225,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 42
+        }
+      ],
+      "liveSeconds": 4261.149999998503,
+      "deadSeconds": 1138.849999999512,
+      "turnovers": {
+        "interception": 96,
+        "miscontrol": 1,
+        "dispossessed": 67,
+        "looseCarry": 11,
+        "out": 64
+      },
+      "boxEntries": [10, 40],
+      "playerRanges": {
+        "distancePer90": [7330, 11909],
+        "maxKmh": 29.988,
+        "maxShots": 13
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.24846754555378286,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        },
+        {
+          "severity": "review",
+          "metric": "shotsPer90",
+          "actual": 13,
+          "engineeringRange": [0, 12],
+          "scope": "c1-p19"
+        }
+      ]
+    },
+    {
+      "id": "holdout-wide-3181",
+      "world": 84,
+      "seed": 3181,
+      "cohort": "ordinary",
+      "inputSha256": "16601841c486b15a52cba7aa092d6d1a7ffaa9d60ffefda501ad37d1ee81b654",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 0],
+      "shots": [4, 17],
+      "passes": [554, 493],
+      "completedPasses": [446, 394],
+      "phase": {
+        "count": 276,
+        "medianSeconds": 12.400000000000091,
+        "p90Seconds": 32.20000000000073
+      },
+      "eventProxy": {
+        "count": 278,
+        "medianSeconds": 11.300000000000182,
+        "p90Seconds": 31.850000000000136,
+        "openTurnovers": 201
+      },
+      "chains": [
+        {
+          "count": 115,
+          "mean": 3.8521739130434782,
+          "median": 3,
+          "p90": 7,
+          "fivePlus": 37
+        },
+        {
+          "count": 103,
+          "mean": 3.8058252427184467,
+          "median": 3,
+          "p90": 7,
+          "fivePlus": 31
+        }
+      ],
+      "liveSeconds": 4244.249999998481,
+      "deadSeconds": 1155.7499999994966,
+      "turnovers": {
+        "interception": 132,
+        "miscontrol": 1,
+        "dispossessed": 67,
+        "looseCarry": 12,
+        "out": 71
+      },
+      "boxEntries": [18, 28],
+      "playerRanges": {
+        "distancePer90": [7062, 11624],
+        "maxKmh": 29.988,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.6665250637213254,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p4"
+        }
+      ]
+    },
+    {
+      "id": "star-2027",
+      "world": 42,
+      "seed": 2027,
+      "cohort": "star",
+      "inputSha256": "886f411abb600a8398b908e3d313d9380a7f29a4cb96089160c4622dde2dfc69",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [2, 0],
+      "shots": [14, 4],
+      "passes": [506, 546],
+      "completedPasses": [416, 440],
+      "phase": {
+        "count": 265,
+        "medianSeconds": 13.350000000000023,
+        "p90Seconds": 32.649999999999864
+      },
+      "eventProxy": {
+        "count": 274,
+        "medianSeconds": 12.550000000000068,
+        "p90Seconds": 32.40000000000009,
+        "openTurnovers": 208
+      },
+      "chains": [
+        {
+          "count": 103,
+          "mean": 4.019417475728155,
+          "median": 3,
+          "p90": 7,
+          "fivePlus": 34
+        },
+        {
+          "count": 111,
+          "mean": 3.936936936936937,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 34
+        }
+      ],
+      "liveSeconds": 4308.449999998422,
+      "deadSeconds": 1091.549999999555,
+      "turnovers": {
+        "interception": 135,
+        "miscontrol": 1,
+        "dispossessed": 63,
+        "looseCarry": 6,
+        "out": 60
+      },
+      "boxEntries": [44, 18],
+      "playerRanges": {
+        "distancePer90": [7616, 12730],
+        "maxKmh": 32.436,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22929726162982514,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22234574763757642,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p17"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.1805184603299293,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "star-3181",
+      "world": 42,
+      "seed": 3181,
+      "cohort": "star",
+      "inputSha256": "fd460ee3d734d0db89a73daf507469d5dba6ea9f0416cf27fdc3f92da9233a43",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 2],
+      "shots": [30, 12],
+      "passes": [485, 542],
+      "completedPasses": [404, 438],
+      "phase": {
+        "count": 280,
+        "medianSeconds": 12.149999999999636,
+        "p90Seconds": 32.39999999999998
+      },
+      "eventProxy": {
+        "count": 294,
+        "medianSeconds": 11.25,
+        "p90Seconds": 31.75,
+        "openTurnovers": 226
+      },
+      "chains": [
+        {
+          "count": 113,
+          "mean": 3.5486725663716814,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 27
+        },
+        {
+          "count": 109,
+          "mean": 3.9908256880733943,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 35
+        }
+      ],
+      "liveSeconds": 4262.699999998464,
+      "deadSeconds": 1137.2999999995134,
+      "turnovers": {
+        "interception": 138,
+        "miscontrol": 2,
+        "dispossessed": 73,
+        "looseCarry": 8,
+        "out": 59
+      },
+      "boxEntries": [48, 33],
+      "playerRanges": {
+        "distancePer90": [7684, 12935],
+        "maxKmh": 32.436,
+        "maxShots": 14
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.23647277646263104,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p12"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.23603098730838964,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p17"
+        },
+        {
+          "severity": "review",
+          "metric": "shotsPer90",
+          "actual": 14,
+          "engineeringRange": [0, 12],
+          "scope": "c0-p19"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.17951294936219558,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        },
+        {
+          "severity": "review",
+          "metric": "matchShots",
+          "actual": 42,
+          "engineeringRange": [10, 40],
+          "scope": "match"
+        }
+      ]
+    },
+    {
+      "id": "strong-70-45",
+      "world": 84,
+      "seed": 6287,
+      "cohort": "unequal",
+      "inputSha256": "f95d9c5568b70811da259e53e997dcf1073194fbfcc689e834c2d013efefbb1f",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [9, 0],
+      "shots": [45, 5],
+      "passes": [342, 622],
+      "completedPasses": [296, 542],
+      "phase": {
+        "count": 243,
+        "medianSeconds": 14.75,
+        "p90Seconds": 30.15000000000009
+      },
+      "eventProxy": {
+        "count": 259,
+        "medianSeconds": 13.800000000000068,
+        "p90Seconds": 28,
+        "openTurnovers": 178
+      },
+      "chains": [
+        {
+          "count": 100,
+          "mean": 2.96,
+          "median": 2,
+          "p90": 6,
+          "fivePlus": 19
+        },
+        {
+          "count": 99,
+          "mean": 5.4646464646464645,
+          "median": 5,
+          "p90": 10,
+          "fivePlus": 55
+        }
+      ],
+      "liveSeconds": 3961.1999999987293,
+      "deadSeconds": 1438.7999999992392,
+      "turnovers": {
+        "interception": 90,
+        "miscontrol": 2,
+        "dispossessed": 72,
+        "looseCarry": 10,
+        "out": 67
+      },
+      "boxEntries": [81, 9],
+      "playerRanges": {
+        "distancePer90": [6964, 12359],
+        "maxKmh": 29.592000000000002,
+        "maxShots": 19
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.6669518106643855,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p4"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.6570936243538197,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p6"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22040618172991341,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "shotsPer90",
+          "actual": 19,
+          "engineeringRange": [0, 12],
+          "scope": "c0-p18"
+        },
+        {
+          "severity": "review",
+          "metric": "shotsPer90",
+          "actual": 15,
+          "engineeringRange": [0, 12],
+          "scope": "c0-p16"
+        },
+        {
+          "severity": "review",
+          "metric": "shots",
+          "actual": 45,
+          "engineeringRange": [2, 30],
+          "scope": 0
+        },
+        {
+          "severity": "review",
+          "metric": "goals",
+          "actual": 9,
+          "engineeringRange": [0, 8],
+          "scope": 0
+        },
+        {
+          "severity": "review",
+          "metric": "matchShots",
+          "actual": 50,
+          "engineeringRange": [10, 40],
+          "scope": "match"
+        }
+      ]
+    },
+    {
+      "id": "tired-50",
+      "world": 84,
+      "seed": 6287,
+      "cohort": "fatigue",
+      "inputSha256": "54df800f739866e380045f4409d75d9b24ed762b4995040099db656d46d7224a",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 3],
+      "shots": [18, 16],
+      "passes": [533, 508],
+      "completedPasses": [448, 419],
+      "phase": {
+        "count": 252,
+        "medianSeconds": 14.200000000000273,
+        "p90Seconds": 33.399999999999864
+      },
+      "eventProxy": {
+        "count": 265,
+        "medianSeconds": 12.5,
+        "p90Seconds": 33.350000000000364,
+        "openTurnovers": 197
+      },
+      "chains": [
+        {
+          "count": 101,
+          "mean": 4.415841584158416,
+          "median": 3,
+          "p90": 10,
+          "fivePlus": 38
+        },
+        {
+          "count": 99,
+          "mean": 4.212121212121212,
+          "median": 3,
+          "p90": 9,
+          "fivePlus": 31
+        }
+      ],
+      "liveSeconds": 4188.449999998551,
+      "deadSeconds": 1211.5499999994458,
+      "turnovers": {
+        "interception": 110,
+        "miscontrol": 1,
+        "dispossessed": 69,
+        "looseCarry": 8,
+        "out": 64
+      },
+      "boxEntries": [29, 33],
+      "playerRanges": {
+        "distancePer90": [7502, 12668],
+        "maxKmh": 29.556000000000004,
+        "maxShots": 8
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.18361225134196402,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2271900826446281,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        }
+      ]
+    },
+    {
+      "id": "weak-45-70",
+      "world": 84,
+      "seed": 6287,
+      "cohort": "unequal",
+      "inputSha256": "6d346ffc4f578169190de0a455a95e3a02cf053097e199f8d09763d8b2a84d5c",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 7],
+      "shots": [4, 38],
+      "passes": [603, 341],
+      "completedPasses": [524, 292],
+      "phase": {
+        "count": 231,
+        "medianSeconds": 14.799999999999983,
+        "p90Seconds": 34.04999999999973
+      },
+      "eventProxy": {
+        "count": 235,
+        "medianSeconds": 13.75,
+        "p90Seconds": 31.699999999999818,
+        "openTurnovers": 153
+      },
+      "chains": [
+        {
+          "count": 100,
+          "mean": 5.24,
+          "median": 4,
+          "p90": 12,
+          "fivePlus": 46
+        },
+        {
+          "count": 92,
+          "mean": 3.1630434782608696,
+          "median": 3,
+          "p90": 6,
+          "fivePlus": 19
+        }
+      ],
+      "liveSeconds": 3850.899999998791,
+      "deadSeconds": 1549.0999999991388,
+      "turnovers": {
+        "interception": 86,
+        "miscontrol": 0,
+        "dispossessed": 59,
+        "looseCarry": 5,
+        "out": 69
+      },
+      "boxEntries": [7, 70],
+      "playerRanges": {
+        "distancePer90": [7023, 11634],
+        "maxKmh": 29.592000000000002,
+        "maxShots": 15
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.23826714801444043,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p11"
+        },
+        {
+          "severity": "review",
+          "metric": "shotsPer90",
+          "actual": 15,
+          "engineeringRange": [0, 12],
+          "scope": "c1-p18"
+        },
+        {
+          "severity": "review",
+          "metric": "shots",
+          "actual": 38,
+          "engineeringRange": [2, 30],
+          "scope": 1
+        },
+        {
+          "severity": "review",
+          "metric": "xg",
+          "actual": 6.18,
+          "engineeringRange": [0, 6],
+          "scope": 1
+        },
+        {
+          "severity": "review",
+          "metric": "matchShots",
+          "actual": 42,
+          "engineeringRange": [10, 40],
+          "scope": "match"
+        }
+      ]
+    }
+  ],
+  "freshCases": [
+    {
+      "id": "fresh-balanced",
+      "world": 168,
+      "seed": 7703,
+      "cohort": "fresh",
+      "inputSha256": "985b1fbd300504acc0d2158b9d1ef61648e3fbbb000c5ee0356e185eeeb31a32",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 1],
+      "shots": [14, 18],
+      "passes": [583, 501],
+      "completedPasses": [486, 411],
+      "phase": {
+        "count": 250,
+        "medianSeconds": 15.5,
+        "p90Seconds": 36.950000000000045
+      },
+      "eventProxy": {
+        "count": 252,
+        "medianSeconds": 15,
+        "p90Seconds": 34.79999999999973,
+        "openTurnovers": 196
+      },
+      "chains": [
+        {
+          "count": 100,
+          "mean": 4.85,
+          "median": 5,
+          "p90": 10,
+          "fivePlus": 53
+        },
+        {
+          "count": 100,
+          "mean": 4.08,
+          "median": 4,
+          "p90": 7,
+          "fivePlus": 36
+        }
+      ],
+      "liveSeconds": 4459.749999998271,
+      "deadSeconds": 940.2499999996926,
+      "turnovers": {
+        "interception": 131,
+        "miscontrol": 1,
+        "dispossessed": 62,
+        "looseCarry": 11,
+        "out": 52
+      },
+      "boxEntries": [23, 45],
+      "playerRanges": {
+        "distancePer90": [7621, 13596],
+        "maxKmh": 30.6,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.1679170344218888,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2273728946954195,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p15"
+        }
+      ]
+    },
+    {
+      "id": "fresh-counter",
+      "world": 168,
+      "seed": 9011,
+      "cohort": "fresh",
+      "inputSha256": "8cc3cdb26f9e27ad5d54eee762befeab47dd89fe51823afbb5746e70068653a6",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "counter",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 1],
+      "shots": [5, 26],
+      "passes": [521, 515],
+      "completedPasses": [427, 434],
+      "phase": {
+        "count": 264,
+        "medianSeconds": 12.449999999999989,
+        "p90Seconds": 31.19999999999999
+      },
+      "eventProxy": {
+        "count": 272,
+        "medianSeconds": 11.650000000000091,
+        "p90Seconds": 29,
+        "openTurnovers": 197
+      },
+      "chains": [
+        {
+          "count": 111,
+          "mean": 3.828828828828829,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 31
+        },
+        {
+          "count": 100,
+          "mean": 4.3,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 42
+        }
+      ],
+      "liveSeconds": 4132.699999998567,
+      "deadSeconds": 1267.2999999993951,
+      "turnovers": {
+        "interception": 109,
+        "miscontrol": 0,
+        "dispossessed": 77,
+        "looseCarry": 13,
+        "out": 70
+      },
+      "boxEntries": [18, 50],
+      "playerRanges": {
+        "distancePer90": [7415, 13063],
+        "maxKmh": 30.6,
+        "maxShots": 11
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.17323738804256297,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        },
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.22293254651258093,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p15"
+        }
+      ]
+    },
+    {
+      "id": "fresh-possession",
+      "world": 168,
+      "seed": 7703,
+      "cohort": "fresh",
+      "inputSha256": "a81f51684dd4c104f28ae22027a09fcff2ae9e2945361b713e707b22186ece4a",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "possession",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 3],
+      "shots": [18, 15],
+      "passes": [641, 460],
+      "completedPasses": [544, 370],
+      "phase": {
+        "count": 261,
+        "medianSeconds": 12.700000000000273,
+        "p90Seconds": 31.600000000000364
+      },
+      "eventProxy": {
+        "count": 260,
+        "medianSeconds": 11.449999999999818,
+        "p90Seconds": 30.550000000000182,
+        "openTurnovers": 185
+      },
+      "chains": [
+        {
+          "count": 111,
+          "mean": 4.8558558558558556,
+          "median": 3,
+          "p90": 10,
+          "fivePlus": 47
+        },
+        {
+          "count": 94,
+          "mean": 3.872340425531915,
+          "median": 3,
+          "p90": 7,
+          "fivePlus": 32
+        }
+      ],
+      "liveSeconds": 4137.899999998559,
+      "deadSeconds": 1262.0999999993999,
+      "turnovers": {
+        "interception": 122,
+        "miscontrol": 1,
+        "dispossessed": 62,
+        "looseCarry": 8,
+        "out": 66
+      },
+      "boxEntries": [35, 41],
+      "playerRanges": {
+        "distancePer90": [7417, 12365],
+        "maxKmh": 30.384,
+        "maxShots": 8
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.21641730691467853,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c0-p15"
+        }
+      ]
+    },
+    {
+      "id": "fresh-wide",
+      "world": 168,
+      "seed": 9011,
+      "cohort": "fresh",
+      "inputSha256": "4c8a49b34b3918ad7f4e868432090aaee7ab059866646b0ae6ddfca66a261976",
+      "tactics": [
+        {
+          "formation": "4-4-2",
+          "style": "wide",
+          "press": "normal"
+        },
+        {
+          "formation": "4-4-2",
+          "style": "balanced",
+          "press": "normal"
+        }
+      ],
+      "status": "review",
+      "score": [0, 2],
+      "shots": [3, 15],
+      "passes": [540, 479],
+      "completedPasses": [440, 388],
+      "phase": {
+        "count": 251,
+        "medianSeconds": 13.099999999999454,
+        "p90Seconds": 31.449999999999932
+      },
+      "eventProxy": {
+        "count": 256,
+        "medianSeconds": 12,
+        "p90Seconds": 30.850000000000364,
+        "openTurnovers": 165
+      },
+      "chains": [
+        {
+          "count": 109,
+          "mean": 3.9908256880733943,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 35
+        },
+        {
+          "count": 108,
+          "mean": 3.5833333333333335,
+          "median": 3,
+          "p90": 8,
+          "fivePlus": 29
+        }
+      ],
+      "liveSeconds": 3982.34999999869,
+      "deadSeconds": 1417.6499999992584,
+      "turnovers": {
+        "interception": 108,
+        "miscontrol": 0,
+        "dispossessed": 50,
+        "looseCarry": 9,
+        "out": 88
+      },
+      "boxEntries": [9, 51],
+      "playerRanges": {
+        "distancePer90": [7088, 11825],
+        "maxKmh": 30.564,
+        "maxShots": 9
+      },
+      "alerts": [
+        {
+          "severity": "review",
+          "metric": "lowSpeedDistanceShare",
+          "actual": 0.2485412262156448,
+          "engineeringRange": [0.25, 0.65],
+          "scope": "c1-p15"
+        }
+      ]
+    }
+  ],
+  "status": "review",
+  "blockedCases": 0
+}

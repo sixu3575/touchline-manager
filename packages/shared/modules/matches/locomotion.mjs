@@ -51,10 +51,63 @@ export function driveMovement(actor, desired, limits, dt, responseMultiplier = 1
     mass = actor.body.mass();
   actor.body.applyImpulse({ x: dx * scale * mass, y: 0, z: dz * scale * mass }, true);
 }
+
+// At a restart everyone can walk around either team's body. Pure radial
+// separation can pin a retreating defender outside a touchline behind the taker.
+// Add a finite lateral route, preferring the side that leads back onto the pitch;
+// driveMovement still limits the resulting movement, and Rapier resolves bodies.
+export function restartAvoidance(actor, actors, desired) {
+  const speed = Math.hypot(desired.x, desired.z);
+  if (speed < 0.1) return desired;
+  const ux = desired.x / speed,
+    uz = desired.z / speed;
+  let x = desired.x,
+    z = desired.z;
+  for (const other of actors) {
+    if (other === actor || other.sentOff) continue;
+    const dx = other.pos.x - actor.pos.x,
+      dz = other.pos.z - actor.pos.z;
+    const gap = Math.hypot(dx, dz),
+      ahead = dx * ux + dz * uz;
+    const lateral = -dx * uz + dz * ux;
+    if (gap > 1.5 || ahead < -0.1 || Math.abs(lateral) > 0.95) continue;
+    const edgeCost = (side) => {
+      const px = actor.pos.x - uz * side,
+        pz = actor.pos.z + ux * side;
+      return Math.max(0, 0.5 - px, px - 104.5) + Math.max(0, 0.5 - pz, pz - 67.5);
+    };
+    const plus = edgeCost(1),
+      minus = edgeCost(-1);
+    const side =
+      Math.abs(plus - minus) > 0.01
+        ? plus < minus
+          ? 1
+          : -1
+        : Math.abs(lateral) > 0.05
+          ? -Math.sign(lateral)
+          : actor.index % 2
+            ? 1
+            : -1;
+    const steer = (1.5 - Math.min(1.4, gap)) * 4;
+    x -= uz * side * steer;
+    z += ux * side * steer;
+  }
+  return { x, z };
+}
 // Tracking a moving person needs both position correction and observed velocity.
 // A position-only controller necessarily trails by v/gain, even at equal ability.
 // Use the marker's last observation, not the opponent's current hidden velocity.
 export function markingVelocity(actor, owner, roles) {
+  if (
+    roles.chasers.includes(actor.index) &&
+    owner &&
+    owner.side !== actor.side &&
+    actor.pressMemory?.id === owner.player.id
+  ) {
+    const age = Math.max(0, (roles.time ?? actor.pressMemory.seenAt) - actor.pressMemory.seenAt);
+    const fade = clamp(1 - Math.max(0, age - 0.6) / 0.5, 0, 1);
+    return { x: actor.pressMemory.velocity.x * fade, z: actor.pressMemory.velocity.z * fade };
+  }
   const memory = actor.markMemory;
   if (
     actor === owner ||
@@ -67,7 +120,7 @@ export function markingVelocity(actor, owner, roles) {
   )
     return { x: 0, z: 0 };
   const age = Math.max(0, (roles.time ?? memory.seenAt) - memory.seenAt);
-  const fade = clamp(1 - Math.max(0, age - 0.9) / 0.5, 0, 1);
+  const fade = clamp(1 - Math.max(0, age - 0.9) / 0.5, 0, 1) * (actor.markTrackingWeight ?? 1);
   return { x: memory.velocity.x * fade, z: memory.velocity.z * fade };
 }
 export function movementMode(actor, ball, owner, roles, gap) {
@@ -75,11 +128,29 @@ export function movementMode(actor, ball, owner, roles, gap) {
   const criticalSprint = (critical) => fresh || triggerAdrenalineSprint(actor, critical);
   const attackingDepth = actor.direction === -1 ? 105 - ball.x : ball.x;
   const ownGoalDistance = attackingDepth;
-  if (actor.kickPlan) return gap > 0.15 ? 'walk' : 'stand';
+  if (actor.kickPlan) {
+    const ballSpeed = Math.hypot(ball.vx ?? 0, ball.vz ?? 0);
+    if (ballSpeed > movement(actor.player, actor.energy, 'run').speed)
+      return fresh ? 'sprint' : 'run';
+    return ballSpeed > 1.5 ? 'run' : gap > 0.15 ? 'walk' : 'stand';
+  }
   if (actor === owner) return actor.intent?.mode === 'carryFast' && fresh ? 'carryFast' : 'carry';
   if (actor.isKeeper) return gap > 0.35 ? 'run' : 'stand';
+  if (roles.defensiveCover?.[actor.player.id])
+    return gap > 3 ? 'run' : gap > 1 ? 'jog' : gap > 0.3 ? 'walk' : 'stand';
   const chasing = roles.chasers.includes(actor.index);
   if (chasing || roles.receiverId === actor.player.id) {
+    if (
+      chasing &&
+      owner &&
+      owner.side !== actor.side &&
+      actor.pressMemory?.id === owner.player.id
+    ) {
+      const trackedSpeed = Math.hypot(actor.pressMemory.velocity.x, actor.pressMemory.velocity.z);
+      if (trackedSpeed > movement(actor.player, actor.energy, 'run').speed && fresh)
+        return 'sprint';
+      if (trackedSpeed > 1.8) return 'run';
+    }
     if (gap < 0.4) return 'walk';
     const ballGap = distance(actor.pos, ball);
     const urgent =

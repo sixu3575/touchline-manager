@@ -122,7 +122,10 @@ export function deadballTarget(actor, actors, state, direction, time) {
       : ['freeKick', 'indirect', 'corner', 'goalKick'].includes(state.type)
         ? 9.15
         : 3;
-  if (distance(target, b) < exclusion) {
+  // The movement controller parks within 0.2m of a target. A target only a few
+  // centimetres outside the legal circle can therefore leave the player inside
+  // it forever. Include the physical parking tolerance in all retreat targets.
+  if (distance(target, b) < exclusion + 0.5) {
     target = outsideCircle(b, target, exclusion + 0.5);
   }
   return target;

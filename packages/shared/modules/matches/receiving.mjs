@@ -2,13 +2,22 @@ import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { distance } from './spatial.mjs';
+import { arrivalTime, pursuitMode } from './arrival.mjs';
 
 export function receptionPlan(actor, ball, direction, quality, incoming, opponents = [], time = 0) {
   const space = Math.min(20, ...opponents.map((o) => distance(o.pos, ball)));
   const running = Math.hypot(actor.velocity.x, actor.velocity.z);
   const forward = running < 1 || (actor.velocity.x * direction) / running > 0.35;
   const easy = incoming < 17 + quality * 0.05;
-  const flow = space > 4 && forward && easy && quality >= 35;
+  const pressArrival = Math.min(
+    Infinity,
+    ...opponents.map((o) => arrivalTime(o, ball, pursuitMode(o, ball), o.reaction ?? 0.1)),
+  );
+  const usableTouch =
+    (actor.reaction ?? 0.1 + (100 - ability(actor.player, 'decisions')) / 180) +
+    0.14 +
+    0.18 * (1 - quality / 100);
+  const flow = space > 4 && pressArrival > usableTouch && forward && easy && quality >= 35;
   const delay = flow
     ? 0.08 + (100 - ability(actor.player, 'decisions')) * 0.002 + (100 - quality) * 0.001
     : 0.22 +
@@ -27,6 +36,18 @@ export function receptionPlan(actor, ball, direction, quality, incoming, opponen
     flow,
     delay: Math.max(0.04, delay - prepared),
     space,
+    pressArrival,
+    shieldHeading: opponents.length
+      ? (() => {
+          const threat = opponents
+            .slice()
+            .sort((a, b) => arrivalTime(a, ball) - arrivalTime(b, ball))[0];
+          const x = ball.x - threat.pos.x - (threat.velocity?.x ?? 0) * 0.3;
+          const z = ball.z - threat.pos.z - (threat.velocity?.z ?? 0) * 0.3;
+          const norm = Math.hypot(x, z) || 1;
+          return { x: x / norm, z: z / norm };
+        })()
+      : null,
     destination: {
       x: clamp(actor.pos.x + direction * 9, 1, 104),
       z: clamp(actor.pos.z + (34 - actor.pos.z) * 0.05, 3, 65),
@@ -55,10 +76,12 @@ export function firstTouchVelocity(
         Math.hypot(b.pos.x - ball.x, b.pos.z - ball.z),
     )[0];
   if (threat) {
-    const d = Math.hypot(threat.pos.x - ball.x, threat.pos.z - ball.z);
+    const tx = threat.pos.x + (threat.velocity?.x ?? 0) * 0.3,
+      tz = threat.pos.z + (threat.velocity?.z ?? 0) * 0.3;
+    const d = Math.hypot(tx - ball.x, tz - ball.z);
     if (d < 3) {
-      heading.x += ((ball.x - threat.pos.x) / Math.max(0.1, d)) * (3 - d);
-      heading.z += ((ball.z - threat.pos.z) / Math.max(0.1, d)) * (3 - d);
+      heading.x += ((ball.x - tx) / Math.max(0.1, d)) * (3 - d);
+      heading.z += ((ball.z - tz) / Math.max(0.1, d)) * (3 - d);
     }
   }
   if (ball.z < 3) heading.z = Math.max(1, heading.z);
@@ -69,14 +92,17 @@ export function firstTouchVelocity(
         movement(actor.player, actor.energy, 'carryFast').speed + 0.8,
         Math.max(2.2, running + 0.65 + quality * 0.006),
       )
-    : Math.min(
-        2.2,
-        0.55 + running * 0.35 + clamp(incoming - 8, 0, 15) * (1 - quality / 100) * 0.06,
-      );
+    : 0.55 + clamp(incoming - 8, 0, 15) * (1 - quality / 100) * 0.06;
   const error = (rng() - 0.5) * (1 - quality / 100) * (0.3 + incoming / 12);
   return {
-    x: (heading.x / length) * speed - (heading.z / length) * error,
-    z: (heading.z / length) * speed + (heading.x / length) * error,
+    x:
+      (plan?.flow ? 0 : actor.velocity.x * 0.85) +
+      (heading.x / length) * speed -
+      (heading.z / length) * error,
+    z:
+      (plan?.flow ? 0 : actor.velocity.z * 0.85) +
+      (heading.z / length) * speed +
+      (heading.x / length) * error,
     y: 0.04,
   };
 }

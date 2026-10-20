@@ -210,7 +210,6 @@ export function tacticalPassValue(
     bonus += preset.flank * success * clamp(space / 5, 0, 1);
   if (tactics.style === 'counter')
     bonus += (state.fastBreak ? 0.09 : 0.015) * success * clamp(forward / 20, -1, 1);
-  if (tactics.style === 'possession' && forward < -8 && space > 4) bonus -= 0.015;
   if (actor.positionRole === 'centreBack' && localX(ball.x, direction) < 35)
     bonus -= (1 - success) * 0.035;
   return clamp(bonus, -0.06, 0.14);

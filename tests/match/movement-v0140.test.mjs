@@ -106,7 +106,7 @@ test('arrival estimates include acceleration, braking and behind-the-carrier pur
   assert.equal(route([near]).mode, 'carry');
 });
 
-test('carry risk uses the same duel probabilities and respects a tired defender\'s recovery limit', () => {
+test("carry risk uses the same duel probabilities and respects a tired defender's recovery limit", () => {
   const carrier = actor('carrier', 0, 50, 34),
     ball = { x: 50.6, y: 0.11, z: 34 },
     defender = actor('defender', 1, 68, 34),
@@ -205,6 +205,7 @@ function scenario(direction, marker = null) {
     // Mirroring a prepared, forward-running reception also mirrors body facing.
     // The separate execution tests cover genuinely back-facing receivers.
     o.facing = direction === 1 ? 0 : Math.PI;
+    o.footAngle = o.facing;
     o.kickPlan = null;
     o.intent = null;
     o.setPiece = null;

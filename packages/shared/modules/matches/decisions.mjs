@@ -1,9 +1,18 @@
 import { clamp } from '../../core/index.mjs';
 import { ability, actionQuality } from './skills.mjs';
 import { movement } from './locomotion.mjs';
-import { groundPassPlan, airborneVelocity } from './ball-motion.mjs';
-import { distance, unit, segmentPoint, pitchValue, localX } from './spatial.mjs';
+import {
+  groundPassPlan,
+  airborneVelocity,
+  groundArrivalTime,
+  groundTravel,
+} from './ball-motion.mjs';
+import { distance, unit, segmentPoint, localX } from './spatial.mjs';
 import { carryOptions } from './carrying.mjs';
+import { arrivalTime, pursuitMode } from './arrival.mjs';
+import { exitBlocked } from './onball.mjs';
+import { continuationValue, lossValue } from './opportunity.mjs';
+import { prepareKick, turnRate, angleDifference } from './execution.mjs';
 import {
   attackPhase,
   deliveryOptions,
@@ -61,20 +70,27 @@ export function interceptionRisk(
   opponents,
   lob = false,
   flight = distance(from, to) / speed,
+  preparation = 0,
 ) {
   let survival = 1;
   for (const o of opponents) {
     const { t, gap } = segmentPoint(from, to, o.pos);
-    if (t < 0.04 || t > 0.99) continue;
+    if (t > 0.99) continue;
     const height = lob ? 4.905 * flight * flight * t * (1 - t) : 0.11;
     if (height > 2.4) continue;
-    const arrival = t * flight;
-    const reach =
-      Math.max(0, gap - 0.55) / movement(o.player, o.energy, 'run').speed +
-      0.14 +
-      (100 - ability(o.player, 'anticipation')) / 500;
+    const arrival =
+      preparation + (lob ? t * flight : groundArrivalTime(speed, distance(from, to) * t));
+    const point = { x: from.x + (to.x - from.x) * t, z: from.z + (to.z - from.z) * t };
+    const reach = arrivalTime(
+      o,
+      point,
+      pursuitMode(o, point),
+      0.08 + (100 - ability(o.player, 'anticipation')) * 0.002,
+    );
     const threat =
-      !lob && gap < 0.7 && arrival > 0.14 ? 0.98 : clamp((arrival + 0.25 - reach) / 0.55, 0, 0.94);
+      !lob && gap < 0.43 && distance(from, o.pos) < 3
+        ? 0.98
+        : clamp((arrival + 0.15 - reach) / 0.55, 0, 0.94);
     survival *= 1 - threat;
   }
   return 1 - survival;
@@ -146,9 +162,8 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
     xg,
     utility:
       shotReturnScore -
-      0.3 * pitchValue(ball, direction) -
-      (1 - shotReturnScore) * 0.025 +
-      (actor.player.role === 'FWD' ? 0.02 : 0),
+      (1 - shotReturnScore) * lossValue(ball, direction) * 0.25 +
+      (actor.player.role === 'FWD' ? 0.006 : 0),
     reason: direct
       ? '定位球按门将和球门位置瞄准'
       : blocked > 0.7
@@ -161,18 +176,26 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
       const lateral = Math.abs(actor.velocity.z) / Math.max(1, speed);
       const error =
         0.7 + dist * (0.05 + 0.35 * (1 - q.value / 100)) + q.pressure * 1.2 + lateral * 0.5;
-      const aim =
-        34 + (rng() < 0.5 ? -1 : 1) * (1.1 + rng() * 1.2) + (rng() + rng() - 1) * error * 2;
+      const intendedAim = 34 + (rng() < 0.5 ? -1 : 1) * (1.1 + rng() * 1.2);
+      const aim = intendedAim + (rng() + rng() - 1) * error * 2;
+      // Strength supplies available power, not an instruction to blast every
+      // six-metre finish at full effort. Near, unhurried finishes use placement;
+      // range and closing pressure call for more power. No shot is removed.
+      const availablePower = 23 + 0.1 * ability(actor.player, 'strength');
+      const intendedSpeed = Math.min(availablePower, 20 + dist * 0.25 + q.pressure * 4);
       const target = { x: goalX + direction * 1.5, z: aim },
-        flight = Math.max(
-          0.15,
-          distance(ball, target) / (23 + 0.1 * ability(actor.player, 'strength')),
-        );
+        flight = Math.max(0.15, distance(ball, target) / intendedSpeed);
       const targetY =
         0.2 +
         rng() * (0.9 + (100 - q.value) / 14 + Math.max(0, dist - 10) * 0.06 + q.pressure * 0.5);
       const kickAim = { ...target, y: targetY };
-      return { ...airborneVelocity(ball, kickAim, flight), xg, kickAim, kickFlight: flight };
+      return {
+        ...airborneVelocity(ball, kickAim, flight),
+        xg,
+        kickAim,
+        kickFlight: flight,
+        bodyAim: { x: target.x, z: intendedAim },
+      };
     },
   };
 }
@@ -185,7 +208,8 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   const opponents = actors.filter((o) => o.side !== actor.side && !o.sentOff);
   const quality = (key) => actionQuality(actor, ball, key, opponents, context.lapse);
   const pressure = quality('passing').pressure,
-    currentValue = pitchValue(ball, direction);
+    currentValue = continuationValue(ball, actor, actors, direction);
+  const lost = lossValue(ball, direction);
   const minute = context.minute ?? 0,
     time = context.time ?? 0;
   const tactical = attackPhase(
@@ -211,16 +235,25 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     candidates.push(shot);
   }
   const mates = actors.filter((o) => o.side === actor.side && o !== actor && !o.sentOff);
-  if (!actor.setPiece && !actor.isKeeper && pressure < 0.65 && (actor.hold ?? 0) < 1.2) {
+  const closingTime = Math.min(
+    Infinity,
+    ...opponents.map((o) => arrivalTime(o, ball, pursuitMode(o, ball), o.reaction ?? 0.15)),
+  );
+  if (!actor.setPiece && !actor.isKeeper) {
+    const nearestThreat = opponents
+      .slice()
+      .sort((a, b) => distance(a.pos, ball) - distance(b.pos, ball))[0];
+    const shieldHeading = nearestThreat ? unit(nearestThreat.pos, ball) : { x: direction, z: 0 };
+    const waitingRisk = Math.exp(-closingTime / 1.2) * 0.5;
     candidates.push({
       type: 'hold',
       intent: 'shield',
       quality: quality('firstTouch'),
       utility:
-        0.004 +
-        (tactics.style === 'possession' ? 0.008 : 0) -
-        pressure * 0.035 -
-        Math.min(2, actor.hold ?? 0) * 0.03,
+        (1 - waitingRisk) * currentValue -
+        waitingRisk * lost +
+        (tactics.style === 'possession' ? 0.002 : 0),
+      shieldHeading,
       reason: '护住球观察接应，等待安全线路',
       make: () => ({ x: 0, y: 0, z: 0 }),
     });
@@ -277,10 +310,59 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         ),
         z: clamp(mate.pos.z + mate.velocity.z * leadTime, 2.5, 65.5),
       };
-      const laneRisk = interceptionRisk(ball, target, speed, opponents, variant.lob, flight);
+      const corridor = unit(ball, target);
+      const preview = prepareKick(
+        actor,
+        {
+          type: 'pass',
+          x: corridor.x * speed,
+          z: corridor.z * speed,
+          y: variant.lob ? 4.905 * flight : 0.08,
+        },
+        ball,
+        time,
+        0,
+        false,
+        Boolean(context.oneTouch),
+      );
+      const preparation = Math.max(
+        preview.readyAt - time,
+        (Math.abs(angleDifference(Math.atan2(corridor.z, corridor.x), actor.facing ?? 0)) -
+          Math.PI / 2 -
+          0.05) /
+          turnRate(actor),
+      );
+      const rollingSpeed = Math.hypot(ball.vx ?? 0, ball.vz ?? 0);
+      const rollingDistance = groundTravel(rollingSpeed, preparation);
+      const releasePoint = {
+        x: ball.x + ((ball.vx ?? 0) / Math.max(0.001, rollingSpeed)) * rollingDistance,
+        z: ball.z + ((ball.vz ?? 0) / Math.max(0.001, rollingSpeed)) * rollingDistance,
+      };
+      const futureTarget = {
+        x: clamp(target.x + mate.velocity.x * preparation, 1, 104),
+        z: clamp(target.z + mate.velocity.z * preparation, 1, 67),
+      };
+      const laneRisk = interceptionRisk(
+        releasePoint,
+        futureTarget,
+        speed,
+        opponents,
+        variant.lob,
+        flight,
+        preparation,
+      );
+      const obstructed = exitBlocked(
+        ball,
+        {
+          x: corridor.x * speed,
+          z: corridor.z * speed,
+          y: variant.lob ? 4.905 * flight : 0.08,
+        },
+        opponents,
+      );
       const risk = cross
         ? 1 - (1 - laneRisk) * (1 - deliveryReceptionRisk(mate, target, opponents, variant))
-        : laneRisk;
+        : Math.max(laneRisk, obstructed ? 0.98 : 0);
       // A high-risk corridor is not a viable professional pass, except a necessary clearance.
       if (risk > 0.88 && pressure < 0.7) continue;
       if (cross && risk > 0.75) continue;
@@ -298,7 +380,12 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         0.55,
         0.98,
       );
-      const success = (1 - risk) * accuracy;
+      const receiveMargin =
+        flight + preparation - arrivalTime(mate, futureTarget, pursuitMode(mate, futureTarget), 0);
+      const receptionRisk =
+        (1 - ability(mate.player, 'firstTouch') / 120) /
+        (1 + Math.exp((receiveMargin + 0.3) / 0.18));
+      const success = (1 - risk) * accuracy * (1 - receptionRisk);
       const style = tacticalPassValue(
         tactics,
         tactical,
@@ -311,7 +398,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         success,
         space,
       );
-      const escape = pressure * clamp(space / 7, 0, 1) * 0.14;
+      const escape = success * pressure * clamp(space / 7, 0, 1) * 0.14;
       const outlets = mates.filter(
         (o) => o !== mate && distance(o.pos, target) > 5 && distance(o.pos, target) < 23,
       ).length;
@@ -325,22 +412,21 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         clamp((forward - 10) / 12, 0, 1) *
         clamp((localX(target.x, direction) - 70) / 20, 0, 1);
       const utility =
-        success * pitchValue(target, direction) -
-        currentValue * (cross ? 0.65 : 1) -
-        (1 - success) * (cross ? 0.045 + currentValue * 0.15 : 0.07 + currentValue * 0.3) +
-        (cross ? deliveryThreat(mate, target, direction, variant, success) : 0) +
-        escape +
-        retention +
-        penetration +
-        style -
-        0.035 * profile.inclination * clamp(forward / 10, 0.3, 1) +
-        ambition * Math.sign(forward);
+        success * continuationValue(target, mate, actors, direction) -
+        (1 - success) * lost * (cross ? 0.6 : 1) +
+        (cross ? deliveryThreat(mate, target, direction, variant, success) * 0.25 : 0) +
+        (escape + retention + penetration + style) * 0.25 -
+        0.035 * 0.25 * profile.inclination * clamp(forward / 10, 0.3, 1) +
+        ambition * 0.25 * Math.sign(forward);
       candidates.push({
         type: cross ? 'cross' : 'pass',
         intent: variant.intent,
         delivery: variant.delivery,
         receiverId: mate.player.id,
         target,
+        receiverAtDecision: { ...mate.pos },
+        receiverVelocity: { ...mate.velocity },
+        leadTime,
         quality: q,
         utility,
         estimatedSuccess: success,
@@ -411,13 +497,12 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         mode: option.mode,
         quality: q,
         utility:
-          success * pitchValue(destination, direction) -
-          currentValue -
-          (1 - success) * (0.09 + currentValue * 0.4) +
-          option.bonus -
-          option.ownRisk -
-          0.03 * clamp((3 - Math.min(destination.z, 68 - destination.z)) / 3, 0, 1) +
-          ambition,
+          success * continuationValue(destination, actor, actors, direction) -
+          (1 - success) * lost +
+          option.bonus * 0.25 -
+          option.ownRisk * 0.4 -
+          0.01 * clamp((3 - Math.min(destination.z, 68 - destination.z)) / 3, 0, 1) +
+          ambition * 0.25,
         estimatedSuccess: success,
         reason: option.reason,
         make: () => {
@@ -435,7 +520,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   }
   if (
     actor.isKeeper ||
-    (pressure > 0.7 && localX(ball.x, direction) < 30) ||
+    localX(ball.x, direction) < 35 ||
     (pressure > 0.55 && (actor.hold ?? 0) > 1.2)
   ) {
     const target = { x: clamp(ball.x + direction * 40, 1, 104), z: ball.z < 34 ? 5 : 63 };
@@ -443,7 +528,10 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       type: 'pass',
       intent: 'clearance',
       quality: quality(actor.isKeeper ? 'distribution' : 'passing'),
-      utility: pressure * 0.17 - 0.07,
+      utility:
+        0.5 * continuationValue(target, actor, actors, direction) -
+        0.5 * lossValue(target, direction) -
+        lost / (1 + Math.exp((closingTime - (0.3 + (100 - a('balance')) * 0.002)) / 0.2)),
       reason: '本方危险区域受压，优先解围',
       make: () => {
         const t = 1.7;
@@ -484,7 +572,8 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       best = c;
     }
   }
-  if (best.type === 'hold') actor.intent = { kind: 'settle', expiresAt: time + 0.6 };
+  if (best.type === 'hold')
+    actor.intent = { kind: 'settle', shieldHeading: best.shieldHeading, expiresAt: time + 1 };
   else if (best.type === 'dribble')
     actor.intent = {
       kind: 'carry',
@@ -505,7 +594,11 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     delivery: best.delivery,
     phase: tactical.phase,
     receiverId: best.receiverId,
+    receiverAtDecision: best.receiverAtDecision,
+    receiverVelocity: best.receiverVelocity,
+    leadTime: best.leadTime,
     quality: best.quality,
+    utility: best.utility,
     reason:
       (positionRoleNames[actor.positionRole] ? positionRoleNames[actor.positionRole] + '：' : '') +
       best.reason,

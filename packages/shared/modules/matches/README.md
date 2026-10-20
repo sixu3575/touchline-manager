@@ -1,5 +1,9 @@
 # 比赛模块
 
+0.27最终25场结果与残余偏差见[校准记录](design/CALIBRATION_V0270.md)和[逐场证据](design/REALISM_EVIDENCE_V0270.json)，不得将review称为全部现实分布通过。未来拦截需要真实actor位置/速度，预判通过观察反应起作用，不为身体凭空增加前送距离；测试须使用完整场景。门将持球关节只保存数字句柄和普通姿态数据，不能把Rapier对象放入领域检查点。
+
+当前开发分支为0.27.0系统重构。onball管理感知记忆/脚下运动执行，opportunity统一比较保球、传带射的后续机会；移动、接球、传射准备、防守阵块与观察跟速、真实控制确认及死球衔接一起修正。无传球/射门/比分/控球时长配额，合理远射保留。详见[模型与数学](design/CONTROL_MODEL_V0270.md)、[七张现行决策图](design/PLAYER_DECISION_MAP.md)、[24场现实参考](design/REAL_FOOTBALL_REFERENCE_V0270.json)。新引擎0.27.0-control-model / control-model-1，无schema迁移，旧回放不重算，旧任务排空后才能升级；流程不变。以下为历史演进记录。
+
 当前候选0.26.0延续0.25.0按跑速与盘带控制带球触球，并将中场第一上抢者近身目标由0.35米移至持球者前方1.05米，避免身体重叠；真实有限脚触、抢断窗口、动作选择与比赛速度不变。固定八场对照中控球阶段中位数均值5.29→5.62秒、短于5秒占比47.99%→45.38%、每队传球403→423。八场无block，但仍有大量短阶段且射门/进球上升；这是有限改善，不代表完成现实性校准。见[POSSESSION_V0260.md](design/POSSESSION_V0260.md)、[POSSESSION_V0250.md](design/POSSESSION_V0250.md)和[节奏诊断](design/TEMPO_V0180.md)。引擎`0.26.0-possession-screen`/`possession-6`；无数据库迁移，旧回放不重算，旧引擎检查点不能续算。
 
 0.19.2体能、每名球员每场一次的关键区域紧急爆发与玩家可见赛中体能条见[STAMINA_V0190.md](design/STAMINA_V0190.md)。0.18.0回放分析只作为内部诊断，由比赛测试与`tests/tools/match-realism.mjs`消费，客户端不计算或显示；统计现实比较仍保存到本地验证结果，不加入玩家战报。节奏基线与待解决问题见[TEMPO_V0180.md](design/TEMPO_V0180.md)。
