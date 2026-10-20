@@ -100,7 +100,11 @@ test('long broadcasts retain earlier player statistics without retaining private
     stats: [{ shots: 1 }, { shots: 0 }],
     snapshots: [],
     performance: [],
-    timeline: [],
+    timeline: Array.from({ length: 10 }, (_, i) => ({
+      second: i * 30,
+      stats: [{ shots: 1 }, { shots: 0 }],
+      performance: [],
+    })),
     replay: { duration: 5400, frameCount: 27001, sampleHz: 5, players: [{ id: 'a', side: 0 }] },
     continuity: { controlSpells: Array(10000).fill({ seconds: 1, playerId: 'a' }) },
     diagnostics: { analysis: Array(10000).fill(42) },
@@ -119,6 +123,15 @@ test('long broadcasts retain earlier player statistics without retaining private
   assert.equal(playerEventStatistics(view, 'a', 600).onTarget, 1);
   assert.equal(playerEventStatistics(view, 'a', 600).assists, 1);
   assert.equal(playerEventStatistics(view, 'a', 19).assists, 0);
+  const final = liveReport(compact, { seconds: 5400, finished: true });
+  assert.equal(final.events.filter((e) => e.type === 'control').length, 119);
+  assert.equal(playerEventStatistics(final, 'a', 5400).assists, 2);
+  assert.ok(
+    final.playerRatings,
+    'final ratings still use the full evidence before trimming transport',
+  );
+  assert.equal(final.timeline.length, 2);
+  assert.equal(compact.timeline.length, 10, 'transport does not rewrite the source report');
 });
 
 test('presentation reads reuse progress without checkpoint blobs and a failed clock write does not mutate cached time', async () => {
@@ -172,6 +185,58 @@ test('a five-times server clock continues without viewers and pauses only for a 
   p.ownComplete = true;
   assert.equal(broadcastAt(p, 25000).public.finished, false);
   assert.equal(broadcastAt(p, 26000).public.finished, true);
+});
+
+test('a finished player broadcast writes its final anchor once while background fixtures continue', async () => {
+  const x = setup();
+  try {
+    x.receive(x.fixture(0), true);
+    let writes = 0;
+    const save = x.jobs.store.progress;
+    x.jobs.store.progress = (...args) => {
+      writes++;
+      return save(...args);
+    };
+    x.setNow(100000 + 1080 * 1000);
+    x.pulse();
+    const final = x.jobs.readProgress(x.jobs.store.get(x.job.id)).broadcast;
+    assert.equal(final.anchorSecond, 5400);
+    for (let i = 1; i <= 200; i++) {
+      x.setNow(100000 + 1080 * 1000 + i * 500);
+      x.pulse();
+    }
+    assert.equal(writes, 1, 'waiting for AI cannot rewrite a multi-megabyte progress at 2Hz');
+    assert.deepEqual(x.jobs.readProgress(x.jobs.store.get(x.job.id)).broadcast, final);
+    assert.equal(x.jobs.store.get(x.job.id).status, 'running');
+    assert.equal(
+      x.db.prepare('SELECT state FROM saves').get().state,
+      x.original,
+      'results still wait for the complete round',
+    );
+  } finally {
+    await x.jobs.close();
+    x.db.close();
+  }
+});
+
+test('resuming an old job already in background fixtures compacts only the live copy', async () => {
+  const x = setup();
+  try {
+    const own = x.fixture(0);
+    own.continuity = { controlSpells: [{ playerId: 'private', seconds: 1.5 }] };
+    x.receive(own, true);
+    const p = JSON.parse(x.jobs.store.get(x.job.id).progress);
+    const { trajectory, ...legacy } = own;
+    p.report = legacy;
+    x.jobs.store.progress(x.job.id, p);
+    x.receive(x.fixture(1), true);
+    assert.equal(JSON.parse(x.jobs.store.get(x.job.id).progress).report.continuity, undefined);
+    assert.deepEqual(unpack(x.jobs.store.get(x.job.id).work).reports[0].continuity, own.continuity);
+    assert.equal(x.db.prepare('SELECT state FROM saves').get().state, x.original);
+  } finally {
+    await x.jobs.close();
+    x.db.close();
+  }
 });
 
 test('all computed reports stay private until the broadcast ends; restarting and leaving never reset the clock', async () => {

@@ -42,7 +42,11 @@ export function broadcastAt(progress, now) {
   let next = clock,
     seconds = clock.anchorSecond;
   if (clock.anchorAt === null && available > 0) next = { ...clock, anchorAt: now };
-  if (next.anchorAt !== null) {
+  if (next.anchorAt !== null && progress.ownComplete && next.anchorSecond >= available) {
+    // Final whistle is a stable position, not another buffer underrun. While
+    // background fixtures continue, do not rewrite the whole progress every pulse.
+    seconds = available;
+  } else if (next.anchorAt !== null) {
     seconds = Math.max(
       next.anchorSecond,
       next.anchorSecond + ((now - next.anchorAt) / 1000) * LIVE_SPEED,
@@ -54,6 +58,8 @@ export function broadcastAt(progress, now) {
     }
   }
   const finished = Boolean(progress.ownComplete && seconds >= available);
+  if (finished && next.anchorAt !== null && next.anchorSecond !== seconds)
+    next = { ...next, anchorAt: now, anchorSecond: seconds };
   return {
     clock: next,
     changed: next !== clock,
@@ -70,7 +76,6 @@ export function broadcastAt(progress, now) {
 
 export function liveReport(report, broadcast) {
   if (!report) return undefined;
-  if (broadcast.finished) return withPlayerRatings(report);
   const second = broadcast.seconds;
   const events = report.events.filter((e) => (e.second ?? e.minute * 60) <= second);
   // Bounded live payload. Preserve goals/cards even when ordinary touches roll out.
@@ -78,6 +83,22 @@ export function liveReport(report, broadcast) {
   const visibleEvents = events.filter(
     (e, i) => i >= tail || playerStatEvents.has(e.type) || e.type === 'penaltyGoal',
   );
+  if (broadcast.finished) {
+    // This can still be polled while AI fixtures finish. Ratings use the full
+    // evidence, but the live endpoint must not send every historical snapshot
+    // and ordinary touch again every second. The archive endpoint stays full.
+    return {
+      ...withPlayerRatings(report),
+      events: visibleEvents,
+      timeline: report.timeline?.slice(-2) ?? [],
+      snapshots: report.snapshots.map((s) => ({
+        id: s.id,
+        name: s.name,
+        tactics: s.tactics,
+        players: [],
+      })),
+    };
+  }
   const prefix = report.timeline?.filter((p) => p.second <= second).at(-1);
   const stats =
     prefix?.stats ??
