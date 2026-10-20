@@ -21,7 +21,10 @@ import {
 } from '../../packages/shared/modules/matches/physics.mjs';
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
 import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
-import { shotCandidate } from '../../packages/shared/modules/matches/decisions.mjs';
+import {
+  carryTouchSpeed,
+  shotCandidate,
+} from '../../packages/shared/modules/matches/decisions.mjs';
 
 function actor(id, side, x, z, changes = {}, role = 'MID') {
   const p = structuredClone(createGame().clubs[0].players.find((p) => p.role === role));
@@ -220,6 +223,19 @@ test('jogging, pressing, sprinting and controlled carrying use distinct physical
   assert.ok(speeds.every((v, i) => i === 0 || v > speeds[i - 1]));
   assert.ok(movement(p, 100, 'carry').speed < movement(p, 100, 'sprint').speed);
   assert.ok(movement(p, 30, 'sprint').speed < movement(p, 100, 'sprint').speed);
+});
+
+test('higher dribbling ability sends a tighter running touch without changing player speed', () => {
+  const ordinary = controlled('ordinary', 0, 50, 34, { dribbling: 45 }),
+    skilled = controlled('skilled', 0, 50, 34, { dribbling: 95 });
+  ordinary.velocity = { x: 4.2, z: 0 };
+  skilled.velocity = { x: 4.2, z: 0 };
+  const heading = { x: 1, z: 0 },
+    ordinaryTouch = carryTouchSpeed(ordinary, 'carryFast', heading),
+    skilledTouch = carryTouchSpeed(skilled, 'carryFast', heading);
+  assert.ok(skilledTouch < ordinaryTouch);
+  assert.ok(skilledTouch >= 2.2);
+  assert.ok(ordinaryTouch <= movement(ordinary.player, 100, 'carryFast').speed + 1.6);
 });
 
 test('an organiser passes and a dribbler carries in the same open situation across common seeds', () => {

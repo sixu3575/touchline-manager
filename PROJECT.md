@@ -1,6 +1,6 @@
 # 项目地图
 
-当前待发布候选0.20.0在0.18持球测量、0.19.2体能与此前玩法/UI更新上，进一步分开真实控制、团队控球语境与球的飞行/争抢；修正反弹恢复、松球超时和过渡后捡球的球权归属，并统一盘带风险与真实抢断的到达/体能/能力模型。无球权配额、无存档迁移。持球细则见[POSSESSION_V0200.md](packages/shared/modules/matches/design/POSSESSION_V0200.md)，节奏基线见[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。
+当前待发布候选0.25.0基于0.20控球/转换状态分离，修改带球脚触冲量：按沿路线跑速推球，盘带越高额外前送越小；球员跑速、传带射选择、传射参数、接触形状与控球宽限不变。固定八场中带球脱控均值191.38→118次，成功传球链1.76→2.12，每队传球664.75→806.5；控球阶段中位数仅5.06→5.29秒，约48%仍短于5秒，因此问题未解决。八场均review、无block。细节见[POSSESSION_V0250.md](packages/shared/modules/matches/design/POSSESSION_V0250.md)与[matches节奏诊断](packages/shared/modules/matches/design/TEMPO_V0180.md)。
 
 0.17.0按用户纠正将节奏修正放在连续转身/支撑摆腿/收腿执行，撤回0.16新增的射门抑制。合理远射和提前准备的一脚传射保留，不用整场统计反馈决策。用户在获知专项现实性block后明确授权上线本版本；block仍记录为未通过，后续版本继续遵循原门槛。入口[EXECUTION_V0170.md](packages/shared/modules/matches/design/EXECUTION_V0170.md)，[当前验证/阻断](packages/shared/modules/matches/design/CALIBRATION_V0170.md)；旧回放、5×和既有分层/PR/发布流程保持。
 

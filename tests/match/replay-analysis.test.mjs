@@ -122,6 +122,8 @@ test('replay analysis measures possession, pass direction, nearby pressure and f
   assert.deepEqual(report, before);
   assert.equal(analysis.status, 'available');
   assert.equal(analysis.teams[0].possessionMedianSeconds, 3);
+  assert.deepEqual(analysis.match.possessionTurnovers.underFiveEndReasons, { turnover: 1 });
+  assert.deepEqual(analysis.match.possessionTurnovers.underFiveByCompletedPasses, { '1': 1 });
   assert.equal(analysis.teams[0].forwardPasses, 1);
   assert.equal(analysis.teams[1].forwardPasses, 1, 'side attack direction is reversed after the break');
   assert.equal(analysis.teams[0].shotsWithDefenderWithinThreeMetres, 1);

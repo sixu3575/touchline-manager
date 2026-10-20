@@ -4,6 +4,11 @@ interface ReplayFlowTeam {
   possessionP90Seconds: number | null;
   possessionsUnderFiveSeconds: number | null;
   possessionsOverFifteenSeconds: number | null;
+  possessionTurnovers: {
+    endReasons: Record<string, number>;
+    underFiveEndReasons: Record<string, number>;
+    underFiveByCompletedPasses: Record<string, number>;
+  } | null;
   individualControlCount: number | null;
   individualControlMedianSeconds: number | null;
   individualControlMeanSeconds: number | null;

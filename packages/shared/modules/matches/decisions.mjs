@@ -42,6 +42,18 @@ export function playerProfile(p, anchor = { z: 34 }) {
 export function passSpeed(length, quality, lob = false) {
   return lob ? clamp(17 + length * 0.1, 18, 25) : groundPassPlan(length, quality).speed;
 }
+
+export function carryTouchSpeed(actor, mode, heading) {
+  const limits = movement(actor.player, actor.energy, mode),
+    running = Math.max(0, actor.velocity.x * heading.x + actor.velocity.z * heading.z);
+  const controlLead =
+    0.15 + (50 - ability(actor.player, 'dribbling')) * 0.004 + (mode === 'carryFast' ? 0.05 : 0);
+  return Math.min(
+    limits.speed + (mode === 'carryFast' ? 1.6 : 0.65),
+    Math.max(2.2, running + controlLead),
+  );
+}
+
 export function interceptionRisk(
   from,
   to,
@@ -410,12 +422,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         reason: option.reason,
         make: () => {
           const travel = unit(ball, destination),
-            m = movement(p, actor.energy, option.mode);
-          const running = Math.max(0, actor.velocity.x * travel.x + actor.velocity.z * travel.z);
-          const speed = Math.min(
-            m.speed + (option.mode === 'carryFast' ? 1.6 : 0.65),
-            Math.max(2.2, running + (option.mode === 'carryFast' ? 2.1 : 1.35)),
-          );
+            speed = carryTouchSpeed(actor, option.mode, travel);
           const error = ((rng() - 0.5) * (100 - q.value)) / 350;
           return {
             x: travel.x * speed - travel.z * error,

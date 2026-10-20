@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-20",
-  "baselineCommit": "7ab7be3da847ec616a2943b55086f429131387ba",
-  "engineVersion": "0.20.0-possession",
-  "parameterVersion": "possession-1",
+  "baselineCommit": "970475bada59d67cf3d7847226857e301469c673",
+  "engineVersion": "0.25.0-possession-touch",
+  "parameterVersion": "possession-5",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
   "rendering": {
@@ -32,8 +32,8 @@
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "ee6438d4f0d648bd6cf1fc030314ef5bb7d42092ccda06d6e5377d9748faefac",
     "packages/shared/modules/matches/locomotion.mjs": "4eef488448aa7176facb2981d74d4a8244b63206c51615a6b1751ff8919387e4",
-    "packages/shared/modules/matches/decisions.mjs": "ec608cd86b833d06bebe5b0537d88ce078e65eede7d3ea803da3ac52c278a605",
-    "packages/shared/modules/matches/simulation.mjs": "9b7d7f47b2e019e22c644517a6ae1e50fbb10f5d191f539a829f0528f179d05c",
+    "packages/shared/modules/matches/decisions.mjs": "09ceb488d57fcf46783ba48459702ae4f188959b02457b51884d727f2e375267",
+    "packages/shared/modules/matches/simulation.mjs": "0e06111614805eee1c27c67fab3506a7ff6ebbc5a2650a23fddb83e1699243ea",
     "packages/shared/modules/matches/continuity.mjs": "b7e6854cdd8c27a298c0d605598a9fe196448d4205617cfd3d9fa8b8fb1bed45",
     "packages/shared/modules/matches/receiving.mjs": "be094739427f309719a8625a7bff1546a233f23327ebb0708a7ce2da16fbb727",
     "packages/shared/modules/matches/goalkeeping.mjs": "3943deb3ebabbfd96e1f0f5ffc0d177f0b35a1cf440fd4ef9cd082dc60af3af8",
@@ -52,7 +52,9 @@
     "packages/shared/modules/matches/ratings/index.mjs": "d68025690ba778f21d029ac33c8f69670e738a7b1a0d4e988a93d94e9dea5233",
     "packages/shared/modules/matches/activity.mjs": "cced9f6e6931e6e0ec14a1f6959a5ec5dbb0a8d88d2c0fef31388a361b68bb92",
     "packages/shared/modules/matches/defending.mjs": "9774c9377a1b1d6c4997419c7b219ceb1362db4371f6bf6c17538b487fa84718",
-    "packages/shared/modules/matches/execution.mjs": "697baad8d71a0653d697bfc2eba2473df3c4b893141826e4f28c74f47efbe951"
+    "packages/shared/modules/matches/execution.mjs": "697baad8d71a0653d697bfc2eba2473df3c4b893141826e4f28c74f47efbe951",
+    "packages/shared/modules/matches/replay-analysis.mjs": "aa43d8ca08c570c694a50eba30ae8a8cbad9c48e93891f0ec68c81bd432dfafb",
+    "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56"
   },
   "diagrams": {
     "01-overview": {
@@ -72,8 +74,8 @@
       "svgSha256": "1d70d58fa03d9dbb14ebc9adf034539b5edaadd96d9a7c2f3eaae4d7b0dfe785"
     },
     "05-actions": {
-      "mermaidSha256": "802b388d4de82c43142bb8a60f8435e5be2d98a8978f732204602e58998d48c2",
-      "svgSha256": "e3d00274d1fa4de31354be3583441a5468bbbd0c1b0300502c67ad499f9bdde3"
+      "mermaidSha256": "f41609a51e91c71dc4ff249a4870c72fe999f8531508a9e4405c49bca0fb0b0d",
+      "svgSha256": "f6bd6af15398e08b3c58a466d5fb96fc39a24e999f82cdf7bf0d3d57007702c3"
     },
     "06-profiles": {
       "mermaidSha256": "4eb540ef7bc49ed7fffdd9c29b1694c8851b933599da2b48ec3729c0eb6bf2a8",
