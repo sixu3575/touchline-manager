@@ -33,6 +33,8 @@ JSON/SQLite仍3，启动迁移不变。当前球员可选attributeProfile:{versi
 
 数据库 game.sqlite 位于 DATA_DIR；生产 /var/lib/touchline-manager，与 /srv 只读发布目录分开。
 
+0.26.0-possession-screen仅调整第一上抢者的近身站位目标，引擎为`0.26.0-possession-screen`/参数`possession-6`；JSON/SQLite schema、报告结构和回放编码不变，无迁移或历史重算。旧引擎检查点须在升级前结算，不能由新引擎恢复。
+
 - saves：id、token_hash、state（JSON）、updated_at。JSON schemaVersion=3，revision 随操作递增。
 - operations：(save_id,request_id) 唯一，body_hash 校验相同标识意图。相同请求返回当前状态，过期 revision 返回 409。
 - state：原字段加 gameDate；所有当前 clubs.players 与 market 具有球员模型 2 字段，见 PLAYERS.md。

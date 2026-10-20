@@ -318,7 +318,8 @@ test('a shielded close touch invites jockeying, while an exposed touch remains p
     tackleProbability(defender, carrier, { x: 50.1, z: 34 }, [defender, carrier], 55, 95) > alone,
     'getting to the exposed ball first improves the chance',
   );
-  const roles = { chasers: [2, defender.index], time: 10 };
+  const firstPresser = actor(2, 0, 18.5),
+    roles = { chasers: [firstPresser.index, defender.index], time: 10 };
   defender.direction = 1;
   defender.side = 0;
   defender.pos = { x: 18, z: 34 };
@@ -326,7 +327,7 @@ test('a shielded close touch invites jockeying, while an exposed touch remains p
   carrier.pos = { x: 20, z: 34 };
   const target = targetFor(
     defender,
-    [defender, carrier],
+    [firstPresser, defender, carrier],
     { x: 19.5, z: 34 },
     carrier,
     1,
@@ -337,6 +338,27 @@ test('a shielded close touch invites jockeying, while an exposed touch remains p
   assert.ok(
     Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) < 1,
     'cover steps in at shot range instead of retreating forever',
+  );
+});
+
+test('a central presser closes to jockeying distance without driving into the carrier', () => {
+  const defender = actor(0, 0, 48.5),
+    carrier = actor(1, 1, 50);
+  defender.direction = 1;
+  const roles = { chasers: [defender.index], time: 10 };
+  const target = targetFor(
+    defender,
+    [defender, carrier],
+    { x: 50.2, z: 34 },
+    carrier,
+    1,
+    { press: 'normal' },
+    roles.chasers,
+    roles,
+  );
+  assert.ok(
+    Math.abs(Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) - 1.05) < 1e-9,
+    'the first presser screens from close range instead of targeting body overlap',
   );
 });
 

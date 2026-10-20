@@ -74,8 +74,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.25.0-possession-touch';
-export const PARAMETER_VERSION = 'possession-5';
+export const ENGINE_VERSION = '0.26.0-possession-screen';
+export const PARAMETER_VERSION = 'possession-6';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
