@@ -1,5 +1,5 @@
 import { clamp } from '../../core/index.mjs';
-import { ability } from './skills.mjs';
+import { matchPhysicalProfile, updateMatchEnergy } from '../players/index.mjs';
 
 // Actor-local state is included by packActors. SI units; no frame/RNG dependence.
 export function activityState() {
@@ -22,6 +22,7 @@ export function activityState() {
   };
 }
 export function sprintAvailable(actor) {
+  if ((actor.energy ?? actor.player?.matchState?.energy ?? 100) <= 0) return false;
   return (
     !actor.activity ||
     actor.activity.adrenalineRemaining > 0 ||
@@ -30,8 +31,11 @@ export function sprintAvailable(actor) {
 }
 export function triggerAdrenalineSprint(actor, critical) {
   const a = actor.activity;
-  if (!critical || !a || sprintAvailable(actor) || (a.emergencyDebt ?? 0) > 0.2) return false;
-  a.adrenalineRemaining = 1.4;
+  const energy = actor.energy ?? actor.player?.matchState?.energy ?? 100;
+  if (!critical || !a || energy <= 0 || sprintAvailable(actor) || (a.emergencyDebt ?? 0) > 0.2)
+    return false;
+  a.adrenalineRemaining =
+    matchPhysicalProfile(actor.player).adrenalineDuration * Math.sqrt(clamp(energy / 100, 0, 1));
   a.adrenalineEfforts++;
   a.emergencyDebt = 1;
   if (actor.player.matchState) actor.player.matchState.sprintRecovering = false;
@@ -59,12 +63,12 @@ export function recordMovement(actor, before, after, dt, active, carrying) {
   a.zones[zone] += metres;
   a.seconds[zone] += dt;
   a[active ? 'liveMetres' : 'deadMetres'] += metres;
-  const endurance = ability(actor.player, 'stamina') / 100;
+  const profile = matchPhysicalProfile(actor.player);
+  const endurance = profile.stamina / 100;
   // Excess exertion recovers with low-intensity time, not a per-match quota.
   a.emergencyDebt = Math.max(
     0,
-    (a.emergencyDebt ?? 0) -
-      dt * (0.002 + endurance * 0.002) * (speed < 2 ? 1 : speed < 4.2 ? 0.4 : 0),
+    (a.emergencyDebt ?? 0) - dt * profile.debtRecovery * (speed < 2 ? 1 : speed < 4.2 ? 0.4 : 0),
   );
   const high = speed > 5.56;
   if (high) a.highDuration += dt;
@@ -75,13 +79,20 @@ export function recordMovement(actor, before, after, dt, active, carrying) {
   }
   // Repeated starts and cuts also consume short-term capacity. A fast player
   // cannot reset to 'rest' just by zigzagging below the high-speed threshold.
-  const workLoad = positiveWork / 120 + turningWork / 160;
+  const workLoad = (positiveWork / 96 + turningWork / 128) / profile.burstCapacity;
   a.load = clamp(
-    a.load + workLoad + dt * (high ? 0.2 - 0.05 * endurance : speed < 2 ? -0.05 : -0.012),
+    a.load +
+      workLoad +
+      dt *
+        (high
+          ? (0.2 - 0.05 * endurance) / profile.burstCapacity
+          : speed < 2
+            ? -profile.reserveRecovery
+            : -0.24 * profile.reserveRecovery),
     0,
     1,
   );
-  a.recovery = Math.max(0, a.recovery - dt * (speed < 4.2 ? 1 : 0.4));
+  a.recovery = Math.max(0, a.recovery - dt * (speed < 4.2 ? 1 : 0.4) * profile.recoveryRate);
   if (kmh > 25) {
     if (!a.sprinting) a.sprintEfforts++;
     a.burst += dt;
@@ -93,4 +104,23 @@ export function recordMovement(actor, before, after, dt, active, carrying) {
     actor.player.matchState.exertion = a.load;
     actor.player.matchState.sprintRecovering = !sprintAvailable(actor);
   }
+}
+
+// A real fifteen-minute interval, without advancing the 90-minute match clock
+// or inventing movement distance. Only recover resources; never refill to 100.
+export function restAtHalfTime(actor) {
+  const a = actor.activity;
+  const profile = matchPhysicalProfile(actor.player);
+  actor.energy = updateMatchEnergy(actor.player, actor.energy, 0, 'normal', false, 900);
+  actor.player.matchState.energy = actor.energy;
+  a.load = Math.max(0, a.load - 900 * profile.reserveRecovery);
+  a.recovery = Math.max(0, a.recovery - 900 * profile.recoveryRate);
+  a.emergencyDebt = Math.max(0, (a.emergencyDebt ?? 0) - 900 * profile.debtRecovery);
+  a.adrenalineRemaining = 0;
+  a.highDuration = 0;
+  a.burst = 0;
+  a.sprinting = false;
+  a.previousVelocity = { x: 0, z: 0 };
+  actor.player.matchState.exertion = a.load;
+  actor.player.matchState.sprintRecovering = !sprintAvailable(actor);
 }

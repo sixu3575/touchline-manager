@@ -8,7 +8,7 @@ User=football
 Group=football
 WorkingDirectory=/srv/touchline-manager/current
 EnvironmentFile=/etc/touchline-manager.env
-ExecStart=/usr/bin/node --max-old-space-size=128 /srv/touchline-manager/current/packages/server/src/index.mjs
+ExecStart=/usr/bin/node --max-old-space-size=128 --max-semi-space-size=4 --wasm-num-compilation-tasks=1 --wasm-lazy-compilation /srv/touchline-manager/current/packages/server/src/index.mjs
 Restart=on-failure
 RestartSec=3
 MemoryMax=512M

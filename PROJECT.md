@@ -1,5 +1,7 @@
 # 项目地图
 
+0.29.0候选见[体能完整公式](packages/shared/modules/matches/design/PHYSIOLOGY_V0290.md)：players/physiology维护力量/耐力参数，match-state管理持续能量，matches/activity管理短时负荷/肾上腺素/半场，locomotion执行疲劳跑动，competitions在下一场冻结输入中恢复经过的7日。保持30项能力、0–100体能条与逐场调度；历史不重算。本次按原规则执行比赛和完整赛季，流程不改。
+
 0.28本次只发布[底线控球修复](packages/shared/modules/matches/design/BOUNDARY_V0280.md)，引擎0.28.0-boundary / boundary-1，其他算法与任务结构沿用0.27。用户在[现机四场容量未过](packages/server/src/design/CAPACITY_V0280_20261020.md)后选择保留现机、先修底线，四场暂不开启。并发候选另行保留；不要把方案或候选状态当作生产已启用。
 
 0.27.0系统重构见[控球与节奏模型](packages/shared/modules/matches/design/CONTROL_MODEL_V0270.md)：持球感知与重复脚触分离，统一保球/传/带/射的后续机会价值；身体跟随滚动球准备，脚部连续摆动，实际触球后确认控球；防线阵块/交接与压迫速度跟随；团队阶段不再按散球超时切断。数学、原始根因、现实样本口径和未解决偏差归档，七张决策图同步。新onball/opportunity仅为matches内部模块，无新运行依赖、schema迁移或开发流程变更；历史回放不重算。以下为历史版本记录。

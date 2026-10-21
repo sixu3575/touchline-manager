@@ -2,8 +2,10 @@ import { random, seedFrom, clamp, decimal } from '../../core/index.mjs';
 import { ATTRIBUTE_GROUPS, COUNTRIES, PERSONALITY, INTERESTS } from './catalog.mjs';
 import { profileAttributes, ATTRIBUTE_PROFILE_VERSION } from './profiles.mjs';
 import { developmentState, ageDevelopment, assignedTraining } from './development.mjs';
+import { recoveredCondition } from './physiology.mjs';
 export * from './catalog.mjs';
 export * from './match-state.mjs';
+export * from './physiology.mjs';
 export * from './assessment.mjs';
 export { ATTRIBUTE_PROFILE_VERSION, SPECIALISMS } from './profiles.mjs';
 
@@ -368,7 +370,7 @@ export function settlePlayerMatch(
       Number.isFinite(energy)
         ? energy
         : p.fitness - (press === 'high' ? 12 : press === 'low' ? 5 : 8),
-      20,
+      0,
       100,
     );
     p.goals += goals;
@@ -388,8 +390,8 @@ export function settlePlayerMatch(
     p.wellbeing.confidence = clamp(mind.confidence, 0, 100);
   }
 }
-export function recoverPlayer(p, amount = 8) {
-  p.fitness = Math.min(100, p.fitness + amount);
+export function recoverPlayer(p, days = 7) {
+  p.fitness = recoveredCondition(p, p.fitness, days);
 }
 export function joinClub(p) {
   p.wellbeing.clubAttachment = 20;

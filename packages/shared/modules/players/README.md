@@ -1,5 +1,7 @@
 # 球员模块
 
+0.29.0的physiology.mjs从裸力量/耐力计算容量和恢复参数，临时matchState缓存不得出站。`recoverPlayer(p, days=7)`现在接收游戏天数，不是恢复点数；0天不恢复，同一时间段只应用一次。`updateMatchEnergy`处理运动消耗和小幅低速恢复，半场复用；旧fitness保留，未来合法轮次才恢复。完整公式见[体能模型](../matches/design/PHYSIOLOGY_V0290.md)，以下20点硬底/固定恢复为历史行为。
+
 99号观察球员免费签入但按综合能力支付轮薪；修复已有零工资存档只能通过`packages/server/src/maintenance/player-profiles.mjs`显式离线维护计划执行，服务启动与HTTP读取不会自动改数据。精确观察门槛和一季14轮保证见[ASSESSMENT.md](ASSESSMENT.md)。
 
 0.15.0新增development.mjs：私有真实峰值/日期衰退/整数成长；对外ensurePlayerDevelopment/trainAssignedPlayer/updateAges，细项变化刷新skills。assessment专项证据与已确认峰值独立保存，不得读取私有峰值当公开认识。当前训练/年龄契约见[训练生涯](../training/TRAINING_AND_CAREERS_V0150.md)。
@@ -24,7 +26,7 @@
 
 依赖与文件归属见根目录 modules.json。跨模块只导入公共入口；每次开发在本目录 CHANGELOG.md 记录内容、验证和新增注意事项。既有分支、检查、PR、部署流程不变，流程优化需用户批准。
 
-0.3.0比赛结算的energy为可选有限数值，范围仍受20–100约束；没有此字段时保留旧扣体能规则。比赛模块只返回消耗结果，由本模块写回。细项在物理比赛中的作用详见matches/design/PHYSICAL_ENGINE_V1.md。
+比赛结算的energy为可选有限数值，0.29起范围为0–100（0.3旧版为20–100）；没有此字段时保留旧扣体能规则。比赛模块只返回消耗结果，由本模块写回。当前体能公式见matches/design/PHYSIOLOGY_V0290.md；最初物理细项设计保留在PHYSICAL_ENGINE_V1.md。
 
 0.4.0注意：新增match-state纯计算入口，封顶心理、分组体能、日期适应与赛内冲击；签约适应70，旧档100。结算接收mind与assists，评分不再读取球衣号随机。不得把临时matchState写入长期球员或重复结算心理。
 

@@ -1,4 +1,5 @@
 import { clamp } from '../../core/index.mjs';
+import { physicalProfile, matchPhysicalProfile } from './physiology.mjs';
 
 const physical = new Set(['acceleration', 'sprintSpeed', 'agility', 'balance', 'strength']);
 const technical = new Set([
@@ -21,7 +22,9 @@ const technical = new Set([
 ]);
 export function createMatchState(p) {
   return {
-    energy: p.fitness,
+    energy: clamp(p.fitness ?? 100, 0, 100),
+    energyCeiling: clamp(p.fitness ?? 100, 0, 100),
+    physiology: physicalProfile(p),
     morale: p.wellbeing?.morale ?? 50,
     confidence: p.wellbeing?.confidence ?? 50,
     adaptation: p.wellbeing?.adaptation ?? 100,
@@ -42,8 +45,9 @@ export function effectiveAbility(p, key) {
   const state = p.matchState;
   let value = p.attributes?.[key] ?? 50;
   if (!state) return value;
-  if (physical.has(key)) value *= 0.7 + 0.3 * Math.sqrt(state.energy / 100);
-  if (technical.has(key)) value *= 0.88 + (0.12 * state.energy) / 100;
+  const remaining = clamp(state.energy / 100, 0, 1);
+  if (physical.has(key)) value *= 0.7 + 0.3 * Math.sqrt(remaining);
+  if (technical.has(key)) value *= 0.88 + 0.12 * remaining;
   if (key === 'composure' || key === 'decisions') value += mentalModifier(state);
   return clamp(value, 1, 100);
 }
@@ -64,15 +68,33 @@ export function matchShock(p, morale, confidence, leadership = 0) {
   }
 }
 export function energyCost(p, speed, press, live, dt) {
+  const profile = matchPhysicalProfile(p);
   const role = p.role === 'GK' ? 0.45 : 1;
   const intensity = { high: 1.2, normal: 1, low: 0.85 }[press] ?? 1;
   return (
     ((dt * 0.32) / 60) *
     role *
     intensity *
-    (1 + 0.6 * clamp(speed / 8, 0, 1)) *
-    (1.35 - 0.007 * (p.attributes?.stamina ?? 50)) *
+    (0.2 + 0.4 * speed + 0.03 * Math.max(0, speed - 4) ** 2) *
+    profile.economy *
+    (100 / profile.capacity) *
     (live ? 1 : 0.2)
+  );
+}
+export function energyRecovery(p, speed, dt) {
+  const profile = matchPhysicalProfile(p);
+  return (
+    (dt / 60) *
+    profile.energyRecovery *
+    (100 / profile.capacity) *
+    clamp(1 - (speed / 2) ** 2, 0, 1)
+  );
+}
+export function updateMatchEnergy(p, energy, speed, press, live, dt) {
+  return clamp(
+    energy - energyCost(p, speed, press, live, dt) + energyRecovery(p, speed, dt),
+    0,
+    p.matchState?.energyCeiling ?? p.fitness ?? 100,
   );
 }
 export function advanceAdaptation(g, days) {

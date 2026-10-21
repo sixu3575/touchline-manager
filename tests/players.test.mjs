@@ -12,12 +12,45 @@ import {
   ageOn,
   trainPlayer,
   migratePlayer,
+  physicalProfile,
+  recoveredCondition,
+  recoverPlayer,
 } from '../packages/shared/modules/players/index.mjs';
 import { migrateState, migrateDatabase } from '../packages/server/src/storage/migrations.mjs';
 
 const allAttributes = Object.values(ATTRIBUTE_GROUPS)
   .flatMap((g) => Object.keys(g.attributes))
   .sort();
+
+test('days-based recovery depends on stamina and strength, preserves identity, and composes over time', () => {
+  const p = player('recovery', 'MID', 60, random(41));
+  const low = structuredClone(p),
+    endurance = structuredClone(p),
+    strong = structuredClone(p);
+  for (const a of [low, endurance, strong]) {
+    a.attributes.stamina = 20;
+    a.attributes.strength = 20;
+  }
+  endurance.attributes.stamina = 90;
+  strong.attributes.strength = 90;
+  assert.ok(physicalProfile(endurance).capacity > physicalProfile(low).capacity);
+  assert.ok(physicalProfile(strong).capacity > physicalProfile(low).capacity);
+  assert.ok(recoveredCondition(endurance, 28, 3) > recoveredCondition(low, 28, 3));
+  assert.ok(recoveredCondition(strong, 28, 3) > recoveredCondition(low, 28, 3));
+  assert.ok(recoveredCondition(low, 28, 7) > 90, 'one week is not the legacy eight points');
+  assert.equal(recoveredCondition(p, 28, 0), 28);
+  assert.equal(recoveredCondition(p, 100, 7), 100);
+  assert.throws(() => recoveredCondition(p, 28, -1));
+  assert.throws(() => recoveredCondition(p, 28, Infinity));
+  const split = recoveredCondition(p, recoveredCondition(p, 28, 2), 5);
+  assert.ok(Math.abs(split - recoveredCondition(p, 28, 7)) < 1e-10);
+  const before = structuredClone(p);
+  p.fitness = 28;
+  recoverPlayer(p, 7);
+  const { fitness, ...rest } = p,
+    { fitness: oldFitness, ...old } = before;
+  assert.deepEqual(rest, old, 'rest never regenerates a roster, attributes, peaks or observations');
+});
 function legacySave() {
   const state = createGame('保留俱乐部', 71);
   applyAction(state, 'advance');

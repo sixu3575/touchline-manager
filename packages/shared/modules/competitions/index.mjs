@@ -26,6 +26,9 @@ export function createCompetitionPlan(source, type) {
     if (g.round >= 14) throw Error('赛季已结束，请开启新赛季。');
     const round = g.round++;
     g.gameDate = addDays(g.gameDate, 7);
+    // The seven days precede these fixtures. Recover their frozen inputs, not
+    // their outputs; same-date cup fixtures must not receive a free week's rest.
+    for (const c of g.clubs) for (const p of c.players) recoverPlayer(p, 7);
     const ageChanges = updateAges(g);
     advanceAdaptation(g, 7);
     resolveTraining(g, ageChanges);
@@ -115,7 +118,6 @@ export function settleCompetition(plan, reports) {
       -me.players.reduce((s, p) => s + p.wage, 0),
       'wages-' + g.season + '-' + g.round,
     );
-    for (const c of g.clubs) for (const p of c.players) recoverPlayer(p);
     g.training.used = 0;
     if (g.round === 14) {
       const rank = standings(g).findIndex((c) => c.id === 'me') + 1;

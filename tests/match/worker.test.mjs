@@ -8,7 +8,65 @@ import { unpack } from '../../packages/server/src/storage/jobs.mjs';
 import { gunzipSync, gzipSync, inflateRawSync } from 'node:zlib';
 import { Worker } from 'node:worker_threads';
 import { once } from 'node:events';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { ENGINE_VERSION, PARAMETER_VERSION } from '../../packages/shared/modules/matches/index.mjs';
+
+test('published VM memory options preserve real worker checkpoint, halftime, events and every frame', async () => {
+  const unit = readFileSync(
+    new URL('../../deploy/touchline-manager.service', import.meta.url),
+    'utf8',
+  );
+  const command = unit
+    .split(/\r?\n/)
+    .find((line) => line.startsWith('ExecStart='))
+    .slice(10)
+    .split(/\s+/);
+  const flags = command.slice(1, -1);
+  const gameUrl = new URL('../../packages/shared/game.mjs', import.meta.url).href;
+  const matchUrl = new URL('../../packages/shared/modules/matches/index.mjs', import.meta.url).href;
+  const workerUrl = new URL('../../packages/server/src/simulation-worker.mjs', import.meta.url)
+    .href;
+  const source = `
+    import {Worker} from 'node:worker_threads';
+    import {once} from 'node:events';
+    const {createGame}=await import(${JSON.stringify(gameUrl)});
+    const {ENGINE_VERSION,PARAMETER_VERSION}=await import(${JSON.stringify(matchUrl)});
+    const g=createGame('运行参数',42), fixture={id:'runtime',seed:2026,options:{durationSeconds:60}};
+    const make=()=>new Worker(new URL(${JSON.stringify(workerUrl)}),{resourceLimits:{maxOldGenerationSizeMb:128}});
+    let worker=make();
+    const request=async(checkpoint)=>{const ready=once(worker,'message');worker.postMessage({id:'runtime-job',fixture,home:g.clubs[0],away:g.clubs[1],engineVersion:ENGINE_VERSION,parameterVersion:PARAMETER_VERSION,checkpoint,expectedTick:checkpoint?.tick??0,sliceSeconds:30});return (await ready)[0]};
+    const first=await request();if(first.error||first.done)throw Error(first.error??'Expected checkpoint');
+    await worker.terminate();worker=make();
+    const last=await request(first.part.checkpoint);await worker.terminate();
+    if(last.error||!last.done)throw Error(last.error??'Expected completion');
+    console.log(JSON.stringify(last.part,(key,value)=>ArrayBuffer.isView(value)?Array.from(value):value));
+  `;
+  const directory = mkdtempSync(join(tmpdir(), 'touchline-runtime-'));
+  let stdout;
+  try {
+    const entry = join(directory, 'worker-runtime.mjs');
+    writeFileSync(entry, source);
+    ({ stdout } = await promisify(execFile)(process.execPath, [...flags, entry], {
+      timeout: 30000,
+      maxBuffer: 8 * 1024 * 1024,
+      windowsHide: true,
+    }));
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+  const g = createGame('运行参数', 42);
+  const expected = simulate(g.clubs[0], g.clubs[1], 2026, 'runtime', { durationSeconds: 60 });
+  const canonical = JSON.parse(
+    JSON.stringify(expected, (key, value) =>
+      ArrayBuffer.isView(value) ? Array.from(value) : value,
+    ),
+  );
+  assert.deepEqual(JSON.parse(stdout), canonical);
+});
 
 test('worker continuation and a new worker restored from transferred frames equal uninterrupted simulation', async () => {
   const g = createGame('线程恢复', 42),
