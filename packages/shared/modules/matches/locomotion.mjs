@@ -10,6 +10,8 @@ export function movement(p, energy, mode = 'sprint') {
       matchState: { energy: energy ?? 100, morale: 50, confidence: 50, adaptation: 100 },
     };
   const a = (key) => clamp(ability(p, key), 1, 100);
+  const remaining = clamp((p.matchState.energy ?? energy ?? 100) / 100, 0, 1);
+  const effort = 0.35 + 0.65 * Math.sqrt(remaining);
   const pace = a('sprintSpeed'),
     top = 5.7 + 0.036 * pace;
   const speeds = {
@@ -21,13 +23,18 @@ export function movement(p, energy, mode = 'sprint') {
     carry: top * (0.6 + 0.002 * a('dribbling')),
     carryFast: top * (0.86 + 0.001 * a('dribbling')),
   };
-  if (p.matchState?.sprintRecovering) {
+  if (p.matchState?.sprintRecovering || remaining === 0) {
     speeds.sprint = speeds.run;
     speeds.carry = Math.min(speeds.carry, 4.5 + 0.003 * a('dribbling'));
     speeds.carryFast = speeds.carry;
   }
   return {
-    speed: speeds[mode] ?? speeds.run,
+    speed:
+      mode === 'stand'
+        ? 0
+        : mode === 'walk'
+          ? speeds.walk
+          : Math.max(speeds.walk, (speeds[mode] ?? speeds.run) * effort),
     topSpeed: top,
     acceleration: 2.4 + 0.035 * a('acceleration'),
     response: 0.55 + 0.0045 * a('agility'),

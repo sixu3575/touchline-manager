@@ -1,12 +1,14 @@
 # 0.12.0 属性接入审计（2026-10-19）
 
+0.29.0新增physiology消费者：真实stamina/strength决定持续容量、经济性、短时储备、低强度/半场恢复、肾上腺素时长与债务恢复、按天体能恢复。matches/activity、match-state/locomotion及competitions冻结输入已接入；维持30项和知识边界，缓存以裸属性计算，不以疲劳后的力量递归缩小容量。公式见matches/design/PHYSIOLOGY_V0290.md。
+
 0.15.0长期消费者补充：全部30项分别归入训练场地，未来比赛仍使用变化后的真实小项；年龄按类别/个人/职业态度产生真实细项衰退，潜力下降限制新成长，雄心与职业态度共同影响成长机会。教练专项/激励只通过训练改变未来输入；判断只改变观察精度。私有真实峰值用于恢复上限，公开确认峰值仅是信息；二者均不是本场额外能力。伤病及独立新属性仍搁置。
 
 0.14.0消费者新增matches/offball.mjs：无球/决策比较接应空间和通道、无球/灵活对抗盯防观察，盯人/预判/专注影响观察周期与有资格的漏看概率；teamwork稳定跑位计划。arrival.mjs共用速度/爆发/灵活/平衡估计；receiving.mjs用决策/预判抵扣预观察与停球质量选择顺势/卸力。30项和搁置清单不增删，真实细项仍只在服务端。
 
 0.13.0消费者仍全部有效；基础能力改用整数，进入原有效能力和物理公式后保留浮点精度。训练经验仅在累计满100后增加1点基础能力；不直接参与比赛计算。详见[INTEGER_STATS.md](INTEGER_STATS.md)。
 
-核对结论：现有30项均有真实比赛执行入口，6项新卡片概览均来自现有能力；没有为界面新增一组未接入的竞技属性。**被读取不等于每个位置/每次动作都有作用**，也不等于已证明数值平衡。以下为可核对的消费者与边界；tests/player-assessments.test.mjs检查引擎AST的实际能力读取，并覆盖耐力消耗。物理公式及动作分支本次未变，未重新模拟物理比赛。
+核对结论：现有30项均有真实比赛执行入口，6项新卡片概览均来自现有能力；没有为界面新增一组未接入的竞技属性。**被读取不等于每个位置/每次动作都有作用**，也不等于已证明数值平衡。以下为可核对的消费者与边界；tests/player-assessments.test.mjs检查引擎AST的实际能力读取，并覆盖耐力消耗。0.12原审计只核对消费者；本次0.29改变体能公式，已另做八场真实比赛校准并按原规则执行赛季验证，结果见体能设计与校准记录。
 
 源码路径均相对packages/shared/modules/。完整相关性和触发条件见[matches决策参考第6节](../matches/design/PLAYER_DECISION_MAP.md)。
 
@@ -34,8 +36,8 @@
 | sprintSpeed 冲刺速度 | locomotion.mjs；positioning.mjs；decisions.mjs | 速度上限、追球/前插排序、线路评估 |
 | agility 灵活 | locomotion.mjs；skills.mjs；decisions.mjs | 转向响应、停/带球、推进倾向 |
 | balance 平衡 | locomotion.mjs；skills.mjs；simulation.mjs | 刹车和接触处理稳定性，不免疫碰撞 |
-| strength 力量 | skills.mjs；simulation.mjs createBody/attemptTouch；decisions.mjs | 刚体质量、射门/头球速度及部分质量 |
-| stamina 耐力 | players/match-state.mjs energyCost | 降低掉体能速度，间接维持技术/身体能力 |
+| strength 力量 | skills.mjs；simulation.mjs createBody/attemptTouch；decisions.mjs；players/physiology.mjs | 刚体/射门/头球及质量；短时容量/紧急爆发、持续容量与恢复加成，不提高新鲜极速 |
+| stamina 耐力 | players/physiology.mjs；match-state.mjs；matches/activity.mjs；competitions经players入口 | 持续容量/经济性、短时负荷和恢复、爆发与债务恢复、按天恢复，间接维持能力/跑动 |
 | reflexes 门将反应 | goalkeeping.mjs keeperReaction；simulation.mjs；carrying.mjs | 门将处理等待、临时接管、突破风险；不是通用外场反应 |
 | handling 手型与接球 | simulation.mjs attemptTouch | 门将可卸下球速门槛 |
 | oneOnOnes 单刀处理 | positioning.mjs；goalkeeping.mjs；simulation.mjs | 门将出击/手部范围与扑球响应 |

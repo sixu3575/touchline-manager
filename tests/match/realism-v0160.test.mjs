@@ -5,8 +5,16 @@ import {
   burstReserve,
   recordMovement,
   sprintAvailable,
+  triggerAdrenalineSprint,
+  restAtHalfTime,
 } from '../../packages/shared/modules/matches/activity.mjs';
-import { movementMode } from '../../packages/shared/modules/matches/locomotion.mjs';
+import { movementMode, movement } from '../../packages/shared/modules/matches/locomotion.mjs';
+import {
+  createMatchState,
+  physicalProfile,
+  updateMatchEnergy,
+  effectiveAbility,
+} from '../../packages/shared/modules/players/index.mjs';
 import {
   continuityState,
   controlBall,
@@ -194,7 +202,8 @@ test('adrenaline grants a brief critical sprint and cannot immediately bypass it
     'the emergency effort does not refill the normal sprint reserve',
   );
 
-  for (let i = 0; i < 30; i++)
+  const duration = a.activity.adrenalineRemaining;
+  for (let i = 0; i < Math.ceil(duration / 0.05) + 1; i++)
     recordMovement(a, { x: 79, z: 34 }, { x: 79, z: 34 }, 0.05, true, false);
   assert.equal(sprintAvailable(a), false);
   assert.equal(a.activity.adrenalineRemaining, 0);
@@ -203,6 +212,82 @@ test('adrenaline grants a brief critical sprint and cannot immediately bypass it
     a.activity.adrenalineEfforts,
     1,
     'excess exertion must recover before another emergency burst',
+  );
+});
+
+test('strength and stamina buy capacity and recovery, never a higher personal fresh speed or free energy', () => {
+  const low = actor(0),
+    high = actor(1);
+  for (const a of [low, high]) {
+    a.player.fitness = 100;
+    a.player.attributes.stamina = 20;
+    a.player.attributes.strength = 20;
+  }
+  high.player.attributes.stamina = 90;
+  high.player.attributes.strength = 90;
+  for (const a of [low, high]) a.player.matchState = createMatchState(a.player);
+  assert.equal(
+    movement(low.player, 100, 'sprint').speed,
+    movement(high.player, 100, 'sprint').speed,
+  );
+  for (let i = 0; i < 80; i++)
+    for (const a of [low, high]) {
+      a.energy = updateMatchEnergy(a.player, a.energy, 7, 'normal', true, 0.05);
+      a.player.matchState.energy = a.energy;
+      recordMovement(a, { x: 0, z: 0 }, { x: 0.35, z: 0 }, 0.05, true, false);
+    }
+  assert.ok(high.energy > low.energy);
+  assert.ok(high.activity.load < low.activity.load);
+  for (const a of [low, high]) {
+    a.energy = 60;
+    a.player.matchState.energy = 60;
+    a.activity.load = 1;
+    a.activity.recovery = 20;
+  }
+  const oldEnergy = high.energy;
+  assert.ok(triggerAdrenalineSprint(low, true));
+  assert.ok(triggerAdrenalineSprint(high, true));
+  assert.ok(high.activity.adrenalineRemaining > low.activity.adrenalineRemaining);
+  assert.equal(high.energy, oldEnergy, 'adrenaline does not refill the tank');
+  const before = { distance: high.distance, efforts: high.activity.sprintEfforts };
+  restAtHalfTime(high);
+  assert.ok(high.energy > oldEnergy && high.energy < 70, 'half time gives a small recovery');
+  assert.equal(high.activity.load, 0);
+  assert.equal(high.activity.emergencyDebt, 0);
+  assert.equal(high.activity.sprintEfforts, before.efforts);
+  assert.equal(high.distance, before.distance, 'resting does not invent running');
+  high.energy = 0;
+  high.player.matchState.energy = 0;
+  assert.equal(sprintAvailable(high), false);
+  assert.equal(triggerAdrenalineSprint(high, true), false);
+  assert.ok(movement(high.player, 0, 'run').speed <= 2);
+});
+
+test('rest cannot heal pre-match condition and fatigue has bounded distinct physical, technical and gait effects', () => {
+  const a = actor(0);
+  a.player.fitness = 60;
+  a.player.attributes.sprintSpeed = 80;
+  a.player.attributes.passing = 80;
+  a.player.matchState = createMatchState(a.player);
+  for (let i = 0; i < 1000; i++)
+    a.energy = updateMatchEnergy(a.player, a.energy, 0, 'normal', false, 1);
+  assert.equal(a.energy, 60);
+  const speeds = [];
+  for (const energy of [0, 25, 50, 100]) {
+    a.player.matchState.energy = energy;
+    speeds.push(movement(a.player, energy, 'run').speed);
+    const physical = effectiveAbility(a.player, 'sprintSpeed'),
+      technical = effectiveAbility(a.player, 'passing');
+    assert.ok(Math.abs(physical - 80 * (0.7 + 0.3 * Math.sqrt(energy / 100))) < 1e-10);
+    assert.ok(Math.abs(technical - 80 * (0.88 + (0.12 * energy) / 100)) < 1e-10);
+  }
+  assert.ok(speeds.every((n, i) => i === 0 || n > speeds[i - 1]));
+  const profile = physicalProfile(a.player);
+  a.player.matchState.energy = 0;
+  assert.deepEqual(
+    physicalProfile(a.player),
+    profile,
+    'fatigue does not recursively shrink capacity',
   );
 });
 

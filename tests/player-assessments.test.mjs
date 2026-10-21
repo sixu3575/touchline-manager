@@ -322,9 +322,10 @@ test('all 30 live attributes have actual executable consumers; inspection does n
     };
     visit(ast);
   }
-  // Stamina is intentionally consumed by energyCost, not by generic actionQuality.
+  // Stamina and strength feed the shared physical profile, cached by the match
+  // state and consumed by energyCost/activity; neither is a display-only field.
   const energy = readFileSync(
-    new URL('packages/shared/modules/players/match-state.mjs', root),
+    new URL('packages/shared/modules/players/physiology.mjs', root),
     'utf8',
   );
   assert.match(energy, /p\.attributes\?\.stamina/);

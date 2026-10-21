@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+0.29.0的生产Node仍限制老生代128MiB、服务512MiB，新增`--max-semi-space-size=4 --wasm-num-compilation-tasks=1 --wasm-lazy-compilation`减少编译/GC临时内存；worker继承参数，非新增并发能力。旧版曾出现模拟期间cgroup内存终止，不能以空闲健康代替比赛容量。真实worker/半场恢复测试比较默认与发布参数的事件、统计和全部轨迹；JSON/SQLite、原逐场调度与开发流程保持。
+
 2026-10-20[四场容量实测](design/CAPACITY_V0280_20261020.md)未过，用户选择本次只发布底线修复。生产继续原单worker逐场计算和表版本3，独立候选中的四场/新存储/轻量入口暂不进入本发布。恢复/部署仍先排空原引擎任务并核验离机备份，原流程不变。
 
 终场锚点持久化一次后必须稳定；等待AI不是缓冲不足，不能每500ms刷新anchorAt并重写整份progress。仅未完成本场的真实缓冲仍随UTC保持暂停，不改变5×或提前结算。200次脉冲回归见live-round.test.mjs。

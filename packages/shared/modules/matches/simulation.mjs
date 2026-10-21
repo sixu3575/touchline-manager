@@ -38,7 +38,7 @@ import {
   kickRecovery,
   trackKickReceiver,
 } from './execution.mjs';
-import { activityState, burstReserve, recordMovement } from './activity.mjs';
+import { activityState, burstReserve, recordMovement, restAtHalfTime } from './activity.mjs';
 import {
   tackleWindow,
   tackleProbability,
@@ -54,7 +54,12 @@ import {
   contestOwner,
 } from './continuity.mjs';
 import { random, clamp, seedFrom } from '../../core/index.mjs';
-import { createMatchState, matchShock, energyCost, mentalModifier } from '../players/index.mjs';
+import {
+  createMatchState,
+  matchShock,
+  updateMatchEnergy,
+  mentalModifier,
+} from '../players/index.mjs';
 import {
   RULES_VERSION,
   inPenaltyArea,
@@ -98,8 +103,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.28.0-boundary';
-export const PARAMETER_VERSION = 'boundary-1';
+export const ENGINE_VERSION = '0.29.0-physiology';
+export const PARAMETER_VERSION = 'physiology-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -769,6 +774,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     for (let tick = startTick + 1; tick <= ticks; tick++) {
       time = tick * STEP;
       if (tick === Math.floor(ticks / 2)) {
+        for (const a of actors) if (!a.sentOff) restAtHalfTime(a);
         half = 1;
         kickoff(1, 'half');
       } else if (goalRestart && time >= goalRestart.at) {
@@ -1572,16 +1578,13 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         a.velocity = a.body.linvel();
         a.direction = direction(a.side);
         a.maxSpeed = Math.max(a.maxSpeed, Math.hypot(a.velocity.x, a.velocity.z));
-        a.energy = Math.max(
-          20,
-          a.energy -
-            energyCost(
-              a.player,
-              Math.hypot(a.velocity.x, a.velocity.z),
-              clubs[a.side].tactics.press,
-              active,
-              STEP * CLOCK_SCALE,
-            ),
+        a.energy = updateMatchEnergy(
+          a.player,
+          a.energy,
+          Math.hypot(a.velocity.x, a.velocity.z),
+          clubs[a.side].tactics.press,
+          active,
+          STEP * CLOCK_SCALE,
         );
         a.player.matchState.energy = a.energy;
         a.player.matchState.mental = mentalModifier(a.player.matchState);
