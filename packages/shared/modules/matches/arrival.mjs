@@ -10,6 +10,11 @@ export function arrivalTime(actor, point, mode = 'sprint', reaction = 0.08) {
     mode = mode === 'carryFast' ? 'carry' : mode === 'sprint' ? 'run' : mode;
   return boundedArrival(actor, point, movement(actor.player, actor.energy, mode), reaction);
 }
+export function interceptionReadTime(actor) {
+  const anticipation = actor.player.attributes?.anticipation ?? 50;
+  const positioning = actor.player.attributes?.positioning ?? 50;
+  return 0.08 + ((100 - anticipation) * 0.0007 + (100 - positioning) * 0.0005);
+}
 function boundedArrival(actor, point, m, reaction) {
   const h = unit(actor.pos, point);
   const v = actor.velocity ?? { x: 0, z: 0 };
@@ -35,6 +40,7 @@ export function movingBallIntercept(actor, ball) {
   const speed = Math.hypot(ball.vx ?? 0, ball.vz ?? 0);
   const mode = pursuitMode(actor, ball);
   const m = movement(actor.player, actor.energy, sprintAvailable(actor) ? mode : 'run');
+  const readingTime = interceptionReadTime(actor);
   let fallback = { point: { x: ball.x, z: ball.z }, time: Infinity },
     bestLate = Infinity;
   for (let t = 0.1; t <= 2.4; t += 0.1) {
@@ -45,7 +51,7 @@ export function movingBallIntercept(actor, ball) {
     if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) break;
     const height = Math.max(0.11, (ball.y ?? 0.11) + (ball.vy ?? 0) * t - 4.905 * t * t);
     if (height > (actor.height ?? 1.8) + 0.35) continue;
-    const arrival = boundedArrival(actor, point, m, 0.08);
+    const arrival = boundedArrival(actor, point, m, readingTime);
     if (arrival <= t) return { point, time: t, feasible: true };
     if (arrival - t < bestLate) {
       bestLate = arrival - t;

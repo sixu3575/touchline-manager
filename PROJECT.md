@@ -1,5 +1,7 @@
 # 项目地图
 
+0.31.0比赛组织与读球修正：[中场接应与拦截分布](packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0310.md)。稳定进攻中前卫留在球后接应，后腰仍负责保护；安全中场回收进入候选价值；预判/站位影响移动球拦截预测。旧报告不重算。
+
 0.30.0动作统计与评分入口见[matches设计](packages/shared/modules/matches/design/STATISTICS_V0300.md)。statistics.mjs独立观察已执行动作，ratings/statistics.mjs是客户端/评分共用的只读时钟裁切；新比赛使用opta-conventional-2/match-rating-3。物理/战术/体能仍沿0.29，历史评分不覆盖，四场并发保持关闭。
 
 0.29.0候选见[体能完整公式](packages/shared/modules/matches/design/PHYSIOLOGY_V0290.md)：players/physiology维护力量/耐力参数，match-state管理持续能量，matches/activity管理短时负荷/肾上腺素/半场，locomotion执行疲劳跑动，competitions在下一场冻结输入中恢复经过的7日。保持30项能力、0–100体能条与逐场调度；历史不重算。本次按原规则执行比赛和完整赛季，流程不改。

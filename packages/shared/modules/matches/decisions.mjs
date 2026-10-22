@@ -18,6 +18,7 @@ import {
   deliveryOptions,
   deliveryReceptionRisk,
   deliveryThreat,
+  midfieldOutletValue,
   tacticalPassValue,
 } from './tactical-plan.mjs';
 import { positionRoleNames } from '../tactics/index.mjs';
@@ -415,6 +416,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         success * continuationValue(target, mate, actors, direction) -
         (1 - success) * lost * (cross ? 0.6 : 1) +
         (cross ? deliveryThreat(mate, target, direction, variant, success) * 0.25 : 0) +
+        midfieldOutletValue(tactical, mate, forward, success, space) +
         (escape + retention + penetration + style) * 0.25 -
         0.035 * 0.25 * profile.inclination * clamp(forward / 10, 0.3, 1) +
         ambition * 0.25 * Math.sign(forward);

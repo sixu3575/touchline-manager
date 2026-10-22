@@ -121,6 +121,16 @@ export function attackAssignments(
       x = bx - (role === 'fullback' ? 12 : 3);
       z = ball.z + ownFlank * (role === 'fullback' ? 15 : 9);
       duty = 'support';
+    } else if (role === 'centralMid' && !state.fastBreak) {
+      // Keep a central outlet behind the ball during settled attacks. Without
+      // this role target, balanced and counter teams let every midfielder join
+      // the forward line and recycle possession through the front players.
+      x = Math.min(
+        bx - (state.phase === 'finalThird' ? 8 : 5),
+        actor.anchor.x + (bx - 52.5) * 0.45 + 3,
+      );
+      z = 34 + (actor.anchor.z - 34) * 0.72 + (ball.z - 34) * 0.08;
+      duty = 'support';
     }
     if (x !== undefined)
       assignments[actor.player.id] = {
@@ -213,4 +223,18 @@ export function tacticalPassValue(
   if (actor.positionRole === 'centreBack' && localX(ball.x, direction) < 35)
     bonus -= (1 - success) * 0.035;
   return clamp(bonus, -0.06, 0.14);
+}
+
+// An available central midfielder is a useful outlet in settled build-up. The
+// value disappears during an actual counter window and in the final third, so
+// it encourages circulation without assigning a pass quota or suppressing
+// forward play when the opportunity is on.
+export function midfieldOutletValue(state, mate, forward, success, space) {
+  if (state.fastBreak || !['buildup', 'midfield'].includes(state.phase)) return 0;
+  const role = mate.positionRole;
+  const roleWeight = role === 'centralMid' ? 1 : role === 'holdingMid' ? 0.8 : 0;
+  if (!roleWeight) return 0;
+  const safeSpace = clamp((space - 1.5) / 6, 0, 1);
+  const recyclingLane = clamp((11 - Math.max(0, forward)) / 11, 0, 1);
+  return 0.04 * roleWeight * success * safeSpace * recyclingLane;
 }

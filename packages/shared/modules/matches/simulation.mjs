@@ -104,7 +104,7 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.30.0-statistics';
+export const ENGINE_VERSION = '0.31.0-role-aware-flow';
 export const PARAMETER_VERSION = 'physiology-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.

@@ -1,5 +1,7 @@
 # 决策图导出副本
 
+0.31.0更新职责图与动作图：均衡/非反击阶段的中前卫球后接应、建构/中场安全中场出口选择价值，以及预判/站位对飞行球拦截读球时间的影响。引擎`0.31.0-role-aware-flow`，专项设计见[POSSESSION_DISTRIBUTION_V0310.md](../POSSESSION_DISTRIBUTION_V0310.md)。SVG按主文Mermaid重新导出，源码摘要同步核对。
+
 0.26.0候选更新第3图P10第一上抢者近身站位目标，并按Mermaid源重导`03-positioning.svg`。引擎`0.26.0-possession-screen`/`possession-6`。第一压迫者近身目标由0.35米改为持球者前方1.05米，保持真实触球和抢断窗口。固定八场中位数均值5.29→5.62秒、短于5秒占比47.99%→45.38%；另有指标上升，且约45%阶段仍短于5秒。详情见[POSSESSION_V0260.md](../POSSESSION_V0260.md)与[TEMPO_V0180.md](../TEMPO_V0180.md)。
 
 0.25.0候选更新第5图A14带球触球力度与盘带能力关系，并按Mermaid源重导`05-actions.svg`。引擎`0.25.0-possession-touch`/`possession-5`。仅改带球冲量，不改动作选择、球员速度、控制宽限或触球几何。八场同输入中位数5.06→5.29秒、仍约48%短于5秒；脱控与传球链有改善，但不能称节奏已解决。短回合终止原因只供后台分析。细节见[POSSESSION_V0250.md](../POSSESSION_V0250.md)与[TEMPO_V0180.md](../TEMPO_V0180.md)。

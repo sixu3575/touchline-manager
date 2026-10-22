@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+2026-10-22 0.31.0-role-aware-flow中场接应/拦截修正：比赛算法改动，match=true、season=false、physicalSeason=false；122项比赛单元与16项比赛/恢复/HTTP集成通过。四种战术×两个种子共8场现实比较，1场pass、7场review，`distributionAlerts=[]`。按真实位置汇总，传球为MID75.6%、FWD15.2%、DEF7.3%、GK1.9%；拦截为MID50.7%、DEF30.0%、FWD19.2%、GK0.2%。没有对球员统计做位置搬移。现实性总状态仍为review，原因是多名球员低速距离占比及一名球员的单场射门数超出工程复核区间；参考[专项结果](../packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0310.md)。`npm run check`完整通过（371秒，含类型检查、比赛专项和生产构建）；赛季未运行。分层和开发流程没有变化。
+
 0.30.0仅比赛动作统计/归属、评分和展示变化，按原映射执行比赛专项；不改重大游戏流程，season=false/physicalSeason=false。新增断言位于已有attribution/player-ratings/live-frames文件，不新增测试层级、改变Node22/24或PR/main流程。另复用0.29保存轨迹与同输入0.30完整比赛比对，记录现实比较与统计守恒；不为统计目标改决策。
 
 0.29.0同时改变比赛体能/运动和轮次恢复/结算，原自动映射要求比赛专项、完整受控业务赛季和一次完整物理赛季；另跑四战术×两种子现实比较，关注能量/负荷和跑动分布。针对性覆盖N/S分别生效、极端能量、爆发不补能或超速、半场/检查点、按天分段一致和冻结重试/同日杯赛。保持原门槛、Node22/24、测试层级/并行和PR/部署流程，不以单元通过替代现实校准。
