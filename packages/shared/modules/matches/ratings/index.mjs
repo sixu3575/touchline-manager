@@ -321,7 +321,7 @@ export function buildPlayerRatings(report) {
         'carrying',
         '过人与控球推进',
         modern
-          ? 0.12 * Math.log1p(row.takeOns) + 0.22 * Math.log1p(row.carryDistance / 100)
+          ? 0.12 * Math.log1p(row.takeOns) + Math.min(0.25, row.carryDistance * 0.001)
           : Math.min(0.25, row.carryDistance * 0.001),
       ),
       contribution(

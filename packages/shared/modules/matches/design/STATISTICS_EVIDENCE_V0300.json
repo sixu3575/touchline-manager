@@ -101,7 +101,7 @@
     },
     {
       "id": "c0-p7",
-      "rating": 7.4,
+      "rating": 7.3,
       "passes": 25,
       "completed": 21,
       "passCompletion": 84,
@@ -129,7 +129,7 @@
     },
     {
       "id": "c0-p13",
-      "rating": 7.5,
+      "rating": 7.3,
       "passes": 64,
       "completed": 51,
       "passCompletion": 80,
@@ -157,7 +157,7 @@
     },
     {
       "id": "c0-p12",
-      "rating": 7.7,
+      "rating": 7.6,
       "passes": 69,
       "completed": 58,
       "passCompletion": 84,
@@ -171,7 +171,7 @@
     },
     {
       "id": "c0-p10",
-      "rating": 7.3,
+      "rating": 7.1,
       "passes": 76,
       "completed": 53,
       "passCompletion": 70,
@@ -185,7 +185,7 @@
     },
     {
       "id": "c0-p17",
-      "rating": 7.6,
+      "rating": 7.2,
       "passes": 93,
       "completed": 75,
       "passCompletion": 81,
@@ -255,7 +255,7 @@
     },
     {
       "id": "c1-p7",
-      "rating": 7.8,
+      "rating": 7.7,
       "passes": 14,
       "completed": 13,
       "passCompletion": 93,
@@ -283,7 +283,7 @@
     },
     {
       "id": "c1-p14",
-      "rating": 9.3,
+      "rating": 9,
       "passes": 66,
       "completed": 57,
       "passCompletion": 86,
@@ -311,7 +311,7 @@
     },
     {
       "id": "c1-p11",
-      "rating": 9.1,
+      "rating": 8.9,
       "passes": 106,
       "completed": 88,
       "passCompletion": 83,
@@ -325,7 +325,7 @@
     },
     {
       "id": "c1-p15",
-      "rating": 7.7,
+      "rating": 7.5,
       "passes": 75,
       "completed": 56,
       "passCompletion": 75,
@@ -339,7 +339,7 @@
     },
     {
       "id": "c1-p19",
-      "rating": 8.3,
+      "rating": 8.2,
       "passes": 56,
       "completed": 46,
       "passCompletion": 82,
@@ -353,7 +353,7 @@
     },
     {
       "id": "c1-p18",
-      "rating": 7.5,
+      "rating": 7.4,
       "passes": 72,
       "completed": 55,
       "passCompletion": 76,

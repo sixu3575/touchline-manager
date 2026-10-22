@@ -293,6 +293,12 @@ test('new ratings reward measured take-ons and defensive work, without twice pen
     baseline,
     'intentions or unsuccessful volume do not create credit',
   );
+  const ordinaryCarry = make({});
+  ordinaryCarry.performance[2].carryDistance = 100000;
+  assert.ok(
+    row(ordinaryCarry).rating <= baseline + 0.3,
+    'ordinary carrying distance keeps its original limited contribution instead of farming a high grade',
+  );
 });
 
 test('the live counter stream survives the ordinary-event tail and never exposes future counters or ratings', () => {
