@@ -817,7 +817,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       score: [...score],
       stats: publicStats(),
       continuity: structuredClone(continuity.metrics),
-      timeline: structuredClone(timeline),
+      // Rows contain detached numeric snapshots and are never edited after push.
+      // Copy the array so a yielded report cannot grow when simulation resumes.
+      timeline: timeline.slice(),
       events: [...events],
       motion: {
         passSpeedMean: motion.passSpeedSum / (motion.passSamples || 1),
@@ -1889,13 +1891,18 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         physics.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
       const afterBall = physics.ball.translation();
-      if (active && actionStatistics.state.takeOn)
+      if (active && actionStatistics.state.takeOn) {
+        const duel = actionStatistics.state.takeOn;
+        const involved = [actorById(duel.player.id), actorById(duel.opponentId)].filter(
+          (a) => a && !a.sentOff,
+        );
         actionStatistics.observe(
-          playing().map(participant),
+          involved.map(participant),
           afterBall,
           continuity.controller === null ? null : actors[continuity.controller]?.player.id,
           time,
         );
+      }
       for (const a of actors)
         if (!a.sentOff)
           recordMovement(
