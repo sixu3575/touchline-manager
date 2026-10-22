@@ -1,6 +1,32 @@
 .report-archive {
   margin-bottom: 24px;
 }
+.team-match-rating {
+  display: flex;
+  align-items: center;
+  justify-content: inherit;
+  gap: 6px;
+  margin-top: 7px;
+  color: #718469;
+  font-size: 10px;
+  font-weight: 400;
+}
+.team-match-rating .match-rating {
+  min-width: 34px;
+  font-size: 11px;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+.report-archive-scoreline > strong:last-child .team-match-rating {
+  justify-content: flex-end;
+}
+.report-scoreboard .team-match-rating,
+.ratings-teams .team-match-rating {
+  justify-content: center;
+}
+.ratings-teams button[aria-pressed='true'] .team-match-rating {
+  color: #d0e0ca;
+}
 .report-archive-list {
   max-height: 560px;
   overflow-y: auto;
@@ -17,7 +43,10 @@
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 2px 8px #1c321008;
-  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
 }
 .report-archive-row + .report-archive-row {
   margin-top: 10px;

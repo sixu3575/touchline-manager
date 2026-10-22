@@ -7,6 +7,7 @@ import {
   withPlayerRatings,
   RATING_VERSION,
   playerStatisticsAt,
+  buildTeamRatings,
 } from '../packages/shared/modules/matches/ratings/index.mjs';
 import { createReplayStorage } from '../packages/server/src/storage/replays.mjs';
 import { liveReport } from '../packages/server/src/broadcast.mjs';
@@ -220,6 +221,12 @@ test('new report ratings are stored once, old BLOBs are enriched read-only, summ
     db.exec('COMMIT');
     assert.equal(state.reports[0].playerRatings, undefined);
     assert.equal(state.reports[0].detailsStored, true);
+    assert.equal(state.reports[0].teamRatings.length, 2);
+    assert.equal(
+      state.reports[0].teamRatings[0].rating,
+      null,
+      'four-player fixture is not a full starting XI',
+    );
     const payload = storage.report('one', 'ratings-report'),
       rated = JSON.parse(gunzipSync(payload));
     assert.equal(rated.playerRatings.version, RATING_VERSION);
@@ -227,6 +234,19 @@ test('new report ratings are stored once, old BLOBs are enriched read-only, summ
     assert.equal(storage.report('two', 'ratings-report'), undefined);
     const raw = gzipSync(JSON.stringify(report()));
     db.prepare('INSERT OR REPLACE INTO match_reports VALUES (?,?,?)').run('one', 'legacy', raw);
+    const oldSummary = { id: 'legacy', detailsStored: true };
+    const legacyTeam = storage.teamRatings('one', oldSummary);
+    legacyTeam[0].rating = 10;
+    assert.equal(
+      storage.teamRatings('one', oldSummary)[0].rating,
+      null,
+      'cached aggregates cannot be mutated by a reader',
+    );
+    assert.equal(
+      storage.teamRatings('two', oldSummary)[0].starterCount,
+      0,
+      'cache keys include save identity',
+    );
     assert.equal(
       JSON.parse(gunzipSync(storage.report('one', 'legacy'))).playerRatings.version,
       RATING_VERSION,
@@ -251,8 +271,49 @@ test('live reports hide final player scores until the authoritative broadcast ha
   r.stats = [{ possession: 50 }, { possession: 50 }];
   const live = liveReport(r, { finished: false, seconds: 100 });
   assert.equal(live.playerRatings, undefined);
+  assert.equal(live.teamRatings, undefined);
   const finished = liveReport(r, { finished: true, seconds: 5400 });
   assert.equal(finished.playerRatings.version, RATING_VERSION);
+});
+
+test('team score averages only the eleven archived starters, retaining historical player grades', () => {
+  const r = report();
+  r.snapshots = [0, 1].map((side) => ({
+    players: Array.from({ length: 11 }, (_, i) => ({ id: `${side}-${i}` })),
+  }));
+  r.playerRatings = {
+    version: 'historic-grades',
+    rows: r.snapshots.flatMap((team, side) =>
+      team.players.map((p, i) => ({ ...p, side, rating: i === 0 ? 8 : 7 })),
+    ),
+  };
+  r.playerRatings.rows.push({ id: 'unused-bench', side: 0, rating: 10 });
+  const original = JSON.stringify(r);
+  assert.deepEqual(
+    buildTeamRatings(r),
+    [0, 1].map(() => ({ rating: 7.1, starterCount: 11, ratedPlayers: 11 })),
+  );
+  const augmented = withPlayerRatings(r);
+  assert.strictEqual(augmented.playerRatings, r.playerRatings);
+  assert.equal(JSON.stringify(r), original, 'aggregation is read-only');
+  assert.strictEqual(withPlayerRatings(augmented), augmented, 'enrichment is idempotent');
+  r.playerRatings.rows[0].rating = null;
+  assert.equal(buildTeamRatings(r)[0].rating, null, 'do not silently average an incomplete XI');
+  assert.equal(buildTeamRatings(r)[0].ratedPlayers, 10);
+  assert.equal(
+    buildTeamRatings({ ...r, snapshots: [] })[0].rating,
+    null,
+    'grades alone cannot identify starters',
+  );
+  const compact = {
+    detailsStored: true,
+    replay: { players: r.snapshots.flatMap((s, side) => s.players.map((p) => ({ ...p, side }))) },
+  };
+  assert.equal(
+    buildTeamRatings(compact)[0].rating,
+    null,
+    'a summary must never invent neutral grades',
+  );
 });
 
 test('new ratings reward measured take-ons and defensive work, without twice penalizing the same possession loss', () => {

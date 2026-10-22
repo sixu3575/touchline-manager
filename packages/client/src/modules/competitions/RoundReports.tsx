@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FileText, Play } from 'lucide-react';
 import type { Game, Report } from '../../model';
 import { PanelHead } from '../../components/ui';
-import { MatchReport } from '../matches';
+import { MatchReport, TeamRating } from '../matches';
 import './competitions.css';
 export function RoundReports({ game, onReplay }: { game: Game; onReplay: (r: Report) => void }) {
   const [round, setRound] = useState(Math.max(1, game.round)),
@@ -68,11 +68,17 @@ export function RoundReports({ game, onReplay }: { game: Game; onReplay: (r: Rep
                   </span>
                 </small>
                 <div className="report-archive-scoreline">
-                  <strong className={h === 'me' ? 'report-own-team' : ''}>{home.name}</strong>
+                  <strong className={h === 'me' ? 'report-own-team' : ''}>
+                    {home.name}
+                    {summary && <TeamRating report={summary} side={0} />}
+                  </strong>
                   <span className="report-archive-score">
                     {result ? result.score.join(' : ') : '— : —'}
                   </span>
-                  <strong className={a === 'me' ? 'report-own-team' : ''}>{away.name}</strong>
+                  <strong className={a === 'me' ? 'report-own-team' : ''}>
+                    {away.name}
+                    {summary && <TeamRating report={summary} side={1} />}
+                  </strong>
                 </div>
               </div>
               <div className="report-archive-actions">
@@ -84,7 +90,10 @@ export function RoundReports({ game, onReplay }: { game: Game; onReplay: (r: Rep
                   <FileText size={16} aria-hidden="true" /> 查看战报
                 </button>
                 {report && ownMatch && report.canReplay !== false && (
-                  <button className="secondary report-replay-button" onClick={() => onReplay(report)}>
+                  <button
+                    className="secondary report-replay-button"
+                    onClick={() => onReplay(report)}
+                  >
                     <Play size={16} aria-hidden="true" /> 观看回放
                   </button>
                 )}

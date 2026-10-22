@@ -1,6 +1,9 @@
 .round-reports {
   margin-bottom: 24px;
 }
+.fixtures-standings {
+  margin-bottom: 24px;
+}
 .round-reports > label {
   display: flex;
   gap: 10px;

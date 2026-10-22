@@ -122,7 +122,13 @@ const server = http.createServer(async (req, res) => {
         const row = session(req, res);
         const state = JSON.parse(row.state);
         send(res, 200, {
-          state: publicState(state),
+          state: publicState({
+            ...state,
+            reports: state.reports.map((report) => ({
+              ...report,
+              teamRatings: replays.teamRatings(row.id, report),
+            })),
+          }),
           version,
           job: publicJob(state, jobs.latest(row.id)),
         });

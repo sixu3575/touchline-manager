@@ -1,5 +1,8 @@
 import { gzipSync, gunzipSync } from 'node:zlib';
-import { withPlayerRatings } from '../../../shared/modules/matches/ratings/index.mjs';
+import {
+  withPlayerRatings,
+  buildTeamRatings,
+} from '../../../shared/modules/matches/ratings/index.mjs';
 
 export function createReplayStorage(db) {
   const current = db.prepare('PRAGMA user_version').get().user_version;
@@ -19,7 +22,23 @@ export function createReplayStorage(db) {
   const findReport = db.prepare(
     'SELECT payload FROM match_reports WHERE save_id=? AND report_id=?',
   );
+  // Only two small aggregates per immutable archive; never retain full reports.
+  const ratingCache = new Map();
+  const cacheKey = (saveId, reportId) => JSON.stringify([saveId, reportId]);
+  function teamRatings(saveId, summary) {
+    if (summary.teamRatings) return summary.teamRatings;
+    if (!summary.detailsStored) return buildTeamRatings(summary);
+    const key = cacheKey(saveId, summary.id);
+    if (ratingCache.has(key)) return structuredClone(ratingCache.get(key));
+    const payload = findReport.get(saveId, summary.id)?.payload;
+    if (!payload) return buildTeamRatings(summary);
+    const result = buildTeamRatings(JSON.parse(gunzipSync(payload)));
+    ratingCache.set(key, result);
+    if (ratingCache.size > 128) ratingCache.delete(ratingCache.keys().next().value);
+    return structuredClone(result);
+  }
   return {
+    teamRatings,
     find(saveId, reportId) {
       return find.get(saveId, reportId)?.payload;
     },
@@ -41,6 +60,8 @@ export function createReplayStorage(db) {
     persist(saveId, state) {
       for (let index = 0; index < state.reports.length; index++) {
         const report = state.reports[index];
+        if (report.detailsStored && !report.teamRatings)
+          report.teamRatings = teamRatings(saveId, report);
         const own = report.homeId === 'me' || report.awayId === 'me';
         if (!own && report.homeId && report.awayId) {
           delete report.trajectory;
@@ -57,6 +78,7 @@ export function createReplayStorage(db) {
         }
         if ((report.eventFormatVersion ?? 0) >= 3 && !report.detailsStored) {
           const rated = withPlayerRatings(report);
+          ratingCache.delete(cacheKey(saveId, report.id));
           insertReport.run(saveId, report.id, gzipSync(JSON.stringify(rated), { level: 3 }));
           const {
             events,

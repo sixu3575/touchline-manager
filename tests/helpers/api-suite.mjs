@@ -270,6 +270,8 @@ export function registerApiSuite({ season = false, real = false, onlyDurable = f
             assert.equal(details.status, 200);
             const detailed = await details.json();
             assert.deepEqual(detailed.score, report.score);
+            assert.deepEqual(detailed.teamRatings, report.teamRatings);
+            assert.ok(detailed.teamRatings.every((team) => team.starterCount === 11));
             assert.ok(detailed.events.length > 0);
             assert.equal(detailed.snapshots.length, 2);
             assert.equal(

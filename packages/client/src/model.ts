@@ -66,6 +66,7 @@ export interface MatchEvent {
   changes?: Record<string, number>;
 }
 export interface Report {
+  teamRatings?: { rating: number | null; starterCount: number; ratedPlayers: number }[];
   season?: number;
   canReplay?: boolean;
   legacySummary?: boolean;
