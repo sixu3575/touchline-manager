@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FileText, Play } from 'lucide-react';
 import type { Game, Report } from '../../model';
 import { PanelHead } from '../../components/ui';
-import { MatchReport, TeamRating } from '../matches';
+import { MatchReport, MatchScoreline } from '../matches';
 import './competitions.css';
 export function RoundReports({ game, onReplay }: { game: Game; onReplay: (r: Report) => void }) {
   const [round, setRound] = useState(Math.max(1, game.round)),
@@ -67,19 +67,14 @@ export function RoundReports({ game, onReplay }: { game: Game; onReplay: (r: Rep
                     {result ? '已结束' : '未公布'}
                   </span>
                 </small>
-                <div className="report-archive-scoreline">
-                  <strong className={h === 'me' ? 'report-own-team' : ''}>
-                    {home.name}
-                    {summary && <TeamRating report={summary} side={0} />}
-                  </strong>
-                  <span className="report-archive-score">
-                    {result ? result.score.join(' : ') : '— : —'}
-                  </span>
-                  <strong className={a === 'me' ? 'report-own-team' : ''}>
-                    {away.name}
-                    {summary && <TeamRating report={summary} side={1} />}
-                  </strong>
-                </div>
+                <MatchScoreline
+                  report={summary}
+                  homeName={home.name}
+                  awayName={away.name}
+                  homeId={h}
+                  awayId={a}
+                  score={result?.score}
+                />
               </div>
               <div className="report-archive-actions">
                 <button

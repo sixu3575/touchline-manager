@@ -8,6 +8,7 @@ import {
   RATING_VERSION,
   playerStatisticsAt,
   buildTeamRatings,
+  buildTeamAbility,
 } from '../packages/shared/modules/matches/ratings/index.mjs';
 import { createReplayStorage } from '../packages/server/src/storage/replays.mjs';
 import { liveReport } from '../packages/server/src/broadcast.mjs';
@@ -227,6 +228,8 @@ test('new report ratings are stored once, old BLOBs are enriched read-only, summ
       null,
       'four-player fixture is not a full starting XI',
     );
+    assert.equal(state.reports[0].teamAbility[0].starterCount, 4);
+    assert.equal(state.reports[0].teamAbility[0].value, null);
     const payload = storage.report('one', 'ratings-report'),
       rated = JSON.parse(gunzipSync(payload));
     assert.equal(rated.playerRatings.version, RATING_VERSION);
@@ -247,6 +250,8 @@ test('new report ratings are stored once, old BLOBs are enriched read-only, summ
       0,
       'cache keys include save identity',
     );
+    assert.equal(storage.teamAbility('one', oldSummary)[0].starterCount, 4);
+    assert.equal(storage.teamAbility('two', oldSummary)[0].starterCount, 0);
     assert.equal(
       JSON.parse(gunzipSync(storage.report('one', 'legacy'))).playerRatings.version,
       RATING_VERSION,
@@ -314,6 +319,54 @@ test('team score averages only the eleven archived starters, retaining historica
     null,
     'a summary must never invent neutral grades',
   );
+});
+test('team ability is the rounded mean of the saved starting XI overall, never its match grades', () => {
+  const r = report();
+  r.snapshots = [0, 1].map((side) => ({
+    players: Array.from({ length: 11 }, (_, i) => ({
+      id: `${side}-${i}`,
+      role: 'MID',
+      ...(side === 0 && i === 0
+        ? {
+            attributes: Object.fromEntries(
+              [
+                'acceleration',
+                'sprintSpeed',
+                'finishing',
+                'longShots',
+                'composure',
+                'passing',
+                'vision',
+                'decisions',
+                'tackling',
+                'marking',
+                'positioning',
+                'stamina',
+                'reflexes',
+                'handling',
+                'oneOnOnes',
+                'aerialReach',
+                'command',
+              ].map((key) => [key, 70]),
+            ),
+          }
+        : {}),
+      overall: side ? 81 : i === 0 ? 99 : 59 + i,
+    })),
+  }));
+  r.playerRatings = {
+    version: 'match-rating-3',
+    rows: r.snapshots.flatMap((team, side) =>
+      team.players.map((player) => ({ ...player, side, rating: side ? 3 : 10 })),
+    ),
+  };
+  assert.deepEqual(buildTeamAbility(r), [
+    { value: 65, starterCount: 11, assessedPlayers: 11 },
+    { value: 81, starterCount: 11, assessedPlayers: 11 },
+  ]);
+  r.snapshots[0].players[10].overall = undefined;
+  assert.equal(buildTeamAbility(r)[0].value, null, 'an incomplete XI is not averaged');
+  assert.equal(buildTeamAbility(r)[0].assessedPlayers, 10);
 });
 
 test('new ratings reward measured take-ons and defensive work, without twice penalizing the same possession loss', () => {

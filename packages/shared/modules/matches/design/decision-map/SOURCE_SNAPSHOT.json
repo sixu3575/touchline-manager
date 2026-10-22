@@ -49,7 +49,7 @@
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
     "packages/shared/modules/matches/attribution.mjs": "3aa3f08eb00a490f00ee31b9cc47eb68894a01bf5df85e28d6e9c048758f40cb",
-    "packages/shared/modules/matches/ratings/index.mjs": "9253b17bd65cf7468c9f284f7b0694eca3b663837188cff2079fa20bbdd3e4d2",
+    "packages/shared/modules/matches/ratings/index.mjs": "753b0e63f81c6a3b6e5763dde36f02ed846ceed1a610c0191acbb4d9c724ef27",
     "packages/shared/modules/matches/activity.mjs": "7547053203cb186699d729ba9793b93a2bac8534280019f35b2ab244dead2a48",
     "packages/shared/modules/matches/defending.mjs": "eec884d5ef9e42e136f6189408caff7e187787c863f381fe616bc7030e299b17",
     "packages/shared/modules/matches/execution.mjs": "69aeae1444d6a8e4a518ffd59513984427cabb97f73ef329298b08af11d9f1be",

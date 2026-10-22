@@ -1,5 +1,6 @@
 // Lightweight public entry: post-match statistics only; never imports the engine.
 import { playerStatisticsAt } from './statistics.mjs';
+import { rating as playerAbility } from '../../players/index.mjs';
 export { playerStatisticsAt } from './statistics.mjs';
 export const RATING_VERSION = 'match-rating-3';
 const bound = (n, low, high) => Math.max(low, Math.min(high, n));
@@ -436,6 +437,40 @@ export function buildTeamRatings(report) {
           : null,
       starterCount: ids.size,
       ratedPlayers: graded.length,
+    };
+  });
+}
+
+// A team ability value is the integer mean of the exact starting XI's public
+// overall ability. This is separate from the 10-point post-match player grade.
+export function buildTeamAbility(report) {
+  return [0, 1].map((side) => {
+    const players = report.snapshots?.[side]?.players ?? [];
+    const unique = new Map(
+      players
+        .filter((player) => typeof player.id === 'string')
+        .map((player) => [player.id, player]),
+    );
+    const starters = [...unique.values()];
+    const abilities = starters.map((player) => {
+      if (!player.attributes && Number.isInteger(player.overall)) return player.overall;
+      if (!player.attributes && !player.skills) return null;
+      let value;
+      try {
+        value = playerAbility(player);
+      } catch {
+        return null;
+      }
+      return Number.isInteger(value) && value >= 1 && value <= 100 ? value : null;
+    });
+    const assessedPlayers = abilities.filter(Number.isInteger).length;
+    return {
+      value:
+        starters.length === 11 && assessedPlayers === 11
+          ? Math.round(abilities.reduce((sum, value) => sum + value, 0) / 11)
+          : null,
+      starterCount: starters.length,
+      assessedPlayers,
     };
   });
 }

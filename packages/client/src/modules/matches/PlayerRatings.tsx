@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Report } from '../../model';
 import { buildPlayerRatings } from '../../../../shared/modules/matches/ratings/index.mjs';
-import { TeamRating } from './TeamRating';
+import { TeamAbility } from './TeamAbility';
 
 const roles: Record<string, string> = { GK: '门将', DEF: '后卫', MID: '中场', FWD: '前锋' };
 export function PlayerRatings({ report }: { report: Report }) {
@@ -27,7 +27,7 @@ export function PlayerRatings({ report }: { report: Report }) {
             onClick={() => setSide(index)}
           >
             {name}
-            <TeamRating report={report} side={index} />
+            <TeamAbility report={report} side={index} />
           </button>
         ))}
       </div>

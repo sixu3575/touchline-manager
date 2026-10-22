@@ -4,6 +4,64 @@
 .fixtures-standings {
   margin-bottom: 24px;
 }
+.fixtures-grid {
+  margin-bottom: 24px;
+}
+.fixtures-grid > .round-reports {
+  margin-bottom: 0;
+}
+.fixtures-standings .league-table th,
+.fixtures-standings .league-table td {
+  white-space: nowrap;
+}
+.league-form-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.league-form-badges > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.league-form-badges .form-w {
+  background: #e7f3e4;
+  color: #417342;
+}
+.league-form-badges .form-d {
+  background: #f4f0df;
+  color: #8a773a;
+}
+.league-form-badges .form-l {
+  background: #f7e9e5;
+  color: #9a5448;
+}
+.league-form-badges .form-empty {
+  background: #f3f5f0;
+  color: #9ba78e;
+}
+.rank-change {
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rank-change.up {
+  color: #367648;
+}
+.rank-change.down {
+  color: #a65043;
+}
+.rank-change.unchanged {
+  color: #98a18f;
+}
+.fixture-score {
+  font-variant-numeric: tabular-nums;
+}
 .round-reports > label {
   display: flex;
   gap: 10px;

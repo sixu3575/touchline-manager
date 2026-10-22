@@ -126,7 +126,7 @@ const server = http.createServer(async (req, res) => {
             ...state,
             reports: state.reports.map((report) => ({
               ...report,
-              teamRatings: replays.teamRatings(row.id, report),
+              teamAbility: replays.teamAbility(row.id, report),
             })),
           }),
           version,
@@ -139,12 +139,13 @@ const server = http.createServer(async (req, res) => {
         const row = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;
         const id = decodeURIComponent(url.pathname.slice('/api/reports/'.length));
         const rawReport = row && replays.report(row.id, id);
-        const payload =
-          rawReport &&
-          gzipSync(
-            JSON.stringify(publicReport(JSON.parse(row.state), JSON.parse(gunzipSync(rawReport)))),
-            { level: 3 },
-          );
+        let payload;
+        if (rawReport) {
+          const stored = JSON.parse(gunzipSync(rawReport));
+          const report = publicReport(JSON.parse(row.state), stored);
+          report.teamAbility = replays.teamAbility(row.id, stored);
+          payload = gzipSync(JSON.stringify(report), { level: 3 });
+        }
         if (!payload) {
           send(res, 404, { error: '战报不存在或不属于此存档。' });
           return;

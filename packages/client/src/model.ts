@@ -11,6 +11,9 @@ export interface Standing {
   gf: number;
   ga: number;
   points: number;
+  recentResults: ('W' | 'D' | 'L')[];
+  rankChange: number | null;
+  nextOpponent: string | null;
 }
 export interface Club {
   id: string;
@@ -67,6 +70,7 @@ export interface MatchEvent {
 }
 export interface Report {
   teamRatings?: { rating: number | null; starterCount: number; ratedPlayers: number }[];
+  teamAbility?: { value: number | null; starterCount: number; assessedPlayers: number }[];
   season?: number;
   canReplay?: boolean;
   legacySummary?: boolean;

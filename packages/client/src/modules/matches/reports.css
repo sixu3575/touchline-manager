@@ -1,31 +1,73 @@
 .report-archive {
   margin-bottom: 24px;
 }
-.team-match-rating {
+.team-starting-ability {
   display: flex;
   align-items: center;
   justify-content: inherit;
   gap: 6px;
-  margin-top: 7px;
+  margin-top: 6px;
   color: #718469;
   font-size: 10px;
   font-weight: 400;
 }
-.team-match-rating .match-rating {
-  min-width: 34px;
+.team-starting-ability b {
+  min-width: 28px;
   font-size: 11px;
   padding: 3px 6px;
+  border-radius: 5px;
+  background: #edf5e1;
+  color: #456b32;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.report-archive-scoreline > strong:last-child .team-match-rating {
-  justify-content: flex-end;
+.team-starting-ability b.unrecorded {
+  min-width: 52px;
+  background: #f2f3ed;
+  color: #7d8575;
 }
-.report-scoreboard .team-match-rating,
-.ratings-teams .team-match-rating {
+.report-scoreboard .team-starting-ability,
+.ratings-teams .team-starting-ability {
   justify-content: center;
 }
-.ratings-teams button[aria-pressed='true'] .team-match-rating {
+.ratings-teams button[aria-pressed='true'] .team-starting-ability {
   color: #d0e0ca;
+}
+.report-scoreline {
+  min-width: 0;
+}
+.report-score-team {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: minmax(36px, auto) auto;
+  align-content: center;
+}
+.report-team-name {
+  display: flex;
+  align-items: end;
+  min-height: 36px;
+  line-height: 1.35;
+}
+.report-score-away .report-team-name {
+  justify-content: end;
+  text-align: right;
+}
+.report-score-away .team-starting-ability {
+  justify-content: end;
+}
+.report-archive-scoreline > .report-archive-score {
+  align-self: center;
+}
+.report-archive-score > b {
+  font: inherit;
+}
+.report-own-score {
+  color: #245a37;
+  font-weight: 850;
+}
+.report-score-away .team-starting-ability {
+  justify-content: flex-end;
 }
 .report-archive-list {
   max-height: 560px;
@@ -113,13 +155,16 @@
 }
 .report-archive-actions {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 7px;
+  width: 126px;
   flex-shrink: 0;
 }
 .report-archive-actions button {
   display: inline-flex;
   gap: 7px;
   align-items: center;
+  justify-content: center;
   white-space: nowrap;
   min-height: 38px;
   border-radius: 8px;
@@ -308,7 +353,8 @@
     min-width: 57px;
   }
   .report-archive-actions {
-    justify-content: flex-end;
+    width: 100%;
+    align-items: stretch;
   }
   .match-report {
     padding: 0 14px 20px;

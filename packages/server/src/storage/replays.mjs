@@ -2,6 +2,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import {
   withPlayerRatings,
   buildTeamRatings,
+  buildTeamAbility,
 } from '../../../shared/modules/matches/ratings/index.mjs';
 
 export function createReplayStorage(db) {
@@ -23,6 +24,7 @@ export function createReplayStorage(db) {
     'SELECT payload FROM match_reports WHERE save_id=? AND report_id=?',
   );
   // Only two small aggregates per immutable archive; never retain full reports.
+  const abilityCache = new Map();
   const ratingCache = new Map();
   const cacheKey = (saveId, reportId) => JSON.stringify([saveId, reportId]);
   function teamRatings(saveId, summary) {
@@ -37,8 +39,21 @@ export function createReplayStorage(db) {
     if (ratingCache.size > 128) ratingCache.delete(ratingCache.keys().next().value);
     return structuredClone(result);
   }
+  function teamAbility(saveId, summary) {
+    if (summary.teamAbility) return summary.teamAbility;
+    if (!summary.detailsStored) return buildTeamAbility(summary);
+    const key = cacheKey(saveId, summary.id);
+    if (abilityCache.has(key)) return structuredClone(abilityCache.get(key));
+    const payload = findReport.get(saveId, summary.id)?.payload;
+    if (!payload) return buildTeamAbility(summary);
+    const result = buildTeamAbility(JSON.parse(gunzipSync(payload)));
+    abilityCache.set(key, result);
+    if (abilityCache.size > 128) abilityCache.delete(abilityCache.keys().next().value);
+    return structuredClone(result);
+  }
   return {
     teamRatings,
+    teamAbility,
     find(saveId, reportId) {
       return find.get(saveId, reportId)?.payload;
     },
@@ -60,8 +75,8 @@ export function createReplayStorage(db) {
     persist(saveId, state) {
       for (let index = 0; index < state.reports.length; index++) {
         const report = state.reports[index];
-        if (report.detailsStored && !report.teamRatings)
-          report.teamRatings = teamRatings(saveId, report);
+        if (report.detailsStored && !report.teamAbility)
+          report.teamAbility = teamAbility(saveId, report);
         const own = report.homeId === 'me' || report.awayId === 'me';
         if (!own && report.homeId && report.awayId) {
           delete report.trajectory;
@@ -78,7 +93,8 @@ export function createReplayStorage(db) {
         }
         if ((report.eventFormatVersion ?? 0) >= 3 && !report.detailsStored) {
           const rated = withPlayerRatings(report);
-          ratingCache.delete(cacheKey(saveId, report.id));
+          const teamAbilityValue = teamAbility(saveId, report);
+          abilityCache.delete(cacheKey(saveId, report.id));
           insertReport.run(saveId, report.id, gzipSync(JSON.stringify(rated), { level: 3 }));
           const {
             events,
@@ -90,7 +106,13 @@ export function createReplayStorage(db) {
             playerRatings,
             ...summary
           } = rated;
-          state.reports[index] = { ...summary, events: [], snapshots: [], detailsStored: true };
+          state.reports[index] = {
+            ...summary,
+            events: [],
+            snapshots: [],
+            detailsStored: true,
+            teamAbility: teamAbilityValue,
+          };
         }
       }
       const retained = new Set(state.reports.map((r) => r.id));
