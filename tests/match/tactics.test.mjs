@@ -303,7 +303,8 @@ test('midfield outlet value rewards safe recycling and yields to counters and fo
   const state = { phase: 'midfield', fastBreak: false },
     central = { positionRole: 'centralMid' },
     striker = { positionRole: 'striker' };
-  assert.ok(midfieldOutletValue(state, central, 0, 0.9, 8) > 0);
+  const safeOutlet = midfieldOutletValue(state, central, 0, 0.9, 8);
+  assert.ok(safeOutlet > 0 && safeOutlet <= 0.012, 'a safe outlet is a small tie-break, not a pass quota');
   assert.equal(midfieldOutletValue(state, striker, 0, 0.9, 8), 0);
   assert.equal(midfieldOutletValue({ ...state, fastBreak: true }, central, 0, 0.9, 8), 0);
   assert.equal(midfieldOutletValue({ ...state, phase: 'finalThird' }, central, 0, 0.9, 8), 0);

@@ -236,5 +236,7 @@ export function midfieldOutletValue(state, mate, forward, success, space) {
   if (!roleWeight) return 0;
   const safeSpace = clamp((space - 1.5) / 6, 0, 1);
   const recyclingLane = clamp((11 - Math.max(0, forward)) / 11, 0, 1);
-  return 0.04 * roleWeight * success * safeSpace * recyclingLane;
+  // Keep the central outlet available without making role alone outweigh the
+  // pass lane, forward progress, and the receiver's real space.
+  return 0.012 * roleWeight * success * safeSpace * recyclingLane;
 }

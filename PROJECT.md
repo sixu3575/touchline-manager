@@ -1,6 +1,6 @@
 # 项目地图
 
-0.31.0比赛组织与读球修正：[中场接应与拦截分布](packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0310.md)。稳定进攻中前卫留在球后接应，后腰仍负责保护；安全中场回收进入候选价值；预判/站位影响移动球拦截预测。旧报告不重算。
+0.31.1候选比赛组织优化：[中场传球集中度复核](packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0311.md)。安全回收价值从+0.04降至+0.012，固定八场中场传球份额75.6%→64.4%，无block但保留射门/低速跑动review；完整本地检查通过，等待PR CI与发布。拦截归属和前场反抢不作统计修饰。
 
 0.30.0动作统计与评分入口见[matches设计](packages/shared/modules/matches/design/STATISTICS_V0300.md)。statistics.mjs独立观察已执行动作，ratings/statistics.mjs是客户端/评分共用的只读时钟裁切；新比赛使用opta-conventional-2/match-rating-3。物理/战术/体能仍沿0.29，历史评分不覆盖，四场并发保持关闭。
 

@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+2026-10-23 0.31.1-role-aware-pass-balance：仅缩小安全中场接应候选价值（+0.04→+0.012），属比赛算法；match=true、season=false、physicalSeason=false。针对性战术测试9项通过；固定八场现实比较4 pass、4 review、无block。位置份额从0.31.0的MID75.6/FWD15.2/DEF7.3/GK1.9%传球改为64.4/23.0/10.1/2.5%；拦截实际观测MID52.9/DEF38.0/FWD8.6/GK0.5%，不代表改动拦截算法。全场射门均值31.5，一场41次触发review；低速距离另有3项review，不能称整体现实性完全通过。`npm run check`通过（122项比赛单元、16项真实比赛/恢复/HTTP集成、类型检查和生产构建；约453秒）；无赛季。比较和敏感度说明见[POSSESSION_DISTRIBUTION_V0311.md](../packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0311.md)。CI与部署待完成；流程规则未改。
+
 2026-10-22 0.31.0-role-aware-flow中场接应/拦截修正：比赛算法改动，match=true、season=false、physicalSeason=false；122项比赛单元与16项比赛/恢复/HTTP集成通过。四种战术×两个种子共8场现实比较，1场pass、7场review，`distributionAlerts=[]`。按真实位置汇总，传球为MID75.6%、FWD15.2%、DEF7.3%、GK1.9%；拦截为MID50.7%、DEF30.0%、FWD19.2%、GK0.2%。没有对球员统计做位置搬移。现实性总状态仍为review，原因是多名球员低速距离占比及一名球员的单场射门数超出工程复核区间；参考[专项结果](../packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0310.md)。`npm run check`完整通过（371秒，含类型检查、比赛专项和生产构建）；赛季未运行。分层和开发流程没有变化。
 
 0.30.0仅比赛动作统计/归属、评分和展示变化，按原映射执行比赛专项；不改重大游戏流程，season=false/physicalSeason=false。新增断言位于已有attribution/player-ratings/live-frames文件，不新增测试层级、改变Node22/24或PR/main流程。另复用0.29保存轨迹与同输入0.30完整比赛比对，记录现实比较与统计守恒；不为统计目标改决策。
