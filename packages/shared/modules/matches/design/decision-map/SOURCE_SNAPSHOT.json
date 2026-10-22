@@ -59,12 +59,12 @@
     "packages/shared/modules/matches/opportunity.mjs": "ff114ae4f6961d61d70225acf0a7773e7ba22620e4da8af489335652abce7e24",
     "packages/shared/modules/players/physiology.mjs": "2f6a319acb08559e83a70dd531e6326ca313a3c4ba06bcee72f8ec9cb06b4d5b",
     "packages/shared/modules/matches/statistics.mjs": "f0d1c79408e84fd4419152d6dceabc894ecf6e82ab5d3fe7a37909d5a8591072",
-    "packages/shared/modules/matches/ratings/statistics.mjs": "8ef320bc4d78b3d00e41f17a0a6a4703012fb134eb3b88853cfeeabfccfca378"
+    "packages/shared/modules/matches/ratings/statistics.mjs": "bfe7163a5a58b704d64644222947aca3f129bf74f4e61be53b75b9c16b25479e"
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "5fafe3375b7ae74ff4e99d56dbd1a99f65f1870bceafd58e88ab7ddae33861cb",
-      "svgSha256": "f7d20a04514d145b72ac67c38b5d7d5c2b4dfa4e211af6a43e8ad52864c93ee1"
+      "mermaidSha256": "71942f3bb238bdbef745d82f1a3a1211fb098c903c972816f235f9103c67983d",
+      "svgSha256": "607bc942673e9570c5a4d4631c3417e1d022c6d76876ba62a69af1ab53c3f57a"
     },
     "02-roles": {
       "mermaidSha256": "aa8be6965f85d879b04f23bc354c08c87dc1b1faf6ca7b6c1ba981933cc3b8c3",

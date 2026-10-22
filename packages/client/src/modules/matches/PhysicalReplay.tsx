@@ -379,8 +379,8 @@ export function PhysicalReplay({
                   ],
                   ['丢失球权', eventStats.possessionLost ?? '未记录'],
                   ['射门 / 射正', `${eventStats.shots} / ${eventStats.onTarget ?? '—'}`],
-                  ['扑救', eventStats.saves],
-                  ['拦截', eventStats.interceptions],
+                  ['扑救', eventStats.saves ?? '—'],
+                  ['拦截', eventStats.interceptions ?? '—'],
                   [
                     '抢断成功 / 尝试',
                     `${eventStats.wonTackles ?? '—'} / ${eventStats.tackleAttempts ?? '—'}`,

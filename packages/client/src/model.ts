@@ -177,6 +177,7 @@ export interface Report {
   id: string;
   engineVersion: string;
   statisticsVersion?: string;
+  statisticsBaseSecond?: number;
   rulesVersion?: string;
   eventFormatVersion?: number;
   homeId: string;

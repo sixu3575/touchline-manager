@@ -6,6 +6,7 @@ import {
   buildPlayerRatings,
   withPlayerRatings,
   RATING_VERSION,
+  playerStatisticsAt,
 } from '../packages/shared/modules/matches/ratings/index.mjs';
 import { createReplayStorage } from '../packages/server/src/storage/replays.mjs';
 import { liveReport } from '../packages/server/src/broadcast.mjs';
@@ -307,4 +308,49 @@ test('the live counter stream survives the ordinary-event tail and never exposes
   assert.ok(live.events.some((e) => e.statId === 1));
   assert.ok(!live.events.some((e) => e.statId === 2));
   assert.equal(live.playerRatings, undefined);
+});
+
+test('live counters use the non-future snapshot plus deltas without repeating the full history', () => {
+  const r = report();
+  r.statisticsVersion = 'opta-conventional-2';
+  r.replay.players = [];
+  const stat = (statId, second, changes) =>
+    event('playerStat', '0-MID', 0, second, { statId, changes });
+  r.events = [
+    stat(1, 10, { passes: 2, completed: 2 }),
+    stat(4, 30, { passes: 1 }),
+    stat(2, 40, { passes: 1, completed: 1 }),
+    stat(3, 200, { passes: 1 }),
+  ];
+  r.timeline = [
+    { second: 30 - 1e-12, stats: r.stats, performance: [{ id: '0-MID', passes: 3, completed: 2 }] },
+    { second: 90, stats: r.stats, performance: [{ id: '0-MID', passes: 4, completed: 3 }] },
+  ];
+  const live = liveReport(r, { finished: false, seconds: 100 });
+  assert.equal(live.statisticsBaseSecond, r.timeline[0].second);
+  assert.deepEqual(
+    live.events.filter((e) => e.type === 'playerStat').map((e) => e.statId),
+    [2],
+  );
+  const p = playerStatisticsAt(live, '0-MID', 100);
+  assert.equal(p.passes, 4);
+  assert.equal(p.completed, 3);
+  assert.equal(p.passCompletion, 75);
+  assert.equal(
+    playerStatisticsAt(live, '0-MID', 20).passes,
+    undefined,
+    'a client behind the base never sees future counters',
+  );
+  assert.equal(
+    playerStatisticsAt({ ...live, timeline: [] }, '0-MID', 100).passes,
+    undefined,
+    'missing base data is unknown, not zero',
+  );
+  const finished = liveReport(r, { finished: true, seconds: 5400 });
+  assert.equal(finished.statisticsBaseSecond, undefined);
+  assert.equal(
+    playerStatisticsAt(finished, '0-MID', 5400).passes,
+    5,
+    'final archive evidence remains complete',
+  );
 });

@@ -35,6 +35,18 @@ export function playerStatisticsAt(report, playerId, second = Infinity) {
     'outLosses',
   ];
   for (const key of fields) result[key] = modern ? 0 : undefined;
+  const baseSecond = report.statisticsBaseSecond;
+  const base =
+    modern && Number.isFinite(baseSecond)
+      ? report.timeline?.find((p) => p.second === baseSecond)
+      : null;
+  const counterKeys = new Set([...fields, 'saves', 'interceptions']);
+  const baseRequested = modern && Number.isFinite(baseSecond);
+  const row = base?.performance?.find((p) => p.id === playerId);
+  const baseInFuture = baseRequested && (!base || !row || base.second > second + 1e-6);
+  if (baseRequested) {
+    for (const key of counterKeys) result[key] = baseInFuture ? undefined : row?.[key];
+  }
   const attempts = new Set(),
     outcomes = new Set(),
     deltas = new Set(),
@@ -44,11 +56,18 @@ export function playerStatisticsAt(report, playerId, second = Infinity) {
     if (!Number.isFinite(t) || t < 0 || t > second || (e.minute ?? t / 60) > 90) continue;
     const own = e.playerId === playerId;
     if (e.type === 'playerStat') {
-      if (!modern || !own || deltas.has(e.statId)) continue;
+      if (
+        !modern ||
+        !own ||
+        baseInFuture ||
+        deltas.has(e.statId) ||
+        (base && t <= base.second + 1e-6)
+      )
+        continue;
       deltas.add(e.statId);
       for (const [key, amount] of Object.entries(e.changes ?? {}))
-        if ([...fields, 'saves', 'interceptions'].includes(key) && Number.isFinite(amount))
-          result[key] += amount;
+        if (counterKeys.has(key) && Number.isFinite(amount))
+          result[key] = (result[key] ?? 0) + amount;
     } else if (e.type === 'shot' && own) {
       if (e.shotId === undefined || !attempts.has(e.shotId)) result.shots++;
       if (e.shotId !== undefined) attempts.add(e.shotId);

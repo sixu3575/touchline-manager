@@ -8,8 +8,8 @@ export function playerEventStatistics(
   assists: number;
   shots: number;
   onTarget: number | undefined;
-  saves: number;
-  interceptions: number;
+  saves: number | undefined;
+  interceptions: number | undefined;
   keyPasses: number;
   fouls: number;
   offsides: number;
