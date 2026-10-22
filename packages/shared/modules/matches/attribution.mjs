@@ -1,5 +1,5 @@
 // Statistical provenance only. No random draws, player abilities or ball impulses.
-export const STATISTICS_VERSION = 'opta-conventional-1';
+export const STATISTICS_VERSION = 'opta-conventional-2';
 
 export function attributionState() {
   return { version: STATISTICS_VERSION, sequence: 0, credit: null, attempt: null };
@@ -22,6 +22,7 @@ export function startAttempt(state, player, source = null) {
     ...(assist && source.assistEligible ? { assistCandidateId: source.passerId } : {}),
     ...(assist && source.keyPassEligible ? { keyPassCandidateId: source.passerId } : {}),
     keeper: null,
+    defender: null,
     blocked: false,
     lastLineBlock: false,
     woodwork: false,
@@ -41,13 +42,19 @@ export function recordIntervention(
   incomingGoalSide,
   lastLine = false,
   outgoingGoalSide = null,
+  second = null,
 ) {
   const attempt = state.attempt;
   if (!attempt || attempt.side === player.side) return;
   if (!attempt.deflectedBy.includes(player.id)) attempt.deflectedBy.push(player.id);
   if (incomingGoalSide !== attempt.side || outgoingGoalSide === attempt.side) return;
-  if (player.isKeeper) attempt.keeper ??= { id: player.id, side: player.side };
-  else {
+  if (player.isKeeper) {
+    attempt.keeper = { id: player.id, side: player.side };
+    attempt.defender = null;
+    attempt.savedAt = second;
+  } else {
+    attempt.keeper = null;
+    attempt.defender = { id: player.id, side: player.side };
     attempt.blocked = true;
     attempt.lastLineBlock ||= lastLine;
   }
@@ -77,6 +84,7 @@ export function finishAttempt(state, goalScorerId = null) {
     ...(goal && attempt.assistCandidateId ? { assistId: attempt.assistCandidateId } : {}),
     ...(!goal && attempt.keyPassCandidateId ? { keyPassId: attempt.keyPassCandidateId } : {}),
     ...(!goal && attempt.keeper ? { keeper: attempt.keeper } : {}),
+    ...(!goal && attempt.defender ? { defender: attempt.defender } : {}),
   };
 }
 

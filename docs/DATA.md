@@ -1,5 +1,9 @@
 # 数据与迁移
 
+周期时间线仅保留观看和计数需要的快照；控球阶段/传球链完整历史、跑动分区与防守诊断只在最终记录保存一次，原检查点保留完整运行状态。后台AI续算复用已压缩的广播表示，内部版本标记经publicReport边界剔除；不要绕过知识/诊断投影。
+
+0.30.0保持JSON/SQLite schema3，新增可选playerStat事件（statId/second/playerId/side/changes/reason）及对应个人/球队汇总，统计opta-conventional-2；检查点state.actionStatistics保存纯JSON观察状态，不能让新引擎续算0.29旧检查点。新评分match-rating-3，已有playerRatings版本原样保留。旧历史新增项未知，不从当前阵容或重演推断。
+
 0.29.0保留JSON/SQLite3、原任务/轨迹格式。physiology缓存与本场energyCeiling只存在于临时actor.matchState并随原检查点序列化，不出站、不写长期球员。旧fitness不批量改写；未来合法轮次才应用按天恢复，赛后能量可到0。旧报告/BLOB不重算，升级先排空旧引擎任务并校验离机备份，新引擎不得恢复旧检查点。
 
 0.28.0-boundary保留JSON3、SQLite表版本3和原检查点包装，仅新比赛使用边界控球参数。未接纳四场候选的新表/增量格式，历史BLOB不改；旧引擎未完成任务先结算。容量/恢复实验均使用隔离或一致备份副本，生产备份不入Git。
@@ -29,7 +33,6 @@ JSON/SQLite仍3，启动迁移不变。当前球员可选attributeProfile:{versi
 维护plan记录每个存档原JSON摘要与预期新摘要；apply在BEGIN IMMEDIATE中重新核对全计划、阻挡任何未complete任务，任一异常全库回滚。服务停止、已校验离机备份后才执行。再次生成计划将无变化，旧计划不能覆盖已更新存档。新名额售价/工资为0，不动现金，不加入正常初始化。
 
 0.10.0仍JSON3/SQLite3。新报告replay.players与performance可选positionRole（运行位置），事件可选phase、delivery=lofted/low/cutback、setPiece；intent/type仍cross，不重复计传球/助攻/评分。phase不是结果开关，setPiece用于区分角球与运动战。新赛内continuity.regainedAt自动随既有检查点保存；新旧引擎版本不兼容，发布先排空旧任务。没有迁移或旧报告重写，旧回放仅用旧字段/轨迹。
-
 
 0.9.0完整战报新增可选playerRatings:{version,baseline,minimum,maximum,rows}，独立match-rating-1；每行本场身份/位置/分钟、证据统计、rating（可null）、9类categories、coverage及未评分原因。新报告在原事务内保存，摘要不含此明细；旧GET响应只读补充，不改历史BLOB/轨迹或当前球员form。JSON3/SQLite3和物理引擎0.8.2不变，无迁移；播放终场前白名单隐藏评分。
 

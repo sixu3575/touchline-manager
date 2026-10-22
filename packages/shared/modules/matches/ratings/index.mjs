@@ -1,5 +1,7 @@
 // Lightweight public entry: post-match statistics only; never imports the engine.
-export const RATING_VERSION = 'match-rating-2';
+import { playerStatisticsAt } from './statistics.mjs';
+export { playerStatisticsAt } from './statistics.mjs';
+export const RATING_VERSION = 'match-rating-3';
 const bound = (n, low, high) => Math.max(low, Math.min(high, n));
 const number = (value) => (Number.isFinite(value) ? Math.max(0, value) : 0);
 const second = (event) => event.second ?? event.minute * 60;
@@ -252,6 +254,7 @@ export function buildPlayerRatings(report) {
       }
   }
   const result = [...rows.values()].map((row) => {
+    const modern = report.statisticsVersion === 'opta-conventional-2';
     const p = performances.get(row.id) ?? {};
     row.passes = Number.isFinite(p.passes) ? row.passes : row.eventPasses;
     row.completed = Math.min(
@@ -262,6 +265,26 @@ export function buildPlayerRatings(report) {
     row.wonTackles = Math.min(row.tackles, Math.max(row.wonTackles, row.eventWon));
     row.yellowCards = Math.max(row.yellowCards, row.eventYellow);
     row.redCards = Math.max(row.redCards, row.eventRed);
+    if (modern)
+      Object.assign(row, playerStatisticsAt(report, row.id, duration), {
+        coverage: 'standard',
+      });
+    else
+      Object.assign(row, {
+        takeOnAttempts: null,
+        takeOns: null,
+        failedTakeOns: null,
+        possessionLost: null,
+        blocks: null,
+        clearances: null,
+        blockedPasses: null,
+        recoveries: null,
+        failedPasses: null,
+        dispossessed: null,
+        miscontrolLosses: null,
+        outLosses: null,
+      });
+    row.passCompletion = row.passes ? Math.round((100 * row.completed) / row.passes) : null;
     const role = row.role,
       weight = goalsWeight[role] ?? 1;
     const contribution = (key, label, value) => ({ key, label, value: round(value) });
@@ -294,25 +317,41 @@ export function buildPlayerRatings(report) {
               Math.min(0.2, row.progressivePasses * 0.02)
           : 0,
       ),
-      contribution('carrying', '控球推进', Math.min(0.25, row.carryDistance * 0.001)),
+      contribution(
+        'carrying',
+        '过人与控球推进',
+        modern
+          ? 0.12 * Math.log1p(row.takeOns) + Math.min(0.25, row.carryDistance * 0.001)
+          : Math.min(0.25, row.carryDistance * 0.001),
+      ),
       contribution(
         'defending',
         '防守对抗',
-        Math.min(0.35, row.wonTackles * 0.05) +
-          Math.min(0.3, row.interceptions * 0.05) -
-          Math.min(0.5, Math.max(0, row.tackles - row.wonTackles) * 0.035) +
-          (row.tackles
-            ? bound(
-                (row.wonTackles / row.tackles - 0.55) * 0.5 * Math.min(1, row.tackles / 6),
-                -0.25,
-                0.2,
-              )
-            : 0),
+        modern
+          ? ({ GK: 0.8, DEF: 1.1, MID: 1, FWD: 0.85 }[role] ?? 1) *
+              (0.12 * Math.log1p(row.wonTackles) +
+                0.1 * Math.log1p(row.interceptions) +
+                0.16 * Math.log1p(row.blocks) +
+                0.06 * Math.log1p(row.clearances) +
+                0.05 * Math.log1p(row.blockedPasses) +
+                0.025 * Math.log1p(row.recoveries)) -
+              Math.min(0.3, row.failedChallenges * 0.015)
+          : Math.min(0.35, row.wonTackles * 0.05) +
+              Math.min(0.3, row.interceptions * 0.05) -
+              Math.min(0.5, Math.max(0, row.tackles - row.wonTackles) * 0.035) +
+              (row.tackles
+                ? bound(
+                    (row.wonTackles / row.tackles - 0.55) * 0.5 * Math.min(1, row.tackles / 6),
+                    -0.25,
+                    0.2,
+                  )
+                : 0),
       ),
       contribution(
         'goalkeeping',
         '扑救表现',
-        Math.min(1.5, row.saves * 0.12) + Math.min(0.8, row.penaltySaves * 0.5),
+        (modern ? 0.38 * Math.log1p(row.saves) : Math.min(1.5, row.saves * 0.12)) +
+          Math.min(0.8, row.penaltySaves * 0.5),
       ),
       contribution(
         'teamDefense',
@@ -342,7 +381,9 @@ export function buildPlayerRatings(report) {
       contribution(
         'errors',
         '失误与乌龙',
-        -Math.min(0.5, row.miscontrols * 0.04) -
+        (modern
+          ? -0.045 * row.dispossessed - 0.06 * row.miscontrolLosses - 0.05 * row.outLosses
+          : -Math.min(0.5, row.miscontrols * 0.04)) -
           Math.min(2, row.ownGoals) -
           Math.min(0.15, row.offsides * 0.015),
       ),

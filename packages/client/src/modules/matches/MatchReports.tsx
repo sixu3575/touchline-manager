@@ -39,16 +39,24 @@ export function MatchReports({
                   </strong>
                 </div>
                 {report.penalties && (
-                  <small className="report-archive-subnote">点球 {report.penalties.join(' : ')}</small>
+                  <small className="report-archive-subnote">
+                    点球 {report.penalties.join(' : ')}
+                  </small>
                 )}
               </div>
               <div className="report-archive-actions">
-                <button className="secondary report-view-button" onClick={() => setSelected(report)}>
+                <button
+                  className="secondary report-view-button"
+                  onClick={() => setSelected(report)}
+                >
                   <FileText size={15} /> 查看战报
                 </button>
                 {(report.homeId === 'me' || report.awayId === 'me') &&
                   report.canReplay !== false && (
-                    <button className="secondary report-replay-button" onClick={() => onReplay(report)}>
+                    <button
+                      className="secondary report-replay-button"
+                      onClick={() => onReplay(report)}
+                    >
                       <Play size={14} /> 观看回放
                     </button>
                   )}
@@ -84,6 +92,16 @@ export function MatchReport({ summary, onClose }: { summary: Report; onClose: ()
     ['成功传球 / 传球', (s) => `${s.completedPasses ?? '—'} / ${s.passes ?? '—'}`],
     ['扑救', (s) => s.saves],
     ['拦截', (s) => s.interceptions],
+    [
+      '传球成功率',
+      (s) => (s.passes ? Math.round((100 * (s.completedPasses ?? 0)) / s.passes) + '%' : '—'),
+    ],
+    [
+      '成功过人 / 尝试',
+      (s) => (s.takeOns === undefined ? undefined : `${s.takeOns} / ${s.takeOnAttempts}`),
+    ],
+    ['丢失球权', (s) => s.possessionLost],
+    ['封堵 / 解围', (s) => (s.blocks === undefined ? undefined : `${s.blocks} / ${s.clearances}`)],
     ['角球', (s) => s.corners],
     ['犯规 / 越位', (s) => `${s.fouls ?? '—'} / ${s.offsides ?? '—'}`],
     ['黄牌 / 红牌', (s) => `${s.yellowCards ?? '—'} / ${s.redCards ?? '—'}`],

@@ -10,8 +10,9 @@ export const newBroadcast = () => ({ speed: LIVE_SPEED, anchorAt: null, anchorSe
 // needs only public match data, not growing copies of continuity/physical audits.
 // Keep raw snapshots for the existing assessment boundary at response time.
 export function compactBroadcastReport(report) {
+  if (report.broadcastCompactionVersion === 1) return report;
   const { snapshots, ...data } = report;
-  return { ...stripDiagnostics(data), snapshots };
+  return { ...stripDiagnostics(data), snapshots, broadcastCompactionVersion: 1 };
 }
 
 export function broadcastFrameCount(report, broadcast) {
@@ -24,6 +25,7 @@ export function broadcastFrameCount(report, broadcast) {
 // Retain the complete event basis of the statistics explicitly requested for
 // players. Ordinary touches still use the rolling tail, and future events stay private.
 const playerStatEvents = new Set([
+  'playerStat',
   'goal',
   'shot',
   'shotOutcome',
@@ -78,10 +80,17 @@ export function liveReport(report, broadcast) {
   if (!report) return undefined;
   const second = broadcast.seconds;
   const events = report.events.filter((e) => (e.second ?? e.minute * 60) <= second);
+  const liveTimeline = report.timeline?.filter((p) => p.second <= second).slice(-2) ?? [];
+  const counterBase =
+    !broadcast.finished && report.statisticsVersion === 'opta-conventional-2'
+      ? liveTimeline[0]
+      : null;
   // Bounded live payload. Preserve goals/cards even when ordinary touches roll out.
   const tail = Math.max(0, events.length - 120);
-  const visibleEvents = events.filter(
-    (e, i) => i >= tail || playerStatEvents.has(e.type) || e.type === 'penaltyGoal',
+  const visibleEvents = events.filter((e, i) =>
+    e.type === 'playerStat' && counterBase
+      ? (e.second ?? e.minute * 60) > counterBase.second + 1e-6
+      : i >= tail || playerStatEvents.has(e.type) || e.type === 'penaltyGoal',
   );
   if (broadcast.finished) {
     // This can still be polled while AI fixtures finish. Ratings use the full
@@ -114,6 +123,7 @@ export function liveReport(report, broadcast) {
     statisticsVersion: report.statisticsVersion,
     rulesVersion: report.rulesVersion,
     eventFormatVersion: report.eventFormatVersion,
+    ...(counterBase ? { statisticsBaseSecond: counterBase.second } : {}),
     testFixture: report.testFixture,
     homeId: report.homeId,
     awayId: report.awayId,
@@ -127,7 +137,7 @@ export function liveReport(report, broadcast) {
     performance: prefix?.performance ?? [],
     // A frame download may trail this response. Keep the preceding public
     // snapshot too, so the viewer can select a non-future row while catching up.
-    timeline: report.timeline?.filter((p) => p.second <= second).slice(-2) ?? [],
+    timeline: liveTimeline,
     snapshots: report.snapshots.map((s) => ({
       id: s.id,
       name: s.name,

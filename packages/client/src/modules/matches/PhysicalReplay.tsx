@@ -82,9 +82,9 @@ export function PhysicalReplay({
     live && ownComplete ? (live.job.broadcast?.seconds ?? meta.duration) : meta.duration;
   const ended = ownComplete && time >= endSecond;
   const buffering = Boolean(live && !ended && time >= Math.max(0, meta.duration - 0.4));
-  const prefix = live ? report.timeline?.filter((row) => row.second <= time).at(-1) : null;
+  const prefix = report.timeline?.filter((row) => row.second <= time).at(-1);
   const visibleStats = live && !ended ? prefix?.stats : report.stats;
-  const visiblePerformance = live && !ended ? (prefix?.performance ?? []) : report.performance;
+  const visiblePerformance = !ended ? (prefix?.performance ?? []) : report.performance;
   useEffect(() => {
     if (!live) return;
     let animation = 0,
@@ -350,7 +350,7 @@ export function PhysicalReplay({
                   )}
                   {performanceRow.style && <b>{performanceRow.style} · </b>}实际跑动{' '}
                   {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
-                  成功传球 {performanceRow.completed}/{performanceRow.passes}
+                  成功传球 {eventStats?.completed ?? '—'}/{eventStats?.passes ?? '—'}
                   {performanceRow.yellowCards !== undefined &&
                     ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
                   {performanceRow.dribbleTouches !== undefined &&
@@ -367,14 +367,29 @@ export function PhysicalReplay({
                 {[
                   ['进球', eventStats.goals],
                   ['助攻', eventStats.assists],
+                  [
+                    '传球成功率',
+                    eventStats.passCompletion === null ? '—' : `${eventStats.passCompletion}%`,
+                  ],
+                  [
+                    '成功过人 / 尝试',
+                    eventStats.takeOns === undefined
+                      ? '未记录'
+                      : `${eventStats.takeOns} / ${eventStats.takeOnAttempts}`,
+                  ],
+                  ['丢失球权', eventStats.possessionLost ?? '未记录'],
                   ['射门 / 射正', `${eventStats.shots} / ${eventStats.onTarget ?? '—'}`],
-                  ['扑救', eventStats.saves],
-                  ['拦截', eventStats.interceptions],
+                  ['扑救', eventStats.saves ?? '—'],
+                  ['拦截', eventStats.interceptions ?? '—'],
                   [
                     '抢断成功 / 尝试',
-                    performanceRow
-                      ? `${performanceRow.wonTackles ?? '—'} / ${performanceRow.tackles ?? '—'}`
-                      : '—',
+                    `${eventStats.wonTackles ?? '—'} / ${eventStats.tackleAttempts ?? '—'}`,
+                  ],
+                  [
+                    '封堵 / 解围',
+                    eventStats.blocks === undefined
+                      ? '未记录'
+                      : `${eventStats.blocks} / ${eventStats.clearances}`,
                   ],
                   ['关键传球', eventStats.keyPasses],
                   ['犯规', eventStats.fouls],

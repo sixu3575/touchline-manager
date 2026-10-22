@@ -1,4 +1,5 @@
 import { packActors, unpackActors } from './checkpoint.mjs';
+import { createActionStatistics } from './statistics.mjs';
 import { airborneVelocity } from './ball-motion.mjs';
 import { firstTouchVelocity, receptionPlan } from './receiving.mjs';
 import { deadballTarget, kickoffPosition, restartReady } from './deadball.mjs';
@@ -103,7 +104,7 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.29.0-physiology';
+export const ENGINE_VERSION = '0.30.0-statistics';
 export const PARAMETER_VERSION = 'physiology-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -213,6 +214,44 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   const timeline = [];
   const score = [0, 0],
     events = [];
+  const participant = (a) => ({
+    id: a.player.id,
+    side: a.side,
+    isKeeper: a.isKeeper,
+    pos: { ...a.body.translation() },
+  });
+  const actionStatistics = createActionStatistics(
+    actors.map(participant),
+    (e) => {
+      events.push({
+        ...e,
+        second: Math.round(e.second * 20) / 20,
+        minute: Math.min(90, Math.floor(e.second / 60)),
+        text: '',
+        x: 0,
+        y: 0,
+      });
+      const labels = {
+        interception: ['interception', '主动截断对方传球。'],
+        tackleWon: ['tackleWon', '抢断后本方获得球权或将球安全破坏出界。'],
+        tackleLost: ['tackleLost', '抢断碰到球，但球权仍归对方。'],
+        blockedPass: ['blockedPass', '挡住对方传球。'],
+        block: ['block', '封堵对方射门。'],
+        'takeOn-won': ['takeOnWon', '突破防守并保住球权。'],
+        'takeOn-lost': ['takeOnLost', '突破中失去球权。'],
+      };
+      const label = labels[e.reason];
+      if (label) {
+        const a = actors.find((a) => a.player.id === e.playerId);
+        event(label[0], e.side, `${a.player.name}${label[1]}`, a, {
+          statId: e.statId,
+          opponentId: e.opponentId,
+          occurredAt: e.occurredAt,
+        });
+      }
+    },
+    options.checkpoint?.state.actionStatistics,
+  );
   const ticks = duration * 20;
   const frames =
     options.recordReplay === false
@@ -271,6 +310,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     if (result.onTarget) stats[result.side].onTarget++;
     if (result.keeper) {
       stats[result.keeper.side].saves++;
+      actionStatistics.credit(result.keeper, { saves: 1 }, time, 'save', { shotId: result.shotId });
       event(
         'save',
         result.keeper.side,
@@ -279,7 +319,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         { shotId: result.shotId },
       );
     }
-    const { keeper, ...outcome } = result;
+    if (result.defender)
+      actionStatistics.credit(result.defender, { blocks: 1 }, time, 'block', {
+        shotId: result.shotId,
+      });
+    const { keeper, defender, ...outcome } = result;
     event('shotOutcome', result.side, '本次射门统计已确认。', actorById(result.playerId), outcome);
     return result;
   }
@@ -303,6 +347,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     return details;
   }
   function statisticalDeflection(a, sample, hands = false) {
+    if (a.pendingStatTackle) {
+      if (time - a.pendingStatTackle.second < 0.6)
+        actionStatistics.challenge(participant(a), a.pendingStatTackle.opponentId, time, true);
+      a.pendingStatTackle = null;
+    }
     if (
       attribution.credit?.id === a.player.id &&
       (!attribution.attempt || attribution.attempt.side === a.side)
@@ -328,7 +377,14 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             }),
           )
         : null;
-    recordIntervention(attribution, statisticalPlayer(a), incomingSide, lastLine, outgoingSide);
+    recordIntervention(
+      attribution,
+      statisticalPlayer(a),
+      incomingSide,
+      lastLine,
+      outgoingSide,
+      time,
+    );
     attributeTouch(attribution, statisticalPlayer(a), incomingSide);
     if (pendingPass && pendingPass.actor.side !== a.side) {
       pendingPass.originalReachable =
@@ -341,7 +397,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       if (hands) lastPass = null;
     }
   }
-  function placeBall(x, z, reason) {
+  function placeBall(x, z, reason, side = null) {
+    actionStatistics.stop(reason, side, time, lastTouch?.player.id);
     for (const a of actors) releaseCatch(physics, a);
     resolveAttempt();
     attribution.credit = null;
@@ -384,7 +441,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   }
   function kickoff(side, type = 'kickoff', natural = false) {
     goalRestart = null;
-    placeBall(52.5, 34, type);
+    placeBall(52.5, 34, type, side);
     for (const a of actors) {
       if (a.sentOff) continue;
       if (!natural) {
@@ -412,7 +469,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     // Attacking indirect free kicks inside the goal area move to its 5.5m line.
     if (type === 'indirect' && localX(x, direction(side)) > 99.5 && Math.abs(z - 34) < 9.16)
       x = direction(side) === 1 ? 99.5 : 5.5;
-    placeBall(x, z, type);
+    placeBall(x, z, type, side);
     const candidates = actors.filter(
       (a) => !a.sentOff && a.side === side && (type === 'goalKick' ? a.isKeeper : !a.isKeeper),
     );
@@ -592,7 +649,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     timeline.push({
       second: 0,
       stats: publicStats(),
-      performance: playerStats(),
+      performance: playerStats(true),
       continuity: timelineContinuity(),
     });
   }
@@ -650,6 +707,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         roles,
         attribution: structuredClone(attribution),
         statisticalContacts: [...statisticalContacts],
+        actionStatistics: structuredClone(actionStatistics.state),
       },
     };
   }
@@ -662,57 +720,90 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       const home = total ? Math.round((stats[0].possessionTicks / total) * 100) : 50;
       return {
         ...rest,
+        ...Object.fromEntries(
+          [
+            'passes',
+            'interceptions',
+            'saves',
+            'blocks',
+            'clearances',
+            'recoveries',
+            'blockedPasses',
+            'wonTackles',
+            'tackleAttempts',
+            'tackles',
+            'takeOns',
+            'takeOnAttempts',
+            'possessionLost',
+          ].map((key) => [
+            key,
+            Object.values(actionStatistics.rows)
+              .filter((p) => p.side === side)
+              .reduce((sum, p) => sum + p[key], 0),
+          ]),
+        ),
+        completedPasses: Object.values(actionStatistics.rows)
+          .filter((p) => p.side === side)
+          .reduce((sum, p) => sum + p.completed, 0),
         xg: Math.round(row.xg * 100) / 100,
         possession: side === 0 ? home : 100 - home,
       };
     });
   }
-  function playerStats() {
-    return actors.map((a) => ({
-      id: a.player.id,
-      side: a.side,
-      distance: Math.round(a.distance),
-      locomotion: {
-        version: 1,
-        zones: a.activity.zones.map((n) => Math.round(n)),
-        seconds: a.activity.seconds.map((n) => Math.round(n * 100) / 100),
-        liveMetres: Math.round(a.activity.liveMetres),
-        deadMetres: Math.round(a.activity.deadMetres),
-        sprintEfforts: a.activity.sprintEfforts,
-        longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
-        adrenalineEfforts: a.activity.adrenalineEfforts,
-      },
-      defenceTelemetry: {
-        pressSeconds: Math.round(a.pressSeconds ?? 0),
-        markingSeconds: Math.round(a.markingSeconds ?? 0),
-        markingSwitches: a.markSwitches ?? 0,
-        observationLapses: a.markLapses ?? 0,
-      },
-      energy: Math.round(a.energy * 10) / 10,
-      burstReserve: Math.round(burstReserve(a)),
-      touches: a.touches,
-      passes: a.passes,
-      completed: a.completed,
-      style: a.profile.label,
-      positionRole: a.positionRole,
-      dribbleTouches: a.carries,
-      carryDistance: Math.round(a.carryDistance),
-      throughBalls: a.throughBalls,
-      longPasses: a.longPasses,
-      oneTouchPasses: a.oneTouchPasses,
-      maxSpeed: Math.round(a.maxSpeed * 100) / 100,
-      tackles: a.tackles,
-      wonTackles: a.wonTackles,
-      yellowCards: a.yellowCards,
-      redCards: Number(a.sentOff),
-      dismissedAt: a.dismissedAt,
-      mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
-    }));
+  function playerStats(timelineOnly = false) {
+    return actors.map((a) => {
+      const row = {
+        id: a.player.id,
+        side: a.side,
+        distance: Math.round(a.distance),
+        locomotion: {
+          version: 1,
+          zones: a.activity.zones.map((n) => Math.round(n)),
+          seconds: a.activity.seconds.map((n) => Math.round(n * 100) / 100),
+          liveMetres: Math.round(a.activity.liveMetres),
+          deadMetres: Math.round(a.activity.deadMetres),
+          sprintEfforts: a.activity.sprintEfforts,
+          longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
+          adrenalineEfforts: a.activity.adrenalineEfforts,
+        },
+        defenceTelemetry: {
+          pressSeconds: Math.round(a.pressSeconds ?? 0),
+          markingSeconds: Math.round(a.markingSeconds ?? 0),
+          markingSwitches: a.markSwitches ?? 0,
+          observationLapses: a.markLapses ?? 0,
+        },
+        energy: Math.round(a.energy * 10) / 10,
+        burstReserve: Math.round(burstReserve(a)),
+        touches: a.touches,
+        passes: a.passes,
+        completed: a.completed,
+        style: a.profile.label,
+        positionRole: a.positionRole,
+        dribbleTouches: a.carries,
+        carryDistance: Math.round(a.carryDistance),
+        throughBalls: a.throughBalls,
+        longPasses: a.longPasses,
+        oneTouchPasses: a.oneTouchPasses,
+        maxSpeed: Math.round(a.maxSpeed * 100) / 100,
+        tackles: a.tackles,
+        wonTackles: a.wonTackles,
+        yellowCards: a.yellowCards,
+        redCards: Number(a.sentOff),
+        dismissedAt: a.dismissedAt,
+        mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
+        ...actionStatistics.rows[a.player.id],
+      };
+      if (timelineOnly) {
+        delete row.locomotion;
+        delete row.defenceTelemetry;
+      }
+      return row;
+    });
   }
   function timelineContinuity() {
     // Individual control spells are full-match replay diagnostics, not live snapshots.
     // Duplicating the growing list every 30 seconds bloats durable checkpoints and broadcasts.
-    const { controlSpells, ...summary } = continuity.metrics;
+    const { controlSpells, possessions, chains, ...summary } = continuity.metrics;
     return structuredClone(summary);
   }
   function buildReport(penalties, abandoned = false) {
@@ -733,7 +824,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       score: [...score],
       stats: publicStats(),
       continuity: structuredClone(continuity.metrics),
-      timeline: structuredClone(timeline),
+      // Rows contain detached numeric snapshots and are never edited after push.
+      // Copy the array so a yielded report cannot grow when simulation resumes.
+      timeline: timeline.slice(),
       events: [...events],
       motion: {
         passSpeedMean: motion.passSpeedSum / (motion.passSamples || 1),
@@ -935,6 +1028,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             statisticalDeflection(a, incomingSample, true);
             lastTouch = a;
             if (retain && (a.keeperHold || ball.y < 1.3))
+              actionStatistics.control(participant(a), time, { bodyPart: 'hands' });
+            if (retain && (a.keeperHold || ball.y < 1.3))
               controlBall(
                 continuity,
                 a,
@@ -952,6 +1047,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               a,
             );
             shot = null;
+            if (a.keeperHold) resolveAttempt();
             return;
           }
         }
@@ -986,6 +1082,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               a.head,
             )
           ) {
+            statisticalDeflection(a, incomingSample);
+            actionStatistics.control(participant(a), time, { bodyPart: 'head' });
             if (pendingPass && pendingPass.actor.side === a.side && pendingPass.actor !== a)
               receivePass(a, pendingPass, 'head');
             else if (lastTouch?.side !== a.side) lastPass = null;
@@ -996,12 +1094,20 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             a.cooldown = 0.8;
             let shotDetails;
             if (headerShot) {
+              actionStatistics.release(participant(a), 'shot', time);
               stats[a.side].shots++;
               stats[a.side].xg += 0.1;
               shot = { side: a.side, actor: a, time };
               shotDetails = registerAttempt(a);
               pendingPass = null;
             } else {
+              const defendingHeader = localX(ball.x, direction(a.side)) < 35;
+              actionStatistics.release(
+                participant(a),
+                defendingHeader ? 'clearance' : 'pass',
+                time,
+                { expiresAt: time + flight + 1.8 },
+              );
               resolveAttempt();
               attributeTouch(attribution, statisticalPlayer(a), null, true);
               a.passes++;
@@ -1066,6 +1172,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           }
           a.tackleAt = time + tackleRecoverySeconds(a, previous);
           a.tackles++;
+          actionStatistics.challenge(participant(a), previous.player.id, time);
           const qa = actionQuality(
             a,
             ball,
@@ -1112,7 +1219,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                     rulesRng(),
                   )
                 : { foul: false, probability: 0, severity: 'standingChallenge', card: null };
-            event('tackleLost', a.side, `${a.player.name}尝试抢断未能夺球。`, a, {
+            actionStatistics.failedChallenge(participant(a), previous.player.id, time);
+            event('challengeFailed', a.side, `${a.player.name}尝试抢断未能夺球。`, a, {
               opponentId: previous.player.id,
               quality: qa,
               opponentQuality: qd,
@@ -1146,9 +1254,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             return;
           }
           a.wonTackles++;
+          a.pendingStatTackle = { opponentId: previous.player.id, second: time };
           previous.tackleAt = Math.max(previous.tackleAt, time + 1.2);
           previous.cooldown = Math.max(previous.cooldown, 0.7);
-          event('tackleWon', a.side, `${a.player.name}成功抢下脚下球。`, a, {
+          event('challenge', a.side, `${a.player.name}抢断对抗占优，继续争夺球权。`, a, {
             opponentId: previous.player.id,
             quality: qa,
             opponentQuality: qd,
@@ -1239,15 +1348,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.receivePreparation = null;
         }
         const confirmControl = () => {
+          actionStatistics.control(participant(a), time);
           if (incomingPass) receivePass(a, incomingPass);
           if (newControl) {
-            if (opposingPass) {
-              stats[a.side].interceptions++;
-              event('interception', a.side, `${a.player.name}切断传球并控制住球。`, a, {
-                passerId: opposingPass.actor.player.id,
-                result: 'controlled',
-              });
-            }
             if ((previous && previous.side !== a.side) || opposingPass) {
               lastPass = null;
               shot = null;
@@ -1273,6 +1376,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             incoming,
             result: 'loose',
           });
+          if (actionStatistics.state.context?.player.id === a.player.id)
+            actionStatistics.release(participant(a), 'miscontrol', time);
+          else actionStatistics.blockedPass(participant(a), time, 'foot');
           releaseControl(continuity, time, 'miscontrol');
           continuity.metrics.errors[
             playing().some((o) => o.side !== a.side && distance(o.pos, ball) < 3)
@@ -1502,6 +1608,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           };
           if (action.type !== 'dribble') releaseControl(continuity, time, action.type);
           if (action.type === 'shot') {
+            actionStatistics.release(participant(a), 'shot', time);
             stats[a.side].shots++;
             stats[a.side].xg += action.xg;
             shot = { side: a.side, actor: a, time };
@@ -1513,6 +1620,12 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             });
             pendingPass = null;
           } else if (action.type !== 'dribble') {
+            actionStatistics.release(
+              participant(a),
+              action.intent === 'clearance' ? 'clearance' : 'pass',
+              time,
+              { expiresAt: time + (action.flight ?? 2) + 1.8 },
+            );
             resolveAttempt();
             attributeTouch(attribution, statisticalPlayer(a), null, true);
             lastPass = null;
@@ -1546,6 +1659,22 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               ? 0.22 + 0.16 * (1 - ability(a.player, 'dribbling') / 100)
               : kickRecovery(a, action);
           if (action.type === 'dribble') {
+            if (action.intent === 'takeOn') {
+              const opponent = playing()
+                .filter((o) => o.side !== a.side)
+                .sort(
+                  (x, y) =>
+                    distance(x.body.translation(), ball) - distance(y.body.translation(), ball),
+                )[0];
+              actionStatistics.takeOn(
+                participant(a),
+                opponent ? participant(opponent) : null,
+                ball,
+                time,
+                direction(a.side),
+                action.destination,
+              );
+            }
             resolveAttempt();
             attributeTouch(attribution, statisticalPlayer(a), null, true);
             a.target = action.destination;
@@ -1749,8 +1878,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             contacts.add(collider.handle);
             if (statisticalContacts.has(collider.handle)) return;
             const a = colliderActors.get(collider.handle);
-            if (a && !a.sentOff) statisticalDeflection(a, sample);
-            else if (!collider.parent() && attribution.attempt) {
+            if (a && !a.sentOff) {
+              actionStatistics.blockedPass(participant(a), time);
+              statisticalDeflection(a, sample);
+            } else if (!collider.parent() && attribution.attempt) {
               const p = collider.translation();
               if ((Math.abs(p.x) < 0.1 || Math.abs(p.x - 105) < 0.1) && p.y > 1)
                 attribution.attempt.woodwork = true;
@@ -1767,6 +1898,18 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         physics.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
       const afterBall = physics.ball.translation();
+      if (active && actionStatistics.state.takeOn) {
+        const duel = actionStatistics.state.takeOn;
+        const involved = [actorById(duel.player.id), actorById(duel.opponentId)].filter(
+          (a) => a && !a.sentOff,
+        );
+        actionStatistics.observe(
+          involved.map(participant),
+          afterBall,
+          continuity.controller === null ? null : actors[continuity.controller]?.player.id,
+          time,
+        );
+      }
       for (const a of actors)
         if (!a.sentOff)
           recordMovement(
@@ -1892,6 +2035,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           goalRestart = { side: 1 - side, at: restartUntil };
           actors.forEach((a) => (a.kickPlan = null));
           deadBall(continuity, time, 'goal');
+          actionStatistics.stop('goal', side, time);
           const leader = scorer ?? playing().find((a) => a.side === side && !a.isKeeper);
           deadState = {
             type: 'goal',
@@ -1947,7 +2091,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         timeline.push({
           second: time,
           stats: publicStats(),
-          performance: playerStats(),
+          performance: playerStats(true),
           continuity: timelineContinuity(),
         });
       if (abandoned) break;
@@ -1964,6 +2108,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     }
     resolveAttempt();
     deadBall(continuity, time, 'fulltime');
+    actionStatistics.stop('fulltime', null, time);
     event(
       'fulltime',
       0,

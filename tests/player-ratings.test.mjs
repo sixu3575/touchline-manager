@@ -6,6 +6,7 @@ import {
   buildPlayerRatings,
   withPlayerRatings,
   RATING_VERSION,
+  playerStatisticsAt,
 } from '../packages/shared/modules/matches/ratings/index.mjs';
 import { createReplayStorage } from '../packages/server/src/storage/replays.mjs';
 import { liveReport } from '../packages/server/src/broadcast.mjs';
@@ -252,4 +253,110 @@ test('live reports hide final player scores until the authoritative broadcast ha
   assert.equal(live.playerRatings, undefined);
   const finished = liveReport(r, { finished: true, seconds: 5400 });
   assert.equal(finished.playerRatings.version, RATING_VERSION);
+});
+
+test('new ratings reward measured take-ons and defensive work, without twice penalizing the same possession loss', () => {
+  const make = (changes) => {
+    const r = report();
+    r.statisticsVersion = 'opta-conventional-2';
+    r.events = [event('playerStat', '0-MID', 0, 600, { statId: 1, changes })];
+    return r;
+  };
+  const baseline = row(make({})).rating;
+  assert.ok(row(make({ takeOns: 3, takeOnAttempts: 3 })).rating > baseline);
+  const defensive = row(
+    make({
+      wonTackles: 3,
+      interceptions: 2,
+      blocks: 2,
+      clearances: 4,
+      blockedPasses: 2,
+      recoveries: 5,
+    }),
+  );
+  assert.ok(defensive.categories.find((c) => c.key === 'defending').value > 0);
+  const lost = make({ possessionLost: 1, dispossessed: 1, failedTakeOns: 1, takeOnAttempts: 1 });
+  const noDuplicate = make({ possessionLost: 1, dispossessed: 1 });
+  assert.equal(row(lost).rating, row(noDuplicate).rating);
+  assert.equal(row(lost).categories.find((c) => c.key === 'errors').value, -0.04);
+  const missed = make({ passes: 10, completed: 5, failedPasses: 5, possessionLost: 5 });
+  assert.equal(row(missed).passCompletion, 50);
+  assert.equal(
+    row(missed).categories.find((c) => c.key === 'errors').value,
+    0,
+    'pass accuracy already evaluates failed passes',
+  );
+  assert.ok(row(missed).categories.find((c) => c.key === 'passing').value < 0);
+  const inflated = make({ takeOnAttempts: 999 });
+  assert.equal(
+    row(inflated).rating,
+    baseline,
+    'intentions or unsuccessful volume do not create credit',
+  );
+  const ordinaryCarry = make({});
+  ordinaryCarry.performance[2].carryDistance = 100000;
+  assert.ok(
+    row(ordinaryCarry).rating <= baseline + 0.3,
+    'ordinary carrying distance keeps its original limited contribution instead of farming a high grade',
+  );
+});
+
+test('the live counter stream survives the ordinary-event tail and never exposes future counters or ratings', () => {
+  const r = report();
+  r.statisticsVersion = 'opta-conventional-2';
+  r.replay.players = [];
+  r.events = [
+    event('playerStat', '0-MID', 0, 1, { statId: 1, changes: { passes: 1 } }),
+    ...Array.from({ length: 200 }, (_, i) => event('control', '0-MID', 0, 2 + i / 10)),
+    event('playerStat', '0-MID', 0, 500, { statId: 2, changes: { takeOns: 1 } }),
+  ];
+  const live = liveReport(r, { finished: false, seconds: 100 });
+  assert.ok(live.events.some((e) => e.statId === 1));
+  assert.ok(!live.events.some((e) => e.statId === 2));
+  assert.equal(live.playerRatings, undefined);
+});
+
+test('live counters use the non-future snapshot plus deltas without repeating the full history', () => {
+  const r = report();
+  r.statisticsVersion = 'opta-conventional-2';
+  r.replay.players = [];
+  const stat = (statId, second, changes) =>
+    event('playerStat', '0-MID', 0, second, { statId, changes });
+  r.events = [
+    stat(1, 10, { passes: 2, completed: 2 }),
+    stat(4, 30, { passes: 1 }),
+    stat(2, 40, { passes: 1, completed: 1 }),
+    stat(3, 200, { passes: 1 }),
+  ];
+  r.timeline = [
+    { second: 30 - 1e-12, stats: r.stats, performance: [{ id: '0-MID', passes: 3, completed: 2 }] },
+    { second: 90, stats: r.stats, performance: [{ id: '0-MID', passes: 4, completed: 3 }] },
+  ];
+  const live = liveReport(r, { finished: false, seconds: 100 });
+  assert.equal(live.statisticsBaseSecond, r.timeline[0].second);
+  assert.deepEqual(
+    live.events.filter((e) => e.type === 'playerStat').map((e) => e.statId),
+    [2],
+  );
+  const p = playerStatisticsAt(live, '0-MID', 100);
+  assert.equal(p.passes, 4);
+  assert.equal(p.completed, 3);
+  assert.equal(p.passCompletion, 75);
+  assert.equal(
+    playerStatisticsAt(live, '0-MID', 20).passes,
+    undefined,
+    'a client behind the base never sees future counters',
+  );
+  assert.equal(
+    playerStatisticsAt({ ...live, timeline: [] }, '0-MID', 100).passes,
+    undefined,
+    'missing base data is unknown, not zero',
+  );
+  const finished = liveReport(r, { finished: true, seconds: 5400 });
+  assert.equal(finished.statisticsBaseSecond, undefined);
+  assert.equal(
+    playerStatisticsAt(finished, '0-MID', 5400).passes,
+    5,
+    'final archive evidence remains complete',
+  );
 });

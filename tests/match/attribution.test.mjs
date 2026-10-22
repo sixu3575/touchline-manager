@@ -18,6 +18,7 @@ import {
 } from '../../packages/shared/modules/matches/physics.mjs';
 import { restorePhysics } from '../../packages/shared/modules/matches/physics.mjs';
 import { packActors, unpackActors } from '../../packages/shared/modules/matches/checkpoint.mjs';
+import { createActionStatistics } from '../../packages/shared/modules/matches/statistics.mjs';
 import { createGame } from '../../packages/shared/game.mjs';
 import { createMatchSimulation } from '../../packages/shared/modules/matches/index.mjs';
 const striker = { id: 'striker', side: 0 },
@@ -29,6 +30,112 @@ const source = {
   assistEligible: true,
   keyPassEligible: true,
 };
+
+test('action ledger confirms tackles by subsequent possession and counts one loss, not a dice result', () => {
+  const emitted = [],
+    a = { id: 'a', side: 0 },
+    b = { id: 'b', side: 1 },
+    c = { id: 'c', side: 1 };
+  const s = createActionStatistics([a, b, c], (e) => emitted.push(e));
+  s.control(a, 0);
+  s.challenge(b, a.id, 1);
+  s.failedChallenge(b, a.id, 1);
+  assert.equal(s.rows.b.wonTackles, 0);
+  assert.equal(s.rows.a.possessionLost, 0);
+  s.challenge(b, a.id, 2);
+  s.challenge(b, a.id, 2, true);
+  assert.equal(s.rows.b.tackles, 1);
+  assert.equal(s.rows.b.wonTackles, 0);
+  s.control(c, 3);
+  s.control(c, 4);
+  assert.equal(s.rows.b.wonTackles, 1);
+  assert.equal(s.rows.b.tackleAttempts, 2);
+  assert.equal(s.rows.a.possessionLost, 1);
+  assert.equal(s.rows.a.dispossessed, 1);
+  assert.equal(s.rows.c.interceptions, 0, 'recovering a tackled ball is not intercepting a pass');
+});
+
+test('action ledger recognizes headed interceptions, separates deflections and excludes clearances from pass accuracy', () => {
+  const a = { id: 'a', side: 0 },
+    b = { id: 'b', side: 1 },
+    c = { id: 'c', side: 1 };
+  const s = createActionStatistics([a, b, c], () => {});
+  s.control(a, 0);
+  s.release(a, 'pass', 1, { expiresAt: 6 });
+  s.control(b, 2, { bodyPart: 'head' });
+  assert.equal(s.rows.b.interceptions, 1);
+  assert.equal(s.rows.a.failedPasses, 1);
+  s.release(b, 'clearance', 2);
+  s.control(c, 3);
+  assert.equal(s.rows.b.clearances, 1);
+  assert.equal(s.rows.b.passes, 0);
+  assert.equal(s.rows.b.completed, 0);
+  s.control(a, 4);
+  s.release(a, 'pass', 5, { expiresAt: 10 });
+  s.blockedPass(b, 6);
+  s.blockedPass(b, 6.1);
+  s.control(c, 7);
+  assert.equal(s.rows.b.blockedPasses, 1);
+  assert.equal(s.rows.c.interceptions, 0);
+  assert.equal(s.rows.c.recoveries, 1);
+});
+
+test('action ledger measures an actual take-on, prevents repeated touch credit and preserves checkpoint state', () => {
+  const a = { id: 'a', side: 0, pos: { x: 10, z: 10 } },
+    b = { id: 'b', side: 1, pos: { x: 12, z: 10 } };
+  const events = [];
+  const s = createActionStatistics([a, b], (e) => events.push(e));
+  s.control(a, 0);
+  s.takeOn(a, b, { x: 10, z: 10 }, 1, 1);
+  s.takeOn(a, b, { x: 10, z: 10 }, 1.1, 1);
+  a.pos = { x: 10.5, z: 10 };
+  s.observe([a, b], a.pos, 'a', 1.2);
+  assert.equal(s.rows.a.takeOnAttempts, 1);
+  assert.equal(s.rows.a.takeOns, 0);
+  const restored = createActionStatistics([a, b], (e) => events.push(e), structuredClone(s.state));
+  a.pos = { x: 14, z: 10 };
+  restored.observe([a, b], a.pos, 'a', 2);
+  assert.equal(restored.rows.a.takeOns, 1);
+  assert.equal(restored.rows.a.takeOnAttempts, 1);
+  restored.observe([a, b], a.pos, 'a', 3);
+  assert.equal(restored.rows.a.takeOns, 1);
+  restored.release(a, 'shot', 4);
+  restored.control(b, 5);
+  assert.equal(restored.rows.a.possessionLost, 0, 'a normal shot is not a possession loss');
+});
+
+test('action ledger distinguishes a loss from a recoverable miscontrol, safe restart or unengaged dribble intention', () => {
+  const a = { id: 'a', side: 0, pos: { x: 10, z: 10 } },
+    b = { id: 'b', side: 1, pos: { x: 14, z: 10 } };
+  const s = createActionStatistics([a, b], () => {});
+  s.control(a, 0);
+  s.release(a, 'miscontrol', 1);
+  s.control(a, 2);
+  assert.equal(s.rows.a.possessionLost, 0);
+  s.takeOn(a, b, a.pos, 3, 1);
+  s.release(a, 'pass', 4, { expiresAt: 9 });
+  assert.equal(s.rows.a.takeOnAttempts, 0, 'an unengaged intention is not an attempt');
+  s.stop('throwIn', 0, 5);
+  assert.equal(s.rows.a.possessionLost, 0);
+  s.control(a, 6);
+  s.release(a, 'miscontrol', 7);
+  s.control(b, 8);
+  s.control(b, 9);
+  assert.equal(s.rows.a.possessionLost, 1);
+  assert.equal(s.rows.a.miscontrolLosses, 1);
+});
+
+test('the decisive later goal-line block replaces an earlier keeper intervention', () => {
+  const s = attributionState();
+  startAttempt(s, striker);
+  recordIntervention(s, keeper, 0, false, null, 1);
+  recordIntervention(s, defender, 0, true, null, 2);
+  const r = finishAttempt(s);
+  assert.equal(r.outcome, 'blocked');
+  assert.equal(r.onTarget, true);
+  assert.equal(r.keeper, undefined);
+  assert.equal(r.defender.id, defender.id);
+});
 
 test('an on-target shot remains the striker goal through keeper or defender touches, with no save or own goal', () => {
   for (const intervenor of [keeper, defender]) {

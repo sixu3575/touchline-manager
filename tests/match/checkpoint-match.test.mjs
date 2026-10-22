@@ -45,3 +45,25 @@ test('durable slices, including halftime, restore exactly the same events, stats
   assert.deepEqual(result, expected);
   assert.equal(expected.replay.clockScale, 1);
 });
+
+test('published timeline rows stay immutable while later slices append new snapshots', () => {
+  const g = createGame('快照隔离', 42);
+  const engine = createMatchSimulation(g.clubs[0], g.clubs[1], 999, 'immutable-slices', {
+    durationSeconds: 120,
+    durable: true,
+    sliceSeconds: 15,
+  });
+  try {
+    const first = engine.next();
+    assert.equal(first.done, false);
+    const original = structuredClone(first.value.report.timeline);
+    for (let i = 0; i < 3; i++) engine.next();
+    assert.deepEqual(
+      first.value.report.timeline,
+      original,
+      'new frames, actor counters, energy and possessions must not mutate a previously published row',
+    );
+  } finally {
+    engine.return();
+  }
+});
