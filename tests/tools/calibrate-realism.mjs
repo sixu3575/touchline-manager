@@ -4,7 +4,7 @@ import { Worker, isMainThread, parentPort } from 'node:worker_threads';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { compareMatch } from './match-realism.mjs';
+import { compareGoalSampleToEnglishLeagues, compareMatch } from './match-realism.mjs';
 
 if (!isMainThread) {
   const { createGame, simulate } = await import('../../packages/shared/game.mjs');
@@ -91,6 +91,9 @@ if (!isMainThread) {
             : 'pass',
     engineVersions: [...new Set(results.map((r) => r.engineVersion))],
     matchGoals: describe(values((r) => r.teams.reduce((s, t) => s + t.goals, 0))),
+    englishLeagueGoalComparison: compareGoalSampleToEnglishLeagues(
+      results.map((r) => r.teams.reduce((total, team) => total + team.goals, 0)),
+    ),
     matchShots: describe(values((r) => r.teams.reduce((s, t) => s + t.shots, 0))),
     teamPasses: describe(values((r) => r.teams.map((t) => t.passes))),
     outfieldDistancePer90: describe(

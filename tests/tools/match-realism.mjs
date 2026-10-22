@@ -1,7 +1,17 @@
 // Read-only diagnostics: no engine imports, RNG calls or mutation of archived reports.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { analyzeReplay } from '../../packages/shared/modules/matches/replay-analysis.mjs';
+
+const englishReference = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../packages/shared/modules/matches/design/ENGLISH_LEAGUE_REFERENCE_20261023.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
 
 export const references = {
   version: 'realism-reference-1',
@@ -39,6 +49,23 @@ export const references = {
     total: 117,
     matches: 51,
   },
+  englishLeagueGoals: {
+    referenceVersion: englishReference.referenceVersion,
+    source: englishReference.source.repository,
+    sourceCommit: englishReference.source.commit,
+    license: englishReference.source.license,
+    seasons: englishReference.method.recentSeasons,
+    leagues: englishReference.leagues.map((league) => ({
+      level: league.level,
+      name: league.name,
+      matches: league.recentStatistics.matches,
+      totalGoalsMean: league.recentStatistics.totalGoals.mean,
+      totalGoalsSampleVariance: league.recentStatistics.totalGoals.sampleVariance,
+      homeGoalsMean: league.recentStatistics.homeGoals.mean,
+      awayGoalsMean: league.recentStatistics.awayGoals.mean,
+      resultRates: league.recentStatistics.resultRates,
+    })),
+  },
 };
 const sum = (a) => a.reduce((s, x) => s + x, 0);
 const mean = (a) => (a.length ? sum(a) / a.length : null);
@@ -48,6 +75,38 @@ const quantile = (a, q) => {
 };
 const ratio = (a, b) => (b > 0 ? a / b : null);
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+
+export function compareGoalSampleToEnglishLeagues(goalTotals) {
+  if (
+    !Array.isArray(goalTotals) ||
+    goalTotals.length < 2 ||
+    goalTotals.some((value) => !Number.isInteger(value) || value < 0)
+  )
+    throw Error('At least two non-negative integer match goal totals are required');
+  const sampleMean = mean(goalTotals);
+  const sampleVariance =
+    sum(goalTotals.map((value) => (value - sampleMean) ** 2)) / (goalTotals.length - 1);
+  return {
+    status: 'descriptive-only',
+    sample: {
+      matches: goalTotals.length,
+      totalGoalsMean: sampleMean,
+      totalGoalsSampleVariance: sampleVariance,
+    },
+    comparisons: references.englishLeagueGoals.leagues.map((league) => ({
+      level: league.level,
+      name: league.name,
+      referenceMatches: league.matches,
+      referenceWindow: `${references.englishLeagueGoals.seasons[0]} through ${references.englishLeagueGoals.seasons.at(-1)}`,
+      referenceTotalGoalsMean: league.totalGoalsMean,
+      referenceTotalGoalsSampleVariance: league.totalGoalsSampleVariance,
+      meanDifference: sampleMean - league.totalGoalsMean,
+      varianceDifference: sampleVariance - league.totalGoalsSampleVariance,
+    })),
+    interpretation:
+      'Exploratory comparison only. A small synthetic tactic/seed sample is not a league population estimate and does not pass or fail validation.',
+  };
+}
 
 export function trackedMovement(report, trajectory = report.trajectory) {
   const meta = report.replay;

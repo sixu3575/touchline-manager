@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compareMatch, trackedMovement, references } from './tools/match-realism.mjs';
+import {
+  compareGoalSampleToEnglishLeagues,
+  compareMatch,
+  trackedMovement,
+  references,
+} from './tools/match-realism.mjs';
 
 function fixture() {
   const players = Array.from({ length: 22 }, (_, i) => ({
@@ -66,6 +71,24 @@ function trajectory(report) {
     }
   return frames;
 }
+
+test('goal sample comparison reports English tier means and variance without a pass/fail gate', () => {
+  const result = compareGoalSampleToEnglishLeagues([1, 2, 3]);
+  assert.equal(result.status, 'descriptive-only');
+  assert.equal(result.sample.matches, 3);
+  assert.equal(result.sample.totalGoalsMean, 2);
+  assert.equal(result.sample.totalGoalsSampleVariance, 1);
+  assert.equal(result.comparisons.length, 5);
+  assert.deepEqual(
+    result.comparisons.map((row) => row.level),
+    [1, 2, 3, 4, 5],
+  );
+  assert.equal(result.comparisons[0].name, 'Premier League');
+  assert.equal(result.comparisons[0].referenceWindow, '2022-23 through 2024-25');
+  assert.throws(() => compareGoalSampleToEnglishLeagues([2]), /At least two/);
+  assert.throws(() => compareGoalSampleToEnglishLeagues([2, 1.5]), /integer/);
+  assert.equal(references.englishLeagueGoals.license, 'CC0-1.0');
+});
 
 test('tracking separates speed zones, excludes cut intervals and respects dismissal time', () => {
   const r = fixture(),

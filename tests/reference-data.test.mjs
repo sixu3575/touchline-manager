@@ -1,6 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { referenceMatch } from './tools/real-football-reference.mjs';
+import { extractRegularScores } from './tools/aggregate-english-league-reference.mjs';
+
+test('English result extraction keeps regular league scores and excludes half-time and playoff scores', () => {
+  const scores = extractRegularScores(`
+▪ Matchday 1
+  Home FC 3-1 (2-0) Away FC
+▪ Play-offs - Semi-final
+  Home FC 1-1 (0-1) Away FC
+▪ 2. Round
+  Home FC v Away FC 0-2 (0-0)
+`);
+  assert.deepEqual(scores, [
+    [3, 1],
+    [0, 2],
+  ]);
+});
 
 test('real reference uses provider possessions and regulation periods, not opposing pressure as a turnover', () => {
   const e = (type, second, changes = {}) => ({
