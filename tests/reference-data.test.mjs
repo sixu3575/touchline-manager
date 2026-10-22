@@ -1,21 +1,59 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { referenceMatch } from './tools/real-football-reference.mjs';
-import { extractRegularScores } from './tools/aggregate-english-league-reference.mjs';
+import {
+  aggregateReference,
+  leagues as footballLeagues,
+  seasons as footballSeasons,
+} from './tools/aggregate-england-scotland-reference.mjs';
 
-test('English result extraction keeps regular league scores and excludes half-time and playoff scores', () => {
-  const scores = extractRegularScores(`
-▪ Matchday 1
-  Home FC 3-1 (2-0) Away FC
-▪ Play-offs - Semi-final
-  Home FC 1-1 (0-1) Away FC
-▪ 2. Round
-  Home FC v Away FC 0-2 (0-0)
-`);
-  assert.deepEqual(scores, [
-    [3, 1],
-    [0, 2],
-  ]);
+test('Football-Data aggregator covers England and Scotland, preserving per-stat missingness', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'touchline-football-data-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const header =
+    'FTHG,FTAG,HS,AS,HST,AST,HF,AF,HC,AC,HY,AY,HR,AR';
+  for (const season of footballSeasons) {
+    for (const league of footballLeagues) {
+      const lines = [header];
+      for (let row = 0; row < league.expectedMatches; row++) {
+        const fields = [
+          row % 2,
+          1,
+          4 + (row % 2),
+          6,
+          2,
+          3,
+          8,
+          9,
+          3,
+          4,
+          1,
+          0,
+          0,
+          0,
+        ];
+        if (season.code === '2425' && league.code === 'SC2' && row === 0)
+          for (const index of [2, 3, 4, 5, 6, 7, 8, 9]) fields[index] = '';
+        lines.push(fields.join(','));
+      }
+      writeFileSync(join(dir, `${season.code}-${league.code}.csv`), lines.join('\n'));
+    }
+  }
+  const reference = aggregateReference(dir);
+  assert.equal(reference.leagues.length, 8);
+  assert.equal(reference.manifest.length, 24);
+  assert.equal(reference.manifest.reduce((total, file) => total + file.matches, 0), 8412);
+  const scottishLeagueOne = reference.leagues.find(
+    (league) => league.country === 'Scotland' && league.code === 'SC2',
+  );
+  assert.equal(scottishLeagueOne.recentStatistics.matches, 540);
+  assert.equal(scottishLeagueOne.recentStatistics.metrics.goals.matches, 540);
+  assert.equal(scottishLeagueOne.recentStatistics.metrics.shots.matches, 539);
+  assert.equal(scottishLeagueOne.recentStatistics.metrics.corners.matches, 539);
+  assert.equal(scottishLeagueOne.recentStatistics.metrics.yellowCards.matches, 540);
 });
 
 test('real reference uses provider possessions and regulation periods, not opposing pressure as a turnover', () => {

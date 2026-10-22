@@ -6,15 +6,31 @@ import { analyzeReplay } from '../../packages/shared/modules/matches/replay-anal
 const englishReference = JSON.parse(
   readFileSync(
     new URL(
-      '../../packages/shared/modules/matches/design/ENGLISH_LEAGUE_REFERENCE_20261023.json',
+      '../../packages/shared/modules/matches/design/ENGLAND_SCOTLAND_STATS_REFERENCE_20261023.json',
       import.meta.url,
     ),
     'utf8',
   ),
 );
 
+const statisticalMetrics = [
+  'goals',
+  'shots',
+  'shotsOnTarget',
+  'fouls',
+  'corners',
+  'yellowCards',
+  'redCards',
+];
+const sampleMoments = (values) => {
+  const average = mean(values);
+  const sampleVariance =
+    sum(values.map((value) => (value - average) ** 2)) / (values.length - 1);
+  return { mean: average, sampleVariance };
+};
+
 export const references = {
-  version: 'realism-reference-1',
+  version: 'realism-reference-2',
   physical: {
     url: 'https://editorial.uefa.com/resources/0297-1d4e3592fbf1-f11d4e1c826a-1000/uefa_euro_2024_physical_analysis_report_20250318094958.pdf',
     pages: '9–10, 13',
@@ -49,21 +65,17 @@ export const references = {
     total: 117,
     matches: 51,
   },
-  englishLeagueGoals: {
+  englishLeagueStats: {
     referenceVersion: englishReference.referenceVersion,
-    source: englishReference.source.repository,
-    sourceCommit: englishReference.source.commit,
-    license: englishReference.source.license,
-    seasons: englishReference.method.recentSeasons,
+    source: englishReference.source.website,
+    seasons: englishReference.method.seasons,
     leagues: englishReference.leagues.map((league) => ({
+      country: league.country,
       level: league.level,
+      code: league.code,
       name: league.name,
       matches: league.recentStatistics.matches,
-      totalGoalsMean: league.recentStatistics.totalGoals.mean,
-      totalGoalsSampleVariance: league.recentStatistics.totalGoals.sampleVariance,
-      homeGoalsMean: league.recentStatistics.homeGoals.mean,
-      awayGoalsMean: league.recentStatistics.awayGoals.mean,
-      resultRates: league.recentStatistics.resultRates,
+      metrics: league.recentStatistics.metrics,
     })),
   },
 };
@@ -76,35 +88,77 @@ const quantile = (a, q) => {
 const ratio = (a, b) => (b > 0 ? a / b : null);
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
-export function compareGoalSampleToEnglishLeagues(goalTotals) {
+export function compareMatchSampleToLeagueStats(matchRows) {
   if (
-    !Array.isArray(goalTotals) ||
-    goalTotals.length < 2 ||
-    goalTotals.some((value) => !Number.isInteger(value) || value < 0)
+    !Array.isArray(matchRows) ||
+    matchRows.length < 2 ||
+    matchRows.some((row) =>
+      statisticalMetrics.some(
+        (metric) =>
+          !Number.isInteger(row?.home?.[metric]) ||
+          row.home[metric] < 0 ||
+          !Number.isInteger(row?.away?.[metric]) ||
+          row.away[metric] < 0,
+      ),
+    )
   )
-    throw Error('At least two non-negative integer match goal totals are required');
-  const sampleMean = mean(goalTotals);
-  const sampleVariance =
-    sum(goalTotals.map((value) => (value - sampleMean) ** 2)) / (goalTotals.length - 1);
+    throw Error('At least two matches with non-negative integer team statistics are required');
+  const sampleMetrics = Object.fromEntries(
+    statisticalMetrics.map((metric) => {
+      const home = matchRows.map((row) => row.home[metric]);
+      const away = matchRows.map((row) => row.away[metric]);
+      const matchTotal = home.map((value, index) => value + away[index]);
+      return [
+        metric,
+        {
+          home: sampleMoments(home),
+          away: sampleMoments(away),
+          matchTotal: sampleMoments(matchTotal),
+          teamPerMatch: sampleMoments([...home, ...away]),
+        },
+      ];
+    }),
+  );
   return {
+    referenceVersion: references.version,
     status: 'descriptive-only',
     sample: {
-      matches: goalTotals.length,
-      totalGoalsMean: sampleMean,
-      totalGoalsSampleVariance: sampleVariance,
+      matches: matchRows.length,
+      metrics: sampleMetrics,
     },
-    comparisons: references.englishLeagueGoals.leagues.map((league) => ({
+    comparisons: references.englishLeagueStats.leagues.map((league) => ({
+      country: league.country,
       level: league.level,
+      code: league.code,
       name: league.name,
       referenceMatches: league.matches,
-      referenceWindow: `${references.englishLeagueGoals.seasons[0]} through ${references.englishLeagueGoals.seasons.at(-1)}`,
-      referenceTotalGoalsMean: league.totalGoalsMean,
-      referenceTotalGoalsSampleVariance: league.totalGoalsSampleVariance,
-      meanDifference: sampleMean - league.totalGoalsMean,
-      varianceDifference: sampleVariance - league.totalGoalsSampleVariance,
+      referenceWindow: `${references.englishLeagueStats.seasons[0]} through ${references.englishLeagueStats.seasons.at(-1)}`,
+      metrics: Object.fromEntries(
+        statisticalMetrics.map((metric) => {
+          const sample = sampleMetrics[metric];
+          const reference = league.metrics[metric];
+          return [
+            metric,
+            Object.fromEntries(
+              ['home', 'away', 'matchTotal', 'teamPerMatch'].map((scope) => [
+                scope,
+                {
+                  sampleMean: sample[scope].mean,
+                  sampleVariance: sample[scope].sampleVariance,
+                  referenceMean: reference[scope].mean,
+                  referenceVariance: reference[scope].sampleVariance,
+                  meanDifference: sample[scope].mean - reference[scope].mean,
+                  varianceDifference:
+                    sample[scope].sampleVariance - reference[scope].sampleVariance,
+                },
+              ]),
+            ),
+          ];
+        }),
+      ),
     })),
     interpretation:
-      'Exploratory comparison only. A small synthetic tactic/seed sample is not a league population estimate and does not pass or fail validation.',
+      'Exploratory comparison across goals, shots, shots on target, fouls, corners and cards. A small synthetic tactic/seed sample is not a league population estimate and does not pass or fail validation.',
   };
 }
 

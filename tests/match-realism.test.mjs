@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  compareGoalSampleToEnglishLeagues,
+  compareMatchSampleToLeagueStats,
   compareMatch,
   trackedMovement,
   references,
@@ -72,22 +72,58 @@ function trajectory(report) {
   return frames;
 }
 
-test('goal sample comparison reports English tier means and variance without a pass/fail gate', () => {
-  const result = compareGoalSampleToEnglishLeagues([1, 2, 3]);
+test('England and Scotland league benchmark compares team statistics without a pass/fail gate', () => {
+  const sample = [0, 1, 2].map((goals, index) => ({
+    home: {
+      goals,
+      shots: 4 + index * 2,
+      shotsOnTarget: 1 + index,
+      fouls: 8 + index,
+      corners: 2 + index,
+      yellowCards: index,
+      redCards: 0,
+    },
+    away: {
+      goals: 1,
+      shots: 6 + index * 2,
+      shotsOnTarget: 2 + index,
+      fouls: 9 + index,
+      corners: 3 + index,
+      yellowCards: 1,
+      redCards: 0,
+    },
+  }));
+  const result = compareMatchSampleToLeagueStats(sample);
+  assert.equal(result.referenceVersion, 'realism-reference-2');
   assert.equal(result.status, 'descriptive-only');
   assert.equal(result.sample.matches, 3);
-  assert.equal(result.sample.totalGoalsMean, 2);
-  assert.equal(result.sample.totalGoalsSampleVariance, 1);
-  assert.equal(result.comparisons.length, 5);
+  assert.equal(result.sample.metrics.goals.matchTotal.mean, 2);
+  assert.equal(result.sample.metrics.goals.matchTotal.sampleVariance, 1);
+  assert.equal(result.sample.metrics.shots.matchTotal.mean, 14);
+  assert.equal(result.sample.metrics.shots.matchTotal.sampleVariance, 16);
+  assert.equal(result.comparisons.length, 8);
   assert.deepEqual(
-    result.comparisons.map((row) => row.level),
-    [1, 2, 3, 4, 5],
+    result.comparisons.map((row) => `${row.country}-${row.level}`),
+    [
+      'England-1',
+      'England-2',
+      'England-3',
+      'England-4',
+      'Scotland-1',
+      'Scotland-2',
+      'Scotland-3',
+      'Scotland-4',
+    ],
   );
   assert.equal(result.comparisons[0].name, 'Premier League');
   assert.equal(result.comparisons[0].referenceWindow, '2022-23 through 2024-25');
-  assert.throws(() => compareGoalSampleToEnglishLeagues([2]), /At least two/);
-  assert.throws(() => compareGoalSampleToEnglishLeagues([2, 1.5]), /integer/);
-  assert.equal(references.englishLeagueGoals.license, 'CC0-1.0');
+  assert.ok('corners' in result.comparisons[0].metrics);
+  assert.ok('yellowCards' in result.comparisons[0].metrics);
+  assert.throws(() => compareMatchSampleToLeagueStats(sample.slice(0, 1)), /At least two/);
+  const invalid = structuredClone(sample);
+  invalid[1].home.shots = 1.5;
+  assert.throws(() => compareMatchSampleToLeagueStats(invalid), /integer/);
+  assert.equal(references.englishLeagueStats.source, 'https://football-data.co.uk/');
 });
 
 test('tracking separates speed zones, excludes cut intervals and respects dismissal time', () => {

@@ -4,7 +4,7 @@ import { Worker, isMainThread, parentPort } from 'node:worker_threads';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { compareGoalSampleToEnglishLeagues, compareMatch } from './match-realism.mjs';
+import { compareMatchSampleToLeagueStats, compareMatch } from './match-realism.mjs';
 
 if (!isMainThread) {
   const { createGame, simulate } = await import('../../packages/shared/game.mjs');
@@ -91,8 +91,25 @@ if (!isMainThread) {
             : 'pass',
     engineVersions: [...new Set(results.map((r) => r.engineVersion))],
     matchGoals: describe(values((r) => r.teams.reduce((s, t) => s + t.goals, 0))),
-    englishLeagueGoalComparison: compareGoalSampleToEnglishLeagues(
-      results.map((r) => r.teams.reduce((total, team) => total + team.goals, 0)),
+    leagueMatchStatComparison: compareMatchSampleToLeagueStats(
+      results.map((r) => ({
+        home: Object.fromEntries(
+          ['goals', 'shots', 'onTarget', 'fouls', 'corners', 'yellowCards', 'redCards'].map(
+            (metric) => [
+              metric === 'onTarget' ? 'shotsOnTarget' : metric,
+              r.teams[0][metric],
+            ],
+          ),
+        ),
+        away: Object.fromEntries(
+          ['goals', 'shots', 'onTarget', 'fouls', 'corners', 'yellowCards', 'redCards'].map(
+            (metric) => [
+              metric === 'onTarget' ? 'shotsOnTarget' : metric,
+              r.teams[1][metric],
+            ],
+          ),
+        ),
+      })),
     ),
     matchShots: describe(values((r) => r.teams.reduce((s, t) => s + t.shots, 0))),
     teamPasses: describe(values((r) => r.teams.map((t) => t.passes))),
