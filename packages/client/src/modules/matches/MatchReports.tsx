@@ -5,7 +5,8 @@ import type { Report } from '../../model';
 import { EventFilter } from './EventFilter';
 import { eventMatchesFilter } from './event-filter.mjs';
 import { PlayerRatings } from './PlayerRatings';
-import { TeamRating } from './TeamRating';
+import { MatchScoreline } from './MatchScoreline';
+import { TeamAbility } from './TeamAbility';
 import { useArchivedReport } from './useArchivedReport';
 import './physical.css';
 import './reports.css';
@@ -20,7 +21,7 @@ export function MatchReports({
   const [selected, setSelected] = useState<Report | null>(null);
   return (
     <section className="panel report-archive" aria-label="赛后战报列表">
-      <PanelHead title="我的对战记录" subtitle="本队联赛与杯赛 · 战报、球队评分与比赛回放" />
+      <PanelHead title="我的对战记录" subtitle="本队联赛与杯赛 · 首发平均能力、战报与回放" />
       {reports.length ? (
         <div className="report-archive-list">
           {reports.map((report) => (
@@ -30,17 +31,14 @@ export function MatchReports({
                   {report.competition} · 第 {report.round} 轮
                   <span className="report-status settled">已结束</span>
                 </small>
-                <div className="report-archive-scoreline">
-                  <strong className={report.homeId === 'me' ? 'report-own-team' : ''}>
-                    {report.homeName}
-                    <TeamRating report={report} side={0} />
-                  </strong>
-                  <span className="report-archive-score">{report.score.join(' : ')}</span>
-                  <strong className={report.awayId === 'me' ? 'report-own-team' : ''}>
-                    {report.awayName}
-                    <TeamRating report={report} side={1} />
-                  </strong>
-                </div>
+                <MatchScoreline
+                  report={report}
+                  homeName={report.homeName}
+                  awayName={report.awayName}
+                  homeId={report.homeId}
+                  awayId={report.awayId}
+                  score={report.score}
+                />
                 {report.penalties && (
                   <small className="report-archive-subnote">
                     点球 {report.penalties.join(' : ')}
@@ -174,20 +172,32 @@ export function MatchReport({ summary, onClose }: { summary: Report; onClose: ()
             <div className="report-scoreboard">
               <div>
                 <Crest name={report.homeName} />
-                <h3>{report.homeName}</h3>
+                <h3 className={report.homeId === 'me' ? 'report-own-team' : ''}>
+                  {report.homeName}
+                </h3>
                 <small>主场</small>
-                <TeamRating report={report} side={0} />
+                <TeamAbility report={report} side={0} />
               </div>
               <div className="report-score">
-                <strong>{report.score.join(' : ')}</strong>
+                <strong>
+                  <b className={report.homeId === 'me' ? 'report-own-score' : ''}>
+                    {report.score[0]}
+                  </b>
+                  {' : '}
+                  <b className={report.awayId === 'me' ? 'report-own-score' : ''}>
+                    {report.score[1]}
+                  </b>
+                </strong>
                 <Badge tone="dark">{report.abandoned ? '比赛中止' : '全场结束'}</Badge>
                 {report.penalties && <small>点球 {report.penalties.join(' : ')}</small>}
               </div>
               <div>
                 <Crest name={report.awayName} color="#c7d0df" />
-                <h3>{report.awayName}</h3>
+                <h3 className={report.awayId === 'me' ? 'report-own-team' : ''}>
+                  {report.awayName}
+                </h3>
                 <small>客场</small>
-                <TeamRating report={report} side={1} />
+                <TeamAbility report={report} side={1} />
               </div>
             </div>
             <div className="report-detail-grid">

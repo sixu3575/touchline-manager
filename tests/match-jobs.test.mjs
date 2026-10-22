@@ -264,6 +264,7 @@ test('long historical reports are losslessly stored outside state, while legacy 
     assert.equal(teamRatings.length, 2);
     assert.ok(teamRatings.every((team) => team.starterCount === 11));
     assert.deepEqual(state.reports[0].teamRatings, teamRatings);
+    assert.ok(state.reports[0].teamAbility.every((team) => team.starterCount === 11));
     assert.equal(JSON.stringify(state.reports[1]), beforeLegacy);
     const saved = Buffer.from(storage.report('one', 'detail'));
     db.exec('BEGIN');

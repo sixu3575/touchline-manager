@@ -1,6 +1,8 @@
 # 存档迁移模块
 
-0.30.1 teamRatings为可选紧凑首发均分；完整战报与摘要同时保存，旧BLOB不重写。GET使用teamRatings(saveId,summary)读取旧归档并缓存两个均分（最多128条、含存档键、返回副本，persist重写归档时失效），绝不缓存整份详情。旧摘要在下一次合法事务保存时可附汇总；数据库/schema/事务边界保持。
+0.30.2 teamAbility为首发球员实际总能力值的整数均值；摘要只存两队小汇总。旧detailsStored摘要读取同存档的match_reports BLOB计算，最多缓存128项并按saveId/reportId隔离，不缓存大报告。新归档仍以原交易提交，旧BLOB/schema/事务边界保持，详细报告API只在投影后提供聚合值。
+
+0.30.1的teamRatings是已被更正的首发赛后评分汇总，保留在旧档/兼容层，不用于球队能力显示。
 
 2026-10-20：jobs.presentation/owned/latest仅供展示，不返回work；恢复或调度须使用get/pending。progress.report仅为可压缩的展示副本，完整模拟状态和报告以work/checkpoint及归档为准。无表结构或启动迁移；旧进度仍可读取，逐片生成时自然使用更轻副本。
 

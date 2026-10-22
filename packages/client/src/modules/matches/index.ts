@@ -4,4 +4,5 @@ export { useMatchJob } from './useMatchJob';
 export { MatchTask } from './MatchTask';
 export { PhysicalReplay } from './PhysicalReplay';
 export { MatchReports, MatchReport } from './MatchReports';
-export { TeamRating } from './TeamRating';
+export { TeamAbility } from './TeamAbility';
+export { MatchScoreline } from './MatchScoreline';

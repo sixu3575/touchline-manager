@@ -1,4 +1,7 @@
-import { withPlayerRatings } from '../../shared/modules/matches/ratings/index.mjs';
+import {
+  buildTeamAbility,
+  withPlayerRatings,
+} from '../../shared/modules/matches/ratings/index.mjs';
 import { stripDiagnostics } from './player-view.mjs';
 
 // Presentation only. Never changes simulation inputs, RNG, physics or match time.
@@ -98,6 +101,7 @@ export function liveReport(report, broadcast) {
     // and ordinary touch again every second. The archive endpoint stays full.
     return {
       ...withPlayerRatings(report),
+      teamAbility: buildTeamAbility(report),
       events: visibleEvents,
       timeline: report.timeline?.slice(-2) ?? [],
       snapshots: report.snapshots.map((s) => ({

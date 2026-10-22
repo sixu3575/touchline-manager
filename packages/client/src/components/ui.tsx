@@ -122,6 +122,9 @@ export function LeagueTable({ rows, compact = false }: { rows: Standing[]; compa
                 <th>胜</th>
                 <th>平</th>
                 <th>负</th>
+                <th>近三场</th>
+                <th>较上一轮</th>
+                <th>下一轮对手</th>
               </>
             )}
             <th>净胜</th>
@@ -143,6 +146,35 @@ export function LeagueTable({ rows, compact = false }: { rows: Standing[]; compa
                   <td>{r.won}</td>
                   <td>{r.drawn}</td>
                   <td>{r.lost}</td>
+                  <td>
+                    <div className="league-form-badges" aria-label="最近三场比赛结果">
+                      {r.recentResults.length ? (
+                        r.recentResults.map((result, index) => (
+                          <span className={'form-' + result.toLowerCase()} key={index}>
+                            {{ W: '胜', D: '平', L: '负' }[result]}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="form-empty">—</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className={
+                        r.rankChange == null || r.rankChange === 0
+                          ? 'rank-change unchanged'
+                          : r.rankChange > 0
+                            ? 'rank-change up'
+                            : 'rank-change down'
+                      }
+                    >
+                      {r.rankChange == null || r.rankChange === 0
+                        ? '—'
+                        : `${r.rankChange > 0 ? '↑' : '↓'} ${Math.abs(r.rankChange)}`}
+                    </span>
+                  </td>
+                  <td>{r.nextOpponent ?? '—'}</td>
                 </>
               )}
               <td>
