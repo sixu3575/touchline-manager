@@ -1,9 +1,9 @@
 import { ChevronRight, Play, Trophy } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { standings } from '../../../../shared/modules/competitions/selectors/index.mjs';
 import { Badge, Crest, Empty, LeagueTable, PanelHead } from '../../components/ui';
 import type { Game, Report, Standing } from '../../model';
 import { AdvanceButton } from './AdvanceButton';
-import { MatchReports } from '../matches';
 import { RoundReports } from './RoundReports';
 
 export function Fixtures({
@@ -11,11 +11,13 @@ export function Fixtures({
   busy,
   act,
   onReport,
+  matchProgress,
 }: {
   game: Game;
   busy: boolean;
   act: (type: string, payload?: Record<string, unknown>) => Promise<Game | undefined>;
   onReport: (r: Report) => void;
+  matchProgress?: ReactNode;
 }) {
   const rows = standings(game) as Standing[],
     rank = rows.findIndex((x) => x.id === 'me') + 1;
@@ -25,6 +27,11 @@ export function Fixtures({
 
   return (
     <>
+      <section className="panel fixtures-standings" aria-label="联赛积分榜">
+        <PanelHead title="联赛积分榜" subtitle="胜 3 分 · 平 1 分 · 负 0 分" />
+        <LeagueTable rows={rows} />
+      </section>
+      {matchProgress}
       <div className="fixture-header">
         <section className="panel next-fixture">
           <div>
@@ -76,11 +83,6 @@ export function Fixtures({
           </div>
         </section>
       </div>
-      <RoundReports game={game} onReplay={onReport} />
-      <MatchReports
-        reports={game.reports.filter((r) => r.homeId === 'me' || r.awayId === 'me')}
-        onReplay={onReport}
-      />
       <div className="dashboard-grid fixtures-grid">
         <section className="panel">
           <PanelHead title="我的赛程" subtitle="双循环赛制 · 每赛季 14 轮" />
@@ -113,10 +115,6 @@ export function Fixtures({
           </div>
         </section>
         <div>
-          <section className="panel">
-            <PanelHead title="联赛积分榜" subtitle="胜 3 分 · 平 1 分 · 负 0 分" />
-            <LeagueTable rows={rows} />
-          </section>
           <section className="panel honors">
             <PanelHead title="荣誉陈列室" />
             {game.trophies.length ? (
@@ -131,6 +129,7 @@ export function Fixtures({
           </section>
         </div>
       </div>
+      <RoundReports game={game} onReplay={onReport} />
     </>
   );
 }

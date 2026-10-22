@@ -417,8 +417,34 @@ export function buildPlayerRatings(report) {
   return { version: RATING_VERSION, baseline: 6.5, minimum: 3, maximum: 10, rows: result };
 }
 
+// Aggregate the saved starting XI, never the current club roster or substitutes.
+export function buildTeamRatings(report) {
+  const ratings =
+    report.playerRatings ?? (report.detailsStored ? { rows: [] } : buildPlayerRatings(report));
+  return [0, 1].map((side) => {
+    const snapshot = report.snapshots?.[side]?.players;
+    const players = snapshot?.length
+      ? snapshot
+      : (report.replay?.players?.filter((p) => p.side === side) ?? []);
+    const ids = new Set(players.map((p) => p.id));
+    const rows = [...ids].map((id) => ratings.rows.find((p) => p.id === id && p.side === side));
+    const graded = rows.filter((p) => Number.isFinite(p?.rating));
+    return {
+      rating:
+        ids.size === 11 && graded.length === 11
+          ? round(graded.reduce((total, p) => total + p.rating, 0) / 11, 1)
+          : null,
+      starterCount: ids.size,
+      ratedPlayers: graded.length,
+    };
+  });
+}
+
 export function withPlayerRatings(report) {
-  if (!report || (report.playerRatings?.version && Array.isArray(report.playerRatings.rows)))
-    return report;
-  return { ...report, playerRatings: buildPlayerRatings(report) };
+  if (!report) return report;
+  const rated =
+    report.playerRatings?.version && Array.isArray(report.playerRatings.rows)
+      ? report
+      : { ...report, playerRatings: buildPlayerRatings(report) };
+  return rated.teamRatings ? rated : { ...rated, teamRatings: buildTeamRatings(rated) };
 }

@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleDot,
   Dumbbell,
+  FileText,
   Landmark,
   LayoutDashboard,
   Menu,
@@ -23,7 +24,7 @@ import { Replay } from './components/Replay';
 import { Badge, Crest } from './components/ui';
 import type { Game, Player, Report } from './model';
 import { useMatchJob, MatchTask, PhysicalReplay, Pitch } from './modules/matches';
-import { Fixtures } from './modules/competitions';
+import { Fixtures, MyMatches } from './modules/competitions';
 import { Finance } from './modules/economy';
 import { Overview } from './modules/overview';
 import { Scouting, Squad } from './modules/players';
@@ -36,6 +37,7 @@ const nav = [
   { id: 'squad', label: '一线队', icon: Users },
   { id: 'tactics', label: '战术室', icon: SlidersHorizontal },
   { id: 'fixtures', label: '赛程与杯赛', icon: CalendarDays },
+  { id: 'my-matches', label: '我的比赛', icon: FileText },
   { id: 'scouting', label: '球探中心', icon: Search },
   { id: 'training', label: '训练基地', icon: Dumbbell },
   { id: 'stadium', label: '主场与球迷', icon: Landmark },
@@ -133,6 +135,18 @@ function App() {
     setView(id);
     setMobile(false);
   };
+  const matchProgress = match.job && (
+    <MatchTask
+      job={match.job}
+      connection={match.connection}
+      onWatch={() => setWatching(true)}
+      onReplay={() => {
+        const stored = game.reports.find((r) => r.id === match.job?.report?.id);
+        if (stored || match.job?.report) setReport(stored ?? match.job!.report!);
+      }}
+      onRetry={() => void act(match.job!.type)}
+    />
+  );
   return (
     <div className="app">
       <aside className={'sidebar ' + (mobile ? 'open' : '')}>
@@ -243,6 +257,7 @@ function App() {
                       squad: '了解每一位球员，让合适的人站在合适的位置。',
                       tactics: '阵型决定站位，选择决定比赛的方向。',
                       fixtures: '从第一声哨响，到属于你的奖杯。',
+                      'my-matches': '重温本队每场较量，查看战报与球队表现。',
                       scouting: '找到下一颗新星，写下俱乐部的未来。',
                       training: '每一份进步，都来自球场之外的积累。',
                       stadium: '让这片主场，成为城市的骄傲。',
@@ -256,18 +271,7 @@ function App() {
               <span className="status-dot" /> 独立存档 · AI 联赛
             </Badge>
           </div>
-          {match.job && (
-            <MatchTask
-              job={match.job}
-              connection={match.connection}
-              onWatch={() => setWatching(true)}
-              onReplay={() => {
-                const stored = game.reports.find((r) => r.id === match.job?.report?.id);
-                if (stored || match.job?.report) setReport(stored ?? match.job!.report!);
-              }}
-              onRetry={() => void act(match.job!.type)}
-            />
-          )}
+          {view !== 'fixtures' && matchProgress}
           {view === 'overview' && (
             <Overview
               game={game}
@@ -285,8 +289,15 @@ function App() {
             <Tactics club={club} act={act} busy={busy || locked} onPlayer={setPlayer} />
           )}
           {view === 'fixtures' && (
-            <Fixtures game={game} busy={busy || locked} act={act} onReport={setReport} />
+            <Fixtures
+              game={game}
+              busy={busy || locked}
+              act={act}
+              onReport={setReport}
+              matchProgress={matchProgress}
+            />
           )}
+          {view === 'my-matches' && <MyMatches game={game} onReport={setReport} />}
           {view === 'scouting' && (
             <Scouting
               game={game}

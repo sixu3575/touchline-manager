@@ -1,5 +1,7 @@
 # 存档迁移模块
 
+0.30.1 teamRatings为可选紧凑首发均分；完整战报与摘要同时保存，旧BLOB不重写。GET使用teamRatings(saveId,summary)读取旧归档并缓存两个均分（最多128条、含存档键、返回副本，persist重写归档时失效），绝不缓存整份详情。旧摘要在下一次合法事务保存时可附汇总；数据库/schema/事务边界保持。
+
 2026-10-20：jobs.presentation/owned/latest仅供展示，不返回work；恢复或调度须使用get/pending。progress.report仅为可压缩的展示副本，完整模拟状态和报告以work/checkpoint及归档为准。无表结构或启动迁移；旧进度仍可读取，逐片生成时自然使用更轻副本。
 
 0.9.0：replays.persist在原有事务内将withPlayerRatings生成的完整战报压缩，summary剥离playerRatings。GET旧战报可补评分响应，但不更新历史payload；新报告已带版本时原样返回。无schema升级，无轨迹重算；评分不是资金/比赛结算输入。专项tests/player-ratings.test.mjs检查原BLOB、隔离、事务回滚和摘要体积边界。

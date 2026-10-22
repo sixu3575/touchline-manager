@@ -5,6 +5,7 @@ import type { Report } from '../../model';
 import { EventFilter } from './EventFilter';
 import { eventMatchesFilter } from './event-filter.mjs';
 import { PlayerRatings } from './PlayerRatings';
+import { TeamRating } from './TeamRating';
 import { useArchivedReport } from './useArchivedReport';
 import './physical.css';
 import './reports.css';
@@ -19,7 +20,7 @@ export function MatchReports({
   const [selected, setSelected] = useState<Report | null>(null);
   return (
     <section className="panel report-archive" aria-label="赛后战报列表">
-      <PanelHead title="赛后战报" subtitle="联赛与杯赛 · 直接查看全场统计、事件与球员评分" />
+      <PanelHead title="我的对战记录" subtitle="本队联赛与杯赛 · 战报、球队评分与比赛回放" />
       {reports.length ? (
         <div className="report-archive-list">
           {reports.map((report) => (
@@ -32,10 +33,12 @@ export function MatchReports({
                 <div className="report-archive-scoreline">
                   <strong className={report.homeId === 'me' ? 'report-own-team' : ''}>
                     {report.homeName}
+                    <TeamRating report={report} side={0} />
                   </strong>
                   <span className="report-archive-score">{report.score.join(' : ')}</span>
                   <strong className={report.awayId === 'me' ? 'report-own-team' : ''}>
                     {report.awayName}
+                    <TeamRating report={report} side={1} />
                   </strong>
                 </div>
                 {report.penalties && (
@@ -173,6 +176,7 @@ export function MatchReport({ summary, onClose }: { summary: Report; onClose: ()
                 <Crest name={report.homeName} />
                 <h3>{report.homeName}</h3>
                 <small>主场</small>
+                <TeamRating report={report} side={0} />
               </div>
               <div className="report-score">
                 <strong>{report.score.join(' : ')}</strong>
@@ -183,6 +187,7 @@ export function MatchReport({ summary, onClose }: { summary: Report; onClose: ()
                 <Crest name={report.awayName} color="#c7d0df" />
                 <h3>{report.awayName}</h3>
                 <small>客场</small>
+                <TeamRating report={report} side={1} />
               </div>
             </div>
             <div className="report-detail-grid">

@@ -1,5 +1,7 @@
 # Fixtures 界面模块
 
+0.30.1：联赛页积分榜置顶，每轮全部战报位于最底部；本队联赛/杯赛对战记录移至独立MyMatches与“我的比赛”导航。RoundReports复用matches公共TeamRating，显示本场首发均分；未结算不显示，其他球队回放限制保持。页面顺序由DOM决定，移动端同序。
+
 RoundReports采用紧凑对阵卡片样式；`report.canReplay`与本队ID的双重限制保留，不能给其他比赛添加回放入口。
 
 0.15.0RoundReports从schedule/results/reports选轮显示四场；不存在结果不提前显示，旧AI摘要明确缺统计。本队回放入口需本队ID且canReplay不为false；服务器另做权限校验。
