@@ -32,62 +32,6 @@ export function Fixtures({
   return (
     <>
       {matchProgress}
-      <div className="dashboard-grid fixtures-grid">
-        <section className="panel">
-          <PanelHead title="我的赛程" subtitle="双循环赛制 · 每赛季 14 轮" />
-          <div className="fixtures-list">
-            {game.schedule.map((round, i) => {
-              const pair = round.find((m) => m.includes('me'))!;
-              const op = game.clubs.find((c) => c.id === pair.find((id) => id !== 'me'))!;
-              const result = game.results.find(
-                (m) => m.round === i + 1 && (m.homeId === 'me' || m.awayId === 'me'),
-              );
-              const replay = game.reports.find((m) => m.id === result?.id);
-              return (
-                <button
-                  key={i}
-                  disabled={!replay}
-                  className={'fixture ' + (i === game.round ? 'next' : '')}
-                  onClick={() => replay && onReport(replay)}
-                >
-                  <span className="round-no">{String(i + 1).padStart(2, '0')}</span>
-                  <Crest small name={op.name} color={op.color} />
-                  <b>{op.name}</b>
-                  <small>{pair[0] === 'me' ? '主场' : '客场'}</small>
-                  <strong className="fixture-score">
-                    {result ? (
-                      <>
-                        <span className={pair[0] === 'me' ? 'report-own-score' : ''}>
-                          {result.score[0]}
-                        </span>
-                        {' : '}
-                        <span className={pair[1] === 'me' ? 'report-own-score' : ''}>
-                          {result.score[1]}
-                        </span>
-                      </>
-                    ) : i === game.round ? (
-                      '下一轮'
-                    ) : (
-                      '—'
-                    )}
-                  </strong>
-                  {replay ? <Play size={14} /> : <ChevronRight size={14} />}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-        <RoundReports game={game} onReplay={onReport} />
-      </div>
-
-      <section className="panel fixtures-standings" aria-label="联赛积分榜">
-        <PanelHead
-          title="联赛积分榜"
-          subtitle="胜 3 分 · 平 1 分 · 负 0 分 · 近三场战绩与较上一轮名次变化"
-        />
-        <LeagueTable rows={rows} />
-      </section>
-
       <div className="fixture-header">
         <section className="panel next-fixture">
           <div>
@@ -138,6 +82,62 @@ export function Fixtures({
             </button>
           </div>
         </section>
+      </div>
+
+      <section className="panel fixtures-standings" aria-label="联赛积分榜">
+        <PanelHead
+          title="联赛积分榜"
+          subtitle="胜 3 分 · 平 1 分 · 负 0 分 · 近三场战绩与较上一轮名次变化"
+        />
+        <LeagueTable rows={rows} />
+      </section>
+
+      <div className="dashboard-grid fixtures-grid">
+        <section className="panel">
+          <PanelHead title="我的赛程" subtitle="双循环赛制 · 每赛季 14 轮" />
+          <div className="fixtures-list">
+            {game.schedule.map((round, i) => {
+              const pair = round.find((m) => m.includes('me'))!;
+              const op = game.clubs.find((c) => c.id === pair.find((id) => id !== 'me'))!;
+              const result = game.results.find(
+                (m) => m.round === i + 1 && (m.homeId === 'me' || m.awayId === 'me'),
+              );
+              const replay = game.reports.find((m) => m.id === result?.id);
+              return (
+                <button
+                  key={i}
+                  disabled={!replay}
+                  className={'fixture ' + (i === game.round ? 'next' : '')}
+                  onClick={() => replay && onReport(replay)}
+                >
+                  <span className="round-no">{String(i + 1).padStart(2, '0')}</span>
+                  <Crest small name={op.name} color={op.color} />
+                  <b>{op.name}</b>
+                  <small>{pair[0] === 'me' ? '主场' : '客场'}</small>
+                  <strong className="fixture-score">
+                    {result ? (
+                      <>
+                        <span className={pair[0] === 'me' ? 'report-own-score' : ''}>
+                          {result.score[0]}
+                        </span>
+                        {' : '}
+                        <span className={pair[1] === 'me' ? 'report-own-score' : ''}>
+                          {result.score[1]}
+                        </span>
+                      </>
+                    ) : i === game.round ? (
+                      '下一轮'
+                    ) : (
+                      '—'
+                    )}
+                  </strong>
+                  {replay ? <Play size={14} /> : <ChevronRight size={14} />}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <RoundReports game={game} onReplay={onReport} />
       </div>
 
       <section className="panel honors">
