@@ -1,5 +1,7 @@
 # TOUCHLINE · 临场足球经理
 
+0.31.0比赛算法更新稳定进攻的中场接应与移动球读球，详见[专项说明](packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0310.md)和[球员决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。
+
 0.13.0后续展示调整：取消评估综合，公开服务端按原位置评级计算的实际总能力值overall；一线队同一列展示总能力与六维雷达图，默认按总能力降序，各表头可切换升降序（出场/进球分列）。细项按六项主属性归类，外场门将专项/门将其他进攻技术折叠补充，并明确不计入对应概览；30项各出现一次。分组不改变汇总权重或比赛算法，细项区间及教练/球探机制保留，自动排阵继续使用已知区间。
 
 0.13.0球员采用百分制整数能力，细微训练以整数经验累计，评估区间/卡片无小数。详见[INTEGER_STATS.md](packages/shared/modules/players/INTEGER_STATS.md)，旧回放不重算。

@@ -29,7 +29,10 @@ import {
   moveCatch,
 } from '../../packages/shared/modules/matches/physics.mjs';
 import { targetFor } from '../../packages/shared/modules/matches/positioning.mjs';
-import { movingBallIntercept } from '../../packages/shared/modules/matches/arrival.mjs';
+import {
+  interceptionReadTime,
+  movingBallIntercept,
+} from '../../packages/shared/modules/matches/arrival.mjs';
 import { defensiveAssignments } from '../../packages/shared/modules/matches/defending.mjs';
 import {
   needsOnBallScan,
@@ -223,6 +226,18 @@ test('defence assigns the reachable future interceptor instead of a player left 
   assert.ok(!movingBallIntercept(behind, ball).feasible);
   const roles = defensiveAssignments([behind, ahead], 1, ball, null, -1, { press: 'normal' }, 1);
   assert.equal(roles.chasers[0], ahead.index);
+});
+
+test('anticipation and positioning improve a player’s estimated read on a moving pass', () => {
+  const ball = { x: 50.5, y: 0.11, z: 34, vx: 14, vy: 0, vz: 0 },
+    lowRead = actor({ anticipation: 20, positioning: 20 }),
+    highRead = actor({ anticipation: 95, positioning: 95 });
+  lowRead.pos = highRead.pos = { x: 56, z: 34 };
+  const earlyRead = movingBallIntercept(highRead, ball),
+    lateRead = movingBallIntercept(lowRead, ball);
+  assert.ok(earlyRead.time <= lateRead.time);
+  assert.ok(earlyRead.time < lateRead.time || earlyRead.point.x >= lateRead.point.x);
+  assert.ok(interceptionReadTime(highRead) < interceptionReadTime(lowRead));
 });
 
 test('near goal a spare central defender protects the shot corridor instead of following every off-ball runner', () => {

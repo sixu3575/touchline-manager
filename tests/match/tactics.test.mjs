@@ -12,6 +12,7 @@ import {
   attackAssignments,
   deliveryOptions,
   deliveryReceptionRisk,
+  midfieldOutletValue,
 } from '../../packages/shared/modules/matches/tactical-plan.mjs';
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
 import { chooseAction } from '../../packages/shared/modules/matches/decisions.mjs';
@@ -253,6 +254,67 @@ test('possession provides distinct outlets and protection without wide-play box 
     false,
   );
   assert.equal(new Set(support.map((p) => p.x + ':' + p.z)).size, support.length);
+});
+
+test('settled balanced and counter attacks keep central midfield outlets behind the ball', () => {
+  for (const direction of [1, -1]) {
+    const actors = team('4-4-2', direction),
+      mirror = (x) => (direction === 1 ? x : 105 - x),
+      owner = actors.find((a) => a.positionRole === 'wideMid');
+    owner.pos = { x: mirror(58), z: 13 };
+    for (const style of ['balanced', 'counter']) {
+      const plan = attackAssignments(
+          actors,
+          { x: mirror(58.5), z: 13 },
+          owner,
+          null,
+          direction,
+          { style },
+          20,
+          context(),
+        ),
+        central = actors.find((a) => a.positionRole === 'centralMid'),
+        duty = plan.assignments[central.player.id];
+      assert.equal(duty.duty, 'support');
+      assert.ok((mirror(58.5) - duty.x) * direction >= 4.9, `${style}: ${duty.x}`);
+      assert.equal(
+        plan.assignments[actors.find((a) => a.positionRole === 'holdingMid').player.id].duty,
+        'cover',
+      );
+    }
+    const counter = attackAssignments(
+      actors,
+      { x: mirror(58.5), z: 13 },
+      owner,
+      null,
+      direction,
+      { style: 'counter' },
+      20,
+      { ...context(), regainedAt: 19, side: 0 },
+    );
+    assert.notEqual(
+      counter.assignments[actors.find((a) => a.positionRole === 'centralMid').player.id]?.duty,
+      'support',
+    );
+  }
+});
+
+test('midfield outlet value rewards safe recycling and yields to counters and forward space', () => {
+  const state = { phase: 'midfield', fastBreak: false },
+    central = { positionRole: 'centralMid' },
+    striker = { positionRole: 'striker' };
+  const safeOutlet = midfieldOutletValue(state, central, 0, 0.9, 8);
+  assert.ok(safeOutlet > 0 && safeOutlet <= 0.012, 'a safe outlet is a small tie-break, not a pass quota');
+  assert.equal(midfieldOutletValue(state, striker, 0, 0.9, 8), 0);
+  assert.equal(midfieldOutletValue({ ...state, fastBreak: true }, central, 0, 0.9, 8), 0);
+  assert.equal(midfieldOutletValue({ ...state, phase: 'finalThird' }, central, 0, 0.9, 8), 0);
+  assert.ok(
+    midfieldOutletValue(state, central, 2, 0.9, 8) >
+      midfieldOutletValue(state, central, 12, 0.9, 8),
+  );
+  assert.ok(
+    midfieldOutletValue(state, central, 0, 0.9, 8) > midfieldOutletValue(state, central, 0, 0.9, 2),
+  );
 });
 
 test('deliveries require flank/box geometry; cutbacks go backwards; aerial ability affects receiver contest estimates', () => {
