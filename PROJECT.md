@@ -1,5 +1,7 @@
 # 项目地图
 
+0.30.0动作统计与评分入口见[matches设计](packages/shared/modules/matches/design/STATISTICS_V0300.md)。statistics.mjs独立观察已执行动作，ratings/statistics.mjs是客户端/评分共用的只读时钟裁切；新比赛使用opta-conventional-2/match-rating-3。物理/战术/体能仍沿0.29，历史评分不覆盖，四场并发保持关闭。
+
 0.29.0候选见[体能完整公式](packages/shared/modules/matches/design/PHYSIOLOGY_V0290.md)：players/physiology维护力量/耐力参数，match-state管理持续能量，matches/activity管理短时负荷/肾上腺素/半场，locomotion执行疲劳跑动，competitions在下一场冻结输入中恢复经过的7日。保持30项能力、0–100体能条与逐场调度；历史不重算。本次按原规则执行比赛和完整赛季，流程不改。
 
 0.28本次只发布[底线控球修复](packages/shared/modules/matches/design/BOUNDARY_V0280.md)，引擎0.28.0-boundary / boundary-1，其他算法与任务结构沿用0.27。用户在[现机四场容量未过](packages/server/src/design/CAPACITY_V0280_20261020.md)后选择保留现机、先修底线，四场暂不开启。并发候选另行保留；不要把方案或候选状态当作生产已启用。

@@ -13,4 +13,15 @@ export function playerEventStatistics(
   keyPasses: number;
   fouls: number;
   offsides: number;
+  passes: number | undefined;
+  completed: number | undefined;
+  passCompletion: number | null;
+  tackleAttempts: number | undefined;
+  tackles: number | undefined;
+  wonTackles: number | undefined;
+  takeOnAttempts: number | undefined;
+  takeOns: number | undefined;
+  possessionLost: number | undefined;
+  blocks: number | undefined;
+  clearances: number | undefined;
 };

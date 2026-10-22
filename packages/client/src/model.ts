@@ -62,6 +62,8 @@ export interface MatchEvent {
         mental?: number;
       };
   opponentQuality?: number;
+  statId?: number;
+  changes?: Record<string, number>;
 }
 export interface Report {
   season?: number;
@@ -90,6 +92,13 @@ export interface Report {
       progressivePasses: number;
       passes: number;
       completed: number;
+      passCompletion?: number | null;
+      takeOnAttempts?: number | null;
+      takeOns?: number | null;
+      failedTakeOns?: number | null;
+      possessionLost?: number | null;
+      blocks?: number | null;
+      clearances?: number | null;
       carryDistance: number;
       tackles: number;
       wonTackles: number;
@@ -152,6 +161,14 @@ export interface Report {
     maxSpeed?: number;
     tackles?: number;
     wonTackles?: number;
+    tackleAttempts?: number;
+    takeOnAttempts?: number;
+    takeOns?: number;
+    possessionLost?: number;
+    interceptions?: number;
+    blocks?: number;
+    clearances?: number;
+    saves?: number;
     yellowCards?: number;
     redCards?: number;
     dismissedAt?: number | null;
@@ -176,6 +193,12 @@ export interface Report {
     completedPasses?: number;
     saves?: number;
     interceptions?: number;
+    takeOns?: number;
+    takeOnAttempts?: number;
+    possessionLost?: number;
+    blocks?: number;
+    clearances?: number;
+    wonTackles?: number;
     corners?: number;
     fouls?: number;
     offsides?: number;

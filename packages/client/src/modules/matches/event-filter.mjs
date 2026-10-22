@@ -38,6 +38,7 @@ export const eventFilterLabels = {
 
 /** @param {string} type @param {string} filter */
 export function eventMatchesFilter(type, filter = 'key') {
+  if (type === 'playerStat') return false; // Compact counters belong in the player panel.
   if (filter === 'all') return true;
   if (filter === 'other') return !key.has(type);
   if (filter === 'rules') return rules.has(type);

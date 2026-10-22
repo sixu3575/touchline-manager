@@ -2,6 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { writeComparison } from '../tools/match-realism.mjs';
 import {
+  playerStatisticsAt,
+  buildPlayerRatings,
+} from '../../packages/shared/modules/matches/ratings/index.mjs';
+import {
   createGame,
   applyAction,
   simulate,
@@ -27,6 +31,34 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
       a.events.filter((e) => e.type === 'goal' && e.side === side).length,
     );
   assert.equal(a.stats[0].possession + a.stats[1].possession, 100);
+  const ratings = buildPlayerRatings(a);
+  for (const p of a.performance) {
+    const current = playerStatisticsAt(a, p.id, 5400);
+    const rating = ratings.rows.find((row) => row.id === p.id);
+    for (const key of [
+      'passes',
+      'completed',
+      'tackleAttempts',
+      'tackles',
+      'wonTackles',
+      'interceptions',
+      'saves',
+      'blocks',
+      'clearances',
+      'takeOns',
+      'takeOnAttempts',
+      'possessionLost',
+    ]) {
+      assert.equal(current[key], p[key], p.id + ': event/performance ' + key);
+      assert.equal(rating[key], p[key], p.id + ': rating/performance ' + key);
+    }
+    assert.ok(p.wonTackles <= p.tackles && p.tackles <= p.tackleAttempts);
+    assert.ok(p.takeOns <= p.takeOnAttempts);
+    assert.equal(
+      p.possessionLost,
+      p.failedPasses + p.dispossessed + p.miscontrolLosses + p.outLosses,
+    );
+  }
   assert.equal(a.replay.frameCount, 27001);
   assert.equal(a.replay.duration * a.replay.clockScale, 5400);
   assert.equal(a.events.find((e) => e.type === 'half').minute, 45);

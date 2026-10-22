@@ -24,6 +24,7 @@ export function broadcastFrameCount(report, broadcast) {
 // Retain the complete event basis of the statistics explicitly requested for
 // players. Ordinary touches still use the rolling tail, and future events stay private.
 const playerStatEvents = new Set([
+  'playerStat',
   'goal',
   'shot',
   'shotOutcome',

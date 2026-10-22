@@ -253,3 +253,58 @@ test('live reports hide final player scores until the authoritative broadcast ha
   const finished = liveReport(r, { finished: true, seconds: 5400 });
   assert.equal(finished.playerRatings.version, RATING_VERSION);
 });
+
+test('new ratings reward measured take-ons and defensive work, without twice penalizing the same possession loss', () => {
+  const make = (changes) => {
+    const r = report();
+    r.statisticsVersion = 'opta-conventional-2';
+    r.events = [event('playerStat', '0-MID', 0, 600, { statId: 1, changes })];
+    return r;
+  };
+  const baseline = row(make({})).rating;
+  assert.ok(row(make({ takeOns: 3, takeOnAttempts: 3 })).rating > baseline);
+  const defensive = row(
+    make({
+      wonTackles: 3,
+      interceptions: 2,
+      blocks: 2,
+      clearances: 4,
+      blockedPasses: 2,
+      recoveries: 5,
+    }),
+  );
+  assert.ok(defensive.categories.find((c) => c.key === 'defending').value > 0);
+  const lost = make({ possessionLost: 1, dispossessed: 1, failedTakeOns: 1, takeOnAttempts: 1 });
+  const noDuplicate = make({ possessionLost: 1, dispossessed: 1 });
+  assert.equal(row(lost).rating, row(noDuplicate).rating);
+  assert.equal(row(lost).categories.find((c) => c.key === 'errors').value, -0.04);
+  const missed = make({ passes: 10, completed: 5, failedPasses: 5, possessionLost: 5 });
+  assert.equal(row(missed).passCompletion, 50);
+  assert.equal(
+    row(missed).categories.find((c) => c.key === 'errors').value,
+    0,
+    'pass accuracy already evaluates failed passes',
+  );
+  assert.ok(row(missed).categories.find((c) => c.key === 'passing').value < 0);
+  const inflated = make({ takeOnAttempts: 999 });
+  assert.equal(
+    row(inflated).rating,
+    baseline,
+    'intentions or unsuccessful volume do not create credit',
+  );
+});
+
+test('the live counter stream survives the ordinary-event tail and never exposes future counters or ratings', () => {
+  const r = report();
+  r.statisticsVersion = 'opta-conventional-2';
+  r.replay.players = [];
+  r.events = [
+    event('playerStat', '0-MID', 0, 1, { statId: 1, changes: { passes: 1 } }),
+    ...Array.from({ length: 200 }, (_, i) => event('control', '0-MID', 0, 2 + i / 10)),
+    event('playerStat', '0-MID', 0, 500, { statId: 2, changes: { takeOns: 1 } }),
+  ];
+  const live = liveReport(r, { finished: false, seconds: 100 });
+  assert.ok(live.events.some((e) => e.statId === 1));
+  assert.ok(!live.events.some((e) => e.statId === 2));
+  assert.equal(live.playerRatings, undefined);
+});

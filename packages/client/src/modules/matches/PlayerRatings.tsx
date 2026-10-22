@@ -69,6 +69,13 @@ export function PlayerRatings({ report }: { report: Report }) {
                   拦截 · {row.saves}扑救
                 </p>
                 <p>
+                  传球成功率{' '}
+                  {row.passes ? Math.round((100 * row.completed) / row.passes) + '%' : '—'} · 过人{' '}
+                  {row.takeOns == null ? '未记录' : `${row.takeOns} / ${row.takeOnAttempts}次尝试`}{' '}
+                  · 丢失球权 {row.possessionLost ?? '未记录'} · 封堵 {row.blocks ?? '未记录'} · 解围{' '}
+                  {row.clearances ?? '未记录'}
+                </p>
+                <p>
                   推进 {row.carryDistance}米 · 黄牌 {row.yellowCards} / 红牌 {row.redCards}
                 </p>
                 {row.rating === null ? (
@@ -108,7 +115,10 @@ export function PlayerRatings({ report }: { report: Report }) {
           按位置评价进球、助攻、机会创造、传球、推进、防守、扑救、在场失球和纪律。常规表现从6.5分起算，9分以上逐步收紧，最终限定3–10分；出场不足10分钟且无决定性事件不评分。各项取整可能有尾差。
         </p>
         <p>
-          不会因触球多、球衣号码、球员能力或获胜直接加分。点球大战不计常规评分；未记录的解围、封堵、扑救难度和直接致失球责任不作推断。本场评分与能力评级、近期状态独立。
+          成功过人须越过防守者并保住球；丢球分为传球失败、被断、失控和出界。传球失败通过成功率评价，过人失败与同次被断只扣一次；封堵、解围和抢断按实际结果加分，重复贡献的加分逐渐减小。正常射门不计丢球。
+        </p>
+        <p>
+          不会因触球多、球衣号码、球员能力或获胜直接加分。点球大战不计常规评分；历史缺失数据、扑救难度和直接致失球责任不作推断。本场评分与能力评级、近期状态独立，旧评分保留原版本。
         </p>
         <p>
           参考{' '}

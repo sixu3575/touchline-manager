@@ -82,7 +82,7 @@ test('player statistics follow the viewed instant and confirmed attribution, exc
     'in-flight shot is not yet confirmed on target',
   );
   const current = playerEventStatistics(report, 'a', 60);
-  assert.deepEqual(current, {
+  const expected = {
     goals: 1,
     assists: 1,
     shots: 2,
@@ -92,7 +92,10 @@ test('player statistics follow the viewed instant and confirmed attribution, exc
     keyPasses: 1,
     fouls: 1,
     offsides: 1,
-  });
+  };
+  assert.deepEqual(Object.fromEntries(Object.keys(expected).map((k) => [k, current[k]])), expected);
+  assert.equal(current.takeOns, undefined, 'old reports do not invent unrecorded take-ons');
+  assert.equal(current.possessionLost, undefined, 'old reports do not invent loss counts');
   assert.equal(playerEventStatistics(report, 'a', 29).assists, 0);
   assert.equal(playerEventStatistics(report, 'gk', 60).saves, 1, 'ordinary controls are not saves');
   assert.equal(
@@ -105,4 +108,35 @@ test('player statistics follow the viewed instant and confirmed attribution, exc
     undefined,
     'missing historical confirmation is not a measured zero',
   );
+});
+
+test('canonical counters survive duplicates, a long event tail, replay seek and future events', () => {
+  const stat = (statId, second, changes) => ({
+    type: 'playerStat',
+    playerId: 'p',
+    side: 0,
+    second,
+    minute: second / 60,
+    statId,
+    changes,
+  });
+  const r = {
+    statisticsVersion: 'opta-conventional-2',
+    replay: { players: [{ id: 'p', side: 0 }] },
+    events: [
+      stat(1, 1, { passes: 1 }),
+      stat(2, 2, { completed: 1 }),
+      stat(2, 2, { completed: 1 }),
+      stat(3, 4, { tackleAttempts: 1 }),
+      stat(4, 5, { wonTackles: 1, takeOns: 1, possessionLost: 1 }),
+      stat(5, 100, { saves: 1 }),
+    ],
+  };
+  assert.equal(playerEventStatistics(r, 'p', 3).passCompletion, 100);
+  assert.equal(playerEventStatistics(r, 'p', 4).wonTackles, 0);
+  assert.equal(playerEventStatistics(r, 'p', 6).wonTackles, 1);
+  assert.equal(playerEventStatistics(r, 'p', 6).possessionLost, 1);
+  assert.equal(playerEventStatistics(r, 'p', 6).saves, 0);
+  assert.equal(playerEventStatistics(r, 'p', 1).passCompletion, 0);
+  assert.equal(playerEventStatistics(r, 'p', 0).passCompletion, null);
 });
