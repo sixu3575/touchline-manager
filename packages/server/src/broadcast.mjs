@@ -10,8 +10,9 @@ export const newBroadcast = () => ({ speed: LIVE_SPEED, anchorAt: null, anchorSe
 // needs only public match data, not growing copies of continuity/physical audits.
 // Keep raw snapshots for the existing assessment boundary at response time.
 export function compactBroadcastReport(report) {
+  if (report.broadcastCompactionVersion === 1) return report;
   const { snapshots, ...data } = report;
-  return { ...stripDiagnostics(data), snapshots };
+  return { ...stripDiagnostics(data), snapshots, broadcastCompactionVersion: 1 };
 }
 
 export function broadcastFrameCount(report, broadcast) {

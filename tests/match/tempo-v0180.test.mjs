@@ -142,4 +142,21 @@ test('live stamina starts at zero and full-match control spells stay out of repe
     ),
   );
   assert.ok(report.timeline.every((row) => !('controlSpells' in row.continuity)));
+  assert.ok(
+    report.timeline.every(
+      (row) => !('possessions' in row.continuity) && !('chains' in row.continuity),
+    ),
+  );
+  assert.ok(
+    report.timeline.every((row) =>
+      row.performance.every((p) => !('locomotion' in p) && !('defenceTelemetry' in p)),
+    ),
+  );
+  assert.ok(
+    Array.isArray(report.continuity.possessions) && Array.isArray(report.continuity.chains),
+  );
+  assert.ok(
+    report.performance.every((p) => p.locomotion && p.defenceTelemetry),
+    'the complete final diagnostics remain available once, rather than in every timeline row',
+  );
 });

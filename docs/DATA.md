@@ -1,5 +1,7 @@
 # 数据与迁移
 
+周期时间线仅保留观看和计数需要的快照；控球阶段/传球链完整历史、跑动分区与防守诊断只在最终记录保存一次，原检查点保留完整运行状态。后台AI续算复用已压缩的广播表示，内部版本标记经publicReport边界剔除；不要绕过知识/诊断投影。
+
 0.30.0保持JSON/SQLite schema3，新增可选playerStat事件（statId/second/playerId/side/changes/reason）及对应个人/球队汇总，统计opta-conventional-2；检查点state.actionStatistics保存纯JSON观察状态，不能让新引擎续算0.29旧检查点。新评分match-rating-3，已有playerRatings版本原样保留。旧历史新增项未知，不从当前阵容或重演推断。
 
 0.29.0保留JSON/SQLite3、原任务/轨迹格式。physiology缓存与本场energyCeiling只存在于临时actor.matchState并随原检查点序列化，不出站、不写长期球员。旧fitness不批量改写；未来合法轮次才应用按天恢复，赛后能量可到0。旧报告/BLOB不重算，升级先排空旧引擎任务并校验离机备份，新引擎不得恢复旧检查点。

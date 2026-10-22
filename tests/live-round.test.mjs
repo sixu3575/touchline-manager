@@ -12,6 +12,7 @@ import {
   compactBroadcastReport,
 } from '../packages/server/src/broadcast.mjs';
 import { playerEventStatistics } from '../packages/client/src/modules/matches/player-statistics.mjs';
+import { stripDiagnostics } from '../packages/server/src/player-view.mjs';
 
 function setup() {
   const db = new DatabaseSync(':memory:');
@@ -110,6 +111,17 @@ test('long broadcasts retain earlier player statistics without retaining private
     diagnostics: { analysis: Array(10000).fill(42) },
   };
   const compact = compactBroadcastReport(raw);
+  const persisted = JSON.parse(JSON.stringify(compact));
+  assert.strictEqual(
+    compactBroadcastReport(persisted),
+    persisted,
+    'already compact durable reports do not deep-copy all history during every AI slice',
+  );
+  assert.equal(
+    stripDiagnostics(persisted).broadcastCompactionVersion,
+    undefined,
+    'the private compaction marker never crosses the public projection',
+  );
   assert.ok(JSON.stringify(compact).length < JSON.stringify(raw).length / 4);
   assert.ok(
     raw.continuity.controlSpells.length === 10000,

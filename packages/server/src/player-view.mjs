@@ -37,6 +37,7 @@ export function publicPlayer(g, p, own = false) {
   };
 }
 const diagnostics = new Set([
+  'broadcastCompactionVersion',
   'seed',
   'quality',
   'opponentQuality',

@@ -649,7 +649,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     timeline.push({
       second: 0,
       stats: publicStats(),
-      performance: playerStats(),
+      performance: playerStats(true),
       continuity: timelineContinuity(),
     });
   }
@@ -750,53 +750,60 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       };
     });
   }
-  function playerStats() {
-    return actors.map((a) => ({
-      id: a.player.id,
-      side: a.side,
-      distance: Math.round(a.distance),
-      locomotion: {
-        version: 1,
-        zones: a.activity.zones.map((n) => Math.round(n)),
-        seconds: a.activity.seconds.map((n) => Math.round(n * 100) / 100),
-        liveMetres: Math.round(a.activity.liveMetres),
-        deadMetres: Math.round(a.activity.deadMetres),
-        sprintEfforts: a.activity.sprintEfforts,
-        longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
-        adrenalineEfforts: a.activity.adrenalineEfforts,
-      },
-      defenceTelemetry: {
-        pressSeconds: Math.round(a.pressSeconds ?? 0),
-        markingSeconds: Math.round(a.markingSeconds ?? 0),
-        markingSwitches: a.markSwitches ?? 0,
-        observationLapses: a.markLapses ?? 0,
-      },
-      energy: Math.round(a.energy * 10) / 10,
-      burstReserve: Math.round(burstReserve(a)),
-      touches: a.touches,
-      passes: a.passes,
-      completed: a.completed,
-      style: a.profile.label,
-      positionRole: a.positionRole,
-      dribbleTouches: a.carries,
-      carryDistance: Math.round(a.carryDistance),
-      throughBalls: a.throughBalls,
-      longPasses: a.longPasses,
-      oneTouchPasses: a.oneTouchPasses,
-      maxSpeed: Math.round(a.maxSpeed * 100) / 100,
-      tackles: a.tackles,
-      wonTackles: a.wonTackles,
-      yellowCards: a.yellowCards,
-      redCards: Number(a.sentOff),
-      dismissedAt: a.dismissedAt,
-      mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
-      ...actionStatistics.rows[a.player.id],
-    }));
+  function playerStats(timelineOnly = false) {
+    return actors.map((a) => {
+      const row = {
+        id: a.player.id,
+        side: a.side,
+        distance: Math.round(a.distance),
+        locomotion: {
+          version: 1,
+          zones: a.activity.zones.map((n) => Math.round(n)),
+          seconds: a.activity.seconds.map((n) => Math.round(n * 100) / 100),
+          liveMetres: Math.round(a.activity.liveMetres),
+          deadMetres: Math.round(a.activity.deadMetres),
+          sprintEfforts: a.activity.sprintEfforts,
+          longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
+          adrenalineEfforts: a.activity.adrenalineEfforts,
+        },
+        defenceTelemetry: {
+          pressSeconds: Math.round(a.pressSeconds ?? 0),
+          markingSeconds: Math.round(a.markingSeconds ?? 0),
+          markingSwitches: a.markSwitches ?? 0,
+          observationLapses: a.markLapses ?? 0,
+        },
+        energy: Math.round(a.energy * 10) / 10,
+        burstReserve: Math.round(burstReserve(a)),
+        touches: a.touches,
+        passes: a.passes,
+        completed: a.completed,
+        style: a.profile.label,
+        positionRole: a.positionRole,
+        dribbleTouches: a.carries,
+        carryDistance: Math.round(a.carryDistance),
+        throughBalls: a.throughBalls,
+        longPasses: a.longPasses,
+        oneTouchPasses: a.oneTouchPasses,
+        maxSpeed: Math.round(a.maxSpeed * 100) / 100,
+        tackles: a.tackles,
+        wonTackles: a.wonTackles,
+        yellowCards: a.yellowCards,
+        redCards: Number(a.sentOff),
+        dismissedAt: a.dismissedAt,
+        mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
+        ...actionStatistics.rows[a.player.id],
+      };
+      if (timelineOnly) {
+        delete row.locomotion;
+        delete row.defenceTelemetry;
+      }
+      return row;
+    });
   }
   function timelineContinuity() {
     // Individual control spells are full-match replay diagnostics, not live snapshots.
     // Duplicating the growing list every 30 seconds bloats durable checkpoints and broadcasts.
-    const { controlSpells, ...summary } = continuity.metrics;
+    const { controlSpells, possessions, chains, ...summary } = continuity.metrics;
     return structuredClone(summary);
   }
   function buildReport(penalties, abandoned = false) {
@@ -2084,7 +2091,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         timeline.push({
           second: time,
           stats: publicStats(),
-          performance: playerStats(),
+          performance: playerStats(true),
           continuity: timelineContinuity(),
         });
       if (abandoned) break;
