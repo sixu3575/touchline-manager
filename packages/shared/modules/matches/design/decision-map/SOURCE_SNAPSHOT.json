@@ -4,7 +4,7 @@
   "engineVersion": "0.34.0-contact-referee",
   "parameterVersion": "physiology-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
-  "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
+  "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
     "cli": "12.0.0",
     "layout": "dagre",
@@ -76,7 +76,7 @@
     },
     "04-reception": {
       "mermaidSha256": "f0e1d5a71048fa8d968545ef11015670121ae6ead29b8a88556872a21b8855dd",
-      "svgSha256": "1d9d12d5763f85f875e5fe48ef1d4a12704ef1abec37567cc24c2f74034c44f2"
+      "svgSha256": "3a5743e3a11f26ca28c353b3afa2c63b731f461a6bfc7fb037d76ff4a60d6280"
     },
     "05-actions": {
       "mermaidSha256": "8bbc242a788858679464e87259c1411834fdc1fde587aa57391759c2b92cdd52",

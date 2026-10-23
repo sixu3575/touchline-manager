@@ -74,6 +74,6 @@ mmdc -i 04-reception.mmd -o 04-reception.svg -c mermaid.json -b white --size 180
 
 可用 `-p` 指向本机浏览器路径的 Puppeteer JSON 配置。输出 SVG 的 id 要以字母开头，否则 CSS 选择器可能无效；归档前按 viewBox 的宽高设置数值 width/height，保留 `max-width:100%; height:auto`，移除固定 max-height，避免长图在独立打开时被压缩到窗口高度。关闭 HTML 标签，避免依赖 foreignObject 显示文字。字体没有嵌入，阅读端使用本地中文字体及后备字体。
 
-重新计算摘要时：源码按 UTF-8 文本读取，CRLF / CR 统一成 LF 后计算 SHA-256，避免不同开发系统的换行设置造成假差异；Mermaid 按 Markdown 中开头 `mermaid` 标记行之后、结尾三个反引号之前的文本取出，包含末尾换行，同样规范为 LF 后计算。SVG 按文件原始字节计算 SHA-256。摘要文件的 encoding 字段明确记录这两个约定；不要混用原始文本和规范换行后的摘要。
+重新计算摘要时：源码按 UTF-8 文本读取，CRLF / CR 统一成 LF 后计算 SHA-256，避免不同开发系统的换行设置造成假差异；Mermaid 按 Markdown 中开头 `mermaid` 标记行之后、结尾三个反引号之前的文本取出，包含末尾换行，同样规范为 LF 后计算。SVG 按 UTF-8 文本读取，并将 CRLF / CR 统一成 LF 后计算 SHA-256，确保 Windows 与 Linux 校验一致。摘要文件的 encoding 字段明确记录这些约定；不要混用原始字节摘要和规范换行后的文本摘要。
 
 交付前打开六张图检查中文、连线和标签；核对所有图源摘要、SVG摘要、源码摘要和本地链接，更新上级正文的核对日期及基线，再在比赛模块 CHANGELOG 记录变更。检查与发布仍遵守根 AGENTS.md；此说明不授权安装 Git 钩子、删减测试或改变部署。
