@@ -1,0 +1,1700 @@
+{
+  "referenceVersion": "wyscout-european-events-2017-18-v1",
+  "source": {
+    "title": "Soccer match event dataset",
+    "authors": "Pappalardo, Massucco et al.",
+    "doi": "10.6084/m9.figshare.c.4415000.v5",
+    "datasetPaperDoi": "10.1038/s41597-019-0247-7",
+    "url": "https://figshare.com/collections/Soccer_match_event_dataset/4415000/5",
+    "license": "CC BY 4.0",
+    "attribution": "Wyscout event data; Pappalardo et al. (2019), CC BY 4.0."
+  },
+  "method": {
+    "matchCount": 1941,
+    "competitions": 7,
+    "metrics": [
+      "goals",
+      "shots",
+      "shotsOnTarget",
+      "blockedShots",
+      "passesAttempted",
+      "passesCompleted",
+      "fouls",
+      "corners",
+      "yellowCards",
+      "redCards",
+      "offsides",
+      "saves",
+      "attackingDuels",
+      "wonAttackingDuels",
+      "defendingDuels",
+      "wonDefendingDuels",
+      "interceptions",
+      "clearances"
+    ],
+    "variance": "Unbiased sample variance using n−1; teamMatch uses one team per match, matchTotal uses one row per match.",
+    "definitions": "Passes count Pass events; completed passes carry tag 1801. Shots on target are Shot events tagged 1801 or goal tag 101. Fouls, corners, saves and cards follow Wyscout event/type tags. Ground duels are reported as duels, not re-labelled as official tackles or take-ons. Scores use the regulation score field; event counts include only 1H/2H. This source has no tracking distance or xG.",
+    "limitations": "Coverage is 2017/18 full Big Five first divisions, UEFA EURO 2016 and FIFA World Cup 2018; it is not a full European league/cup census and does not include a full Champions League season."
+  },
+  "sourceFiles": [
+    {
+      "file": "events.zip",
+      "sha256": "877e015b716ffdeea18f04418e3f24fed307ed03c37ff305cabe1f47c4822a45"
+    },
+    {
+      "file": "matches.zip",
+      "sha256": "c8f92bb7533e5c127e043cee764c991b5c25b4f5e70a65be931baae0b1765ce9"
+    },
+    {
+      "file": "players.json",
+      "sha256": "877a111cb1005b73df5645e9338bd74fb4b496bace2fbc545a72abb3b73efa2e"
+    },
+    {
+      "file": "teams.json",
+      "sha256": "9f7a4a3b3d92c0be33f40613ad6e6eb4316c3b9771ec74c61a22c9b8ece23a4d"
+    }
+  ],
+  "competitions": [
+    {
+      "id": 524,
+      "name": "Italian first division",
+      "format": "Domestic league",
+      "country": "Italy"
+    },
+    {
+      "id": 364,
+      "name": "English first division",
+      "format": "Domestic league",
+      "country": "England"
+    },
+    {
+      "id": 795,
+      "name": "Spanish first division",
+      "format": "Domestic league",
+      "country": "Spain"
+    },
+    {
+      "id": 412,
+      "name": "French first division",
+      "format": "Domestic league",
+      "country": "France"
+    },
+    {
+      "id": 426,
+      "name": "German first division",
+      "format": "Domestic league",
+      "country": "Germany"
+    },
+    {
+      "id": 102,
+      "name": "European Championship",
+      "format": "International cup",
+      "country": ""
+    },
+    {
+      "id": 28,
+      "name": "World Cup",
+      "format": "International cup",
+      "country": ""
+    }
+  ],
+  "samples": [
+    {
+      "key": "England",
+      "country": "England",
+      "competition": "Premier League",
+      "season": "2017/18",
+      "matches": 380,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 760,
+          "mean": 1.3395,
+          "sampleVariance": 1.6264,
+          "standardDeviation": 1.2753
+        },
+        "shots": {
+          "n": 760,
+          "mean": 11.1197,
+          "sampleVariance": 26.5614,
+          "standardDeviation": 5.1538
+        },
+        "shotsOnTarget": {
+          "n": 760,
+          "mean": 3.9316,
+          "sampleVariance": 5.9031,
+          "standardDeviation": 2.4296
+        },
+        "blockedShots": {
+          "n": 760,
+          "mean": 2.9882,
+          "sampleVariance": 5.4083,
+          "standardDeviation": 2.3256
+        },
+        "passesAttempted": {
+          "n": 760,
+          "mean": 432.4434,
+          "sampleVariance": 22132.0864,
+          "standardDeviation": 148.7686
+        },
+        "passesCompleted": {
+          "n": 760,
+          "mean": 356.9474,
+          "sampleVariance": 21063.6336,
+          "standardDeviation": 145.1332
+        },
+        "fouls": {
+          "n": 760,
+          "mean": 10.7079,
+          "sampleVariance": 11.8434,
+          "standardDeviation": 3.4414
+        },
+        "corners": {
+          "n": 760,
+          "mean": 5.1447,
+          "sampleVariance": 8.7168,
+          "standardDeviation": 2.9524
+        },
+        "yellowCards": {
+          "n": 760,
+          "mean": 1.5526,
+          "sampleVariance": 1.6283,
+          "standardDeviation": 1.2761
+        },
+        "redCards": {
+          "n": 760,
+          "mean": 0.0539,
+          "sampleVariance": 0.0537,
+          "standardDeviation": 0.2318
+        },
+        "offsides": {
+          "n": 760,
+          "mean": 2.05,
+          "sampleVariance": 2.9461,
+          "standardDeviation": 1.7164
+        },
+        "saves": {
+          "n": 760,
+          "mean": 4.4066,
+          "sampleVariance": 7.0189,
+          "standardDeviation": 2.6493
+        },
+        "attackingDuels": {
+          "n": 760,
+          "mean": 70.8671,
+          "sampleVariance": 250.1312,
+          "standardDeviation": 15.8155
+        },
+        "wonAttackingDuels": {
+          "n": 760,
+          "mean": 34.4079,
+          "sampleVariance": 94.1654,
+          "standardDeviation": 9.7039
+        },
+        "defendingDuels": {
+          "n": 760,
+          "mean": 70.7066,
+          "sampleVariance": 255.1562,
+          "standardDeviation": 15.9736
+        },
+        "wonDefendingDuels": {
+          "n": 760,
+          "mean": 15.5697,
+          "sampleVariance": 22.4378,
+          "standardDeviation": 4.7369
+        },
+        "interceptions": {
+          "n": 760,
+          "mean": 46.4947,
+          "sampleVariance": 147.6363,
+          "standardDeviation": 12.1506
+        },
+        "clearances": {
+          "n": 760,
+          "mean": 15.5053,
+          "sampleVariance": 62.0579,
+          "standardDeviation": 7.8777
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 380,
+          "mean": 2.6789,
+          "sampleVariance": 2.7726,
+          "standardDeviation": 1.6651
+        },
+        "shots": {
+          "n": 380,
+          "mean": 22.2395,
+          "sampleVariance": 25.2116,
+          "standardDeviation": 5.0211
+        },
+        "shotsOnTarget": {
+          "n": 380,
+          "mean": 7.8632,
+          "sampleVariance": 8.3928,
+          "standardDeviation": 2.897
+        },
+        "blockedShots": {
+          "n": 380,
+          "mean": 5.9763,
+          "sampleVariance": 7.8121,
+          "standardDeviation": 2.795
+        },
+        "passesAttempted": {
+          "n": 380,
+          "mean": 864.8868,
+          "sampleVariance": 14821.3302,
+          "standardDeviation": 121.7429
+        },
+        "passesCompleted": {
+          "n": 380,
+          "mean": 713.8947,
+          "sampleVariance": 16412.6749,
+          "standardDeviation": 128.112
+        },
+        "fouls": {
+          "n": 380,
+          "mean": 21.4158,
+          "sampleVariance": 26.4019,
+          "standardDeviation": 5.1383
+        },
+        "corners": {
+          "n": 380,
+          "mean": 10.2895,
+          "sampleVariance": 11.193,
+          "standardDeviation": 3.3456
+        },
+        "yellowCards": {
+          "n": 380,
+          "mean": 3.1053,
+          "sampleVariance": 4.0258,
+          "standardDeviation": 2.0064
+        },
+        "redCards": {
+          "n": 380,
+          "mean": 0.1079,
+          "sampleVariance": 0.1176,
+          "standardDeviation": 0.343
+        },
+        "offsides": {
+          "n": 380,
+          "mean": 4.1,
+          "sampleVariance": 5.3884,
+          "standardDeviation": 2.3213
+        },
+        "saves": {
+          "n": 380,
+          "mean": 8.8132,
+          "sampleVariance": 9.6774,
+          "standardDeviation": 3.1109
+        },
+        "attackingDuels": {
+          "n": 380,
+          "mean": 141.7342,
+          "sampleVariance": 498.1482,
+          "standardDeviation": 22.3192
+        },
+        "wonAttackingDuels": {
+          "n": 380,
+          "mean": 68.8158,
+          "sampleVariance": 162.8789,
+          "standardDeviation": 12.7624
+        },
+        "defendingDuels": {
+          "n": 380,
+          "mean": 141.4132,
+          "sampleVariance": 511.1982,
+          "standardDeviation": 22.6097
+        },
+        "wonDefendingDuels": {
+          "n": 380,
+          "mean": 31.1395,
+          "sampleVariance": 51.4765,
+          "standardDeviation": 7.1747
+        },
+        "interceptions": {
+          "n": 380,
+          "mean": 92.9895,
+          "sampleVariance": 192.6173,
+          "standardDeviation": 13.8787
+        },
+        "clearances": {
+          "n": 380,
+          "mean": 31.0105,
+          "sampleVariance": 72.9867,
+          "standardDeviation": 8.5432
+        }
+      }
+    },
+    {
+      "key": "France",
+      "country": "France",
+      "competition": "Ligue 1",
+      "season": "2017/18",
+      "matches": 380,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 760,
+          "mean": 1.3592,
+          "sampleVariance": 1.5691,
+          "standardDeviation": 1.2526
+        },
+        "shots": {
+          "n": 760,
+          "mean": 10.9566,
+          "sampleVariance": 19.9915,
+          "standardDeviation": 4.4712
+        },
+        "shotsOnTarget": {
+          "n": 760,
+          "mean": 3.9,
+          "sampleVariance": 5.4972,
+          "standardDeviation": 2.3446
+        },
+        "blockedShots": {
+          "n": 760,
+          "mean": 2.4855,
+          "sampleVariance": 3.2172,
+          "standardDeviation": 1.7937
+        },
+        "passesAttempted": {
+          "n": 760,
+          "mean": 419.9974,
+          "sampleVariance": 13194.556,
+          "standardDeviation": 114.8676
+        },
+        "passesCompleted": {
+          "n": 760,
+          "mean": 349.0224,
+          "sampleVariance": 12674.3961,
+          "standardDeviation": 112.5806
+        },
+        "fouls": {
+          "n": 760,
+          "mean": 13.4237,
+          "sampleVariance": 16.3183,
+          "standardDeviation": 4.0396
+        },
+        "corners": {
+          "n": 760,
+          "mean": 4.9184,
+          "sampleVariance": 7.8985,
+          "standardDeviation": 2.8104
+        },
+        "yellowCards": {
+          "n": 760,
+          "mean": 1.8855,
+          "sampleVariance": 1.5455,
+          "standardDeviation": 1.2432
+        },
+        "redCards": {
+          "n": 760,
+          "mean": 0.1132,
+          "sampleVariance": 0.1005,
+          "standardDeviation": 0.317
+        },
+        "offsides": {
+          "n": 760,
+          "mean": 2.0303,
+          "sampleVariance": 2.7646,
+          "standardDeviation": 1.6627
+        },
+        "saves": {
+          "n": 760,
+          "mean": 4.5211,
+          "sampleVariance": 6.5924,
+          "standardDeviation": 2.5676
+        },
+        "attackingDuels": {
+          "n": 760,
+          "mean": 74.6316,
+          "sampleVariance": 239.8325,
+          "standardDeviation": 15.4865
+        },
+        "wonAttackingDuels": {
+          "n": 760,
+          "mean": 36.0908,
+          "sampleVariance": 96.2539,
+          "standardDeviation": 9.8109
+        },
+        "defendingDuels": {
+          "n": 760,
+          "mean": 74.3684,
+          "sampleVariance": 241.1579,
+          "standardDeviation": 15.5293
+        },
+        "wonDefendingDuels": {
+          "n": 760,
+          "mean": 16.5474,
+          "sampleVariance": 20.256,
+          "standardDeviation": 4.5007
+        },
+        "interceptions": {
+          "n": 760,
+          "mean": 43.8026,
+          "sampleVariance": 104.9175,
+          "standardDeviation": 10.2429
+        },
+        "clearances": {
+          "n": 760,
+          "mean": 14.1118,
+          "sampleVariance": 46.3419,
+          "standardDeviation": 6.8075
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 380,
+          "mean": 2.7184,
+          "sampleVariance": 2.6303,
+          "standardDeviation": 1.6218
+        },
+        "shots": {
+          "n": 380,
+          "mean": 21.9132,
+          "sampleVariance": 28.507,
+          "standardDeviation": 5.3392
+        },
+        "shotsOnTarget": {
+          "n": 380,
+          "mean": 7.8,
+          "sampleVariance": 8.9678,
+          "standardDeviation": 2.9946
+        },
+        "blockedShots": {
+          "n": 380,
+          "mean": 4.9711,
+          "sampleVariance": 6.1443,
+          "standardDeviation": 2.4788
+        },
+        "passesAttempted": {
+          "n": 380,
+          "mean": 839.9947,
+          "sampleVariance": 11079.2031,
+          "standardDeviation": 105.2578
+        },
+        "passesCompleted": {
+          "n": 380,
+          "mean": 698.0447,
+          "sampleVariance": 12215.0983,
+          "standardDeviation": 110.5219
+        },
+        "fouls": {
+          "n": 380,
+          "mean": 26.8474,
+          "sampleVariance": 36.2458,
+          "standardDeviation": 6.0204
+        },
+        "corners": {
+          "n": 380,
+          "mean": 9.8368,
+          "sampleVariance": 11.2029,
+          "standardDeviation": 3.3471
+        },
+        "yellowCards": {
+          "n": 380,
+          "mean": 3.7711,
+          "sampleVariance": 3.6546,
+          "standardDeviation": 1.9117
+        },
+        "redCards": {
+          "n": 380,
+          "mean": 0.2263,
+          "sampleVariance": 0.2178,
+          "standardDeviation": 0.4667
+        },
+        "offsides": {
+          "n": 380,
+          "mean": 4.0605,
+          "sampleVariance": 5.1071,
+          "standardDeviation": 2.2599
+        },
+        "saves": {
+          "n": 380,
+          "mean": 9.0421,
+          "sampleVariance": 10.4837,
+          "standardDeviation": 3.2379
+        },
+        "attackingDuels": {
+          "n": 380,
+          "mean": 149.2632,
+          "sampleVariance": 520.6588,
+          "standardDeviation": 22.8179
+        },
+        "wonAttackingDuels": {
+          "n": 380,
+          "mean": 72.1816,
+          "sampleVariance": 173.2255,
+          "standardDeviation": 13.1615
+        },
+        "defendingDuels": {
+          "n": 380,
+          "mean": 148.7368,
+          "sampleVariance": 534.8382,
+          "standardDeviation": 23.1266
+        },
+        "wonDefendingDuels": {
+          "n": 380,
+          "mean": 33.0947,
+          "sampleVariance": 46.0965,
+          "standardDeviation": 6.7894
+        },
+        "interceptions": {
+          "n": 380,
+          "mean": 87.6053,
+          "sampleVariance": 193.6644,
+          "standardDeviation": 13.9163
+        },
+        "clearances": {
+          "n": 380,
+          "mean": 28.2237,
+          "sampleVariance": 68.2849,
+          "standardDeviation": 8.2635
+        }
+      }
+    },
+    {
+      "key": "Germany",
+      "country": "Germany",
+      "competition": "Bundesliga",
+      "season": "2017/18",
+      "matches": 306,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 612,
+          "mean": 1.3971,
+          "sampleVariance": 1.5066,
+          "standardDeviation": 1.2274
+        },
+        "shots": {
+          "n": 612,
+          "mean": 11.2712,
+          "sampleVariance": 20.1914,
+          "standardDeviation": 4.4935
+        },
+        "shotsOnTarget": {
+          "n": 612,
+          "mean": 4.1062,
+          "sampleVariance": 5.2015,
+          "standardDeviation": 2.2807
+        },
+        "blockedShots": {
+          "n": 612,
+          "mean": 2.5768,
+          "sampleVariance": 3.4491,
+          "standardDeviation": 1.8572
+        },
+        "passesAttempted": {
+          "n": 612,
+          "mean": 427.2255,
+          "sampleVariance": 14487.7559,
+          "standardDeviation": 120.3651
+        },
+        "passesCompleted": {
+          "n": 612,
+          "mean": 351.2729,
+          "sampleVariance": 13903.0825,
+          "standardDeviation": 117.9113
+        },
+        "fouls": {
+          "n": 612,
+          "mean": 14.1438,
+          "sampleVariance": 17.7862,
+          "standardDeviation": 4.2174
+        },
+        "corners": {
+          "n": 612,
+          "mean": 4.7239,
+          "sampleVariance": 6.7043,
+          "standardDeviation": 2.5893
+        },
+        "yellowCards": {
+          "n": 612,
+          "mean": 1.6879,
+          "sampleVariance": 1.58,
+          "standardDeviation": 1.257
+        },
+        "redCards": {
+          "n": 612,
+          "mean": 0.0703,
+          "sampleVariance": 0.0654,
+          "standardDeviation": 0.2558
+        },
+        "offsides": {
+          "n": 612,
+          "mean": 1.9918,
+          "sampleVariance": 2.7479,
+          "standardDeviation": 1.6577
+        },
+        "saves": {
+          "n": 612,
+          "mean": 4.5931,
+          "sampleVariance": 6.065,
+          "standardDeviation": 2.4627
+        },
+        "attackingDuels": {
+          "n": 612,
+          "mean": 72.4542,
+          "sampleVariance": 249.3874,
+          "standardDeviation": 15.792
+        },
+        "wonAttackingDuels": {
+          "n": 612,
+          "mean": 35.3938,
+          "sampleVariance": 93.8267,
+          "standardDeviation": 9.6864
+        },
+        "defendingDuels": {
+          "n": 612,
+          "mean": 72.165,
+          "sampleVariance": 259.9744,
+          "standardDeviation": 16.1237
+        },
+        "wonDefendingDuels": {
+          "n": 612,
+          "mean": 16.1405,
+          "sampleVariance": 21.6529,
+          "standardDeviation": 4.6533
+        },
+        "interceptions": {
+          "n": 612,
+          "mean": 45.3203,
+          "sampleVariance": 112.385,
+          "standardDeviation": 10.6012
+        },
+        "clearances": {
+          "n": 612,
+          "mean": 14.3807,
+          "sampleVariance": 47.6502,
+          "standardDeviation": 6.9029
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 306,
+          "mean": 2.7941,
+          "sampleVariance": 2.7608,
+          "standardDeviation": 1.6616
+        },
+        "shots": {
+          "n": 306,
+          "mean": 22.5425,
+          "sampleVariance": 27.672,
+          "standardDeviation": 5.2604
+        },
+        "shotsOnTarget": {
+          "n": 306,
+          "mean": 8.2124,
+          "sampleVariance": 9.3023,
+          "standardDeviation": 3.05
+        },
+        "blockedShots": {
+          "n": 306,
+          "mean": 5.1536,
+          "sampleVariance": 6.4911,
+          "standardDeviation": 2.5478
+        },
+        "passesAttempted": {
+          "n": 306,
+          "mean": 854.451,
+          "sampleVariance": 10721.2123,
+          "standardDeviation": 103.5433
+        },
+        "passesCompleted": {
+          "n": 306,
+          "mean": 702.5458,
+          "sampleVariance": 11871.2323,
+          "standardDeviation": 108.9552
+        },
+        "fouls": {
+          "n": 306,
+          "mean": 28.2876,
+          "sampleVariance": 42.94,
+          "standardDeviation": 6.5529
+        },
+        "corners": {
+          "n": 306,
+          "mean": 9.4477,
+          "sampleVariance": 11.8218,
+          "standardDeviation": 3.4383
+        },
+        "yellowCards": {
+          "n": 306,
+          "mean": 3.3758,
+          "sampleVariance": 3.8485,
+          "standardDeviation": 1.9617
+        },
+        "redCards": {
+          "n": 306,
+          "mean": 0.1405,
+          "sampleVariance": 0.1343,
+          "standardDeviation": 0.3665
+        },
+        "offsides": {
+          "n": 306,
+          "mean": 3.9837,
+          "sampleVariance": 5.7538,
+          "standardDeviation": 2.3987
+        },
+        "saves": {
+          "n": 306,
+          "mean": 9.1863,
+          "sampleVariance": 10.139,
+          "standardDeviation": 3.1842
+        },
+        "attackingDuels": {
+          "n": 306,
+          "mean": 144.9085,
+          "sampleVariance": 570.9162,
+          "standardDeviation": 23.8939
+        },
+        "wonAttackingDuels": {
+          "n": 306,
+          "mean": 70.7876,
+          "sampleVariance": 195.0072,
+          "standardDeviation": 13.9645
+        },
+        "defendingDuels": {
+          "n": 306,
+          "mean": 144.3301,
+          "sampleVariance": 600.9628,
+          "standardDeviation": 24.5145
+        },
+        "wonDefendingDuels": {
+          "n": 306,
+          "mean": 32.281,
+          "sampleVariance": 50.1699,
+          "standardDeviation": 7.0831
+        },
+        "interceptions": {
+          "n": 306,
+          "mean": 90.6405,
+          "sampleVariance": 214.1261,
+          "standardDeviation": 14.633
+        },
+        "clearances": {
+          "n": 306,
+          "mean": 28.7614,
+          "sampleVariance": 75.2052,
+          "standardDeviation": 8.6721
+        }
+      }
+    },
+    {
+      "key": "Italy",
+      "country": "Italy",
+      "competition": "Serie A",
+      "season": "2017/18",
+      "matches": 380,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 760,
+          "mean": 1.3382,
+          "sampleVariance": 1.5785,
+          "standardDeviation": 1.2564
+        },
+        "shots": {
+          "n": 760,
+          "mean": 11.5868,
+          "sampleVariance": 27.7579,
+          "standardDeviation": 5.2686
+        },
+        "shotsOnTarget": {
+          "n": 760,
+          "mean": 4.0382,
+          "sampleVariance": 6.735,
+          "standardDeviation": 2.5952
+        },
+        "blockedShots": {
+          "n": 760,
+          "mean": 2.7145,
+          "sampleVariance": 3.8037,
+          "standardDeviation": 1.9503
+        },
+        "passesAttempted": {
+          "n": 760,
+          "mean": 443.8382,
+          "sampleVariance": 15978.7287,
+          "standardDeviation": 126.407
+        },
+        "passesCompleted": {
+          "n": 760,
+          "mean": 369.5842,
+          "sampleVariance": 15337.7189,
+          "standardDeviation": 123.8455
+        },
+        "fouls": {
+          "n": 760,
+          "mean": 13.15,
+          "sampleVariance": 19.5901,
+          "standardDeviation": 4.4261
+        },
+        "corners": {
+          "n": 760,
+          "mean": 5.1526,
+          "sampleVariance": 8.6776,
+          "standardDeviation": 2.9458
+        },
+        "yellowCards": {
+          "n": 760,
+          "mean": 1.9842,
+          "sampleVariance": 1.673,
+          "standardDeviation": 1.2934
+        },
+        "redCards": {
+          "n": 760,
+          "mean": 0.1197,
+          "sampleVariance": 0.1213,
+          "standardDeviation": 0.3484
+        },
+        "offsides": {
+          "n": 760,
+          "mean": 2.1316,
+          "sampleVariance": 2.9076,
+          "standardDeviation": 1.7052
+        },
+        "saves": {
+          "n": 760,
+          "mean": 4.6855,
+          "sampleVariance": 8.0182,
+          "standardDeviation": 2.8316
+        },
+        "attackingDuels": {
+          "n": 760,
+          "mean": 72.0974,
+          "sampleVariance": 250.7336,
+          "standardDeviation": 15.8346
+        },
+        "wonAttackingDuels": {
+          "n": 760,
+          "mean": 35.8645,
+          "sampleVariance": 95.1898,
+          "standardDeviation": 9.7565
+        },
+        "defendingDuels": {
+          "n": 760,
+          "mean": 71.8618,
+          "sampleVariance": 254.4381,
+          "standardDeviation": 15.9511
+        },
+        "wonDefendingDuels": {
+          "n": 760,
+          "mean": 15.6066,
+          "sampleVariance": 24.181,
+          "standardDeviation": 4.9174
+        },
+        "interceptions": {
+          "n": 760,
+          "mean": 44.9276,
+          "sampleVariance": 118.7892,
+          "standardDeviation": 10.899
+        },
+        "clearances": {
+          "n": 760,
+          "mean": 14.7658,
+          "sampleVariance": 57.0386,
+          "standardDeviation": 7.5524
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 380,
+          "mean": 2.6763,
+          "sampleVariance": 2.7155,
+          "standardDeviation": 1.6479
+        },
+        "shots": {
+          "n": 380,
+          "mean": 23.1737,
+          "sampleVariance": 29.3207,
+          "standardDeviation": 5.4149
+        },
+        "shotsOnTarget": {
+          "n": 380,
+          "mean": 8.0763,
+          "sampleVariance": 9.6274,
+          "standardDeviation": 3.1028
+        },
+        "blockedShots": {
+          "n": 380,
+          "mean": 5.4289,
+          "sampleVariance": 6.805,
+          "standardDeviation": 2.6086
+        },
+        "passesAttempted": {
+          "n": 380,
+          "mean": 887.6763,
+          "sampleVariance": 15121.0058,
+          "standardDeviation": 122.9675
+        },
+        "passesCompleted": {
+          "n": 380,
+          "mean": 739.1684,
+          "sampleVariance": 15613.771,
+          "standardDeviation": 124.9551
+        },
+        "fouls": {
+          "n": 380,
+          "mean": 26.3,
+          "sampleVariance": 45.6301,
+          "standardDeviation": 6.755
+        },
+        "corners": {
+          "n": 380,
+          "mean": 10.3053,
+          "sampleVariance": 12.8406,
+          "standardDeviation": 3.5834
+        },
+        "yellowCards": {
+          "n": 380,
+          "mean": 3.9684,
+          "sampleVariance": 3.8618,
+          "standardDeviation": 1.9651
+        },
+        "redCards": {
+          "n": 380,
+          "mean": 0.2395,
+          "sampleVariance": 0.2459,
+          "standardDeviation": 0.4959
+        },
+        "offsides": {
+          "n": 380,
+          "mean": 4.2632,
+          "sampleVariance": 5.7617,
+          "standardDeviation": 2.4004
+        },
+        "saves": {
+          "n": 380,
+          "mean": 9.3711,
+          "sampleVariance": 11.3897,
+          "standardDeviation": 3.3749
+        },
+        "attackingDuels": {
+          "n": 380,
+          "mean": 144.1947,
+          "sampleVariance": 500.6797,
+          "standardDeviation": 22.3759
+        },
+        "wonAttackingDuels": {
+          "n": 380,
+          "mean": 71.7289,
+          "sampleVariance": 157.6229,
+          "standardDeviation": 12.5548
+        },
+        "defendingDuels": {
+          "n": 380,
+          "mean": 143.7237,
+          "sampleVariance": 526.2322,
+          "standardDeviation": 22.9398
+        },
+        "wonDefendingDuels": {
+          "n": 380,
+          "mean": 31.2132,
+          "sampleVariance": 58.9597,
+          "standardDeviation": 7.6785
+        },
+        "interceptions": {
+          "n": 380,
+          "mean": 89.8553,
+          "sampleVariance": 195.5911,
+          "standardDeviation": 13.9854
+        },
+        "clearances": {
+          "n": 380,
+          "mean": 29.5316,
+          "sampleVariance": 75.0359,
+          "standardDeviation": 8.6623
+        }
+      }
+    },
+    {
+      "key": "Spain",
+      "country": "Spain",
+      "competition": "La Liga",
+      "season": "2017/18",
+      "matches": 380,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 760,
+          "mean": 1.3474,
+          "sampleVariance": 1.6921,
+          "standardDeviation": 1.3008
+        },
+        "shots": {
+          "n": 760,
+          "mean": 10.4987,
+          "sampleVariance": 18.0606,
+          "standardDeviation": 4.2498
+        },
+        "shotsOnTarget": {
+          "n": 760,
+          "mean": 3.8947,
+          "sampleVariance": 5.3723,
+          "standardDeviation": 2.3178
+        },
+        "blockedShots": {
+          "n": 760,
+          "mean": 2.3,
+          "sampleVariance": 3.0983,
+          "standardDeviation": 1.7602
+        },
+        "passesAttempted": {
+          "n": 760,
+          "mean": 419.3711,
+          "sampleVariance": 13751.9017,
+          "standardDeviation": 117.2685
+        },
+        "passesCompleted": {
+          "n": 760,
+          "mean": 347.4684,
+          "sampleVariance": 13462.5102,
+          "standardDeviation": 116.0281
+        },
+        "fouls": {
+          "n": 760,
+          "mean": 14.4276,
+          "sampleVariance": 20.1977,
+          "standardDeviation": 4.4942
+        },
+        "corners": {
+          "n": 760,
+          "mean": 4.9026,
+          "sampleVariance": 7.1051,
+          "standardDeviation": 2.6655
+        },
+        "yellowCards": {
+          "n": 760,
+          "mean": 2.4513,
+          "sampleVariance": 2.3059,
+          "standardDeviation": 1.5185
+        },
+        "redCards": {
+          "n": 760,
+          "mean": 0.0934,
+          "sampleVariance": 0.0901,
+          "standardDeviation": 0.3001
+        },
+        "offsides": {
+          "n": 760,
+          "mean": 2.475,
+          "sampleVariance": 3.7016,
+          "standardDeviation": 1.924
+        },
+        "saves": {
+          "n": 760,
+          "mean": 4.4868,
+          "sampleVariance": 6.3714,
+          "standardDeviation": 2.5242
+        },
+        "attackingDuels": {
+          "n": 760,
+          "mean": 73.3434,
+          "sampleVariance": 232.0677,
+          "standardDeviation": 15.2338
+        },
+        "wonAttackingDuels": {
+          "n": 760,
+          "mean": 37.2395,
+          "sampleVariance": 99.9004,
+          "standardDeviation": 9.995
+        },
+        "defendingDuels": {
+          "n": 760,
+          "mean": 73.0461,
+          "sampleVariance": 236.0203,
+          "standardDeviation": 15.363
+        },
+        "wonDefendingDuels": {
+          "n": 760,
+          "mean": 15.7408,
+          "sampleVariance": 20.8642,
+          "standardDeviation": 4.5677
+        },
+        "interceptions": {
+          "n": 760,
+          "mean": 44.6382,
+          "sampleVariance": 109.0217,
+          "standardDeviation": 10.4413
+        },
+        "clearances": {
+          "n": 760,
+          "mean": 13.9908,
+          "sampleVariance": 43.1106,
+          "standardDeviation": 6.5659
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 380,
+          "mean": 2.6947,
+          "sampleVariance": 3.1678,
+          "standardDeviation": 1.7798
+        },
+        "shots": {
+          "n": 380,
+          "mean": 20.9974,
+          "sampleVariance": 28.1715,
+          "standardDeviation": 5.3077
+        },
+        "shotsOnTarget": {
+          "n": 380,
+          "mean": 7.7895,
+          "sampleVariance": 9.7128,
+          "standardDeviation": 3.1165
+        },
+        "blockedShots": {
+          "n": 380,
+          "mean": 4.6,
+          "sampleVariance": 6.2142,
+          "standardDeviation": 2.4928
+        },
+        "passesAttempted": {
+          "n": 380,
+          "mean": 838.7421,
+          "sampleVariance": 13380.2024,
+          "standardDeviation": 115.6728
+        },
+        "passesCompleted": {
+          "n": 380,
+          "mean": 694.9368,
+          "sampleVariance": 15245.1147,
+          "standardDeviation": 123.4711
+        },
+        "fouls": {
+          "n": 380,
+          "mean": 28.8553,
+          "sampleVariance": 42.3563,
+          "standardDeviation": 6.5082
+        },
+        "corners": {
+          "n": 380,
+          "mean": 9.8053,
+          "sampleVariance": 9.9936,
+          "standardDeviation": 3.1613
+        },
+        "yellowCards": {
+          "n": 380,
+          "mean": 4.9026,
+          "sampleVariance": 5.2596,
+          "standardDeviation": 2.2934
+        },
+        "redCards": {
+          "n": 380,
+          "mean": 0.1868,
+          "sampleVariance": 0.1945,
+          "standardDeviation": 0.4411
+        },
+        "offsides": {
+          "n": 380,
+          "mean": 4.95,
+          "sampleVariance": 6.5015,
+          "standardDeviation": 2.5498
+        },
+        "saves": {
+          "n": 380,
+          "mean": 8.9737,
+          "sampleVariance": 10.9017,
+          "standardDeviation": 3.3018
+        },
+        "attackingDuels": {
+          "n": 380,
+          "mean": 146.6868,
+          "sampleVariance": 413.0442,
+          "standardDeviation": 20.3235
+        },
+        "wonAttackingDuels": {
+          "n": 380,
+          "mean": 74.4789,
+          "sampleVariance": 159.1737,
+          "standardDeviation": 12.6164
+        },
+        "defendingDuels": {
+          "n": 380,
+          "mean": 146.0921,
+          "sampleVariance": 432.4269,
+          "standardDeviation": 20.7949
+        },
+        "wonDefendingDuels": {
+          "n": 380,
+          "mean": 31.4816,
+          "sampleVariance": 47.8176,
+          "standardDeviation": 6.915
+        },
+        "interceptions": {
+          "n": 380,
+          "mean": 89.2763,
+          "sampleVariance": 201.43,
+          "standardDeviation": 14.1926
+        },
+        "clearances": {
+          "n": 380,
+          "mean": 27.9816,
+          "sampleVariance": 64.2714,
+          "standardDeviation": 8.0169
+        }
+      }
+    },
+    {
+      "key": "European_Championship",
+      "country": "Europe",
+      "competition": "UEFA European Championship",
+      "season": "2016",
+      "matches": 51,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 102,
+          "mean": 1.0392,
+          "sampleVariance": 1.0876,
+          "standardDeviation": 1.0429
+        },
+        "shots": {
+          "n": 102,
+          "mean": 11.3922,
+          "sampleVariance": 31.0328,
+          "standardDeviation": 5.5707
+        },
+        "shotsOnTarget": {
+          "n": 102,
+          "mean": 3.7647,
+          "sampleVariance": 6.7164,
+          "standardDeviation": 2.5916
+        },
+        "blockedShots": {
+          "n": 102,
+          "mean": 2.7255,
+          "sampleVariance": 5.0922,
+          "standardDeviation": 2.2566
+        },
+        "passesAttempted": {
+          "n": 102,
+          "mean": 416.3235,
+          "sampleVariance": 17681.0527,
+          "standardDeviation": 132.9701
+        },
+        "passesCompleted": {
+          "n": 102,
+          "mean": 351.951,
+          "sampleVariance": 16558.7401,
+          "standardDeviation": 128.6808
+        },
+        "fouls": {
+          "n": 102,
+          "mean": 12.5686,
+          "sampleVariance": 15.5546,
+          "standardDeviation": 3.9439
+        },
+        "corners": {
+          "n": 102,
+          "mean": 5.049,
+          "sampleVariance": 7.8491,
+          "standardDeviation": 2.8016
+        },
+        "yellowCards": {
+          "n": 102,
+          "mean": 1.8725,
+          "sampleVariance": 1.5182,
+          "standardDeviation": 1.2322
+        },
+        "redCards": {
+          "n": 102,
+          "mean": 0.0294,
+          "sampleVariance": 0.0288,
+          "standardDeviation": 0.1698
+        },
+        "offsides": {
+          "n": 102,
+          "mean": 1.8333,
+          "sampleVariance": 2.5363,
+          "standardDeviation": 1.5926
+        },
+        "saves": {
+          "n": 102,
+          "mean": 4.4118,
+          "sampleVariance": 7.2545,
+          "standardDeviation": 2.6934
+        },
+        "attackingDuels": {
+          "n": 102,
+          "mean": 61.5588,
+          "sampleVariance": 262.348,
+          "standardDeviation": 16.1972
+        },
+        "wonAttackingDuels": {
+          "n": 102,
+          "mean": 31.9412,
+          "sampleVariance": 106.0757,
+          "standardDeviation": 10.2993
+        },
+        "defendingDuels": {
+          "n": 102,
+          "mean": 58.5588,
+          "sampleVariance": 223.5163,
+          "standardDeviation": 14.9505
+        },
+        "wonDefendingDuels": {
+          "n": 102,
+          "mean": 12.0294,
+          "sampleVariance": 18.6229,
+          "standardDeviation": 4.3154
+        },
+        "interceptions": {
+          "n": 102,
+          "mean": 43.4118,
+          "sampleVariance": 110.8783,
+          "standardDeviation": 10.5299
+        },
+        "clearances": {
+          "n": 102,
+          "mean": 16.3039,
+          "sampleVariance": 64.3523,
+          "standardDeviation": 8.022
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 51,
+          "mean": 2.0784,
+          "sampleVariance": 1.9937,
+          "standardDeviation": 1.412
+        },
+        "shots": {
+          "n": 51,
+          "mean": 22.7843,
+          "sampleVariance": 33.8125,
+          "standardDeviation": 5.8149
+        },
+        "shotsOnTarget": {
+          "n": 51,
+          "mean": 7.5294,
+          "sampleVariance": 10.9741,
+          "standardDeviation": 3.3127
+        },
+        "blockedShots": {
+          "n": 51,
+          "mean": 5.451,
+          "sampleVariance": 6.9325,
+          "standardDeviation": 2.633
+        },
+        "passesAttempted": {
+          "n": 51,
+          "mean": 832.6471,
+          "sampleVariance": 10776.2729,
+          "standardDeviation": 103.8088
+        },
+        "passesCompleted": {
+          "n": 51,
+          "mean": 703.902,
+          "sampleVariance": 11092.6502,
+          "standardDeviation": 105.3217
+        },
+        "fouls": {
+          "n": 51,
+          "mean": 25.1373,
+          "sampleVariance": 34.6008,
+          "standardDeviation": 5.8822
+        },
+        "corners": {
+          "n": 51,
+          "mean": 10.098,
+          "sampleVariance": 8.7302,
+          "standardDeviation": 2.9547
+        },
+        "yellowCards": {
+          "n": 51,
+          "mean": 3.7451,
+          "sampleVariance": 3.2737,
+          "standardDeviation": 1.8093
+        },
+        "redCards": {
+          "n": 51,
+          "mean": 0.0588,
+          "sampleVariance": 0.0565,
+          "standardDeviation": 0.2376
+        },
+        "offsides": {
+          "n": 51,
+          "mean": 3.6667,
+          "sampleVariance": 4.6667,
+          "standardDeviation": 2.1602
+        },
+        "saves": {
+          "n": 51,
+          "mean": 8.8235,
+          "sampleVariance": 12.9882,
+          "standardDeviation": 3.6039
+        },
+        "attackingDuels": {
+          "n": 51,
+          "mean": 123.1176,
+          "sampleVariance": 341.2659,
+          "standardDeviation": 18.4734
+        },
+        "wonAttackingDuels": {
+          "n": 51,
+          "mean": 63.8824,
+          "sampleVariance": 105.0259,
+          "standardDeviation": 10.2482
+        },
+        "defendingDuels": {
+          "n": 51,
+          "mean": 117.1176,
+          "sampleVariance": 341.6659,
+          "standardDeviation": 18.4842
+        },
+        "wonDefendingDuels": {
+          "n": 51,
+          "mean": 24.0588,
+          "sampleVariance": 41.8965,
+          "standardDeviation": 6.4727
+        },
+        "interceptions": {
+          "n": 51,
+          "mean": 86.8235,
+          "sampleVariance": 179.5882,
+          "standardDeviation": 13.4011
+        },
+        "clearances": {
+          "n": 51,
+          "mean": 32.6078,
+          "sampleVariance": 73.9231,
+          "standardDeviation": 8.5979
+        }
+      }
+    },
+    {
+      "key": "World_Cup",
+      "country": "International",
+      "competition": "FIFA World Cup",
+      "season": "2018",
+      "matches": 64,
+      "scope": "Played matches; events and scores limited to regulation 1H/2H; extra time and penalties excluded.",
+      "teamMatch": {
+        "goals": {
+          "n": 128,
+          "mean": 1.2969,
+          "sampleVariance": 1.3285,
+          "standardDeviation": 1.1526
+        },
+        "shots": {
+          "n": 128,
+          "mean": 10.7578,
+          "sampleVariance": 23.0039,
+          "standardDeviation": 4.7962
+        },
+        "shotsOnTarget": {
+          "n": 128,
+          "mean": 3.3203,
+          "sampleVariance": 4.5974,
+          "standardDeviation": 2.1442
+        },
+        "blockedShots": {
+          "n": 128,
+          "mean": 2.8828,
+          "sampleVariance": 4.7342,
+          "standardDeviation": 2.1758
+        },
+        "passesAttempted": {
+          "n": 128,
+          "mean": 430.8359,
+          "sampleVariance": 18601.0831,
+          "standardDeviation": 136.3858
+        },
+        "passesCompleted": {
+          "n": 128,
+          "mean": 367.1875,
+          "sampleVariance": 17316.626,
+          "standardDeviation": 131.5927
+        },
+        "fouls": {
+          "n": 128,
+          "mean": 13.4688,
+          "sampleVariance": 19.8258,
+          "standardDeviation": 4.4526
+        },
+        "corners": {
+          "n": 128,
+          "mean": 4.5938,
+          "sampleVariance": 5.8967,
+          "standardDeviation": 2.4283
+        },
+        "yellowCards": {
+          "n": 128,
+          "mean": 1.6797,
+          "sampleVariance": 1.6367,
+          "standardDeviation": 1.2794
+        },
+        "redCards": {
+          "n": 128,
+          "mean": 0.0313,
+          "sampleVariance": 0.0305,
+          "standardDeviation": 0.1747
+        },
+        "offsides": {
+          "n": 128,
+          "mean": 1.3203,
+          "sampleVariance": 1.4635,
+          "standardDeviation": 1.2098
+        },
+        "saves": {
+          "n": 128,
+          "mean": 3.9688,
+          "sampleVariance": 4.8967,
+          "standardDeviation": 2.2128
+        },
+        "attackingDuels": {
+          "n": 128,
+          "mean": 61.5078,
+          "sampleVariance": 235.9684,
+          "standardDeviation": 15.3613
+        },
+        "wonAttackingDuels": {
+          "n": 128,
+          "mean": 30.6953,
+          "sampleVariance": 89.7411,
+          "standardDeviation": 9.4732
+        },
+        "defendingDuels": {
+          "n": 128,
+          "mean": 61.0938,
+          "sampleVariance": 234.6683,
+          "standardDeviation": 15.3189
+        },
+        "wonDefendingDuels": {
+          "n": 128,
+          "mean": 13.8281,
+          "sampleVariance": 19.9702,
+          "standardDeviation": 4.4688
+        },
+        "interceptions": {
+          "n": 128,
+          "mean": 39.8125,
+          "sampleVariance": 116.9882,
+          "standardDeviation": 10.8161
+        },
+        "clearances": {
+          "n": 128,
+          "mean": 14.6406,
+          "sampleVariance": 47.0194,
+          "standardDeviation": 6.8571
+        }
+      },
+      "matchTotal": {
+        "goals": {
+          "n": 64,
+          "mean": 2.5938,
+          "sampleVariance": 2.4673,
+          "standardDeviation": 1.5708
+        },
+        "shots": {
+          "n": 64,
+          "mean": 21.5156,
+          "sampleVariance": 33.2061,
+          "standardDeviation": 5.7625
+        },
+        "shotsOnTarget": {
+          "n": 64,
+          "mean": 6.6406,
+          "sampleVariance": 6.5196,
+          "standardDeviation": 2.5533
+        },
+        "blockedShots": {
+          "n": 64,
+          "mean": 5.7656,
+          "sampleVariance": 6.722,
+          "standardDeviation": 2.5927
+        },
+        "passesAttempted": {
+          "n": 64,
+          "mean": 861.6719,
+          "sampleVariance": 10415.1446,
+          "standardDeviation": 102.0546
+        },
+        "passesCompleted": {
+          "n": 64,
+          "mean": 734.375,
+          "sampleVariance": 10984.9048,
+          "standardDeviation": 104.8089
+        },
+        "fouls": {
+          "n": 64,
+          "mean": 26.9375,
+          "sampleVariance": 41.6786,
+          "standardDeviation": 6.4559
+        },
+        "corners": {
+          "n": 64,
+          "mean": 9.1875,
+          "sampleVariance": 7.2659,
+          "standardDeviation": 2.6955
+        },
+        "yellowCards": {
+          "n": 64,
+          "mean": 3.3594,
+          "sampleVariance": 3.6625,
+          "standardDeviation": 1.9138
+        },
+        "redCards": {
+          "n": 64,
+          "mean": 0.0625,
+          "sampleVariance": 0.0595,
+          "standardDeviation": 0.244
+        },
+        "offsides": {
+          "n": 64,
+          "mean": 2.6406,
+          "sampleVariance": 3.9164,
+          "standardDeviation": 1.979
+        },
+        "saves": {
+          "n": 64,
+          "mean": 7.9375,
+          "sampleVariance": 6.5992,
+          "standardDeviation": 2.5689
+        },
+        "attackingDuels": {
+          "n": 64,
+          "mean": 123.0156,
+          "sampleVariance": 487.6982,
+          "standardDeviation": 22.0839
+        },
+        "wonAttackingDuels": {
+          "n": 64,
+          "mean": 61.3906,
+          "sampleVariance": 137.2894,
+          "standardDeviation": 11.7171
+        },
+        "defendingDuels": {
+          "n": 64,
+          "mean": 122.1875,
+          "sampleVariance": 488.3452,
+          "standardDeviation": 22.0985
+        },
+        "wonDefendingDuels": {
+          "n": 64,
+          "mean": 27.6563,
+          "sampleVariance": 50.9593,
+          "standardDeviation": 7.1386
+        },
+        "interceptions": {
+          "n": 64,
+          "mean": 79.625,
+          "sampleVariance": 186.9048,
+          "standardDeviation": 13.6713
+        },
+        "clearances": {
+          "n": 64,
+          "mean": 29.2813,
+          "sampleVariance": 52.3323,
+          "standardDeviation": 7.2341
+        }
+      }
+    }
+  ],
+  "disclaimer": "Descriptive benchmark only. It is not an in-game target, player-rating model, or statistical quota. Providers use different event definitions; compare only matching metrics and keep each competition separate."
+}

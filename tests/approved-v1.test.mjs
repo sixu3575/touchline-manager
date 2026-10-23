@@ -15,6 +15,7 @@ import {
   offsideInvolvement,
   inPenaltyArea,
   foulAssessment,
+  physicalContactFoulRisk,
   applyCard,
 } from '../packages/shared/modules/matches/rules.mjs';
 import { migrateState } from '../packages/server/src/storage/migrations.mjs';
@@ -143,6 +144,19 @@ test('foul severity, penalty DOGSO, two yellows and direct red are distinct', ()
   const base = { tackling: 50, late: 0.2, danger: 0.2, penalty: false };
   assert.equal(foulAssessment(base, 0.99).foul, false);
   assert.equal(foulAssessment(base, 0).card, null);
+  assert.equal(foulAssessment({ ...base, contact: 0 }, 0).foul, false);
+  assert.ok(
+    foulAssessment({ ...base, late: 0.9, danger: 0.8 }, 0.01).probability >
+      foulAssessment(base, 0.01).probability,
+  );
+  assert.ok(
+    foulAssessment({ ...base, tackling: 90 }, 0.01).probability <
+      foulAssessment(base, 0.01).probability,
+  );
+  assert.ok(
+    foulAssessment({ ...base, wonBall: true }, 0.01).probability <
+      foulAssessment(base, 0.01).probability,
+  );
   assert.equal(foulAssessment({ ...base, danger: 0.6 }, 0).card, 'yellow');
   assert.equal(foulAssessment({ ...base, danger: 0.95, penalty: true }, 0).card, 'red');
   assert.equal(foulAssessment({ ...base, dogso: true }, 0).card, 'red');
@@ -153,4 +167,22 @@ test('foul severity, penalty DOGSO, two yellows and direct red are distinct', ()
   assert.equal(applyCard(a, 'yellow'), 'secondYellow');
   assert.equal(a.sentOff, true);
   assert.equal(applyCard(a, 'red'), null);
+});
+
+test('physical contact foul risk distinguishes routine shoulder contact from late dangerous impact', () => {
+  const routine = physicalContactFoulRisk({
+    closingSpeed: 0.5,
+    late: 0,
+    danger: 0,
+    behind: false,
+  });
+  const lateImpact = physicalContactFoulRisk({
+    closingSpeed: 6.5,
+    late: 0.9,
+    danger: 0.8,
+    behind: true,
+  });
+  assert.ok(routine < 0.1);
+  assert.ok(lateImpact > routine + 0.6);
+  assert.ok(lateImpact <= 0.92);
 });

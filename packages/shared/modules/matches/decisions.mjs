@@ -144,7 +144,9 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
           1 /
             (1 +
               Math.exp(
-                -(-2.1 - 0.09 * (dist - 12) + 1.8 * (angle - 0.35) - 0.8 * blocked + 2.5 * g),
+                -(-2.1 - 0.09 * (dist - 12) + 1.8 * (angle - 0.35) - 1.4 * blocked -
+                  0.9 * q.pressure +
+                  2.5 * g),
               )),
           0.005,
           0.8,
@@ -176,9 +178,9 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
       const speed = Math.hypot(actor.velocity.x, actor.velocity.z);
       const lateral = Math.abs(actor.velocity.z) / Math.max(1, speed);
       const error =
-        0.7 + dist * (0.05 + 0.35 * (1 - q.value / 100)) + q.pressure * 1.2 + lateral * 0.5;
+        0.55 + dist * (0.035 + 0.26 * (1 - q.value / 100)) + q.pressure * 0.9 + lateral * 0.35;
       const intendedAim = 34 + (rng() < 0.5 ? -1 : 1) * (1.1 + rng() * 1.2);
-      const aim = intendedAim + (rng() + rng() - 1) * error * 2;
+      const aim = intendedAim + (rng() + rng() - 1) * error * 1.6;
       // Strength supplies available power, not an instruction to blast every
       // six-metre finish at full effort. Near, unhurried finishes use placement;
       // range and closing pressure call for more power. No shot is removed.
@@ -186,9 +188,14 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
       const intendedSpeed = Math.min(availablePower, 20 + dist * 0.25 + q.pressure * 4);
       const target = { x: goalX + direction * 1.5, z: aim },
         flight = Math.max(0.15, distance(ball, target) / intendedSpeed);
+      // Aim height is a point in the goal mouth, with skill-, range- and
+      // pressure-dependent dispersion around it. The previous expression used
+      // a low-skill spread of several metres above the turf, so average shots
+      // were deliberately launched over the bar far too often.
       const targetY =
-        0.2 +
-        rng() * (0.9 + (100 - q.value) / 14 + Math.max(0, dist - 10) * 0.06 + q.pressure * 0.5);
+        0.15 +
+        rng() *
+          (1.5 + (100 - q.value) / 65 + Math.max(0, dist - 10) * 0.035 + q.pressure * 0.4);
       const kickAim = { ...target, y: targetY };
       return {
         ...airborneVelocity(ball, kickAim, flight),

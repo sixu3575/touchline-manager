@@ -1,0 +1,54 @@
+{
+  "referenceVersion": "uefa-european-cups-2024-25-context-v1",
+  "use": "Public-source context only; campaign goal averages are not blended with Wyscout event samples and do not create in-game quotas.",
+  "competitions": [
+    {
+      "competition": "UEFA Champions League",
+      "season": "2024/25",
+      "matches": 189,
+      "goals": 618,
+      "goalsPerMatch": 3.27,
+      "source": "https://www.uefa.com/uefachampionsleague/history/seasons/2025/statistics/"
+    },
+    {
+      "competition": "UEFA Europa League",
+      "season": "2024/25",
+      "matches": 189,
+      "goals": 556,
+      "goalsPerMatch": 2.95,
+      "source": "https://www.uefa.com/uefaeuropaleague/history/seasons/2025/statistics/"
+    },
+    {
+      "competition": "UEFA Conference League",
+      "season": "2024/25",
+      "matches": 153,
+      "goals": 451,
+      "goalsPerMatch": 2.95,
+      "source": "https://www.uefa.com/uefaconferenceleague/history/seasons/2025/statistics/"
+    }
+  ],
+  "championsLeagueTeamStatisticsReport": {
+    "scope": "UEFA final-match report's displayed season-average field; this is not a match-level row set and includes no variance.",
+    "source": "https://www.uefa.com/newsfiles/UCL/2025/2044466_TS.pdf",
+    "allTeamReportedAverages": {
+      "attemptsPerTeamMatch": 11.61,
+      "shotsOnTargetPerTeamMatch": 4.28,
+      "shotsOffTargetPerTeamMatch": 4.22,
+      "blockedShotsPerTeamMatch": 3.11,
+      "savesPerTeamMatch": 2.94,
+      "cornersPerTeamMatch": 4.26,
+      "offsidesPerTeamMatch": 1.53,
+      "foulsPerTeamMatch": 9.35,
+      "yellowCardsPerTeamMatch": 1.76,
+      "redCardsPerTeamMatch": 0.08,
+      "passesAttemptedPerTeamMatch": 423.11,
+      "passesCompletedPerTeamMatch": 366.82,
+      "passCompletionPercent": 87
+    }
+  },
+  "limitations": [
+    "UEFA season pages provide campaign totals and selected leaderboards, not a downloadable complete match-level event file with variances for every metric.",
+    "The Champions League report values are provider-reported season averages, not individual match observations; do not infer variance from them or merge them with Wyscout event definitions.",
+    "This does not cover every domestic cup or every European league/division. No free, openly licensed complete event/tracking census was identified for those competitions."
+  ]
+}

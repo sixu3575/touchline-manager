@@ -1,6 +1,6 @@
 # 项目地图
 
-0.31.1候选比赛组织优化：[中场传球集中度复核](packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0311.md)。安全回收价值从+0.04降至+0.012，固定八场中场传球份额75.6%→64.4%，无block但保留射门/低速跑动review；完整本地检查通过，等待PR CI与发布。拦截归属和前场反抢不作统计修饰。
+0.33.0候选比赛算法与现实基准扩展：[欧洲联赛、杯赛及欧战数据复核](packages/shared/modules/matches/design/EUROPEAN_MATCH_REALISM_20261023.md)。基准包含11国21项联赛、46国目录的国内比分、Wyscout开放事件及UEFA欧冠数据；更新压迫/封堵射门价值与射门落点、实际碰撞犯规判定。固定八场3 pass/5 review，射门/进球略高、传球/拦截偏高，射正/犯规/角球/黄牌偏低；整体review。定向52项、`npm run check`通过（125项比赛单元、16项真实集成、类型/生产构建，约289秒）；无赛季或部署，流程不变。
 
 0.30.0动作统计与评分入口见[matches设计](packages/shared/modules/matches/design/STATISTICS_V0300.md)。statistics.mjs独立观察已执行动作，ratings/statistics.mjs是客户端/评分共用的只读时钟裁切；新比赛使用opta-conventional-2/match-rating-3。物理/战术/体能仍沿0.29，历史评分不覆盖，四场并发保持关闭。
 

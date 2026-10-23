@@ -47,8 +47,8 @@ export function recordIntervention(
   const attempt = state.attempt;
   if (!attempt || attempt.side === player.side) return;
   if (!attempt.deflectedBy.includes(player.id)) attempt.deflectedBy.push(player.id);
-  if (incomingGoalSide !== attempt.side || outgoingGoalSide === attempt.side) return;
   if (player.isKeeper) {
+    if (incomingGoalSide !== attempt.side || outgoingGoalSide === attempt.side) return;
     attempt.keeper = { id: player.id, side: player.side };
     attempt.defender = null;
     attempt.savedAt = second;
@@ -56,7 +56,8 @@ export function recordIntervention(
     attempt.keeper = null;
     attempt.defender = { id: player.id, side: player.side };
     attempt.blocked = true;
-    attempt.lastLineBlock ||= lastLine;
+    if (incomingGoalSide === attempt.side && outgoingGoalSide !== attempt.side)
+      attempt.lastLineBlock ||= lastLine;
   }
 }
 

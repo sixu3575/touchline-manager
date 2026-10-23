@@ -4,7 +4,13 @@ import { Worker, isMainThread, parentPort } from 'node:worker_threads';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { compareMatchSampleToLeagueStats, compareMatch } from './match-realism.mjs';
+import {
+  compareMatchSampleToLeagueStats,
+  compareMatchSampleToEuropeanLeagueStats,
+  compareMatchSampleToOpenFootballGoals,
+  compareMatchSampleToOpenEuropeStats,
+  compareMatch,
+} from './match-realism.mjs';
 
 if (!isMainThread) {
   const { createGame, simulate } = await import('../../packages/shared/game.mjs');
@@ -77,6 +83,18 @@ if (!isMainThread) {
     p90: a[Math.floor((a.length - 1) * 0.9)] ?? null,
     max: a.at(-1) ?? null,
   });
+  const leagueMatchRows = results.map((r) => ({
+    home: Object.fromEntries(
+      ['goals', 'shots', 'onTarget', 'fouls', 'corners', 'yellowCards', 'redCards'].map(
+        (metric) => [metric === 'onTarget' ? 'shotsOnTarget' : metric, r.teams[0][metric]],
+      ),
+    ),
+    away: Object.fromEntries(
+      ['goals', 'shots', 'onTarget', 'fouls', 'corners', 'yellowCards', 'redCards'].map(
+        (metric) => [metric === 'onTarget' ? 'shotsOnTarget' : metric, r.teams[1][metric]],
+      ),
+    ),
+  }));
   const summary = {
     ...metadata,
     finishedAt: new Date().toISOString(),
@@ -91,24 +109,46 @@ if (!isMainThread) {
             : 'pass',
     engineVersions: [...new Set(results.map((r) => r.engineVersion))],
     matchGoals: describe(values((r) => r.teams.reduce((s, t) => s + t.goals, 0))),
-    leagueMatchStatComparison: compareMatchSampleToLeagueStats(
+    leagueMatchStatComparison: compareMatchSampleToLeagueStats(leagueMatchRows),
+    europeanLeagueMultiStatComparison: compareMatchSampleToEuropeanLeagueStats(leagueMatchRows),
+    openEuropeanMatchStatComparison: compareMatchSampleToOpenEuropeStats(
       results.map((r) => ({
         home: Object.fromEntries(
-          ['goals', 'shots', 'onTarget', 'fouls', 'corners', 'yellowCards', 'redCards'].map(
-            (metric) => [
-              metric === 'onTarget' ? 'shotsOnTarget' : metric,
-              r.teams[0][metric],
-            ],
-          ),
+          [
+            ['goals', 'goals'],
+            ['shots', 'shots'],
+            ['shotsOnTarget', 'onTarget'],
+            ['passesAttempted', 'passes'],
+            ['passesCompleted', 'completedPasses'],
+            ['fouls', 'fouls'],
+            ['corners', 'corners'],
+            ['yellowCards', 'yellowCards'],
+            ['redCards', 'redCards'],
+            ['saves', 'saves'],
+            ['interceptions', 'interceptions'],
+          ].map(([metric, key]) => [metric, r.teams[0][key]]),
         ),
         away: Object.fromEntries(
-          ['goals', 'shots', 'onTarget', 'fouls', 'corners', 'yellowCards', 'redCards'].map(
-            (metric) => [
-              metric === 'onTarget' ? 'shotsOnTarget' : metric,
-              r.teams[1][metric],
-            ],
-          ),
+          [
+            ['goals', 'goals'],
+            ['shots', 'shots'],
+            ['shotsOnTarget', 'onTarget'],
+            ['passesAttempted', 'passes'],
+            ['passesCompleted', 'completedPasses'],
+            ['fouls', 'fouls'],
+            ['corners', 'corners'],
+            ['yellowCards', 'yellowCards'],
+            ['redCards', 'redCards'],
+            ['saves', 'saves'],
+            ['interceptions', 'interceptions'],
+          ].map(([metric, key]) => [metric, r.teams[1][key]]),
         ),
+      })),
+    ),
+    openFootballEuropeanGoalComparison: compareMatchSampleToOpenFootballGoals(
+      results.map((r) => ({
+        home: { goals: r.teams[0].goals },
+        away: { goals: r.teams[1].goals },
       })),
     ),
     matchShots: describe(values((r) => r.teams.reduce((s, t) => s + t.shots, 0))),
