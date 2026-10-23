@@ -1,5 +1,9 @@
 # 分层验证与开发耗时
 
+2026-10-23 `0.33.0-shot-opportunity`：扩展欧洲联赛/国内杯/欧战现实数据对照，调整近身犯规条件概率、射门威胁和瞄准误差；犯规只读取实际 Rapier 躯干/腿部碰撞或有限脚形重叠，无接触挑战不消费犯规随机数。固定四战术×两种子8场最终结果3 pass/5 review、无block；射门14.13/队略高、进球1.63/队略高、射正3.00/队低、犯规2.94/队严重偏低、角球2.31/队和黄牌0偏低，传球544.63/队和拦截55.19/队偏高。定向52项通过；`npm run check`通过（类型检查、125项比赛单元、16项真实比赛/恢复/HTTP集成、生产构建，约289秒）；无完整赛季/流程变更/部署。现实比较状态仍为review，详见[欧洲比赛校准报告](../packages/shared/modules/matches/design/EUROPEAN_MATCH_REALISM_20261023.md)。
+
+2026-10-23 0.32.0-referee-shot-contact：欧洲比赛算法与参考扩展。Football-Data 21个联赛代码/11国/3赛季/63个文件共21,654场的逐赛统计基准生成；Openfootball 46国目录比分、Wyscout事件和UEFA官方欧冠赛季统计仍保持单独来源/口径。修复每次近身挑战按身体接触、迟到、危险、抢断、侵略性与先赢球作裁判判定；射门中的真实防守身体触球记封堵。专项测试及同一八场对照完成后补记结果；比赛算法变更按既定流程跑比赛检查、不开赛季。未部署。
+
 2026-10-23 0.31.1-role-aware-pass-balance：仅缩小安全中场接应候选价值（+0.04→+0.012），属比赛算法；match=true、season=false、physicalSeason=false。针对性战术测试9项通过；固定八场现实比较4 pass、4 review、无block。位置份额从0.31.0的MID75.6/FWD15.2/DEF7.3/GK1.9%传球改为64.4/23.0/10.1/2.5%；拦截实际观测MID52.9/DEF38.0/FWD8.6/GK0.5%，不代表改动拦截算法。全场射门均值31.5，一场41次触发review；低速距离另有3项review，不能称整体现实性完全通过。`npm run check`通过（122项比赛单元、16项真实比赛/恢复/HTTP集成、类型检查和生产构建；约453秒）；无赛季。比较和敏感度说明见[POSSESSION_DISTRIBUTION_V0311.md](../packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0311.md)。CI与部署待完成；流程规则未改。
 
 2026-10-22 0.31.0-role-aware-flow中场接应/拦截修正：比赛算法改动，match=true、season=false、physicalSeason=false；122项比赛单元与16项比赛/恢复/HTTP集成通过。四种战术×两个种子共8场现实比较，1场pass、7场review，`distributionAlerts=[]`。按真实位置汇总，传球为MID75.6%、FWD15.2%、DEF7.3%、GK1.9%；拦截为MID50.7%、DEF30.0%、FWD19.2%、GK0.2%。没有对球员统计做位置搬移。现实性总状态仍为review，原因是多名球员低速距离占比及一名球员的单场射门数超出工程复核区间；参考[专项结果](../packages/shared/modules/matches/design/POSSESSION_DISTRIBUTION_V0310.md)。`npm run check`完整通过（371秒，含类型检查、比赛专项和生产构建）；赛季未运行。分层和开发流程没有变化。

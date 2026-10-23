@@ -1,5 +1,11 @@
 # 决策图导出副本
 
+0.34.0更新第4图：持球者和追防者只有在邻近真实人身碰撞时才触发额外裁判判断；闭合速度、从后方接近及危险程度影响犯规风险，同次持续接触与短暂配对冷却避免重复吹罚。32场同种子基线对照同时报告均值和无偏方差，差异显著的指标不以配额或随机噪声抹平。引擎`0.34.0-contact-referee`，统计及剩余偏差见[欧洲基准报告](../EUROPEAN_MATCH_REALISM_20261023.md)。决策图 SVG/源码摘要同次核对。
+
+0.33.0同步第4图近身犯规条件概率（Rapier实体接触、基准0.55、风险修正与0.70封顶）和第5图射门威胁/落点影响；最新八场射正仍低于参照，整体review，见[欧洲比赛基准](../EUROPEAN_MATCH_REALISM_20261023.md)。引擎`0.33.0-shot-opportunity`。SVG按主文 Mermaid 重导，源码摘要一并刷新。
+
+0.32.0更新第4图：近身挑战后裁判检查接触、迟到、危险、抢断质量、侵略性和先后赢球；射门飞行中的实际防守触球独立记封堵。赛事统计不按位置或预设目标改写。引擎`0.32.0-referee-shot-contact`；相关判断和口径见[欧洲比赛基准](../EUROPEAN_MATCH_REALISM_20261023.md)。
+
 0.31.1更新职责图与动作图：保留中前卫球后接应与预判/站位读球，但安全中场出口收窄为+0.012弱平局价值，避免传球份额过度集中。固定八场MID传球份额75.6%→64.4%；拦截由真实事件归属。引擎`0.31.1-role-aware-pass-balance`，专项设计见[POSSESSION_DISTRIBUTION_V0311.md](../POSSESSION_DISTRIBUTION_V0311.md)。SVG按主文Mermaid重新导出，源码摘要同步核对。
 
 0.26.0候选更新第3图P10第一上抢者近身站位目标，并按Mermaid源重导`03-positioning.svg`。引擎`0.26.0-possession-screen`/`possession-6`。第一压迫者近身目标由0.35米改为持球者前方1.05米，保持真实触球和抢断窗口。固定八场中位数均值5.29→5.62秒、短于5秒占比47.99%→45.38%；另有指标上升，且约45%阶段仍短于5秒。详情见[POSSESSION_V0260.md](../POSSESSION_V0260.md)与[TEMPO_V0180.md](../TEMPO_V0180.md)。
@@ -68,6 +74,6 @@ mmdc -i 04-reception.mmd -o 04-reception.svg -c mermaid.json -b white --size 180
 
 可用 `-p` 指向本机浏览器路径的 Puppeteer JSON 配置。输出 SVG 的 id 要以字母开头，否则 CSS 选择器可能无效；归档前按 viewBox 的宽高设置数值 width/height，保留 `max-width:100%; height:auto`，移除固定 max-height，避免长图在独立打开时被压缩到窗口高度。关闭 HTML 标签，避免依赖 foreignObject 显示文字。字体没有嵌入，阅读端使用本地中文字体及后备字体。
 
-重新计算摘要时：源码按 UTF-8 文本读取，CRLF / CR 统一成 LF 后计算 SHA-256，避免不同开发系统的换行设置造成假差异；Mermaid 按 Markdown 中开头 `mermaid` 标记行之后、结尾三个反引号之前的文本取出，包含末尾换行，同样规范为 LF 后计算。SVG 按文件原始字节计算 SHA-256。摘要文件的 encoding 字段明确记录这两个约定；不要混用原始文本和规范换行后的摘要。
+重新计算摘要时：源码按 UTF-8 文本读取，CRLF / CR 统一成 LF 后计算 SHA-256，避免不同开发系统的换行设置造成假差异；Mermaid 按 Markdown 中开头 `mermaid` 标记行之后、结尾三个反引号之前的文本取出，包含末尾换行，同样规范为 LF 后计算。SVG 按 UTF-8 文本读取，并将 CRLF / CR 统一成 LF 后计算 SHA-256，确保 Windows 与 Linux 校验一致。摘要文件的 encoding 字段明确记录这些约定；不要混用原始字节摘要和规范换行后的文本摘要。
 
 交付前打开六张图检查中文、连线和标签；核对所有图源摘要、SVG摘要、源码摘要和本地链接，更新上级正文的核对日期及基线，再在比赛模块 CHANGELOG 记录变更。检查与发布仍遵守根 AGENTS.md；此说明不授权安装 Git 钩子、删减测试或改变部署。

@@ -67,6 +67,7 @@ import {
   offsideSnapshot,
   offsideInvolvement,
   foulAssessment,
+  physicalContactFoulRisk,
   applyCard,
   dissentProbability,
   localX,
@@ -77,6 +78,7 @@ import {
   createPhysics,
   restorePhysics,
   createBody,
+  physicalPlayerContact,
   createHands,
   orientFoot,
   orientHands,
@@ -104,7 +106,7 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.31.1-role-aware-pass-balance';
+export const ENGINE_VERSION = '0.34.0-contact-referee';
 export const PARAMETER_VERSION = 'physiology-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -211,6 +213,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   const continuity = continuityState();
   const attribution = attributionState();
   let statisticalContacts = new Set();
+  let physicalContactPairs = new Set();
+  let physicalFoulCooldowns = {};
   const timeline = [];
   const score = [0, 0],
     events = [];
@@ -548,6 +552,109 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     );
     if (playing().filter((o) => o.side === a.side).length < 7) abandoned = true;
   }
+  function awardChallengeFoul(a, victim, penalty, judgement, source = 'tackle') {
+    stats[a.side].fouls++;
+    event(
+      'foul',
+      a.side,
+      `${a.player.name}${source === 'bodyContact' ? '身体对抗犯规' : '抢断犯规'}，${penalty ? '禁区内判罚点球！' : '对手获得任意球。'}`,
+      a,
+      { opponentId: victim.player.id, source, ...judgement },
+    );
+    if (judgement.card)
+      card(a, judgement.card, source === 'bodyContact' ? '身体对抗动作' : '抢断动作');
+    if (
+      !a.sentOff &&
+      rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50)
+    )
+      card(a, 'yellow', '抗议判罚');
+    restart(
+      penalty ? 'penalty' : 'freeKick',
+      victim.side,
+      penalty ? (direction(victim.side) === 1 ? 94 : 11) : clamp(physics.ball.translation().x, 1, 104),
+      penalty ? 34 : clamp(physics.ball.translation().z, 1, 67),
+    );
+  }
+
+  function assessCarrierContactFouls(isActive) {
+    if (!isActive || deadState || continuity.controller === null) {
+      physicalContactPairs = new Set();
+      return false;
+    }
+    const carrier = actors[continuity.controller];
+    if (!carrier || carrier.sentOff) {
+      physicalContactPairs = new Set();
+      return false;
+    }
+    const ballPosition = physics.ball.translation();
+    const carrierPosition = carrier.body.translation();
+    if (Math.hypot(carrierPosition.x - ballPosition.x, carrierPosition.z - ballPosition.z) > 2.6) {
+      physicalContactPairs = new Set();
+      return false;
+    }
+
+    const detected = new Set();
+    for (const defender of actors) {
+      if (defender.sentOff || defender.side === carrier.side) continue;
+      const defenderPosition = defender.body.translation();
+      const separation = Math.hypot(
+        carrierPosition.x - defenderPosition.x,
+        carrierPosition.z - defenderPosition.z,
+      );
+      if (separation > 1.35 || !physicalPlayerContact(physics, defender, carrier)) continue;
+
+      const pair = `${defender.index}:${carrier.index}`;
+      detected.add(pair);
+      if (physicalContactPairs.has(pair) || (physicalFoulCooldowns[pair] ?? -Infinity) > time)
+        continue;
+      physicalFoulCooldowns[pair] = time + 2.5;
+
+      const dv = defender.body.linvel();
+      const cv = carrier.body.linvel();
+      const towardX = (carrierPosition.x - defenderPosition.x) / Math.max(0.01, separation);
+      const towardZ = (carrierPosition.z - defenderPosition.z) / Math.max(0.01, separation);
+      const closingSpeed = Math.max(0, (dv.x - cv.x) * towardX + (dv.z - cv.z) * towardZ);
+      // This is a carrier collision, not a tackle at the ball: a defender being
+      // farther from the ball does not prove they arrived late. Keep lateness
+      // neutral and use the same relative-speed danger scale as ball challenges.
+      const late = 0;
+      const danger = clamp((closingSpeed - 2) / 9, 0, 1);
+      const behind =
+        (defenderPosition.x - carrierPosition.x) * direction(carrier.side) < -0.25;
+      const contact = physicalContactFoulRisk({ closingSpeed, late, danger, behind });
+      const penalty = inPenaltyArea(ballPosition, direction(defender.side));
+      const progress = localX(carrierPosition.x, direction(carrier.side));
+      const covering = actors.filter(
+        (o) =>
+          !o.sentOff &&
+          o.side === defender.side &&
+          o !== defender &&
+          localX(o.body.translation().x, direction(carrier.side)) > progress,
+      ).length;
+      const judgement = foulAssessment(
+        {
+          tackling: ability(defender.player, 'tackling'),
+          late,
+          danger,
+          contact,
+          wonBall: false,
+          aggression: defender.player.personality?.aggression ?? 50,
+          penalty,
+          dogso: progress > 82 && Math.abs(ballPosition.z - 34) < 12 && covering <= 1,
+        },
+        rulesRng(),
+      );
+      if (judgement.foul) {
+        awardChallengeFoul(defender, carrier, penalty, judgement, 'bodyContact');
+        physicalContactPairs = detected;
+        return true;
+      }
+    }
+    physicalContactPairs = detected;
+    for (const [pair, until] of Object.entries(physicalFoulCooldowns))
+      if (until < time - 8) delete physicalFoulCooldowns[pair];
+    return false;
+  }
   function offence(type, side, a, x, z, text) {
     event(type, side, text, a);
     if (a && !a.sentOff && rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50))
@@ -626,6 +733,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     } = c.state);
     Object.assign(attribution, c.state.attribution);
     statisticalContacts = new Set(c.state.statisticalContacts ?? []);
+    physicalContactPairs = new Set(c.state.physicalContactPairs ?? []);
+    physicalFoulCooldowns = { ...(c.state.physicalFoulCooldowns ?? {}) };
     lastTouch = actorAt(c.state.lastTouch);
     owner = actorAt(c.state.owner);
     restartTaker = actorAt(c.state.restartTaker);
@@ -707,6 +816,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         roles,
         attribution: structuredClone(attribution),
         statisticalContacts: [...statisticalContacts],
+        physicalContactPairs: [...physicalContactPairs],
+        physicalFoulCooldowns: { ...physicalFoulCooldowns },
         actionStatistics: structuredClone(actionStatistics.state),
       },
     };
@@ -1185,40 +1296,53 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             'dribbling',
             playing().filter((o) => o.side !== previous.side),
           ).value;
-          const success = tackleProbability(a, previous, ball, playing(), qa, qd);
-          if (rulesRng() > success) {
-            const relative = Math.hypot(
-              a.velocity.x - previous.velocity.x,
-              a.velocity.z - previous.velocity.z,
-            );
-            const late = clamp((distance(a.pos, ball) - distance(previous.pos, ball)) / 1.1, 0, 1),
-              danger = clamp((relative - 2) / 9, 0, 1);
-            const penalty = inPenaltyArea(ball, direction(a.side));
-            const progress = localX(previous.pos.x, direction(previous.side));
-            const covering = playing().filter(
-              (o) =>
-                o.side === a.side &&
-                o !== a &&
-                localX(o.pos.x, direction(previous.side)) > progress,
-            ).length;
-            const separation = Math.max(0.1, distance(a.pos, previous.pos));
-            const closing =
-              ((a.velocity.x - previous.velocity.x) * (previous.pos.x - a.pos.x) +
-                (a.velocity.z - previous.velocity.z) * (previous.pos.z - a.pos.z)) /
-              separation;
-            const judgement =
-              closing > 2.2 || (late > 0.65 && relative > 1.2)
-                ? foulAssessment(
-                    {
-                      tackling: ability(a.player, 'tackling'),
-                      late,
-                      danger,
-                      penalty,
-                      dogso: progress > 82 && Math.abs(ball.z - 34) < 12 && covering <= 1,
-                    },
-                    rulesRng(),
-                  )
-                : { foul: false, probability: 0, severity: 'standingChallenge', card: null };
+          const success = tackleProbability(a, previous, ball, playing(), qa, qd),
+            won = rulesRng() <= success;
+          const relative = Math.hypot(
+            a.velocity.x - previous.velocity.x,
+            a.velocity.z - previous.velocity.z,
+          );
+          const late = clamp((distance(a.pos, ball) - distance(previous.pos, ball)) / 1.1, 0, 1),
+            danger = clamp((relative - 2) / 9, 0, 1);
+          const penalty = inPenaltyArea(ball, direction(a.side));
+          const progress = localX(previous.pos.x, direction(previous.side));
+          const covering = playing().filter(
+            (o) =>
+              o.side === a.side &&
+              o !== a &&
+              localX(o.pos.x, direction(previous.side)) > progress,
+          ).length;
+          const contact = physicalPlayerContact(physics, a, previous) ? 1 : 0;
+          const judgement = contact
+            ? foulAssessment(
+                {
+                  tackling: ability(a.player, 'tackling'),
+                  late,
+                  danger,
+                  contact,
+                  wonBall: won,
+                  aggression: a.player.personality?.aggression ?? 50,
+                  penalty,
+                  dogso: progress > 82 && Math.abs(ball.z - 34) < 12 && covering <= 1,
+                },
+                rulesRng(),
+              )
+            : { foul: false, probability: 0, severity: 'noContact', card: null };
+          if (judgement.foul) {
+            actionStatistics.failedChallenge(participant(a), previous.player.id, time);
+            event('challengeFailed', a.side, `${a.player.name}的抢断动作被判犯规。`, a, {
+              opponentId: previous.player.id,
+              quality: qa,
+              opponentQuality: qd,
+              probability: success,
+              result: 'foul',
+            });
+            a.cooldown = 0.5;
+            awardChallengeFoul(a, previous, penalty, judgement);
+            active = false;
+            return;
+          }
+          if (!won) {
             actionStatistics.failedChallenge(participant(a), previous.player.id, time);
             event('challengeFailed', a.side, `${a.player.name}尝试抢断未能夺球。`, a, {
               opponentId: previous.player.id,
@@ -1228,29 +1352,6 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               result: 'failed',
             });
             a.cooldown = 0.5;
-            if (judgement.foul) {
-              stats[a.side].fouls++;
-              event(
-                'foul',
-                a.side,
-                `${a.player.name}抢断犯规，${penalty ? '禁区内判罚点球！' : '对手获得任意球。'}`,
-                a,
-                { opponentId: previous.player.id, ...judgement },
-              );
-              if (judgement.card) card(a, judgement.card, '抢断动作');
-              if (
-                !a.sentOff &&
-                rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50)
-              )
-                card(a, 'yellow', '抗议判罚');
-              restart(
-                penalty ? 'penalty' : 'freeKick',
-                previous.side,
-                penalty ? (direction(previous.side) === 1 ? 94 : 11) : clamp(ball.x, 1, 104),
-                penalty ? 34 : clamp(ball.z, 1, 67),
-              );
-              active = false;
-            }
             return;
           }
           a.wonTackles++;
@@ -1881,6 +1982,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             if (a && !a.sentOff) {
               actionStatistics.blockedPass(participant(a), time);
               statisticalDeflection(a, sample);
+              // The Rapier body collision is an actual touch. Restart ownership
+              // (corner vs goal kick/throw-in) must use this physical toucher,
+              // not the last intentional kick that happened before the deflection.
+              lastTouch = a;
             } else if (!collider.parent() && attribution.attempt) {
               const p = collider.translation();
               if ((Math.abs(p.x) < 0.1 || Math.abs(p.x - 105) < 0.1) && p.y > 1)
@@ -1890,6 +1995,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           statisticalContacts = contacts;
         },
       );
+      if (assessCarrierContactFouls(active)) active = false;
       // A referee-placed restart ball is not live until deliberately kicked.
       // Waiting bodies cannot knock it out repeatedly before the restart.
       if (deadState && deadState.type !== 'goal') {

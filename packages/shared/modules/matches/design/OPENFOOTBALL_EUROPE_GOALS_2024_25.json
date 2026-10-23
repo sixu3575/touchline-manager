@@ -1,0 +1,3020 @@
+{
+  "referenceVersion": "openfootball-europe-goals-2024-25-v1",
+  "attribution": "Openfootball / football.db maintainers; generated data is dedicated to CC0 1.0 public domain.",
+  "use": "Broad European goal-score context only. Keep each competition separate. Never infer shots, passes, player roles, duels or tempo from goal-only rows.",
+  "method": {
+    "seasonSelection": "Openfootball Europe files labelled 2024-25 or calendar 2024, plus UEFA 2024-25 Champions/Europa/Conference League main stages and qualifiers.",
+    "scoreField": "Use generated JSON score.ft as full-time/after-extra-time total; exclude score.p shootout kicks; include score.et match scores where supplied.",
+    "variance": "Unbiased sample variance using n−1 across the listed match rows, and across home+away team-match rows.",
+    "eligibleCoverage": "For broad contextual summaries only, include domestic rows whose scored matches / declared matches coverage is at least 95%; all rows and coverage are kept for transparency.",
+    "eligibleDomesticCoverageSummary": {
+      "domestic-league": {
+        "eligibleCompetitions": 8,
+        "eligibleMatches": 1700
+      },
+      "domestic-cup": {
+        "eligibleCompetitions": 7,
+        "eligibleMatches": 744
+      }
+    },
+    "limitations": [
+      "This pinned repository snapshot does not include every league, division or domestic cup in all UEFA associations; per-file coverage exposes gaps and is not described as a complete census.",
+      "Many files are score-only. Goals do not validate shots, passes, possession, duels, running distance or the match decision process.",
+      "The 2024–25 season is used for cross-league context, while calendar-year 2024 is used where the source schedules a European league by calendar year. These are not a single season boundary.",
+      "UEFA qualifiers, UEFA main competitions, domestic leagues and domestic cups remain distinct distributions. Cup ties are each a match; shootout kicks are not goals."
+    ],
+    "domesticCompetitionRows": 66,
+    "eligibleDomesticCompetitionRows": 15,
+    "uefaCompetitionRows": 6
+  },
+  "sources": [
+    {
+      "repository": "https://github.com/openfootball/europe",
+      "revision": "63df627f3c87ce71708f016522ea236cf74332c3",
+      "license": "CC0-1.0"
+    },
+    {
+      "repository": "https://github.com/openfootball/champions-league",
+      "revision": "abfaeddc2ee3d14f99ecc163c9ddb46cb4d67cef",
+      "license": "CC0-1.0"
+    }
+  ],
+  "competitions": [
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "albania/2024-25_al1.txt",
+      "dataFile": "albania/2024-25_al1.json",
+      "competition": "Albania Super League 2024/25",
+      "country": "albania",
+      "competitionType": "domestic-league",
+      "declaredMatches": 184,
+      "scoredMatches": 159,
+      "excludedUnplayedMatches": 25,
+      "scoreCoverage": 0.8641,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 409,
+      "homeGoals": {
+        "n": 159,
+        "mean": 1.4214,
+        "sampleVariance": 0.9416,
+        "standardDeviation": 0.9703
+      },
+      "awayGoals": {
+        "n": 159,
+        "mean": 1.1509,
+        "sampleVariance": 1.0024,
+        "standardDeviation": 1.0012
+      },
+      "teamMatchGoals": {
+        "n": 318,
+        "mean": 1.2862,
+        "sampleVariance": 0.9873,
+        "standardDeviation": 0.9936
+      },
+      "matchTotalGoals": {
+        "n": 159,
+        "mean": 2.5723,
+        "sampleVariance": 1.3349,
+        "standardDeviation": 1.1554
+      },
+      "sourceTextSHA256": "139d3b38a5191aaa00f635c8034317daaa82afd5a5be84ee1a45fc0dd0c24cc2",
+      "generatedJsonSHA256": "0b1e04d0ef2241b4584fb7932556dccb9c6a1426545e1dbf48cf0ca6c567ff84"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "andorra/2024-25_ad1.txt",
+      "dataFile": "andorra/2024-25_ad1.json",
+      "competition": "Andorra Premier Division 2024/25",
+      "country": "andorra",
+      "competitionType": "domestic-league",
+      "declaredMatches": 135,
+      "scoredMatches": 70,
+      "excludedUnplayedMatches": 65,
+      "scoreCoverage": 0.5185,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 239,
+      "homeGoals": {
+        "n": 70,
+        "mean": 1.7857,
+        "sampleVariance": 3.4172,
+        "standardDeviation": 1.8486
+      },
+      "awayGoals": {
+        "n": 70,
+        "mean": 1.6286,
+        "sampleVariance": 2.6137,
+        "standardDeviation": 1.6167
+      },
+      "teamMatchGoals": {
+        "n": 140,
+        "mean": 1.7071,
+        "sampleVariance": 2.9999,
+        "standardDeviation": 1.732
+      },
+      "matchTotalGoals": {
+        "n": 70,
+        "mean": 3.4143,
+        "sampleVariance": 3.3186,
+        "standardDeviation": 1.8217
+      },
+      "sourceTextSHA256": "bf78b9c546180231726b294f0fa6e1bb129470d30db7f64aa7792713afbecc67",
+      "generatedJsonSHA256": "cad81f6af9cfd444eb4b1e8a65d530664171b5b2d44686a44aa0267835c418c4"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "armenia/2024-25_am1.txt",
+      "dataFile": "armenia/2024-25_am1.json",
+      "competition": "Armenia Premier League 2024/25",
+      "country": "armenia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 165,
+      "scoredMatches": 153,
+      "excludedUnplayedMatches": 12,
+      "scoreCoverage": 0.9273,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 500,
+      "homeGoals": {
+        "n": 153,
+        "mean": 1.7712,
+        "sampleVariance": 2.7171,
+        "standardDeviation": 1.6484
+      },
+      "awayGoals": {
+        "n": 153,
+        "mean": 1.4967,
+        "sampleVariance": 1.8701,
+        "standardDeviation": 1.3675
+      },
+      "teamMatchGoals": {
+        "n": 306,
+        "mean": 1.634,
+        "sampleVariance": 2.3049,
+        "standardDeviation": 1.5182
+      },
+      "matchTotalGoals": {
+        "n": 153,
+        "mean": 3.268,
+        "sampleVariance": 2.7896,
+        "standardDeviation": 1.6702
+      },
+      "sourceTextSHA256": "0c1475373f2c093621e29d44505ec3bc131b6fe5497139308a927dedd6bb0d0a",
+      "generatedJsonSHA256": "83b553bcca00effd7518effede8903f591c8c904db8b555187d806918965d99e"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "azerbaijan/2024-25_az1.txt",
+      "dataFile": "azerbaijan/2024-25_az1.json",
+      "competition": "Azerbaijan Premier League A 2024/25",
+      "country": "azerbaijan",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 165,
+      "excludedUnplayedMatches": 15,
+      "scoreCoverage": 0.9167,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 432,
+      "homeGoals": {
+        "n": 165,
+        "mean": 1.4061,
+        "sampleVariance": 1.45,
+        "standardDeviation": 1.2041
+      },
+      "awayGoals": {
+        "n": 165,
+        "mean": 1.2121,
+        "sampleVariance": 1.2169,
+        "standardDeviation": 1.1031
+      },
+      "teamMatchGoals": {
+        "n": 330,
+        "mean": 1.3091,
+        "sampleVariance": 1.3388,
+        "standardDeviation": 1.1571
+      },
+      "matchTotalGoals": {
+        "n": 165,
+        "mean": 2.6182,
+        "sampleVariance": 2.1887,
+        "standardDeviation": 1.4794
+      },
+      "sourceTextSHA256": "bb023191c0e885004b660bbbedcbd951dc6c99a5c43676455ecf5a1b96d11ff8",
+      "generatedJsonSHA256": "6cb8bf93ca15e7c7b78796209bfac88d712d26359a32d9a05f88f056e205a268"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "belarus/2024_by1.txt",
+      "dataFile": "belarus/2024_by1.json",
+      "competition": "Belarus Premier League 2024",
+      "country": "belarus",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 213,
+      "excludedUnplayedMatches": 27,
+      "scoreCoverage": 0.8875,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 563,
+      "homeGoals": {
+        "n": 213,
+        "mean": 1.4085,
+        "sampleVariance": 1.4503,
+        "standardDeviation": 1.2043
+      },
+      "awayGoals": {
+        "n": 213,
+        "mean": 1.2347,
+        "sampleVariance": 1.3503,
+        "standardDeviation": 1.162
+      },
+      "teamMatchGoals": {
+        "n": 426,
+        "mean": 1.3216,
+        "sampleVariance": 1.4046,
+        "standardDeviation": 1.1851
+      },
+      "matchTotalGoals": {
+        "n": 213,
+        "mean": 2.6432,
+        "sampleVariance": 2.3061,
+        "standardDeviation": 1.5186
+      },
+      "sourceTextSHA256": "21c8b519f079493a261d2dce4a1604d40e37c08a6496a990202933ec9ef44363",
+      "generatedJsonSHA256": "ecf54ecde9e1c5fc2d5c71bc5eeceab2d5eed2ff2111636d90e555a761437d57"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "bosnia-herzegovina/2024-25_ba1.txt",
+      "dataFile": "bosnia-herzegovina/2024-25_ba1.json",
+      "competition": "Bosnia and Herzegovina Premier Liga 2024/25",
+      "country": "bosnia-herzegovina",
+      "competitionType": "domestic-league",
+      "declaredMatches": 198,
+      "scoredMatches": 188,
+      "excludedUnplayedMatches": 10,
+      "scoreCoverage": 0.9495,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 526,
+      "homeGoals": {
+        "n": 188,
+        "mean": 1.5213,
+        "sampleVariance": 1.7696,
+        "standardDeviation": 1.3303
+      },
+      "awayGoals": {
+        "n": 188,
+        "mean": 1.2766,
+        "sampleVariance": 1.3028,
+        "standardDeviation": 1.1414
+      },
+      "teamMatchGoals": {
+        "n": 376,
+        "mean": 1.3989,
+        "sampleVariance": 1.5471,
+        "standardDeviation": 1.2438
+      },
+      "matchTotalGoals": {
+        "n": 188,
+        "mean": 2.7979,
+        "sampleVariance": 2.237,
+        "standardDeviation": 1.4957
+      },
+      "sourceTextSHA256": "1c50b65b7e9dbf2f770c704afbc1d202a24049155b493c1b2bd26b5a04a9cd81",
+      "generatedJsonSHA256": "49ee1728000bb2eb987a79f5fc378a04d3334a70f4778d56307ba6ac03919cb3"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "bosnia-herzegovina/2024-25_bacup.txt",
+      "dataFile": "bosnia-herzegovina/2024-25_bacup.json",
+      "competition": "Bosnia and Herzegovina Cup 2024/25",
+      "country": "bosnia-herzegovina",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 38,
+      "scoredMatches": 36,
+      "excludedUnplayedMatches": 2,
+      "scoreCoverage": 0.9474,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 4,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 107,
+      "homeGoals": {
+        "n": 36,
+        "mean": 1.3056,
+        "sampleVariance": 2.2183,
+        "standardDeviation": 1.4894
+      },
+      "awayGoals": {
+        "n": 36,
+        "mean": 1.6667,
+        "sampleVariance": 4.1143,
+        "standardDeviation": 2.0284
+      },
+      "teamMatchGoals": {
+        "n": 72,
+        "mean": 1.4861,
+        "sampleVariance": 3.1547,
+        "standardDeviation": 1.7762
+      },
+      "matchTotalGoals": {
+        "n": 36,
+        "mean": 2.9722,
+        "sampleVariance": 4.4849,
+        "standardDeviation": 2.1178
+      },
+      "sourceTextSHA256": "818c6def67cd534f30e29e53a3765f5b1753fed6fba913a14683174799a2814f",
+      "generatedJsonSHA256": "1ab556f1a0b926b206a0f6c4f0b0f382ef080ea1e3b9d12a43ed136612b72339"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "bulgaria/2024-25_bg1.txt",
+      "dataFile": "bulgaria/2024-25_bg1.json",
+      "competition": "Bulgaria Premier League 2024/25",
+      "country": "bulgaria",
+      "competitionType": "domestic-league",
+      "declaredMatches": 293,
+      "scoredMatches": 271,
+      "excludedUnplayedMatches": 22,
+      "scoreCoverage": 0.9249,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 718,
+      "homeGoals": {
+        "n": 271,
+        "mean": 1.4133,
+        "sampleVariance": 1.4137,
+        "standardDeviation": 1.189
+      },
+      "awayGoals": {
+        "n": 271,
+        "mean": 1.2362,
+        "sampleVariance": 1.3514,
+        "standardDeviation": 1.1625
+      },
+      "teamMatchGoals": {
+        "n": 542,
+        "mean": 1.3247,
+        "sampleVariance": 1.3879,
+        "standardDeviation": 1.1781
+      },
+      "matchTotalGoals": {
+        "n": 271,
+        "mean": 2.6494,
+        "sampleVariance": 2.0655,
+        "standardDeviation": 1.4372
+      },
+      "sourceTextSHA256": "d10d003edaaa746208075dcac562d639e464e24505bd7cb9a2fe583947c5454d",
+      "generatedJsonSHA256": "91c43d4a96a5dd590713b995796c00863f710d3b881a7bab46a663f44a3a8c53"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "bulgaria/2024-25_bgcup.txt",
+      "dataFile": "bulgaria/2024-25_bgcup.json",
+      "competition": "Bulgaria Cup 2024/25",
+      "country": "bulgaria",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 33,
+      "scoredMatches": 31,
+      "excludedUnplayedMatches": 2,
+      "scoreCoverage": 0.9394,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 5,
+      "extraTimeMatchScores": 7,
+      "goalsTotal": 78,
+      "homeGoals": {
+        "n": 31,
+        "mean": 0.7419,
+        "sampleVariance": 0.7978,
+        "standardDeviation": 0.8932
+      },
+      "awayGoals": {
+        "n": 31,
+        "mean": 1.7742,
+        "sampleVariance": 3.114,
+        "standardDeviation": 1.7646
+      },
+      "teamMatchGoals": {
+        "n": 62,
+        "mean": 1.2581,
+        "sampleVariance": 2.1946,
+        "standardDeviation": 1.4814
+      },
+      "matchTotalGoals": {
+        "n": 31,
+        "mean": 2.5161,
+        "sampleVariance": 3.6581,
+        "standardDeviation": 1.9126
+      },
+      "sourceTextSHA256": "5cfd528f4615e7d1cfb93bdee1c6a309d0488a078a51afa28e2c5cd4a0c1a005",
+      "generatedJsonSHA256": "d72ff442a7a737f308cf7decd5da9acd45b14dcbaace305ae7862000da0c8003"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "croatia/2024-25_hr1.txt",
+      "dataFile": "croatia/2024-25_hr1.json",
+      "competition": "Croatia HNL 2024/25",
+      "country": "croatia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 161,
+      "excludedUnplayedMatches": 19,
+      "scoreCoverage": 0.8944,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 424,
+      "homeGoals": {
+        "n": 161,
+        "mean": 1.559,
+        "sampleVariance": 1.4731,
+        "standardDeviation": 1.2137
+      },
+      "awayGoals": {
+        "n": 161,
+        "mean": 1.0745,
+        "sampleVariance": 0.9319,
+        "standardDeviation": 0.9654
+      },
+      "teamMatchGoals": {
+        "n": 322,
+        "mean": 1.3168,
+        "sampleVariance": 1.2576,
+        "standardDeviation": 1.1214
+      },
+      "matchTotalGoals": {
+        "n": 161,
+        "mean": 2.6335,
+        "sampleVariance": 1.7836,
+        "standardDeviation": 1.3355
+      },
+      "sourceTextSHA256": "91daef5495ac6088e7f98ba28b6dc082d80c94b9b89faaec11d9a9eb2ebb1d16",
+      "generatedJsonSHA256": "d8da5def0fa9cc25b127dd4e7a817b3f7b36247fabe38b3fa3f297bcc1d220da"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "cyprus/2024-25_cy1.txt",
+      "dataFile": "cyprus/2024-25_cy1.json",
+      "competition": "Cyprus First Division 2024/25",
+      "country": "cyprus",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 223,
+      "excludedUnplayedMatches": 17,
+      "scoreCoverage": 0.9292,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 632,
+      "homeGoals": {
+        "n": 223,
+        "mean": 1.583,
+        "sampleVariance": 1.5505,
+        "standardDeviation": 1.2452
+      },
+      "awayGoals": {
+        "n": 223,
+        "mean": 1.2511,
+        "sampleVariance": 1.3781,
+        "standardDeviation": 1.1739
+      },
+      "teamMatchGoals": {
+        "n": 446,
+        "mean": 1.417,
+        "sampleVariance": 1.4886,
+        "standardDeviation": 1.2201
+      },
+      "matchTotalGoals": {
+        "n": 223,
+        "mean": 2.8341,
+        "sampleVariance": 2.0489,
+        "standardDeviation": 1.4314
+      },
+      "sourceTextSHA256": "c1c7123e985c56a5291de3fbca4b775b73696fbc5dff6dc50070da7984403400",
+      "generatedJsonSHA256": "d0accb14fb581f2c9dba12ccec554744ab50b35517b93a5b5863d195ca2c46fc"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "cyprus/2024-25_cycup.txt",
+      "dataFile": "cyprus/2024-25_cycup.json",
+      "competition": "Cyprus Cypriot Cup 2024/25",
+      "country": "cyprus",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 27,
+      "scoredMatches": 24,
+      "excludedUnplayedMatches": 3,
+      "scoreCoverage": 0.8889,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 4,
+      "extraTimeMatchScores": 4,
+      "goalsTotal": 93,
+      "homeGoals": {
+        "n": 24,
+        "mean": 2.0417,
+        "sampleVariance": 5.433,
+        "standardDeviation": 2.3309
+      },
+      "awayGoals": {
+        "n": 24,
+        "mean": 1.8333,
+        "sampleVariance": 2.9275,
+        "standardDeviation": 1.711
+      },
+      "teamMatchGoals": {
+        "n": 48,
+        "mean": 1.9375,
+        "sampleVariance": 4.1024,
+        "standardDeviation": 2.0254
+      },
+      "matchTotalGoals": {
+        "n": 24,
+        "mean": 3.875,
+        "sampleVariance": 5.2446,
+        "standardDeviation": 2.2901
+      },
+      "sourceTextSHA256": "8e42cacef60aaaa174eaa38d31727be4dae7d308c83b043f7f2fc1c93b9a048f",
+      "generatedJsonSHA256": "e5abef87effb58c43fce30a60297e7adca15b8f100529b184e8c161fa53785cc"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "czech-republic/2024-25_cz1.txt",
+      "dataFile": "czech-republic/2024-25_cz1.json",
+      "competition": "Czech Republic First League 2024/25",
+      "country": "czech-republic",
+      "competitionType": "domestic-league",
+      "declaredMatches": 276,
+      "scoredMatches": 252,
+      "excludedUnplayedMatches": 24,
+      "scoreCoverage": 0.913,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 734,
+      "homeGoals": {
+        "n": 252,
+        "mean": 1.6151,
+        "sampleVariance": 1.5684,
+        "standardDeviation": 1.2523
+      },
+      "awayGoals": {
+        "n": 252,
+        "mean": 1.2976,
+        "sampleVariance": 1.4529,
+        "standardDeviation": 1.2054
+      },
+      "teamMatchGoals": {
+        "n": 504,
+        "mean": 1.4563,
+        "sampleVariance": 1.5329,
+        "standardDeviation": 1.2381
+      },
+      "matchTotalGoals": {
+        "n": 252,
+        "mean": 2.9127,
+        "sampleVariance": 2.1916,
+        "standardDeviation": 1.4804
+      },
+      "sourceTextSHA256": "025bbe91b08773070f8f9f290c25325aed0a9795b9ba1c4d54af5faa9eae0a9d",
+      "generatedJsonSHA256": "49b001fd7beadbb84adafb6e702809ade833eb9fe4ca81b8c399a44bae7cf551"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "czech-republic/2024-25_cz2.txt",
+      "dataFile": "czech-republic/2024-25_cz2.json",
+      "competition": "Czech Republic National League 2024/25",
+      "country": "czech-republic",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 188,
+      "excludedUnplayedMatches": 52,
+      "scoreCoverage": 0.7833,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 530,
+      "homeGoals": {
+        "n": 188,
+        "mean": 1.5372,
+        "sampleVariance": 1.2874,
+        "standardDeviation": 1.1346
+      },
+      "awayGoals": {
+        "n": 188,
+        "mean": 1.2819,
+        "sampleVariance": 1.1875,
+        "standardDeviation": 1.0897
+      },
+      "teamMatchGoals": {
+        "n": 376,
+        "mean": 1.4096,
+        "sampleVariance": 1.2505,
+        "standardDeviation": 1.1182
+      },
+      "matchTotalGoals": {
+        "n": 188,
+        "mean": 2.8191,
+        "sampleVariance": 1.9778,
+        "standardDeviation": 1.4063
+      },
+      "sourceTextSHA256": "18a268fe53b055a36edbf8c59c3e62d60346432e025130a3e58a9505ce9722a7",
+      "generatedJsonSHA256": "1f98b54629c7190e70c69a2553fcebc16fb28ea60ec0499dec896a02d0ef23a5"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "czech-republic/2024-25_czcup.txt",
+      "dataFile": "czech-republic/2024-25_czcup.json",
+      "competition": "Czech Republic Cup 2024/25",
+      "country": "czech-republic",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 101,
+      "scoredMatches": 98,
+      "excludedUnplayedMatches": 3,
+      "scoreCoverage": 0.9703,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 13,
+      "extraTimeMatchScores": 4,
+      "goalsTotal": 331,
+      "homeGoals": {
+        "n": 98,
+        "mean": 1.0408,
+        "sampleVariance": 1.1736,
+        "standardDeviation": 1.0833
+      },
+      "awayGoals": {
+        "n": 98,
+        "mean": 2.3367,
+        "sampleVariance": 3.2772,
+        "standardDeviation": 1.8103
+      },
+      "teamMatchGoals": {
+        "n": 196,
+        "mean": 1.6888,
+        "sampleVariance": 2.636,
+        "standardDeviation": 1.6236
+      },
+      "matchTotalGoals": {
+        "n": 98,
+        "mean": 3.3776,
+        "sampleVariance": 3.7426,
+        "standardDeviation": 1.9346
+      },
+      "sourceTextSHA256": "6fee7dd947e3effbafe4efb31f823fd8ed3f6ffac1fe033631ed8c176eaa43b8",
+      "generatedJsonSHA256": "2db68a273996a061f35f3eaa965003d1d9060cf8943a269e34c52fee68859b18"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "denmark/2024-25_dk1.txt",
+      "dataFile": "denmark/2024-25_dk1.json",
+      "competition": "Denmark Superligaen 2024/25",
+      "country": "denmark",
+      "competitionType": "domestic-league",
+      "declaredMatches": 193,
+      "scoredMatches": 183,
+      "excludedUnplayedMatches": 10,
+      "scoreCoverage": 0.9482,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 602,
+      "homeGoals": {
+        "n": 183,
+        "mean": 1.7814,
+        "sampleVariance": 1.4684,
+        "standardDeviation": 1.2118
+      },
+      "awayGoals": {
+        "n": 183,
+        "mean": 1.5082,
+        "sampleVariance": 1.3172,
+        "standardDeviation": 1.1477
+      },
+      "teamMatchGoals": {
+        "n": 366,
+        "mean": 1.6448,
+        "sampleVariance": 1.4077,
+        "standardDeviation": 1.1865
+      },
+      "matchTotalGoals": {
+        "n": 183,
+        "mean": 3.2896,
+        "sampleVariance": 2.2838,
+        "standardDeviation": 1.5112
+      },
+      "sourceTextSHA256": "e3f7eb3b8e9288523aa857cea829c5a508477eaaa9176539504bd879d0d5be53",
+      "generatedJsonSHA256": "26ef6356327a265544862aa25349acb9273e218e401581799bf8ae2f346e40ac"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "denmark/2024-25_dk2.txt",
+      "dataFile": "denmark/2024-25_dk2.json",
+      "competition": "Denmark 1. Division 2024/25",
+      "country": "denmark",
+      "competitionType": "domestic-league",
+      "declaredMatches": 192,
+      "scoredMatches": 159,
+      "excludedUnplayedMatches": 33,
+      "scoreCoverage": 0.8281,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 489,
+      "homeGoals": {
+        "n": 159,
+        "mean": 1.522,
+        "sampleVariance": 1.6688,
+        "standardDeviation": 1.2918
+      },
+      "awayGoals": {
+        "n": 159,
+        "mean": 1.5535,
+        "sampleVariance": 1.6917,
+        "standardDeviation": 1.3007
+      },
+      "teamMatchGoals": {
+        "n": 318,
+        "mean": 1.5377,
+        "sampleVariance": 1.6752,
+        "standardDeviation": 1.2943
+      },
+      "matchTotalGoals": {
+        "n": 159,
+        "mean": 3.0755,
+        "sampleVariance": 2.8803,
+        "standardDeviation": 1.6972
+      },
+      "sourceTextSHA256": "4b6242d1ac6a35026adf8131b36a4fb400dbc8f09af5e3e999b6200539c9d3ba",
+      "generatedJsonSHA256": "9a63bc64139a4522f045761fbcb8986a443927c2d57756ceb99967d2d084c220"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "denmark/2024-25_dkcup.txt",
+      "dataFile": "denmark/2024-25_dkcup.json",
+      "competition": "Denmark Landspokalturneringen 2024/25",
+      "country": "denmark",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 108,
+      "scoredMatches": 106,
+      "excludedUnplayedMatches": 2,
+      "scoreCoverage": 0.9815,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 6,
+      "extraTimeMatchScores": 10,
+      "goalsTotal": 420,
+      "homeGoals": {
+        "n": 106,
+        "mean": 1,
+        "sampleVariance": 1.3905,
+        "standardDeviation": 1.1792
+      },
+      "awayGoals": {
+        "n": 106,
+        "mean": 2.9623,
+        "sampleVariance": 5.4843,
+        "standardDeviation": 2.3419
+      },
+      "teamMatchGoals": {
+        "n": 212,
+        "mean": 1.9811,
+        "sampleVariance": 4.3883,
+        "standardDeviation": 2.0948
+      },
+      "matchTotalGoals": {
+        "n": 106,
+        "mean": 3.9623,
+        "sampleVariance": 4.989,
+        "standardDeviation": 2.2336
+      },
+      "sourceTextSHA256": "9d07fbe574d617b81229a353e6c8fa12d4e5405fbf6d608cba791dc380e85518",
+      "generatedJsonSHA256": "0e9c7d1493e5e38eacc8def9c7ddf3f5fa634330225fec602d8355bac6354b28"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "estonia/2024_ee1.txt",
+      "dataFile": "estonia/2024_ee1.json",
+      "competition": "Estonia Meistriliiga 2024",
+      "country": "estonia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 170,
+      "excludedUnplayedMatches": 10,
+      "scoreCoverage": 0.9444,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 539,
+      "homeGoals": {
+        "n": 170,
+        "mean": 1.6176,
+        "sampleVariance": 1.9062,
+        "standardDeviation": 1.3807
+      },
+      "awayGoals": {
+        "n": 170,
+        "mean": 1.5529,
+        "sampleVariance": 1.8108,
+        "standardDeviation": 1.3457
+      },
+      "teamMatchGoals": {
+        "n": 340,
+        "mean": 1.5853,
+        "sampleVariance": 1.8541,
+        "standardDeviation": 1.3616
+      },
+      "matchTotalGoals": {
+        "n": 170,
+        "mean": 3.1706,
+        "sampleVariance": 2.5565,
+        "standardDeviation": 1.5989
+      },
+      "sourceTextSHA256": "21fd80e56a19f223decbba916595bb48efc70d4d3dc92512b7d0eb9f5206df07",
+      "generatedJsonSHA256": "c75fcba0849da63f0a45bd34d5d163bf657214c31c9be961a3a6edfa322d97e3"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "faroe-islands/2024_fo1.txt",
+      "dataFile": "faroe-islands/2024_fo1.json",
+      "competition": "Faroe Islands Premier Division 2024",
+      "country": "faroe-islands",
+      "competitionType": "domestic-league",
+      "declaredMatches": 135,
+      "scoredMatches": 133,
+      "excludedUnplayedMatches": 2,
+      "scoreCoverage": 0.9852,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 445,
+      "homeGoals": {
+        "n": 133,
+        "mean": 1.8947,
+        "sampleVariance": 2.0494,
+        "standardDeviation": 1.4316
+      },
+      "awayGoals": {
+        "n": 133,
+        "mean": 1.4511,
+        "sampleVariance": 2.2798,
+        "standardDeviation": 1.5099
+      },
+      "teamMatchGoals": {
+        "n": 266,
+        "mean": 1.6729,
+        "sampleVariance": 2.2058,
+        "standardDeviation": 1.4852
+      },
+      "matchTotalGoals": {
+        "n": 133,
+        "mean": 3.3459,
+        "sampleVariance": 2.637,
+        "standardDeviation": 1.6239
+      },
+      "sourceTextSHA256": "bb2d5daf71db7827ed7d863fe1c85d34a0c11d663bdc7544402108f02dfe372c",
+      "generatedJsonSHA256": "6252ce9ad78283b5c41b82118d0d475d4472e73ee417cfdb6e08609cdf25af4c"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "finland/2024_fi1.txt",
+      "dataFile": "finland/2024_fi1.json",
+      "competition": "Finland Veikkausliiga 2024",
+      "country": "finland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 167,
+      "scoredMatches": 159,
+      "excludedUnplayedMatches": 8,
+      "scoreCoverage": 0.9521,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 1,
+      "extraTimeMatchScores": 2,
+      "goalsTotal": 489,
+      "homeGoals": {
+        "n": 159,
+        "mean": 1.7358,
+        "sampleVariance": 1.5374,
+        "standardDeviation": 1.2399
+      },
+      "awayGoals": {
+        "n": 159,
+        "mean": 1.3396,
+        "sampleVariance": 1.4029,
+        "standardDeviation": 1.1844
+      },
+      "teamMatchGoals": {
+        "n": 318,
+        "mean": 1.5377,
+        "sampleVariance": 1.5049,
+        "standardDeviation": 1.2267
+      },
+      "matchTotalGoals": {
+        "n": 159,
+        "mean": 3.0755,
+        "sampleVariance": 2.5259,
+        "standardDeviation": 1.5893
+      },
+      "sourceTextSHA256": "ec0db9a58fa69cab2637228a55d50240b9a6504105a6fdc125d05cd40c33dcff",
+      "generatedJsonSHA256": "581e7f973594aa987bab5e89cd0b5a0c10ad2e0908897391a3e3b89b5a08ec60"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "france/2024-25_fr1.txt",
+      "dataFile": "france/2024-25_fr1.json",
+      "competition": "French Ligue 1 2024/25",
+      "country": "france",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 291,
+      "excludedUnplayedMatches": 15,
+      "scoreCoverage": 0.951,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 909,
+      "homeGoals": {
+        "n": 291,
+        "mean": 1.6907,
+        "sampleVariance": 1.7661,
+        "standardDeviation": 1.3289
+      },
+      "awayGoals": {
+        "n": 291,
+        "mean": 1.433,
+        "sampleVariance": 1.4739,
+        "standardDeviation": 1.2141
+      },
+      "teamMatchGoals": {
+        "n": 582,
+        "mean": 1.5619,
+        "sampleVariance": 1.6339,
+        "standardDeviation": 1.2782
+      },
+      "matchTotalGoals": {
+        "n": 291,
+        "mean": 3.1237,
+        "sampleVariance": 2.4191,
+        "standardDeviation": 1.5554
+      },
+      "sourceTextSHA256": "169b86f635d04fefb786cf8e644e57d21bbd5c1dcc36ca1f1469560c699af19b",
+      "generatedJsonSHA256": "ab07db2dd6091edd2481a418d10594cf6c72a0a64d5252ce6bfaf464aab1463f"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "france/2024-25_fr2.txt",
+      "dataFile": "france/2024-25_fr2.json",
+      "competition": "French Ligue 2 2024/25",
+      "country": "france",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 287,
+      "excludedUnplayedMatches": 19,
+      "scoreCoverage": 0.9379,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 789,
+      "homeGoals": {
+        "n": 287,
+        "mean": 1.6063,
+        "sampleVariance": 1.5332,
+        "standardDeviation": 1.2382
+      },
+      "awayGoals": {
+        "n": 287,
+        "mean": 1.1429,
+        "sampleVariance": 1.0529,
+        "standardDeviation": 1.0261
+      },
+      "teamMatchGoals": {
+        "n": 574,
+        "mean": 1.3746,
+        "sampleVariance": 1.3446,
+        "standardDeviation": 1.1596
+      },
+      "matchTotalGoals": {
+        "n": 287,
+        "mean": 2.7491,
+        "sampleVariance": 2.1676,
+        "standardDeviation": 1.4723
+      },
+      "sourceTextSHA256": "a5421fcd1589ca8c95f3751b8d754996498e05e1a551f0d57d667f049c24236a",
+      "generatedJsonSHA256": "47269607d98395b40e2629cdcd8b25e2d0c157485b2ee1814a483d5bad080d63"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "france/2024-25_frcup.txt",
+      "dataFile": "france/2024-25_frcup.json",
+      "competition": "French Coupe de France 2024/25",
+      "country": "france",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 200,
+      "scoredMatches": 197,
+      "excludedUnplayedMatches": 3,
+      "scoreCoverage": 0.985,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 47,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 606,
+      "homeGoals": {
+        "n": 197,
+        "mean": 1.1624,
+        "sampleVariance": 1.6469,
+        "standardDeviation": 1.2833
+      },
+      "awayGoals": {
+        "n": 197,
+        "mean": 1.9137,
+        "sampleVariance": 2.5895,
+        "standardDeviation": 1.6092
+      },
+      "teamMatchGoals": {
+        "n": 394,
+        "mean": 1.5381,
+        "sampleVariance": 2.2543,
+        "standardDeviation": 1.5014
+      },
+      "matchTotalGoals": {
+        "n": 197,
+        "mean": 3.0761,
+        "sampleVariance": 3.2646,
+        "standardDeviation": 1.8068
+      },
+      "sourceTextSHA256": "2cf986e32dd44ab4c96b5ab98cfd6ade2ef59bdf297310e6aaeb3492435ad5aa",
+      "generatedJsonSHA256": "a177c62ea63b621e4b548476f6c0f50cac7d8db36f14ac44f0f633c4cc19e244"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "georgia/2024_ge1.txt",
+      "dataFile": "georgia/2024_ge1.json",
+      "competition": "Georgia Premier League A 2024",
+      "country": "georgia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 163,
+      "excludedUnplayedMatches": 17,
+      "scoreCoverage": 0.9056,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 465,
+      "homeGoals": {
+        "n": 163,
+        "mean": 1.5706,
+        "sampleVariance": 1.2342,
+        "standardDeviation": 1.1109
+      },
+      "awayGoals": {
+        "n": 163,
+        "mean": 1.2822,
+        "sampleVariance": 1.352,
+        "standardDeviation": 1.1627
+      },
+      "teamMatchGoals": {
+        "n": 326,
+        "mean": 1.4264,
+        "sampleVariance": 1.3099,
+        "standardDeviation": 1.1445
+      },
+      "matchTotalGoals": {
+        "n": 163,
+        "mean": 2.8528,
+        "sampleVariance": 2.3362,
+        "standardDeviation": 1.5285
+      },
+      "sourceTextSHA256": "518c0804796accf326a9841680bd48e6ebe08b52a8fca036bf5fb731abe43fb2",
+      "generatedJsonSHA256": "54ba485b9781a18d1f6f0e3677d42af27e9491ae4a84f39960a8407645da1783"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "gibraltar/2024-25_gi1.txt",
+      "dataFile": "gibraltar/2024-25_gi1.json",
+      "competition": "Gibraltar Premier League A 2024/25",
+      "country": "gibraltar",
+      "competitionType": "domestic-league",
+      "declaredMatches": 125,
+      "scoredMatches": 92,
+      "excludedUnplayedMatches": 33,
+      "scoreCoverage": 0.736,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 338,
+      "homeGoals": {
+        "n": 92,
+        "mean": 1.7174,
+        "sampleVariance": 2.0731,
+        "standardDeviation": 1.4398
+      },
+      "awayGoals": {
+        "n": 92,
+        "mean": 1.9565,
+        "sampleVariance": 2.6355,
+        "standardDeviation": 1.6234
+      },
+      "teamMatchGoals": {
+        "n": 184,
+        "mean": 1.837,
+        "sampleVariance": 2.3558,
+        "standardDeviation": 1.5349
+      },
+      "matchTotalGoals": {
+        "n": 92,
+        "mean": 3.6739,
+        "sampleVariance": 2.42,
+        "standardDeviation": 1.5556
+      },
+      "sourceTextSHA256": "7d22d59df9c6ad1c33371cfdfe1d853a3b1c9b24e2091e9f42653aa418deabea",
+      "generatedJsonSHA256": "3d05c50a0c2af51bff74ca475a74729e8fc7b2eadc59940a3ca81c1e60bf0ae9"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "greece/2024-25_gr1.txt",
+      "dataFile": "greece/2024-25_gr1.json",
+      "competition": "Greek Super League 2024/25",
+      "country": "greece",
+      "competitionType": "domestic-league",
+      "declaredMatches": 236,
+      "scoredMatches": 218,
+      "excludedUnplayedMatches": 18,
+      "scoreCoverage": 0.9237,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 578,
+      "homeGoals": {
+        "n": 218,
+        "mean": 1.4037,
+        "sampleVariance": 1.357,
+        "standardDeviation": 1.1649
+      },
+      "awayGoals": {
+        "n": 218,
+        "mean": 1.2477,
+        "sampleVariance": 1.072,
+        "standardDeviation": 1.0354
+      },
+      "teamMatchGoals": {
+        "n": 436,
+        "mean": 1.3257,
+        "sampleVariance": 1.2178,
+        "standardDeviation": 1.1035
+      },
+      "matchTotalGoals": {
+        "n": 218,
+        "mean": 2.6514,
+        "sampleVariance": 1.841,
+        "standardDeviation": 1.3568
+      },
+      "sourceTextSHA256": "cbeee810abc15c55d2179af58c8e652c52a4aa439d748e6a5b4bf20552040c41",
+      "generatedJsonSHA256": "3e9bce52f376825f1fd21e8b31f9748849ab5442733df1c644a2c82e1bb17cea"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "hungary/2024-25_hu1.txt",
+      "dataFile": "hungary/2024-25_hu1.json",
+      "competition": "Hungarian Nemzeti Bajnokság I 2024/25",
+      "country": "hungary",
+      "competitionType": "domestic-league",
+      "declaredMatches": 198,
+      "scoredMatches": 178,
+      "excludedUnplayedMatches": 20,
+      "scoreCoverage": 0.899,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 553,
+      "homeGoals": {
+        "n": 178,
+        "mean": 1.736,
+        "sampleVariance": 1.7886,
+        "standardDeviation": 1.3374
+      },
+      "awayGoals": {
+        "n": 178,
+        "mean": 1.3708,
+        "sampleVariance": 1.1499,
+        "standardDeviation": 1.0723
+      },
+      "teamMatchGoals": {
+        "n": 356,
+        "mean": 1.5534,
+        "sampleVariance": 1.4986,
+        "standardDeviation": 1.2242
+      },
+      "matchTotalGoals": {
+        "n": 178,
+        "mean": 3.1067,
+        "sampleVariance": 2.6948,
+        "standardDeviation": 1.6416
+      },
+      "sourceTextSHA256": "d446a34aa12888dc522529e1a346a14bc4c48ee8da13390a36739cef3d52098c",
+      "generatedJsonSHA256": "904bb940a4cdf83075ce0489fb051d43b390c8e8fbd776f49d5f37be70d1fac7"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "hungary/2024-25_hucup.txt",
+      "dataFile": "hungary/2024-25_hucup.json",
+      "competition": "Hungarian Cup 2024/25",
+      "country": "hungary",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 63,
+      "scoredMatches": 62,
+      "excludedUnplayedMatches": 1,
+      "scoreCoverage": 0.9841,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 8,
+      "extraTimeMatchScores": 13,
+      "goalsTotal": 205,
+      "homeGoals": {
+        "n": 62,
+        "mean": 1.0323,
+        "sampleVariance": 1.5071,
+        "standardDeviation": 1.2277
+      },
+      "awayGoals": {
+        "n": 62,
+        "mean": 2.2742,
+        "sampleVariance": 3.2187,
+        "standardDeviation": 1.7941
+      },
+      "teamMatchGoals": {
+        "n": 124,
+        "mean": 1.6532,
+        "sampleVariance": 2.7324,
+        "standardDeviation": 1.653
+      },
+      "matchTotalGoals": {
+        "n": 62,
+        "mean": 3.3065,
+        "sampleVariance": 3.4947,
+        "standardDeviation": 1.8694
+      },
+      "sourceTextSHA256": "9dcc3bc534a0940905e3194ad2240f863d8e705b04412868927398aa68bc4141",
+      "generatedJsonSHA256": "16c442e6d901859c03b525c2f859a091edc56408391d4cbe5b319e60c001cc44"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "iceland/2024_is1.txt",
+      "dataFile": "iceland/2024_is1.json",
+      "competition": "Iceland Úrvalsdeild 2024",
+      "country": "iceland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 162,
+      "scoredMatches": 158,
+      "excludedUnplayedMatches": 4,
+      "scoreCoverage": 0.9753,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 576,
+      "homeGoals": {
+        "n": 158,
+        "mean": 2.0443,
+        "sampleVariance": 2.3866,
+        "standardDeviation": 1.5448
+      },
+      "awayGoals": {
+        "n": 158,
+        "mean": 1.6013,
+        "sampleVariance": 1.5406,
+        "standardDeviation": 1.2412
+      },
+      "teamMatchGoals": {
+        "n": 316,
+        "mean": 1.8228,
+        "sampleVariance": 2.0066,
+        "standardDeviation": 1.4165
+      },
+      "matchTotalGoals": {
+        "n": 158,
+        "mean": 3.6456,
+        "sampleVariance": 3.2112,
+        "standardDeviation": 1.792
+      },
+      "sourceTextSHA256": "0d0ae8e9a9b6c1218a76865f1dd9c754a699741dc764854581ad8108c9cd2916",
+      "generatedJsonSHA256": "1ad7ce29dd93c25ba86d88182917feb4e0d4c974510cf34ad16f6c66eae0f802"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "ireland/2024_ie1.txt",
+      "dataFile": "ireland/2024_ie1.json",
+      "competition": "Irish Premier Division 2024",
+      "country": "ireland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 158,
+      "excludedUnplayedMatches": 22,
+      "scoreCoverage": 0.8778,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 408,
+      "homeGoals": {
+        "n": 158,
+        "mean": 1.4494,
+        "sampleVariance": 1.4082,
+        "standardDeviation": 1.1867
+      },
+      "awayGoals": {
+        "n": 158,
+        "mean": 1.1329,
+        "sampleVariance": 0.8421,
+        "standardDeviation": 0.9177
+      },
+      "teamMatchGoals": {
+        "n": 316,
+        "mean": 1.2911,
+        "sampleVariance": 1.1467,
+        "standardDeviation": 1.0708
+      },
+      "matchTotalGoals": {
+        "n": 158,
+        "mean": 2.5823,
+        "sampleVariance": 1.7607,
+        "standardDeviation": 1.3269
+      },
+      "sourceTextSHA256": "3f8d22dcefb556616f0b7081d643deb64ac98d849362fb3c314dce134fdbe6df",
+      "generatedJsonSHA256": "dba919a50b64ccc3c3a5f662d66de743b4be31b5c1282d0e756985c20354fe79"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "kosovo/2024-25_kos1.txt",
+      "dataFile": "kosovo/2024-25_kos1.json",
+      "competition": "Kosovo Superliga A 2024/25",
+      "country": "kosovo",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 163,
+      "excludedUnplayedMatches": 17,
+      "scoreCoverage": 0.9056,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 445,
+      "homeGoals": {
+        "n": 163,
+        "mean": 1.5706,
+        "sampleVariance": 1.0613,
+        "standardDeviation": 1.0302
+      },
+      "awayGoals": {
+        "n": 163,
+        "mean": 1.1595,
+        "sampleVariance": 0.9991,
+        "standardDeviation": 0.9995
+      },
+      "teamMatchGoals": {
+        "n": 326,
+        "mean": 1.365,
+        "sampleVariance": 1.0694,
+        "standardDeviation": 1.0341
+      },
+      "matchTotalGoals": {
+        "n": 163,
+        "mean": 2.7301,
+        "sampleVariance": 1.8773,
+        "standardDeviation": 1.3701
+      },
+      "sourceTextSHA256": "5a6596288e9c81f7010519b463ba443c53d6343c18d2967df40f75a954c3cd0e",
+      "generatedJsonSHA256": "4f6e8aa9e83c6c84d0836c9fbabde3850cfba720377355652cac358bc49e097e"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "latvia/2024_lv1.txt",
+      "dataFile": "latvia/2024_lv1.json",
+      "competition": "Latvia Higher League 2024",
+      "country": "latvia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 168,
+      "excludedUnplayedMatches": 12,
+      "scoreCoverage": 0.9333,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 554,
+      "homeGoals": {
+        "n": 168,
+        "mean": 1.8214,
+        "sampleVariance": 2.7943,
+        "standardDeviation": 1.6716
+      },
+      "awayGoals": {
+        "n": 168,
+        "mean": 1.4762,
+        "sampleVariance": 1.9515,
+        "standardDeviation": 1.397
+      },
+      "teamMatchGoals": {
+        "n": 336,
+        "mean": 1.6488,
+        "sampleVariance": 2.3957,
+        "standardDeviation": 1.5478
+      },
+      "matchTotalGoals": {
+        "n": 168,
+        "mean": 3.2976,
+        "sampleVariance": 2.869,
+        "standardDeviation": 1.6938
+      },
+      "sourceTextSHA256": "ca3ff9d8cce3180708bcb1ed56db2c9ad4c62d602a0a24f2583b49682d7641e4",
+      "generatedJsonSHA256": "1c9bebf0e0586882b9a1fb64c480e37b150333bc7990ccc9841bd0d3e3c781b0"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "lithuania/2024_lt1.txt",
+      "dataFile": "lithuania/2024_lt1.json",
+      "competition": "Lithuania First Division 2024",
+      "country": "lithuania",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 156,
+      "excludedUnplayedMatches": 24,
+      "scoreCoverage": 0.8667,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 420,
+      "homeGoals": {
+        "n": 156,
+        "mean": 1.3718,
+        "sampleVariance": 1.3577,
+        "standardDeviation": 1.1652
+      },
+      "awayGoals": {
+        "n": 156,
+        "mean": 1.3205,
+        "sampleVariance": 1.1611,
+        "standardDeviation": 1.0776
+      },
+      "teamMatchGoals": {
+        "n": 312,
+        "mean": 1.3462,
+        "sampleVariance": 1.256,
+        "standardDeviation": 1.1207
+      },
+      "matchTotalGoals": {
+        "n": 156,
+        "mean": 2.6923,
+        "sampleVariance": 2.137,
+        "standardDeviation": 1.4618
+      },
+      "sourceTextSHA256": "b3d9cea2c8b2f0f116570db73d441b8656dddf64e4b35dd71f21af5bf5111f0f",
+      "generatedJsonSHA256": "898701dcc414876dc9e37efe7ced07f2282686fd63097d3f4a9853f3a360c01e"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "luxembourg/2024-25_lu1.txt",
+      "dataFile": "luxembourg/2024-25_lu1.json",
+      "competition": "Luxembourg National Division 2024/25",
+      "country": "luxembourg",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 224,
+      "excludedUnplayedMatches": 16,
+      "scoreCoverage": 0.9333,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 714,
+      "homeGoals": {
+        "n": 224,
+        "mean": 1.7098,
+        "sampleVariance": 2.2248,
+        "standardDeviation": 1.4916
+      },
+      "awayGoals": {
+        "n": 224,
+        "mean": 1.4777,
+        "sampleVariance": 1.9278,
+        "standardDeviation": 1.3884
+      },
+      "teamMatchGoals": {
+        "n": 448,
+        "mean": 1.5938,
+        "sampleVariance": 2.0852,
+        "standardDeviation": 1.444
+      },
+      "matchTotalGoals": {
+        "n": 224,
+        "mean": 3.1875,
+        "sampleVariance": 2.745,
+        "standardDeviation": 1.6568
+      },
+      "sourceTextSHA256": "7be417974c54c29bd41a7821439586b6eb671c50bcd445a696477a91b508fe7e",
+      "generatedJsonSHA256": "ebdde1ca7243910c9fc464e3a75f0649d4193041dad2a48be28c0e42804ac507"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "malta/2024-25_mt1.txt",
+      "dataFile": "malta/2024-25_mt1.json",
+      "competition": "Malta Premier League 2024/25",
+      "country": "malta",
+      "competitionType": "domestic-league",
+      "declaredMatches": 197,
+      "scoredMatches": 184,
+      "excludedUnplayedMatches": 13,
+      "scoreCoverage": 0.934,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 1,
+      "extraTimeMatchScores": 2,
+      "goalsTotal": 502,
+      "homeGoals": {
+        "n": 184,
+        "mean": 1.2989,
+        "sampleVariance": 1.1397,
+        "standardDeviation": 1.0676
+      },
+      "awayGoals": {
+        "n": 184,
+        "mean": 1.4293,
+        "sampleVariance": 1.5797,
+        "standardDeviation": 1.2569
+      },
+      "teamMatchGoals": {
+        "n": 368,
+        "mean": 1.3641,
+        "sampleVariance": 1.3602,
+        "standardDeviation": 1.1663
+      },
+      "matchTotalGoals": {
+        "n": 184,
+        "mean": 2.7283,
+        "sampleVariance": 2.1334,
+        "standardDeviation": 1.4606
+      },
+      "sourceTextSHA256": "2024bc88f4d03a19bacbbf3908f807f5fa75223f33e7e9135a1d440ac63ba788",
+      "generatedJsonSHA256": "c797e8d5a07eb9add1291f32445d066ec8f863a86cc7eef247cd2c3fa91ab95a"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "moldova/2024-25_md1.txt",
+      "dataFile": "moldova/2024-25_md1.json",
+      "competition": "Moldova First Division 2024/25",
+      "country": "moldova",
+      "competitionType": "domestic-league",
+      "declaredMatches": 86,
+      "scoredMatches": 76,
+      "excludedUnplayedMatches": 10,
+      "scoreCoverage": 0.8837,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 252,
+      "homeGoals": {
+        "n": 76,
+        "mean": 1.8816,
+        "sampleVariance": 3.1991,
+        "standardDeviation": 1.7886
+      },
+      "awayGoals": {
+        "n": 76,
+        "mean": 1.4342,
+        "sampleVariance": 2.7823,
+        "standardDeviation": 1.668
+      },
+      "teamMatchGoals": {
+        "n": 152,
+        "mean": 1.6579,
+        "sampleVariance": 3.0213,
+        "standardDeviation": 1.7382
+      },
+      "matchTotalGoals": {
+        "n": 76,
+        "mean": 3.3158,
+        "sampleVariance": 3.2056,
+        "standardDeviation": 1.7904
+      },
+      "sourceTextSHA256": "a87506886fe0cfce006dafc4c2443cf32c01f761eae744c82daf9cf4a3a768f9",
+      "generatedJsonSHA256": "152095dfc6a7787f15c3ed043ae2598fa3b886e0855731fbdb2ad2b730707ad8"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "montenegro/2024-25_me1.txt",
+      "dataFile": "montenegro/2024-25_me1.json",
+      "competition": "Montenegro First League 2024/25",
+      "country": "montenegro",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 167,
+      "excludedUnplayedMatches": 13,
+      "scoreCoverage": 0.9278,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 440,
+      "homeGoals": {
+        "n": 167,
+        "mean": 1.3952,
+        "sampleVariance": 1.5296,
+        "standardDeviation": 1.2368
+      },
+      "awayGoals": {
+        "n": 167,
+        "mean": 1.2395,
+        "sampleVariance": 1.0507,
+        "standardDeviation": 1.025
+      },
+      "teamMatchGoals": {
+        "n": 334,
+        "mean": 1.3174,
+        "sampleVariance": 1.2924,
+        "standardDeviation": 1.1368
+      },
+      "matchTotalGoals": {
+        "n": 167,
+        "mean": 2.6347,
+        "sampleVariance": 2.0887,
+        "standardDeviation": 1.4452
+      },
+      "sourceTextSHA256": "b6517444ac777d9c15bafc1fd23083746de3dc50544f8d5d01051c4777975db5",
+      "generatedJsonSHA256": "018d940b8d111ed770deda4fc6a4bc76c674bee1dc39eb15912fe3feff803324"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "netherlands/2024-25_nl1.txt",
+      "dataFile": "netherlands/2024-25_nl1.json",
+      "competition": "Netherlands Eredivisie 2024/25",
+      "country": "netherlands",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 294,
+      "excludedUnplayedMatches": 12,
+      "scoreCoverage": 0.9608,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 914,
+      "homeGoals": {
+        "n": 294,
+        "mean": 1.7653,
+        "sampleVariance": 1.9345,
+        "standardDeviation": 1.3909
+      },
+      "awayGoals": {
+        "n": 294,
+        "mean": 1.3435,
+        "sampleVariance": 1.5437,
+        "standardDeviation": 1.2425
+      },
+      "teamMatchGoals": {
+        "n": 588,
+        "mean": 1.5544,
+        "sampleVariance": 1.7807,
+        "standardDeviation": 1.3344
+      },
+      "matchTotalGoals": {
+        "n": 294,
+        "mean": 3.1088,
+        "sampleVariance": 2.7458,
+        "standardDeviation": 1.657
+      },
+      "sourceTextSHA256": "fe1b42aa86ef00a313e1108a8e6faef9fdd7f26ab612f56f4ed5c08a3b78e041",
+      "generatedJsonSHA256": "7bfb430bac56f9bd52eab33deae04991024e319e784babfdb8aa3217339a745d"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "netherlands/2024-25_nl2.txt",
+      "dataFile": "netherlands/2024-25_nl2.json",
+      "competition": "Netherlands Eerste Divisie 2024/25",
+      "country": "netherlands",
+      "competitionType": "domestic-league",
+      "declaredMatches": 380,
+      "scoredMatches": 348,
+      "excludedUnplayedMatches": 32,
+      "scoreCoverage": 0.9158,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 1111,
+      "homeGoals": {
+        "n": 348,
+        "mean": 1.7989,
+        "sampleVariance": 1.7346,
+        "standardDeviation": 1.3171
+      },
+      "awayGoals": {
+        "n": 348,
+        "mean": 1.3937,
+        "sampleVariance": 1.4843,
+        "standardDeviation": 1.2183
+      },
+      "teamMatchGoals": {
+        "n": 696,
+        "mean": 1.5963,
+        "sampleVariance": 1.6483,
+        "standardDeviation": 1.2839
+      },
+      "matchTotalGoals": {
+        "n": 348,
+        "mean": 3.1925,
+        "sampleVariance": 2.3634,
+        "standardDeviation": 1.5373
+      },
+      "sourceTextSHA256": "1b35ac4eec92fc1a42860d17650fee78bc493a63d16cdb3451f6008fdfe60a12",
+      "generatedJsonSHA256": "3ba18604e12539d3bad2d18d303db326d328cd2200c0158f4b943cd820429bfd"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "netherlands/2024-25_nlcup.txt",
+      "dataFile": "netherlands/2024-25_nlcup.json",
+      "competition": "Netherlands Cup 2024/25",
+      "country": "netherlands",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 109,
+      "scoredMatches": 109,
+      "excludedUnplayedMatches": 0,
+      "scoreCoverage": 1,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 7,
+      "extraTimeMatchScores": 26,
+      "goalsTotal": 368,
+      "homeGoals": {
+        "n": 109,
+        "mean": 1.7156,
+        "sampleVariance": 1.835,
+        "standardDeviation": 1.3546
+      },
+      "awayGoals": {
+        "n": 109,
+        "mean": 1.6606,
+        "sampleVariance": 2.4485,
+        "standardDeviation": 1.5648
+      },
+      "teamMatchGoals": {
+        "n": 218,
+        "mean": 1.6881,
+        "sampleVariance": 2.1327,
+        "standardDeviation": 1.4604
+      },
+      "matchTotalGoals": {
+        "n": 109,
+        "mean": 3.3761,
+        "sampleVariance": 2.8479,
+        "standardDeviation": 1.6876
+      },
+      "sourceTextSHA256": "db42228c0eb7b762f292cd48469c77aa67de7a5fe5ca4c8740a6c28b41d1d5fc",
+      "generatedJsonSHA256": "e3af9d1231c677c69f88ded55d50c65e9a5933d569cd8faca22eed4c87a50d40"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "north-macedonia/2024-25_mk1.txt",
+      "dataFile": "north-macedonia/2024-25_mk1.json",
+      "competition": "North Macedonia First League 2024/25",
+      "country": "north-macedonia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 198,
+      "scoredMatches": 160,
+      "excludedUnplayedMatches": 38,
+      "scoreCoverage": 0.8081,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 433,
+      "homeGoals": {
+        "n": 160,
+        "mean": 1.5375,
+        "sampleVariance": 1.508,
+        "standardDeviation": 1.228
+      },
+      "awayGoals": {
+        "n": 160,
+        "mean": 1.1687,
+        "sampleVariance": 1.072,
+        "standardDeviation": 1.0354
+      },
+      "teamMatchGoals": {
+        "n": 320,
+        "mean": 1.3531,
+        "sampleVariance": 1.3201,
+        "standardDeviation": 1.1489
+      },
+      "matchTotalGoals": {
+        "n": 160,
+        "mean": 2.7062,
+        "sampleVariance": 2.2717,
+        "standardDeviation": 1.5072
+      },
+      "sourceTextSHA256": "ea2bfcd78e89f2ba76e657fb8283c0fc567ba7fdeb5f1cf2b6be0d0f2796a0e6",
+      "generatedJsonSHA256": "d0fbf8abd9b41cc4025427fcb1600e5ca5f4f1030dc12a086ff84ef1e957e4c8"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "northern-ireland/2024-25_nir1.txt",
+      "dataFile": "northern-ireland/2024-25_nir1.json",
+      "competition": "Northern Irish Premiership 2024/25",
+      "country": "northern-ireland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 231,
+      "scoredMatches": 217,
+      "excludedUnplayedMatches": 14,
+      "scoreCoverage": 0.9394,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 585,
+      "homeGoals": {
+        "n": 217,
+        "mean": 1.4055,
+        "sampleVariance": 1.27,
+        "standardDeviation": 1.1269
+      },
+      "awayGoals": {
+        "n": 217,
+        "mean": 1.2903,
+        "sampleVariance": 1.3274,
+        "standardDeviation": 1.1521
+      },
+      "teamMatchGoals": {
+        "n": 434,
+        "mean": 1.3479,
+        "sampleVariance": 1.299,
+        "standardDeviation": 1.1397
+      },
+      "matchTotalGoals": {
+        "n": 217,
+        "mean": 2.6959,
+        "sampleVariance": 1.9163,
+        "standardDeviation": 1.3843
+      },
+      "sourceTextSHA256": "c37115064ce165e9d190a39ba872761dffb0223ebed2ea1d1276d360b43edce2",
+      "generatedJsonSHA256": "b49bf387b97e039b2a32d68742e41fa6b891eb6045a9d5e76f68b6aa063e5573"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "norway/2024_no1.txt",
+      "dataFile": "norway/2024_no1.json",
+      "competition": "Norway Eliteserien 2024",
+      "country": "norway",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 227,
+      "excludedUnplayedMatches": 13,
+      "scoreCoverage": 0.9458,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 681,
+      "homeGoals": {
+        "n": 227,
+        "mean": 1.5991,
+        "sampleVariance": 1.7014,
+        "standardDeviation": 1.3044
+      },
+      "awayGoals": {
+        "n": 227,
+        "mean": 1.4009,
+        "sampleVariance": 1.4271,
+        "standardDeviation": 1.1946
+      },
+      "teamMatchGoals": {
+        "n": 454,
+        "mean": 1.5,
+        "sampleVariance": 1.5706,
+        "standardDeviation": 1.2533
+      },
+      "matchTotalGoals": {
+        "n": 227,
+        "mean": 3,
+        "sampleVariance": 2.6106,
+        "standardDeviation": 1.6157
+      },
+      "sourceTextSHA256": "1f60599274d79423eaf787ef11def52f0a8b2112023183dc9ad1e831eeb3a257",
+      "generatedJsonSHA256": "0539ef66e26f5be9553e5fa52e2833e9c5131af95f9ebcd374bb86a9a2fb2ae4"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "poland/2024-25_pl1.txt",
+      "dataFile": "poland/2024-25_pl1.json",
+      "competition": "Poland Ekstraklasa 2024/25",
+      "country": "poland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 288,
+      "excludedUnplayedMatches": 18,
+      "scoreCoverage": 0.9412,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 843,
+      "homeGoals": {
+        "n": 288,
+        "mean": 1.6389,
+        "sampleVariance": 1.5486,
+        "standardDeviation": 1.2444
+      },
+      "awayGoals": {
+        "n": 288,
+        "mean": 1.2882,
+        "sampleVariance": 1.1536,
+        "standardDeviation": 1.0741
+      },
+      "teamMatchGoals": {
+        "n": 576,
+        "mean": 1.4635,
+        "sampleVariance": 1.3795,
+        "standardDeviation": 1.1745
+      },
+      "matchTotalGoals": {
+        "n": 288,
+        "mean": 2.9271,
+        "sampleVariance": 2.5835,
+        "standardDeviation": 1.6073
+      },
+      "sourceTextSHA256": "0997da27aad60d53ba04edfa4006d5d549388ed21f1b0c7029cdf4ed8060c592",
+      "generatedJsonSHA256": "1acf490fd5362c22dd54e280baa18a840830892e032a41e08642ddb61791c7de"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "poland/2024-25_pl2.txt",
+      "dataFile": "poland/2024-25_pl2.json",
+      "competition": "Poland I Liga 2024/25",
+      "country": "poland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 253,
+      "excludedUnplayedMatches": 53,
+      "scoreCoverage": 0.8268,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 738,
+      "homeGoals": {
+        "n": 253,
+        "mean": 1.5296,
+        "sampleVariance": 1.4961,
+        "standardDeviation": 1.2232
+      },
+      "awayGoals": {
+        "n": 253,
+        "mean": 1.3874,
+        "sampleVariance": 1.3097,
+        "standardDeviation": 1.1444
+      },
+      "teamMatchGoals": {
+        "n": 506,
+        "mean": 1.4585,
+        "sampleVariance": 1.4052,
+        "standardDeviation": 1.1854
+      },
+      "matchTotalGoals": {
+        "n": 253,
+        "mean": 2.917,
+        "sampleVariance": 2.1558,
+        "standardDeviation": 1.4683
+      },
+      "sourceTextSHA256": "75f914db63206a7db5eecc130d29c62586746c2e614d0e4e82cbd722c87e8d2e",
+      "generatedJsonSHA256": "e40bf3a91978d9c580c3c7e68061c9006edc7a8d5ed2afa3b2c6f72b416264a6"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "portugal/2024-25_pt1.txt",
+      "dataFile": "portugal/2024-25_pt1.json",
+      "competition": "Portuguese Primeira Liga 2024/25",
+      "country": "portugal",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 287,
+      "excludedUnplayedMatches": 19,
+      "scoreCoverage": 0.9379,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 786,
+      "homeGoals": {
+        "n": 287,
+        "mean": 1.4948,
+        "sampleVariance": 1.4047,
+        "standardDeviation": 1.1852
+      },
+      "awayGoals": {
+        "n": 287,
+        "mean": 1.2439,
+        "sampleVariance": 1.22,
+        "standardDeviation": 1.1045
+      },
+      "teamMatchGoals": {
+        "n": 574,
+        "mean": 1.3693,
+        "sampleVariance": 1.3258,
+        "standardDeviation": 1.1514
+      },
+      "matchTotalGoals": {
+        "n": 287,
+        "mean": 2.7387,
+        "sampleVariance": 1.935,
+        "standardDeviation": 1.391
+      },
+      "sourceTextSHA256": "3bb1acda8822a01e1aef1e70f03607650b97fb6722fd0d777f2ef9bf6544ed6c",
+      "generatedJsonSHA256": "346b597be617c553fb209fd15ba1db9d0e58c2b5a96428267c207a0de4fa21be"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "portugal/2024-25_pt2.txt",
+      "dataFile": "portugal/2024-25_pt2.json",
+      "competition": "Portuguese Segunda Liga 2024/25",
+      "country": "portugal",
+      "competitionType": "domestic-league",
+      "declaredMatches": 306,
+      "scoredMatches": 211,
+      "excludedUnplayedMatches": 95,
+      "scoreCoverage": 0.6895,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 575,
+      "homeGoals": {
+        "n": 211,
+        "mean": 1.4455,
+        "sampleVariance": 1.1434,
+        "standardDeviation": 1.0693
+      },
+      "awayGoals": {
+        "n": 211,
+        "mean": 1.2796,
+        "sampleVariance": 1.0595,
+        "standardDeviation": 1.0293
+      },
+      "teamMatchGoals": {
+        "n": 422,
+        "mean": 1.3626,
+        "sampleVariance": 1.1058,
+        "standardDeviation": 1.0516
+      },
+      "matchTotalGoals": {
+        "n": 211,
+        "mean": 2.7251,
+        "sampleVariance": 1.7907,
+        "standardDeviation": 1.3382
+      },
+      "sourceTextSHA256": "13329a169a50e101a5c18a20a86ba2b202d502db934655eb6cc833c05c44658a",
+      "generatedJsonSHA256": "a7bd83167c8302c86f24f6776d37d24440523b1485b1876203388810af341bbb"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "portugal/2024-25_ptcup.txt",
+      "dataFile": "portugal/2024-25_ptcup.json",
+      "competition": "Portuguese Taça de Portugal 2024/25",
+      "country": "portugal",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 111,
+      "scoredMatches": 110,
+      "excludedUnplayedMatches": 1,
+      "scoreCoverage": 0.991,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 7,
+      "extraTimeMatchScores": 19,
+      "goalsTotal": 305,
+      "homeGoals": {
+        "n": 110,
+        "mean": 1.5,
+        "sampleVariance": 1.922,
+        "standardDeviation": 1.3864
+      },
+      "awayGoals": {
+        "n": 110,
+        "mean": 1.2727,
+        "sampleVariance": 1.4295,
+        "standardDeviation": 1.1956
+      },
+      "teamMatchGoals": {
+        "n": 220,
+        "mean": 1.3864,
+        "sampleVariance": 1.6811,
+        "standardDeviation": 1.2966
+      },
+      "matchTotalGoals": {
+        "n": 110,
+        "mean": 2.7727,
+        "sampleVariance": 2.4525,
+        "standardDeviation": 1.566
+      },
+      "sourceTextSHA256": "55f746e351bbf2b087f1bb46018dafeaaf5828478ec7df4b9fd15b800b092f6b",
+      "generatedJsonSHA256": "32b807c1a38c350cababecdf4d99d188ff3e68aae7ab779f118bf03a8d45385c"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "romania/2024-25_ro1.txt",
+      "dataFile": "romania/2024-25_ro1.json",
+      "competition": "Romania Liga 1 2024/25",
+      "country": "romania",
+      "competitionType": "domestic-league",
+      "declaredMatches": 315,
+      "scoredMatches": 282,
+      "excludedUnplayedMatches": 33,
+      "scoreCoverage": 0.8952,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 733,
+      "homeGoals": {
+        "n": 282,
+        "mean": 1.4397,
+        "sampleVariance": 1.2864,
+        "standardDeviation": 1.1342
+      },
+      "awayGoals": {
+        "n": 282,
+        "mean": 1.1596,
+        "sampleVariance": 0.946,
+        "standardDeviation": 0.9726
+      },
+      "teamMatchGoals": {
+        "n": 564,
+        "mean": 1.2996,
+        "sampleVariance": 1.1339,
+        "standardDeviation": 1.0648
+      },
+      "matchTotalGoals": {
+        "n": 282,
+        "mean": 2.5993,
+        "sampleVariance": 1.9492,
+        "standardDeviation": 1.3961
+      },
+      "sourceTextSHA256": "3b21cae0f1b8fee08a4b25650ab655289cd906f9160eb0ad8b68ec8e844e5d00",
+      "generatedJsonSHA256": "f8cd69a4179378660d7de2a80e753ec306839717eb927a60a3b88f96ae44c768"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "romania/2024-25_rocup.txt",
+      "dataFile": "romania/2024-25_rocup.json",
+      "competition": "Romania Cup 2024/25",
+      "country": "romania",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 61,
+      "scoredMatches": 53,
+      "excludedUnplayedMatches": 8,
+      "scoreCoverage": 0.8689,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 5,
+      "extraTimeMatchScores": 6,
+      "goalsTotal": 133,
+      "homeGoals": {
+        "n": 53,
+        "mean": 0.9245,
+        "sampleVariance": 0.9557,
+        "standardDeviation": 0.9776
+      },
+      "awayGoals": {
+        "n": 53,
+        "mean": 1.5849,
+        "sampleVariance": 1.5167,
+        "standardDeviation": 1.2315
+      },
+      "teamMatchGoals": {
+        "n": 106,
+        "mean": 1.2547,
+        "sampleVariance": 1.3345,
+        "standardDeviation": 1.1552
+      },
+      "matchTotalGoals": {
+        "n": 53,
+        "mean": 2.5094,
+        "sampleVariance": 1.7547,
+        "standardDeviation": 1.3247
+      },
+      "sourceTextSHA256": "18dd640a7cc59ba35d1a97b33959ac940506e15b3c6078e86cbef88e863cf97a",
+      "generatedJsonSHA256": "029bf9793681e60514de67a3ccb3eb2c9e6cff3de407ebd5ceba57ba08b8887f"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "russia/2024-25_ru1.txt",
+      "dataFile": "russia/2024-25_ru1.json",
+      "competition": "Russia Premier League 2024/25",
+      "country": "russia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 220,
+      "excludedUnplayedMatches": 20,
+      "scoreCoverage": 0.9167,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 648,
+      "homeGoals": {
+        "n": 220,
+        "mean": 1.6545,
+        "sampleVariance": 1.6518,
+        "standardDeviation": 1.2852
+      },
+      "awayGoals": {
+        "n": 220,
+        "mean": 1.2909,
+        "sampleVariance": 1.3031,
+        "standardDeviation": 1.1415
+      },
+      "teamMatchGoals": {
+        "n": 440,
+        "mean": 1.4727,
+        "sampleVariance": 1.5072,
+        "standardDeviation": 1.2277
+      },
+      "matchTotalGoals": {
+        "n": 220,
+        "mean": 2.9455,
+        "sampleVariance": 2.1523,
+        "standardDeviation": 1.4671
+      },
+      "sourceTextSHA256": "f315f67d49e5f2ed26bb5b2504244f36d37be958b5ccadd1755fb6b71b015dcb",
+      "generatedJsonSHA256": "aa206db1728e0861e50ea0c099abd66d6b066ba28f06e85d0d6f99a191022cb7"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "san-marino/2024-25_sm1.txt",
+      "dataFile": "san-marino/2024-25_sm1.json",
+      "competition": "San Marinese Championship 2024/25",
+      "country": "san-marino",
+      "competitionType": "domestic-league",
+      "declaredMatches": 256,
+      "scoredMatches": 239,
+      "excludedUnplayedMatches": 17,
+      "scoreCoverage": 0.9336,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 712,
+      "homeGoals": {
+        "n": 239,
+        "mean": 1.5063,
+        "sampleVariance": 1.8476,
+        "standardDeviation": 1.3593
+      },
+      "awayGoals": {
+        "n": 239,
+        "mean": 1.4728,
+        "sampleVariance": 1.6201,
+        "standardDeviation": 1.2728
+      },
+      "teamMatchGoals": {
+        "n": 478,
+        "mean": 1.4895,
+        "sampleVariance": 1.7305,
+        "standardDeviation": 1.3155
+      },
+      "matchTotalGoals": {
+        "n": 239,
+        "mean": 2.9791,
+        "sampleVariance": 2.3399,
+        "standardDeviation": 1.5297
+      },
+      "sourceTextSHA256": "b7b4a0ed433a7e3029cd8af1a918c5fe4256add304a51e64f28c5965a659f4a2",
+      "generatedJsonSHA256": "00a5828bf040286b57aa33056768c6ad7373cf622243e0ca76171887266e3e4e"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "scotland/2024-25_sco1.txt",
+      "dataFile": "scotland/2024-25_sco1.json",
+      "competition": "Scottish Premiership 2024/25",
+      "country": "scotland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 228,
+      "scoredMatches": 218,
+      "excludedUnplayedMatches": 10,
+      "scoreCoverage": 0.9561,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 675,
+      "homeGoals": {
+        "n": 218,
+        "mean": 1.7706,
+        "sampleVariance": 1.7167,
+        "standardDeviation": 1.3102
+      },
+      "awayGoals": {
+        "n": 218,
+        "mean": 1.3257,
+        "sampleVariance": 1.4925,
+        "standardDeviation": 1.2217
+      },
+      "teamMatchGoals": {
+        "n": 436,
+        "mean": 1.5482,
+        "sampleVariance": 1.6505,
+        "standardDeviation": 1.2847
+      },
+      "matchTotalGoals": {
+        "n": 218,
+        "mean": 3.0963,
+        "sampleVariance": 2.2626,
+        "standardDeviation": 1.5042
+      },
+      "sourceTextSHA256": "6076a3d19fe0f660123312e48f25dce1c371af570dade64924270edad0a7d1b3",
+      "generatedJsonSHA256": "809705637ed0182a5af0638e83affd0a17cbefc945149bef3427fb13486d6fbe"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "serbia/2024-25_rs1.txt",
+      "dataFile": "serbia/2024-25_rs1.json",
+      "competition": "Serbia Super League 2024/25",
+      "country": "serbia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 296,
+      "scoredMatches": 274,
+      "excludedUnplayedMatches": 22,
+      "scoreCoverage": 0.9257,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 853,
+      "homeGoals": {
+        "n": 274,
+        "mean": 1.6496,
+        "sampleVariance": 1.6643,
+        "standardDeviation": 1.2901
+      },
+      "awayGoals": {
+        "n": 274,
+        "mean": 1.4635,
+        "sampleVariance": 1.5023,
+        "standardDeviation": 1.2257
+      },
+      "teamMatchGoals": {
+        "n": 548,
+        "mean": 1.5566,
+        "sampleVariance": 1.5891,
+        "standardDeviation": 1.2606
+      },
+      "matchTotalGoals": {
+        "n": 274,
+        "mean": 3.1131,
+        "sampleVariance": 2.5329,
+        "standardDeviation": 1.5915
+      },
+      "sourceTextSHA256": "7e123544e4aac6a03acc05b3b2b1b8f7f480ac45989e776db453dbca7780cad1",
+      "generatedJsonSHA256": "383e202c20f382beb6868532710dbab427260a20d4d7d4b2e94df0bfc072008b"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "slovakia/2024-25_sk1.txt",
+      "dataFile": "slovakia/2024-25_sk1.json",
+      "competition": "Slovakia First League 2024/25",
+      "country": "slovakia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 195,
+      "scoredMatches": 175,
+      "excludedUnplayedMatches": 20,
+      "scoreCoverage": 0.8974,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 1,
+      "extraTimeMatchScores": 1,
+      "goalsTotal": 547,
+      "homeGoals": {
+        "n": 175,
+        "mean": 1.6514,
+        "sampleVariance": 1.4238,
+        "standardDeviation": 1.1932
+      },
+      "awayGoals": {
+        "n": 175,
+        "mean": 1.4743,
+        "sampleVariance": 1.4002,
+        "standardDeviation": 1.1833
+      },
+      "teamMatchGoals": {
+        "n": 350,
+        "mean": 1.5629,
+        "sampleVariance": 1.4158,
+        "standardDeviation": 1.1899
+      },
+      "matchTotalGoals": {
+        "n": 175,
+        "mean": 3.1257,
+        "sampleVariance": 2.6738,
+        "standardDeviation": 1.6352
+      },
+      "sourceTextSHA256": "36cbc16c4b44bd2a5fc4100844750ffc99215763a4c4a1d3cc80d28fa281e0e0",
+      "generatedJsonSHA256": "2f6a77fdc9dee25412920dc089918554ca6fa257cb5198026e2d8bbce5457247"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "slovenia/2024-25_si1.txt",
+      "dataFile": "slovenia/2024-25_si1.json",
+      "competition": "Slovenia First League 2024/25",
+      "country": "slovenia",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 167,
+      "excludedUnplayedMatches": 13,
+      "scoreCoverage": 0.9278,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 498,
+      "homeGoals": {
+        "n": 167,
+        "mean": 1.6826,
+        "sampleVariance": 1.9047,
+        "standardDeviation": 1.3801
+      },
+      "awayGoals": {
+        "n": 167,
+        "mean": 1.2994,
+        "sampleVariance": 1.4038,
+        "standardDeviation": 1.1848
+      },
+      "teamMatchGoals": {
+        "n": 334,
+        "mean": 1.491,
+        "sampleVariance": 1.6861,
+        "standardDeviation": 1.2985
+      },
+      "matchTotalGoals": {
+        "n": 167,
+        "mean": 2.982,
+        "sampleVariance": 2.6924,
+        "standardDeviation": 1.6409
+      },
+      "sourceTextSHA256": "7ab4deac3b10b0812f19a8f08090bf9020b673e0e57bcfb8baa1640c4a15bccf",
+      "generatedJsonSHA256": "f71144375fb47bada991369887ef8d060423d971136b5b8d27f1abd66443ca9b"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "slovenia/2024-25_sicup.txt",
+      "dataFile": "slovenia/2024-25_sicup.json",
+      "competition": "Slovenia Cup 2024/25",
+      "country": "slovenia",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 123,
+      "scoredMatches": 87,
+      "excludedUnplayedMatches": 36,
+      "scoreCoverage": 0.7073,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 6,
+      "extraTimeMatchScores": 3,
+      "goalsTotal": 369,
+      "homeGoals": {
+        "n": 87,
+        "mean": 1.5057,
+        "sampleVariance": 6.0203,
+        "standardDeviation": 2.4536
+      },
+      "awayGoals": {
+        "n": 87,
+        "mean": 2.7356,
+        "sampleVariance": 8.8479,
+        "standardDeviation": 2.9745
+      },
+      "teamMatchGoals": {
+        "n": 174,
+        "mean": 2.1207,
+        "sampleVariance": 7.7715,
+        "standardDeviation": 2.7877
+      },
+      "matchTotalGoals": {
+        "n": 87,
+        "mean": 4.2414,
+        "sampleVariance": 9.0457,
+        "standardDeviation": 3.0076
+      },
+      "sourceTextSHA256": "6bcd6222559fe0d25e25f4af2f9d9194322e70eff2a26864c3224f43eab5f7f8",
+      "generatedJsonSHA256": "f0f5570aa45db808e24f4cb706f57963bc4ee69553d7ad59720c5be09125b1ce"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "sweden/2024_se1.txt",
+      "dataFile": "sweden/2024_se1.json",
+      "competition": "Sweden Allsvenskan 2024",
+      "country": "sweden",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 229,
+      "excludedUnplayedMatches": 11,
+      "scoreCoverage": 0.9542,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 680,
+      "homeGoals": {
+        "n": 229,
+        "mean": 1.6419,
+        "sampleVariance": 1.6782,
+        "standardDeviation": 1.2955
+      },
+      "awayGoals": {
+        "n": 229,
+        "mean": 1.3275,
+        "sampleVariance": 1.3002,
+        "standardDeviation": 1.1402
+      },
+      "teamMatchGoals": {
+        "n": 458,
+        "mean": 1.4847,
+        "sampleVariance": 1.5107,
+        "standardDeviation": 1.2291
+      },
+      "matchTotalGoals": {
+        "n": 229,
+        "mean": 2.9694,
+        "sampleVariance": 2.442,
+        "standardDeviation": 1.5627
+      },
+      "sourceTextSHA256": "9e397aec13635d82e727b46afb344bbe1da3c306999211f52d5ff74e9e75b13a",
+      "generatedJsonSHA256": "3bd8fe63ee010df5dc5a734a668a17b9ea4bee8901f3243e0dcb622bd2fba2d8"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "switzerland/2024-25_ch1.txt",
+      "dataFile": "switzerland/2024-25_ch1.json",
+      "competition": "Swiss Super League 2024/25",
+      "country": "switzerland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 228,
+      "scoredMatches": 218,
+      "excludedUnplayedMatches": 10,
+      "scoreCoverage": 0.9561,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 679,
+      "homeGoals": {
+        "n": 218,
+        "mean": 1.7982,
+        "sampleVariance": 1.5535,
+        "standardDeviation": 1.2464
+      },
+      "awayGoals": {
+        "n": 218,
+        "mean": 1.3165,
+        "sampleVariance": 1.3602,
+        "standardDeviation": 1.1663
+      },
+      "teamMatchGoals": {
+        "n": 436,
+        "mean": 1.5573,
+        "sampleVariance": 1.5116,
+        "standardDeviation": 1.2295
+      },
+      "matchTotalGoals": {
+        "n": 218,
+        "mean": 3.1147,
+        "sampleVariance": 2.4338,
+        "standardDeviation": 1.5601
+      },
+      "sourceTextSHA256": "43c0b1fbf1b9d76320ff7fe6463c9323838b9786d7ce0f50bf0fad40fd83551a",
+      "generatedJsonSHA256": "06e6045fd33d3f1200e3bc6e4991ef52f30e80184ad753deac8b30e1ce5020c8"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "switzerland/2024-25_ch2.txt",
+      "dataFile": "switzerland/2024-25_ch2.json",
+      "competition": "Swiss Challenge League 2024/25",
+      "country": "switzerland",
+      "competitionType": "domestic-league",
+      "declaredMatches": 180,
+      "scoredMatches": 119,
+      "excludedUnplayedMatches": 61,
+      "scoreCoverage": 0.6611,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 375,
+      "homeGoals": {
+        "n": 119,
+        "mean": 1.6134,
+        "sampleVariance": 1.3069,
+        "standardDeviation": 1.1432
+      },
+      "awayGoals": {
+        "n": 119,
+        "mean": 1.5378,
+        "sampleVariance": 1.3354,
+        "standardDeviation": 1.1556
+      },
+      "teamMatchGoals": {
+        "n": 238,
+        "mean": 1.5756,
+        "sampleVariance": 1.317,
+        "standardDeviation": 1.1476
+      },
+      "matchTotalGoals": {
+        "n": 119,
+        "mean": 3.1513,
+        "sampleVariance": 2.1973,
+        "standardDeviation": 1.4823
+      },
+      "sourceTextSHA256": "3d779aed7ed302bc37c2221e418159ca01c49801c162c81e27fbb8bf30c0e1f1",
+      "generatedJsonSHA256": "33f5647495c68781346d5b19e57fcd98b97ef07ab89665727782b0c8745244bc"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "switzerland/2024-25_chcup.txt",
+      "dataFile": "switzerland/2024-25_chcup.json",
+      "competition": "Swiss Cup 2024/25",
+      "country": "switzerland",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 63,
+      "scoredMatches": 62,
+      "excludedUnplayedMatches": 1,
+      "scoreCoverage": 0.9841,
+      "coverageCompleteEnoughForBroadContext": true,
+      "penaltyShootoutsExcludedFromGoalCount": 6,
+      "extraTimeMatchScores": 10,
+      "goalsTotal": 225,
+      "homeGoals": {
+        "n": 62,
+        "mean": 0.7903,
+        "sampleVariance": 0.7258,
+        "standardDeviation": 0.8519
+      },
+      "awayGoals": {
+        "n": 62,
+        "mean": 2.8387,
+        "sampleVariance": 5.449,
+        "standardDeviation": 2.3343
+      },
+      "teamMatchGoals": {
+        "n": 124,
+        "mean": 1.8145,
+        "sampleVariance": 4.1198,
+        "standardDeviation": 2.0297
+      },
+      "matchTotalGoals": {
+        "n": 62,
+        "mean": 3.629,
+        "sampleVariance": 5.3519,
+        "standardDeviation": 2.3134
+      },
+      "sourceTextSHA256": "8faff7e4bc364cf0e21e2063f9e17284ef3b9b8024fab43830bc43a3ceb9d2a7",
+      "generatedJsonSHA256": "5d3a911303d5318e91cb88a1c9720101e87eecb5ea1f53259df0c04742d84e8e"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "turkey/2024-25_tr1.txt",
+      "dataFile": "turkey/2024-25_tr1.json",
+      "competition": "Turkish Süper Lig 2024/25",
+      "country": "turkey",
+      "competitionType": "domestic-league",
+      "declaredMatches": 342,
+      "scoredMatches": 312,
+      "excludedUnplayedMatches": 30,
+      "scoreCoverage": 0.9123,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 988,
+      "homeGoals": {
+        "n": 312,
+        "mean": 1.7981,
+        "sampleVariance": 1.7244,
+        "standardDeviation": 1.3132
+      },
+      "awayGoals": {
+        "n": 312,
+        "mean": 1.3686,
+        "sampleVariance": 1.391,
+        "standardDeviation": 1.1794
+      },
+      "teamMatchGoals": {
+        "n": 624,
+        "mean": 1.5833,
+        "sampleVariance": 1.6014,
+        "standardDeviation": 1.2655
+      },
+      "matchTotalGoals": {
+        "n": 312,
+        "mean": 3.1667,
+        "sampleVariance": 2.9175,
+        "standardDeviation": 1.7081
+      },
+      "sourceTextSHA256": "a5afa521ac1c89f33e75122f0ecedda5288e5c95c3822804d05ad62d9738bf0f",
+      "generatedJsonSHA256": "378a75d7c67ae965a746a18281ea59a4ecb77729a88bacbf610eeb6b6501b611"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "turkey/2024-25_trcup.txt",
+      "dataFile": "turkey/2024-25_trcup.json",
+      "competition": "Türkiye Kupasi 2024/25",
+      "country": "turkey",
+      "competitionType": "domestic-cup",
+      "declaredMatches": 158,
+      "scoredMatches": 123,
+      "excludedUnplayedMatches": 35,
+      "scoreCoverage": 0.7785,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 5,
+      "extraTimeMatchScores": 16,
+      "goalsTotal": 410,
+      "homeGoals": {
+        "n": 123,
+        "mean": 1.8943,
+        "sampleVariance": 2.6363,
+        "standardDeviation": 1.6237
+      },
+      "awayGoals": {
+        "n": 123,
+        "mean": 1.439,
+        "sampleVariance": 1.986,
+        "standardDeviation": 1.4093
+      },
+      "teamMatchGoals": {
+        "n": 246,
+        "mean": 1.6667,
+        "sampleVariance": 2.3537,
+        "standardDeviation": 1.5342
+      },
+      "matchTotalGoals": {
+        "n": 123,
+        "mean": 3.3333,
+        "sampleVariance": 3.6831,
+        "standardDeviation": 1.9191
+      },
+      "sourceTextSHA256": "65dc555674c2a436377e4701f3a773126d0180b44172528fd3547614475e8cd5",
+      "generatedJsonSHA256": "84d8c27eb7ad0633eadf01e9f52a8dd32af0be2f19a2eb12bf245b619b3da8d5"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "ukraine/2024-25_ua1.txt",
+      "dataFile": "ukraine/2024-25_ua1.json",
+      "competition": "Ukraine Premier League 2024/25",
+      "country": "ukraine",
+      "competitionType": "domestic-league",
+      "declaredMatches": 240,
+      "scoredMatches": 214,
+      "excludedUnplayedMatches": 26,
+      "scoreCoverage": 0.8917,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 0,
+      "extraTimeMatchScores": 0,
+      "goalsTotal": 541,
+      "homeGoals": {
+        "n": 214,
+        "mean": 1.3879,
+        "sampleVariance": 1.5249,
+        "standardDeviation": 1.2349
+      },
+      "awayGoals": {
+        "n": 214,
+        "mean": 1.1402,
+        "sampleVariance": 1.0976,
+        "standardDeviation": 1.0477
+      },
+      "teamMatchGoals": {
+        "n": 428,
+        "mean": 1.264,
+        "sampleVariance": 1.3236,
+        "standardDeviation": 1.1505
+      },
+      "matchTotalGoals": {
+        "n": 214,
+        "mean": 2.528,
+        "sampleVariance": 1.8278,
+        "standardDeviation": 1.352
+      },
+      "sourceTextSHA256": "6a6b78b552bbe0115476465914986cf68e68487b2e22e774257bd2bcf14ed2a9",
+      "generatedJsonSHA256": "adc2a885698e974c9e8bb85c3772485e79a26d33bb976d29f275100d9cc7b813"
+    },
+    {
+      "source": "Openfootball Europe generated JSON",
+      "sourceFile": "wales/2024-25_wal1.txt",
+      "dataFile": "wales/2024-25_wal1.json",
+      "competition": "Welsh Premier League 2024/25",
+      "country": "wales",
+      "competitionType": "domestic-league",
+      "declaredMatches": 196,
+      "scoredMatches": 181,
+      "excludedUnplayedMatches": 15,
+      "scoreCoverage": 0.9235,
+      "coverageCompleteEnoughForBroadContext": false,
+      "penaltyShootoutsExcludedFromGoalCount": 1,
+      "extraTimeMatchScores": 1,
+      "goalsTotal": 590,
+      "homeGoals": {
+        "n": 181,
+        "mean": 1.779,
+        "sampleVariance": 1.8398,
+        "standardDeviation": 1.3564
+      },
+      "awayGoals": {
+        "n": 181,
+        "mean": 1.4807,
+        "sampleVariance": 1.6843,
+        "standardDeviation": 1.2978
+      },
+      "teamMatchGoals": {
+        "n": 362,
+        "mean": 1.6298,
+        "sampleVariance": 1.7795,
+        "standardDeviation": 1.334
+      },
+      "matchTotalGoals": {
+        "n": 181,
+        "mean": 3.2597,
+        "sampleVariance": 2.7711,
+        "standardDeviation": 1.6647
+      },
+      "sourceTextSHA256": "a1e1615640ee340c3576ffb134c47e304ec01c2e29e0efaac40add1e1fbedd30",
+      "generatedJsonSHA256": "aa563dcd32dbbd5a505a3d89794e6988f189c72f4c0d64524c694195f273297e"
+    },
+    {
+      "source": "Openfootball UEFA club competitions text",
+      "sourceFile": "2024-25/cl.txt",
+      "competition": "UEFA Champions League 2024/25",
+      "competitionType": "uefa-cup",
+      "scoredMatches": 189,
+      "goalsTotal": 618,
+      "homeGoals": {
+        "n": 189,
+        "mean": 1.8571,
+        "sampleVariance": 2.6657,
+        "standardDeviation": 1.6327
+      },
+      "awayGoals": {
+        "n": 189,
+        "mean": 1.4127,
+        "sampleVariance": 1.9883,
+        "standardDeviation": 1.4101
+      },
+      "teamMatchGoals": {
+        "n": 378,
+        "mean": 1.6349,
+        "sampleVariance": 2.3703,
+        "standardDeviation": 1.5396
+      },
+      "matchTotalGoals": {
+        "n": 189,
+        "mean": 3.2698,
+        "sampleVariance": 3.8364,
+        "standardDeviation": 1.9587
+      },
+      "scoreScope": "Text parser uses stated full-time or after-extra-time scores; shootout kicks excluded. Penalty ties without an explicit after-extra-time score may be omitted.",
+      "sourceTextSHA256": "c2692b22af02c5df4587b69c5f430aebf7d936845b5337aee462ce8e649eb1b5"
+    },
+    {
+      "source": "Openfootball UEFA club competitions text",
+      "sourceFile": "2024-25/clq.txt",
+      "competition": "UEFA Champions League - Quali 2024/25",
+      "competitionType": "uefa-cup",
+      "scoredMatches": 90,
+      "goalsTotal": 267,
+      "homeGoals": {
+        "n": 90,
+        "mean": 1.6333,
+        "sampleVariance": 2.1225,
+        "standardDeviation": 1.4569
+      },
+      "awayGoals": {
+        "n": 90,
+        "mean": 1.3333,
+        "sampleVariance": 2.0225,
+        "standardDeviation": 1.4221
+      },
+      "teamMatchGoals": {
+        "n": 180,
+        "mean": 1.4833,
+        "sampleVariance": 2.0835,
+        "standardDeviation": 1.4434
+      },
+      "matchTotalGoals": {
+        "n": 90,
+        "mean": 2.9667,
+        "sampleVariance": 3.6281,
+        "standardDeviation": 1.9048
+      },
+      "scoreScope": "Text parser uses stated full-time or after-extra-time scores; shootout kicks excluded. Penalty ties without an explicit after-extra-time score may be omitted.",
+      "sourceTextSHA256": "a39cc3ed20233ce2fcc490d4feda4a67dacf0d8080c83f4078ab34eca4632c25"
+    },
+    {
+      "source": "Openfootball UEFA club competitions text",
+      "sourceFile": "2024-25/conf.txt",
+      "competition": "UEFA Conference League 2024/25",
+      "competitionType": "uefa-cup",
+      "scoredMatches": 153,
+      "goalsTotal": 451,
+      "homeGoals": {
+        "n": 153,
+        "mean": 1.6863,
+        "sampleVariance": 1.9404,
+        "standardDeviation": 1.393
+      },
+      "awayGoals": {
+        "n": 153,
+        "mean": 1.2614,
+        "sampleVariance": 1.4444,
+        "standardDeviation": 1.2018
+      },
+      "teamMatchGoals": {
+        "n": 306,
+        "mean": 1.4739,
+        "sampleVariance": 1.7321,
+        "standardDeviation": 1.3161
+      },
+      "matchTotalGoals": {
+        "n": 153,
+        "mean": 2.9477,
+        "sampleVariance": 2.892,
+        "standardDeviation": 1.7006
+      },
+      "scoreScope": "Text parser uses stated full-time or after-extra-time scores; shootout kicks excluded. Penalty ties without an explicit after-extra-time score may be omitted.",
+      "sourceTextSHA256": "b2534794b2e8f70ed8734c2fd7baf9dc0f500c0ab9dd4fc575d82815340574d7"
+    },
+    {
+      "source": "Openfootball UEFA club competitions text",
+      "sourceFile": "2024-25/confq.txt",
+      "competition": "UEFA Conference League - Quali 2024/25",
+      "competitionType": "uefa-cup",
+      "scoredMatches": 254,
+      "goalsTotal": 695,
+      "homeGoals": {
+        "n": 254,
+        "mean": 1.6575,
+        "sampleVariance": 2.3921,
+        "standardDeviation": 1.5466
+      },
+      "awayGoals": {
+        "n": 254,
+        "mean": 1.0787,
+        "sampleVariance": 1.4325,
+        "standardDeviation": 1.1969
+      },
+      "teamMatchGoals": {
+        "n": 508,
+        "mean": 1.3681,
+        "sampleVariance": 1.9924,
+        "standardDeviation": 1.4115
+      },
+      "matchTotalGoals": {
+        "n": 254,
+        "mean": 2.7362,
+        "sampleVariance": 3.3965,
+        "standardDeviation": 1.843
+      },
+      "scoreScope": "Text parser uses stated full-time or after-extra-time scores; shootout kicks excluded. Penalty ties without an explicit after-extra-time score may be omitted.",
+      "sourceTextSHA256": "1e248f3fbd2c9c8860a795373eba7b9f1f943a9dc672a4d4a3c3ad5452723fea"
+    },
+    {
+      "source": "Openfootball UEFA club competitions text",
+      "sourceFile": "2024-25/el.txt",
+      "competition": "UEFA Europa League 2024/25",
+      "competitionType": "uefa-cup",
+      "scoredMatches": 189,
+      "goalsTotal": 556,
+      "homeGoals": {
+        "n": 189,
+        "mean": 1.7302,
+        "sampleVariance": 1.5704,
+        "standardDeviation": 1.2532
+      },
+      "awayGoals": {
+        "n": 189,
+        "mean": 1.2116,
+        "sampleVariance": 1.1571,
+        "standardDeviation": 1.0757
+      },
+      "teamMatchGoals": {
+        "n": 378,
+        "mean": 1.4709,
+        "sampleVariance": 1.4275,
+        "standardDeviation": 1.1948
+      },
+      "matchTotalGoals": {
+        "n": 189,
+        "mean": 2.9418,
+        "sampleVariance": 2.5551,
+        "standardDeviation": 1.5985
+      },
+      "scoreScope": "Text parser uses stated full-time or after-extra-time scores; shootout kicks excluded. Penalty ties without an explicit after-extra-time score may be omitted.",
+      "sourceTextSHA256": "4f004729005e45fb26e5a4adff614d5c6081564e504137705cceaa15a9213bd9"
+    },
+    {
+      "source": "Openfootball UEFA club competitions text",
+      "sourceFile": "2024-25/elq.txt",
+      "competition": "UEFA Europa League - Quali 2024/25",
+      "competitionType": "uefa-cup",
+      "scoredMatches": 80,
+      "goalsTotal": 212,
+      "homeGoals": {
+        "n": 80,
+        "mean": 1.5125,
+        "sampleVariance": 2.1264,
+        "standardDeviation": 1.4582
+      },
+      "awayGoals": {
+        "n": 80,
+        "mean": 1.1375,
+        "sampleVariance": 1.6138,
+        "standardDeviation": 1.2703
+      },
+      "teamMatchGoals": {
+        "n": 160,
+        "mean": 1.325,
+        "sampleVariance": 1.8937,
+        "standardDeviation": 1.3761
+      },
+      "matchTotalGoals": {
+        "n": 80,
+        "mean": 2.65,
+        "sampleVariance": 3.0658,
+        "standardDeviation": 1.7509
+      },
+      "scoreScope": "Text parser uses stated full-time or after-extra-time scores; shootout kicks excluded. Penalty ties without an explicit after-extra-time score may be omitted.",
+      "sourceTextSHA256": "6bd4db7e8993c35c4e57d9474bf3e1062d46a51a27c089c901e68bb0581a78ff"
+    }
+  ]
+}

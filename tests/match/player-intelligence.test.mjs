@@ -386,6 +386,31 @@ test('long-shot ability keeps remote shots available and raises their candidate 
   assert.ok(highInRange.utility > ordinaryInRange.utility);
 });
 
+test('shot value accounts for pressure and blocked lanes, while ordinary finishing aims inside the goal mouth', () => {
+  const shooter = actor('shot-value', 0, 90, 34, { finishing: 60, longShots: 60 }, 'FWD');
+  const ball = { x: 90, y: 0.11, z: 34 };
+  const quality = (pressure) => () => ({ value: 60, pressure });
+  const clear = shotCandidate(shooter, ball, [], 1, quality(0.1), random(1), false);
+  const screened = shotCandidate(
+    shooter,
+    ball,
+    [actor('screen', 1, 94, 34)],
+    1,
+    quality(0.9),
+    random(2),
+    false,
+  );
+  assert.ok(clear && screened, 'pressure changes shot quality, not legal shot availability');
+  assert.ok(screened.xg < clear.xg, 'a closed, crowded lane is worth less than a clear finish');
+
+  const heights = Array.from({ length: 200 }, (_, seed) =>
+    shotCandidate(shooter, ball, [], 1, quality(0.1), random(seed + 3), false).make().kickAim.y,
+  );
+  const average = heights.reduce((sum, height) => sum + height, 0) / heights.length;
+  assert.ok(average > 0.7 && average < 1.7, 'aims should use the playable goal mouth');
+  assert.ok(Math.max(...heights) < 2.6, 'ordinary shots should not mostly be aimed over the bar');
+});
+
 test('supporters form triangles, a loose ball is recovered, and a keeper approaches a slow ball', () => {
   const owner = actor('p', 0, 50, 34),
     support = actor('m', 0, 52, 35),

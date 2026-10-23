@@ -213,6 +213,13 @@ test('last-line blocks and actual keeper saves count on target once; routine han
     assert.equal(finishAttempt(s).onTarget, expected);
     assert.equal(finishAttempt(s), null, 'one shot may only be resolved once');
   }
+  const wideBlock = attributionState();
+  startAttempt(wideBlock, striker);
+  recordIntervention(wideBlock, defender, null, false);
+  const outcome = finishAttempt(wideBlock);
+  assert.equal(outcome.outcome, 'blocked');
+  assert.equal(outcome.onTarget, false);
+  assert.equal(outcome.defender.id, defender.id);
 });
 
 test('a keeper touch that leaves the ball goal-bound is not a save when a defender later stops it', () => {

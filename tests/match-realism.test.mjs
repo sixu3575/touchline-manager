@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compareMatch, trackedMovement, references } from './tools/match-realism.mjs';
+import {
+  compareMatchSampleToLeagueStats,
+  compareMatchSampleToEuropeanLeagueStats,
+  compareMatchSampleToOpenFootballGoals,
+  compareMatchSampleToOpenEuropeStats,
+  compareMatch,
+  trackedMovement,
+  references,
+} from './tools/match-realism.mjs';
 
 function fixture() {
   const players = Array.from({ length: 22 }, (_, i) => ({
@@ -66,6 +74,142 @@ function trajectory(report) {
     }
   return frames;
 }
+
+test('England and Scotland league benchmark compares team statistics without a pass/fail gate', () => {
+  const sample = [0, 1, 2].map((goals, index) => ({
+    home: {
+      goals,
+      shots: 4 + index * 2,
+      shotsOnTarget: 1 + index,
+      fouls: 8 + index,
+      corners: 2 + index,
+      yellowCards: index,
+      redCards: 0,
+    },
+    away: {
+      goals: 1,
+      shots: 6 + index * 2,
+      shotsOnTarget: 2 + index,
+      fouls: 9 + index,
+      corners: 3 + index,
+      yellowCards: 1,
+      redCards: 0,
+    },
+  }));
+  const result = compareMatchSampleToLeagueStats(sample);
+  assert.equal(result.referenceVersion, 'realism-reference-2');
+  assert.equal(result.status, 'descriptive-only');
+  assert.equal(result.sample.matches, 3);
+  assert.equal(result.sample.metrics.goals.matchTotal.mean, 2);
+  assert.equal(result.sample.metrics.goals.matchTotal.sampleVariance, 1);
+  assert.equal(result.sample.metrics.shots.matchTotal.mean, 14);
+  assert.equal(result.sample.metrics.shots.matchTotal.sampleVariance, 16);
+  assert.equal(result.comparisons.length, 8);
+  assert.deepEqual(
+    result.comparisons.map((row) => `${row.country}-${row.level}`),
+    [
+      'England-1',
+      'England-2',
+      'England-3',
+      'England-4',
+      'Scotland-1',
+      'Scotland-2',
+      'Scotland-3',
+      'Scotland-4',
+    ],
+  );
+  assert.equal(result.comparisons[0].name, 'Premier League');
+  assert.equal(result.comparisons[0].referenceWindow, '2022-23 through 2024-25');
+  assert.ok('corners' in result.comparisons[0].metrics);
+  assert.ok('yellowCards' in result.comparisons[0].metrics);
+  assert.throws(() => compareMatchSampleToLeagueStats(sample.slice(0, 1)), /At least two/);
+  const invalid = structuredClone(sample);
+  invalid[1].home.shots = 1.5;
+  assert.throws(() => compareMatchSampleToLeagueStats(invalid), /integer/);
+  assert.equal(references.englishLeagueStats.source, 'https://football-data.co.uk/');
+});
+
+test('European league match-stat comparisons cover available countries and retain each competition variance', () => {
+  const sample = [0, 1].map((index) => ({
+    home: { goals: index, shots: 8 + index, shotsOnTarget: 3, fouls: 9, corners: 3, yellowCards: 1, redCards: 0 },
+    away: { goals: 1, shots: 7, shotsOnTarget: 2, fouls: 10, corners: 4, yellowCards: 0, redCards: 0 },
+  }));
+  const result = compareMatchSampleToEuropeanLeagueStats(sample);
+  assert.equal(result.status, 'descriptive-only');
+  assert.equal(result.referenceVersion, 'european-league-multistat-football-data-1');
+  assert.equal(result.comparisons.length, 21);
+  assert.equal(new Set(result.comparisons.map((row) => row.country)).size, 11);
+  const bundesliga = result.comparisons.find((row) => row.code === 'D1');
+  assert.equal(bundesliga.matches, 918);
+  assert.equal(bundesliga.metrics.shots.teamPerMatch.referenceN, 1834);
+  assert.equal(bundesliga.metrics.shots.teamPerMatch.referenceMean > 0, true);
+  assert.equal(bundesliga.metrics.shots.teamPerMatch.varianceDifference !== null, true);
+  assert.match(result.interpretation, /remain separate/);
+});
+
+test('open European event data and UEFA campaign totals stay separate and descriptive', () => {
+  const row = (goals, shots, passes) => ({
+    goals,
+    shots,
+    shotsOnTarget: Math.floor(shots / 3),
+    passesAttempted: passes,
+    passesCompleted: Math.floor(passes * 0.8),
+    fouls: 10,
+    corners: 4,
+    yellowCards: 1,
+    redCards: 0,
+    saves: 3,
+    interceptions: 8,
+  });
+  const result = compareMatchSampleToOpenEuropeStats([
+    { home: row(1, 8, 350), away: row(0, 7, 320) },
+    { home: row(2, 12, 390), away: row(1, 9, 360) },
+  ]);
+  assert.equal(result.status, 'descriptive-only');
+  assert.equal(result.sample.matches, 2);
+  assert.equal(result.comparisons.length, 7);
+  assert.equal(result.comparisons[0].competition, 'Premier League');
+  assert.equal(result.comparisons[0].metrics.passesAttempted.teamMatch.referenceVariance > 0, true);
+  assert.equal(result.uefaCampaignAnchors.length, 3);
+  assert.equal(result.uefaCampaignAnchors[0].competition, 'UEFA Champions League');
+  assert.equal(result.uefaCampaignAnchors[0].goalsPerMatch, 3.27);
+  assert.match(result.interpretation, /no match-level variance/);
+  assert.throws(() => compareMatchSampleToOpenEuropeStats([{ home: row(0, 0, 0), away: row(0, 0, 0) }]), /At least two/);
+});
+
+test('European goal-only benchmark keeps complete-score context separate from missing coverage', () => {
+  const sample = [
+    { home: { goals: 1 }, away: { goals: 0 } },
+    { home: { goals: 2 }, away: { goals: 2 } },
+    { home: { goals: 0 }, away: { goals: 1 } },
+  ];
+  const result = compareMatchSampleToOpenFootballGoals(sample);
+  assert.equal(result.status, 'descriptive-only');
+  assert.equal(result.referenceVersion, 'openfootball-europe-goals-2024-25-v1');
+  assert.equal(result.sample.matchTotalGoals.mean, 2);
+  assert.equal(result.sample.matchTotalGoals.sampleVariance, 3);
+  assert.equal(result.comparisons.length, 72);
+  assert.equal(result.comparisons.filter((row) => row.usableAsBroadContext).length, 18);
+  assert.equal(
+    result.comparisons.find((row) => row.competition === 'French Ligue 1 2024/25').status,
+    'domestic-score-coverage-at-least-95-percent',
+  );
+  assert.equal(
+    result.comparisons.find((row) => row.competition === 'UEFA Champions League 2024/25').status,
+    'official-total-cross-checked',
+  );
+  assert.equal(
+    result.comparisons.find((row) => row.competition === 'UEFA Champions League - Quali 2024/25').usableAsBroadContext,
+    false,
+  );
+  assert.equal(references.openEuropeanGoalStats.method.domesticCompetitionRows, 66);
+  assert.equal(references.openEuropeanGoalStats.method.eligibleDomesticCompetitionRows, 15);
+  assert.match(result.interpretation, /no player\/action metric is inferred/);
+  assert.throws(
+    () => compareMatchSampleToOpenFootballGoals([{ home: { goals: -1 }, away: { goals: 0 } }, ...sample]),
+    /non-negative integer goals/,
+  );
+});
 
 test('tracking separates speed zones, excludes cut intervals and respects dismissal time', () => {
   const r = fixture(),

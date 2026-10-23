@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   createPhysics,
   createBody,
+  physicalPlayerContact,
   orientFoot,
   kick,
   stepPhysics,
@@ -42,6 +43,37 @@ function run(pace, acceleration, energy = 100) {
     p.world.free();
   }
 }
+
+test('foul contact gate requires a Rapier body or leg collision, not proximity alone', () => {
+  const physics = createPhysics();
+  const a = createBody(physics, 180, 50, 10, 15),
+    b = createBody(physics, 180, 50, 10.25, 15);
+  try {
+    physics.world.step();
+    assert.equal(physicalPlayerContact(physics, a, b), true);
+    b.body.setTranslation({ x: 20, y: b.height / 2, z: 15 }, true);
+    b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    physics.world.step();
+    assert.equal(physicalPlayerContact(physics, a, b), false);
+  } finally {
+    physics.world.free();
+  }
+});
+
+test('finite tackling-foot overlap registers contact with an opponent without moving bodies', () => {
+  const physics = createPhysics();
+  const a = { ...createBody(physics, 180, 50, 10, 15), direction: 1 },
+    b = createBody(physics, 180, 50, 10.65, 15);
+  try {
+    orientFoot(a, { x: 10.65, y: 0.2, z: 15 });
+    physics.world.step();
+    assert.equal(physicalPlayerContact(physics, a, b), true);
+    assert.ok(Math.abs(a.body.translation().x - 10) < 0.01);
+    assert.ok(Math.abs(b.body.translation().x - 10.65) < 0.01);
+  } finally {
+    physics.world.free();
+  }
+});
 
 test('actual rigid-body sprint, acceleration and fatigue respond to player attributes within human bounds', () => {
   const low = run(20, 50),

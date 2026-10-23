@@ -1,10 +1,72 @@
 // Read-only diagnostics: no engine imports, RNG calls or mutation of archived reports.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { analyzeReplay } from '../../packages/shared/modules/matches/replay-analysis.mjs';
 
+const englishReference = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../packages/shared/modules/matches/design/ENGLAND_SCOTLAND_STATS_REFERENCE_20261023.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+const wyscoutReference = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../packages/shared/modules/matches/design/WYSCOUNT_EUROPE_REFERENCE_20261023.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+const uefaCupAnchors = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../packages/shared/modules/matches/design/EUROPEAN_CUP_ANCHORS_2024_25.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+const openFootballEuropeReference = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../packages/shared/modules/matches/design/OPENFOOTBALL_EUROPE_GOALS_2024_25.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+const europeanLeagueStatsReference = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../packages/shared/modules/matches/design/EUROPEAN_LEAGUE_STATS_REFERENCE_20261023.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
+
+const statisticalMetrics = [
+  'goals',
+  'shots',
+  'shotsOnTarget',
+  'fouls',
+  'corners',
+  'yellowCards',
+  'redCards',
+];
+const sampleMoments = (values) => {
+  const average = mean(values);
+  const sampleVariance =
+    sum(values.map((value) => (value - average) ** 2)) / (values.length - 1);
+  return { mean: average, sampleVariance };
+};
+
 export const references = {
-  version: 'realism-reference-1',
+  version: 'realism-reference-2',
   physical: {
     url: 'https://editorial.uefa.com/resources/0297-1d4e3592fbf1-f11d4e1c826a-1000/uefa_euro_2024_physical_analysis_report_20250318094958.pdf',
     pages: '9–10, 13',
@@ -39,6 +101,46 @@ export const references = {
     total: 117,
     matches: 51,
   },
+  englishLeagueStats: {
+    referenceVersion: englishReference.referenceVersion,
+    source: englishReference.source.website,
+    seasons: englishReference.method.seasons,
+    leagues: englishReference.leagues.map((league) => ({
+      country: league.country,
+      level: league.level,
+      code: league.code,
+      name: league.name,
+      matches: league.recentStatistics.matches,
+      metrics: league.recentStatistics.metrics,
+    })),
+  },
+  europeanLeagueStats: {
+    referenceVersion: europeanLeagueStatsReference.referenceVersion,
+    scope: europeanLeagueStatsReference.scope,
+    competitions: europeanLeagueStatsReference.competitions,
+  },
+  openEuropeanEventStats: {
+    referenceVersion: wyscoutReference.referenceVersion,
+    source: wyscoutReference.source,
+    method: wyscoutReference.method,
+    competitions: wyscoutReference.samples.map((row) => ({
+      country: row.country,
+      competition: row.competition,
+      season: row.season,
+      matches: row.matches,
+      teamMatch: row.teamMatch,
+      matchTotal: row.matchTotal,
+    })),
+  },
+  openEuropeanGoalStats: {
+    referenceVersion: openFootballEuropeReference.referenceVersion,
+    attribution: openFootballEuropeReference.attribution,
+    use: openFootballEuropeReference.use,
+    method: openFootballEuropeReference.method,
+    sources: openFootballEuropeReference.sources,
+    competitions: openFootballEuropeReference.competitions,
+  },
+  uefaCupAnchors,
 };
 const sum = (a) => a.reduce((s, x) => s + x, 0);
 const mean = (a) => (a.length ? sum(a) / a.length : null);
@@ -48,6 +150,290 @@ const quantile = (a, q) => {
 };
 const ratio = (a, b) => (b > 0 ? a / b : null);
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+
+export function compareMatchSampleToLeagueStats(matchRows) {
+  if (
+    !Array.isArray(matchRows) ||
+    matchRows.length < 2 ||
+    matchRows.some((row) =>
+      statisticalMetrics.some(
+        (metric) =>
+          !Number.isInteger(row?.home?.[metric]) ||
+          row.home[metric] < 0 ||
+          !Number.isInteger(row?.away?.[metric]) ||
+          row.away[metric] < 0,
+      ),
+    )
+  )
+    throw Error('At least two matches with non-negative integer team statistics are required');
+  const sampleMetrics = Object.fromEntries(
+    statisticalMetrics.map((metric) => {
+      const home = matchRows.map((row) => row.home[metric]);
+      const away = matchRows.map((row) => row.away[metric]);
+      const matchTotal = home.map((value, index) => value + away[index]);
+      return [
+        metric,
+        {
+          home: sampleMoments(home),
+          away: sampleMoments(away),
+          matchTotal: sampleMoments(matchTotal),
+          teamPerMatch: sampleMoments([...home, ...away]),
+        },
+      ];
+    }),
+  );
+  return {
+    referenceVersion: references.version,
+    status: 'descriptive-only',
+    sample: {
+      matches: matchRows.length,
+      metrics: sampleMetrics,
+    },
+    comparisons: references.englishLeagueStats.leagues.map((league) => ({
+      country: league.country,
+      level: league.level,
+      code: league.code,
+      name: league.name,
+      referenceMatches: league.matches,
+      referenceWindow: `${references.englishLeagueStats.seasons[0]} through ${references.englishLeagueStats.seasons.at(-1)}`,
+      metrics: Object.fromEntries(
+        statisticalMetrics.map((metric) => {
+          const sample = sampleMetrics[metric];
+          const reference = league.metrics[metric];
+          return [
+            metric,
+            Object.fromEntries(
+              ['home', 'away', 'matchTotal', 'teamPerMatch'].map((scope) => [
+                scope,
+                {
+                  sampleMean: sample[scope].mean,
+                  sampleVariance: sample[scope].sampleVariance,
+                  referenceMean: reference[scope].mean,
+                  referenceVariance: reference[scope].sampleVariance,
+                  meanDifference: sample[scope].mean - reference[scope].mean,
+                  varianceDifference:
+                    sample[scope].sampleVariance - reference[scope].sampleVariance,
+                },
+              ]),
+            ),
+          ];
+        }),
+      ),
+    })),
+    interpretation:
+      'Exploratory comparison across goals, shots, shots on target, fouls, corners and cards. A small synthetic tactic/seed sample is not a league population estimate and does not pass or fail validation.',
+  };
+}
+
+export function compareMatchSampleToEuropeanLeagueStats(matchRows) {
+  if (
+    !Array.isArray(matchRows) ||
+    matchRows.length < 2 ||
+    matchRows.some((row) =>
+      statisticalMetrics.some(
+        (metric) =>
+          !Number.isInteger(row?.home?.[metric]) || row.home[metric] < 0 ||
+          !Number.isInteger(row?.away?.[metric]) || row.away[metric] < 0,
+      ),
+    )
+  )
+    throw Error('At least two matches with non-negative integer team statistics are required');
+  const sample = Object.fromEntries(statisticalMetrics.map((metric) => {
+    const home = matchRows.map((row) => row.home[metric]);
+    const away = matchRows.map((row) => row.away[metric]);
+    const totals = home.map((value, index) => value + away[index]);
+    return [metric, {
+      home: sampleMoments(home), away: sampleMoments(away),
+      teamPerMatch: sampleMoments([...home, ...away]), matchTotal: sampleMoments(totals),
+    }];
+  }));
+  const comparisons = references.europeanLeagueStats.competitions.map((competition) => ({
+    country: competition.country, level: competition.level, code: competition.code,
+    name: competition.name, matches: competition.pooled.matches,
+    metrics: Object.fromEntries(statisticalMetrics.map((metric) => {
+      const sampleMetric = sample[metric];
+      const referenceMetric = competition.pooled.metrics[metric];
+      return [metric, Object.fromEntries(['home', 'away', 'teamPerMatch', 'matchTotal'].map((scope) => {
+        const observed = referenceMetric[scope];
+        const actual = sampleMetric[scope];
+        return [scope, {
+          sampleMean: actual.mean, sampleVariance: actual.sampleVariance,
+          referenceMean: observed?.mean ?? null,
+          referenceVariance: observed?.sampleVariance ?? null,
+          referenceN: observed?.n ?? 0,
+          coverage: referenceMetric.coverage,
+          meanDifference: observed ? actual.mean - observed.mean : null,
+          varianceDifference: observed ? actual.sampleVariance - observed.sampleVariance : null,
+        }];
+      }))];
+    })),
+  }));
+  return {
+    referenceVersion: references.europeanLeagueStats.referenceVersion,
+    status: 'descriptive-only', sample: { matches: matchRows.length, metrics: sample },
+    comparisons,
+    interpretation: 'European league comparison is descriptive only. Competitions remain separate; observations with missing provider statistics keep their own coverage and n. No league is treated as the game’s exact tier target and no per-match quotas are implied.',
+  };
+}
+
+export function compareMatchSampleToOpenEuropeStats(matchRows) {
+  const metrics = [
+    'goals',
+    'shots',
+    'shotsOnTarget',
+    'passesAttempted',
+    'passesCompleted',
+    'fouls',
+    'corners',
+    'yellowCards',
+    'redCards',
+    'saves',
+    'interceptions',
+  ];
+  if (
+    !Array.isArray(matchRows) ||
+    matchRows.length < 2 ||
+    matchRows.some((row) =>
+      metrics.some(
+        (metric) =>
+          !Number.isInteger(row?.home?.[metric]) ||
+          row.home[metric] < 0 ||
+          !Number.isInteger(row?.away?.[metric]) ||
+          row.away[metric] < 0,
+      ),
+    )
+  )
+    throw Error('At least two matches with non-negative integer European reference statistics are required');
+
+  const sample = Object.fromEntries(
+    metrics.map((metric) => {
+      const home = matchRows.map((row) => row.home[metric]);
+      const away = matchRows.map((row) => row.away[metric]);
+      const totals = home.map((value, index) => value + away[index]);
+      return [metric, { teamMatch: sampleMoments([...home, ...away]), matchTotal: sampleMoments(totals) }];
+    }),
+  );
+  const comparisons = references.openEuropeanEventStats.competitions.map((competition) => ({
+    country: competition.country,
+    competition: competition.competition,
+    season: competition.season,
+    referenceMatches: competition.matches,
+    metrics: Object.fromEntries(
+      metrics.map((metric) => {
+        const key = metric === 'shotsOnTarget' ? 'shotsOnTarget' : metric;
+        const current = sample[metric];
+        const observed = competition.teamMatch[key];
+        const matchTotal = competition.matchTotal[key];
+        return [
+          metric,
+          {
+            teamMatch: {
+              sampleMean: current.teamMatch.mean,
+              sampleVariance: current.teamMatch.sampleVariance,
+              referenceMean: observed.mean,
+              referenceVariance: observed.sampleVariance,
+              meanDifference: current.teamMatch.mean - observed.mean,
+              varianceDifference: current.teamMatch.sampleVariance - observed.sampleVariance,
+            },
+            matchTotal: {
+              sampleMean: current.matchTotal.mean,
+              sampleVariance: current.matchTotal.sampleVariance,
+              referenceMean: matchTotal.mean,
+              referenceVariance: matchTotal.sampleVariance,
+              meanDifference: current.matchTotal.mean - matchTotal.mean,
+              varianceDifference: current.matchTotal.sampleVariance - matchTotal.sampleVariance,
+            },
+          },
+        ];
+      }),
+    ),
+  }));
+  const simulationGoals = sample.goals.matchTotal.mean;
+  return {
+    referenceVersion: references.openEuropeanEventStats.referenceVersion,
+    status: 'descriptive-only',
+    sample: { matches: matchRows.length, metrics: sample },
+    comparisons,
+    uefaCampaignAnchors: references.uefaCupAnchors.competitions.map((competition) => ({
+      competition: competition.competition,
+      season: competition.season,
+      matches: competition.matches,
+      goals: competition.goals,
+      goalsPerMatch: competition.goalsPerMatch,
+      sampleGoalDifference: simulationGoals - competition.goalsPerMatch,
+      source: competition.source,
+    })),
+    interpretation:
+      'Descriptive comparison only. Wyscout event data covers selected competitions and 2017/18 top-five leagues; it does not represent all Europe. UEFA cup anchors are campaign totals/season averages with no match-level variance. Provider definitions differ, so no threshold or in-game target is derived.',
+  };
+}
+
+export function compareMatchSampleToOpenFootballGoals(matchRows) {
+  if (
+    !Array.isArray(matchRows) ||
+    matchRows.length < 2 ||
+    matchRows.some(
+      (row) =>
+        !Number.isInteger(row?.home?.goals) ||
+        row.home.goals < 0 ||
+        !Number.isInteger(row?.away?.goals) ||
+        row.away.goals < 0,
+    )
+  )
+    throw Error('At least two matches with non-negative integer goals are required');
+
+  const home = matchRows.map((row) => row.home.goals);
+  const away = matchRows.map((row) => row.away.goals);
+  const matchTotals = home.map((goals, index) => goals + away[index]);
+  const sample = {
+    matches: matchRows.length,
+    homeGoals: sampleMoments(home),
+    awayGoals: sampleMoments(away),
+    teamMatchGoals: sampleMoments([...home, ...away]),
+    matchTotalGoals: sampleMoments(matchTotals),
+  };
+  const comparisons = references.openEuropeanGoalStats.competitions.map((competition) => {
+    const isDomestic = competition.competitionType.startsWith('domestic-');
+    const isUefaMainStage =
+      competition.competitionType === 'uefa-cup' &&
+      !competition.competition.toLowerCase().includes('quali');
+    const usableAsBroadContext = Boolean(
+      isUefaMainStage || competition.coverageCompleteEnoughForBroadContext,
+    );
+    return {
+      competition: competition.competition,
+      country: competition.country,
+      competitionType: competition.competitionType,
+      referenceMatches: competition.scoredMatches,
+      declaredMatches: competition.declaredMatches ?? null,
+      scoreCoverage: competition.scoreCoverage ?? null,
+      usableAsBroadContext,
+      referenceMean: competition.matchTotalGoals.mean,
+      referenceVariance: competition.matchTotalGoals.sampleVariance,
+      sampleMean: sample.matchTotalGoals.mean,
+      sampleVariance: sample.matchTotalGoals.sampleVariance,
+      meanDifference: sample.matchTotalGoals.mean - competition.matchTotalGoals.mean,
+      varianceDifference:
+        sample.matchTotalGoals.sampleVariance - competition.matchTotalGoals.sampleVariance,
+      status: isUefaMainStage
+        ? 'official-total-cross-checked'
+        : usableAsBroadContext
+          ? 'domestic-score-coverage-at-least-95-percent'
+          : isDomestic
+            ? 'coverage-incomplete-context-only'
+            : 'qualifier-score-line-coverage-not-certified',
+    };
+  });
+  return {
+    referenceVersion: references.openEuropeanGoalStats.referenceVersion,
+    status: 'descriptive-only',
+    sample,
+    comparisons,
+    selectedDomesticCoverage: references.openEuropeanGoalStats.method.eligibleDomesticCoverageSummary,
+    interpretation:
+      'Goal-only scores compare only goals. Domestic rows below 95% score coverage and UEFA qualifiers remain visible but are excluded from broad contextual interpretation; main-stage UEFA totals are cross-checked against official campaign totals. Competitions stay separate and no player/action metric is inferred.',
+  };
+}
 
 export function trackedMovement(report, trajectory = report.trajectory) {
   const meta = report.replay;

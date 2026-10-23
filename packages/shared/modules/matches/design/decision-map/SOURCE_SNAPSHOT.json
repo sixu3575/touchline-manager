@@ -1,10 +1,10 @@
 {
   "verifiedOn": "2026-10-23",
-  "baselineCommit": "5118ac0302d8e2ed3d5d29991c33b4d03395e087",
-  "engineVersion": "0.31.1-role-aware-pass-balance",
+  "baselineCommit": "b424cc6f001247eae19e78962209ed7ad7845861",
+  "engineVersion": "0.34.0-contact-referee",
   "parameterVersion": "physiology-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
-  "svgDigestEncoding": "SHA-256 of raw SVG file bytes",
+  "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
     "cli": "12.0.0",
     "layout": "dagre",
@@ -32,23 +32,23 @@
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "5aa998b8bc212a0b5b33444fdf042ea72e11eb02eb0116c3218f53983fc84925",
     "packages/shared/modules/matches/locomotion.mjs": "2d7ad29d5c12f53b9b33e70d204ce7372f3a1157214409af365878b027184126",
-    "packages/shared/modules/matches/decisions.mjs": "1574f9a5c68d0331b4564c2941f86e358de285969b558c278c96fcf857cfa15b",
-    "packages/shared/modules/matches/simulation.mjs": "fd66774ef208ce15d9097bac2734ca32ccbec0a221d690cb6e0e2b942a4a737b",
+    "packages/shared/modules/matches/decisions.mjs": "6ceb01ca95d4103a4af05219286aa78d337cde32736c716273a094ea59c81567",
+    "packages/shared/modules/matches/simulation.mjs": "6fc94cb867527357b464193e8405f0cdd25c1c358f7f51dd3f4b9bcc6c96086e",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
     "packages/shared/modules/matches/skills.mjs": "d2840033c663741f2c0fee717155858c544db7cd176614a07be30c182faf4387",
     "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
-    "packages/shared/modules/matches/physics.mjs": "1892215c7980b1354bfa54270feb08fcafa4442cf47e2e7613d6f0f3951c82c3",
+    "packages/shared/modules/matches/physics.mjs": "3037a6e77586af010fb7ed70ce5e44390ab487797e4a21e2e6537a4ecbda7df7",
     "packages/shared/modules/matches/ball-motion.mjs": "63a4bf259b47bd7e0721d99983d2703fc5802f06b1e64d31d24355301872df38",
-    "packages/shared/modules/matches/rules.mjs": "1de182db5acc30c45f797b108c08e44d4702bcc34f2fe4dbe033d222b7cb6076",
+    "packages/shared/modules/matches/rules.mjs": "53f37ae04fdd7855cb62dcc6988fc483ae58d36f1e175ebebf915377185a9cd4",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
     "packages/shared/modules/players/index.mjs": "0cca75c59993e91705de435fb2476c3197555c11fbdb5ad513102b69697243c6",
     "packages/shared/modules/players/match-state.mjs": "2fbab6a490d28e18bd693845855d8fc4ed285a319bf3907c8c224a3034ad2c55",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
-    "packages/shared/modules/matches/attribution.mjs": "3aa3f08eb00a490f00ee31b9cc47eb68894a01bf5df85e28d6e9c048758f40cb",
+    "packages/shared/modules/matches/attribution.mjs": "8ce1387f8d79286f68555a7b5d7ee89693d844ac66e217797fa6e1c36439f934",
     "packages/shared/modules/matches/ratings/index.mjs": "753b0e63f81c6a3b6e5763dde36f02ed846ceed1a610c0191acbb4d9c724ef27",
     "packages/shared/modules/matches/activity.mjs": "7547053203cb186699d729ba9793b93a2bac8534280019f35b2ab244dead2a48",
     "packages/shared/modules/matches/defending.mjs": "eec884d5ef9e42e136f6189408caff7e187787c863f381fe616bc7030e299b17",
@@ -75,12 +75,12 @@
       "svgSha256": "4b160746b680123960dd72b619ce917310b6fa0d1cb62cb95510d41511c00882"
     },
     "04-reception": {
-      "mermaidSha256": "3f56ffd74b232d047c631484282b9f93e4fcb87c93ddda0b969a7b0aec27ef9a",
-      "svgSha256": "e505f85c7673fa8ffe66c0318ad264b10ec5cb803d20673bfcf91ace4fb58405"
+      "mermaidSha256": "f0e1d5a71048fa8d968545ef11015670121ae6ead29b8a88556872a21b8855dd",
+      "svgSha256": "3a5743e3a11f26ca28c353b3afa2c63b731f461a6bfc7fb037d76ff4a60d6280"
     },
     "05-actions": {
-      "mermaidSha256": "0739b4d3adc1b23187620ee86dbb552941595acea0fe5b33552521ac87ab3855",
-      "svgSha256": "52e521084d06a993820b4ef227234a98c61c37d93c60faabd8f8568ce2c351e2"
+      "mermaidSha256": "8bbc242a788858679464e87259c1411834fdc1fde587aa57391759c2b92cdd52",
+      "svgSha256": "e7083e657b287a8e1d4616f85622a724ee9401eb17b285b0ea34502dbc65573f"
     },
     "06-profiles": {
       "mermaidSha256": "7aaf651163921e246e85941ae285be8fe237369520660eafe94a7ffd04ef8797",

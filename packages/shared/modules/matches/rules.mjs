@@ -37,11 +37,29 @@ export function offsideInvolvement(snapshot, actor) {
     snapshot && snapshot.side === actor.side && snapshot.candidates.includes(actor.player.id),
   );
 }
-export function foulAssessment({ tackling, late, danger, penalty, dogso = false }, roll) {
+export function foulAssessment(
+  {
+    tackling,
+    late,
+    danger,
+    penalty,
+    dogso = false,
+    contact = 1,
+    wonBall = false,
+    aggression = 50,
+  },
+  roll,
+) {
   const probability = clamp(
-    0.18 + 0.12 * late + 0.1 * danger - 0.0015 * (tackling - 50),
-    0.03,
-    0.55,
+    clamp(contact, 0, 1) *
+        // A close challenge is not presumed clean just because a player wins
+        // the ball. Contact is the gate; timing, danger, tackling and aggression
+        // shift the referee's judgement, while a clean first touch still lowers it.
+        (0.55 + 0.25 * late + 0.3 * danger + 0.08 * ((aggression - 50) / 50) -
+        0.0015 * (tackling - 50)) *
+      (wonBall ? 0.45 : 1),
+    0,
+    0.7,
   );
   if (roll >= probability) return { foul: false, probability, severity: 'fair', card: null };
   const severity =
@@ -54,6 +72,16 @@ export function foulAssessment({ tackling, late, danger, penalty, dogso = false 
         : null;
   return { foul: true, probability, severity, card };
 }
+
+// A physical collision is only a foul opportunity, not proof of an offence.
+// Weight it by the defender's closing impact, late arrival and trailing angle
+// so ordinary shoulder contact stays mostly legal while reckless challenges
+// become more likely to draw a whistle.
+export function physicalContactFoulRisk({ closingSpeed, late, danger, behind }) {
+  const impact = clamp((closingSpeed - 1.5) / 4.5, 0, 1);
+  return clamp(0.08 + impact * 0.38 + late * 0.22 + danger * 0.14 + (behind ? 0.18 : 0), 0.04, 0.92);
+}
+
 export function applyCard(actor, card) {
   if (actor.sentOff) return null;
   if (card === 'yellow') actor.yellowCards++;

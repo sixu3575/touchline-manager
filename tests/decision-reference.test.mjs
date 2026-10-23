@@ -25,7 +25,7 @@ test('decision reference follows current sources and its editable diagrams and S
       `Update diagram source digest: ${name}`,
     );
     assert.equal(
-      sha(readFileSync(new URL(name + '.svg', dir))),
+      textSha(readFileSync(new URL(name + '.svg', dir), 'utf8')),
       expected.svgSha256,
       `Regenerate SVG: ${name}`,
     );

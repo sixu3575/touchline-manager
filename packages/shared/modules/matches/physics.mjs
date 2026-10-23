@@ -96,7 +96,7 @@ export function createBody(physics, heightCm, strength, x, z) {
       .setFriction(0)
       .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
       .setRestitution(0.1)
-      .setCollisionGroups(0x00020007),
+      .setCollisionGroups(0x00020017),
     body,
   );
   // Two narrow lower legs leave a real ground-level gap; a solid trunk down to
@@ -108,7 +108,7 @@ export function createBody(physics, heightCm, strength, x, z) {
         .setDensity(0)
         .setFriction(0)
         .setRestitution(0.1)
-        .setCollisionGroups(0x00020007),
+        .setCollisionGroups(0x00020017),
       body,
     ),
   );
@@ -117,7 +117,7 @@ export function createBody(physics, heightCm, strength, x, z) {
     RAPIER.ColliderDesc.ball(0.18)
       .setTranslation(0.6, 0.2 - height / 2, 0)
       .setSensor(true)
-      .setCollisionGroups(0x00100001),
+      .setCollisionGroups(0x00100003),
     body,
   );
   const head = physics.world.createCollider(
@@ -128,6 +128,27 @@ export function createBody(physics, heightCm, strength, x, z) {
     body,
   );
   return { body, collider, legs, foot, head, height };
+}
+
+export function physicalPlayerContact(physics, a, b) {
+  const aParts = [a.collider, ...(a.legs ?? [])];
+  const bParts = [b.collider, ...(b.legs ?? [])];
+  const bHandles = new Set(bParts.map((part) => part.handle));
+  for (const part of aParts) {
+    let touching = false;
+    physics.world.contactPairsWith(part, (other) => {
+      if (!bHandles.has(other.handle)) return;
+      physics.world.contactPair(part, other, (manifold) => {
+        if (manifold.numSolverContacts() > 0) touching = true;
+      });
+    });
+    if (touching) return true;
+  }
+  // The finite foot is a sensor for ball contact. Its collision mask also
+  // reports overlap with an opponent's body/legs, without adding solver force.
+  if (a.foot && bParts.some((part) => physics.world.intersectionPair(a.foot, part))) return true;
+  if (b.foot && aParts.some((part) => physics.world.intersectionPair(b.foot, part))) return true;
+  return false;
 }
 
 export function createHands(physics, actor) {
