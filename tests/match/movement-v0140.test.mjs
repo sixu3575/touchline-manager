@@ -106,6 +106,57 @@ test('arrival estimates include acceleration, braking and behind-the-carrier pur
   assert.equal(route([near]).mode, 'carry');
 });
 
+test('sprints follow tactical urgency: high pressing and fast loose-ball races burst, routine midfield pursuit runs', () => {
+  const defender = actor('defender', 0, 50, 34),
+    carrier = actor('carrier', 1, 65, 34),
+    ball = { x: 65, z: 34, vx: 0, vz: 0 },
+    roles = { chasers: [defender.index] };
+  defender.direction = 1;
+  assert.equal(movementMode(defender, ball, carrier, roles, 10), 'sprint');
+  assert.equal(
+    movementMode(defender, { ...ball, x: 70 }, carrier, { ...roles, press: { 0: 'high' } }, 10),
+    'sprint',
+    'high press allows the assigned presser to close from its tactical radius',
+  );
+  assert.equal(
+    movementMode(defender, ball, carrier, { ...roles, press: { 0: 'low' } }, 10),
+    'run',
+    'low pressure retains its shorter closing distance',
+  );
+  assert.equal(
+    movementMode(defender, { ...ball, x: 68 }, carrier, roles, 10),
+    'run',
+    'a normal-pressure chaser outside its assignment radius keeps a sustainable gait',
+  );
+  assert.equal(
+    movementMode(defender, { ...ball, x: 60 }, carrier, roles, 10),
+    'sprint',
+    'normal pressure becomes urgent as the assigned presser closes',
+  );
+
+  const loose = { x: 63.5, z: 34, vx: 9, vz: 0 };
+  assert.equal(
+    movementMode(defender, loose, null, roles, 10),
+    'sprint',
+    'a fast loose ball creates a time-sensitive race',
+  );
+  assert.equal(
+    movementMode(defender, { ...loose, x: 60, vx: 0 }, null, roles, 10),
+    'sprint',
+    'a selected fresh chaser accelerates to collect a loose ball before an opponent',
+  );
+});
+
+test('a central midfielder can burst into the attacking lane before the final third', () => {
+  const runner = actor('runner', 0, 50, 34);
+  runner.direction = 1;
+  runner.positionRole = 'centralMid';
+  assert.equal(
+    movementMode(runner, { x: 50.6, z: 34 }, null, { chasers: [], runnerId: runner.player.id }, 10),
+    'sprint',
+  );
+});
+
 test("carry risk uses the same duel probabilities and respects a tired defender's recovery limit", () => {
   const carrier = actor('carrier', 0, 50, 34),
     ball = { x: 50.6, y: 0.11, z: 34 },

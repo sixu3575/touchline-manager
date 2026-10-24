@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-24",
-  "baselineCommit": "36adce14f6ffb35bb2ba496709497a5285de0100",
-  "engineVersion": "0.35.0-fatigue-calibration",
-  "parameterVersion": "physiology-2",
+  "baselineCommit": "7670e8393fcb320d85b7e9016384e0868dfcfb97",
+  "engineVersion": "0.36.0-situational-sprint",
+  "parameterVersion": "sprint-intent-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -30,10 +30,10 @@
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "3af093453a081e5502bc3f9953b9ec4ca92fed22a988957a0566a833c984f500",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "5aa998b8bc212a0b5b33444fdf042ea72e11eb02eb0116c3218f53983fc84925",
-    "packages/shared/modules/matches/locomotion.mjs": "2d7ad29d5c12f53b9b33e70d204ce7372f3a1157214409af365878b027184126",
+    "packages/shared/modules/matches/positioning.mjs": "c955ba34293ad1a783d30664cf7304af561b935f0ff6a18b130cdabd27979e8d",
+    "packages/shared/modules/matches/locomotion.mjs": "fdbe8850a4fc9aae0d70222be546664231a3218cb589df9b34fbd1abf0d0d5fb",
     "packages/shared/modules/matches/decisions.mjs": "6ceb01ca95d4103a4af05219286aa78d337cde32736c716273a094ea59c81567",
-    "packages/shared/modules/matches/simulation.mjs": "3184c5ba370c7eb1548189a5b083c50c0594e187b6548e251bc600b54681a98d",
+    "packages/shared/modules/matches/simulation.mjs": "f4ab686ae165fa4603d24f8891b980356eff6a0fe6121e86a7dd9e3ddf230fea",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
@@ -63,16 +63,16 @@
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "7b81bd811c2f60d664f8a541ecf697c73e77c5f194645d34d04e88ea4008bd9e",
-      "svgSha256": "97b245592cca0cd0a82e32f81d5578b6c6910169e874b46b142f6fce43fbe15a"
+      "mermaidSha256": "991217b4696ec198d12d4e34a0002e5dc3225135c5b7fd5b0329c3324ba4341c",
+      "svgSha256": "53e5c66e8639ea444ca888cc148aa5ff226700c9f5992ffac0a7227a897f4143"
     },
     "02-roles": {
       "mermaidSha256": "478f0fc1239206462685aed0564e265d3df058a43b04c2edcb2fda86590dd3cc",
       "svgSha256": "e76059126189e15414df0505c771d5599cc5d5da2d0a2d4e2a6b94cb0b623e17"
     },
     "03-positioning": {
-      "mermaidSha256": "5e5ac74ff9047367c075cc2def2771c8429219d2fd7c0e559f43f5a0e99e1c0d",
-      "svgSha256": "4b160746b680123960dd72b619ce917310b6fa0d1cb62cb95510d41511c00882"
+      "mermaidSha256": "e8e3679ed94e681f0b6cad614b2c10aac48487dfa8875b303c31932483de21f3",
+      "svgSha256": "19082b7df879602382674c8f1003306deea6c05560c7a6787c84707293345fcd"
     },
     "04-reception": {
       "mermaidSha256": "f0e1d5a71048fa8d968545ef11015670121ae6ead29b8a88556872a21b8855dd",

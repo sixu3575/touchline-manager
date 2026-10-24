@@ -56,6 +56,7 @@ export function teamRoles(
     support: [],
     teams: {},
     duties: {},
+    press: {},
     phase: owner
       ? localX(ball.x, direction(owner.side)) < 36
         ? 'buildup'
@@ -79,6 +80,7 @@ export function teamRoles(
         arrivalTime(a, ball, pursuitMode(a, ball)) - arrivalTime(b, ball, pursuitMode(b, ball)),
     );
     if (!attack) {
+      roles.press[side] = tactics[side]?.press ?? 'normal';
       const defence = defensiveAssignments(
         actors,
         side,

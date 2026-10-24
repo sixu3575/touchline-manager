@@ -455,8 +455,8 @@ test('a presser follows observed carrier speed, and distant man marking preserve
   assert.equal(markingVelocity(a, carrier, roles).x, -6.5);
   assert.equal(
     movementMode(a, ball, carrier, roles, 0.8),
-    'sprint',
-    'a close moving target must not force walking or jogging behind the runner',
+    'run',
+    'a distant midfield presser tracks the carrier without an unnecessary full sprint',
   );
   roles.chasers = [];
   roles.marking[a.player.id] = carrier.player.id;
