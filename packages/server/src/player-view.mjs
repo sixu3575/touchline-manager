@@ -57,6 +57,9 @@ const diagnostics = new Set([
   'diagnostics',
   'telemetry',
   'debug',
+  // Individual dribble gait contacts are an engine diagnostic, not a public
+  // player statistic. Keep the aggregate carry distance available instead.
+  'dribbleTouches',
   'replayAnalysis',
   'attributes',
   'attributeProfile',

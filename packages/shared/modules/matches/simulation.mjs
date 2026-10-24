@@ -106,8 +106,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.36.0-situational-sprint';
-export const PARAMETER_VERSION = 'sprint-intent-1';
+export const ENGINE_VERSION = '0.37.0-boundary-touch-statistics';
+export const PARAMETER_VERSION = 'boundary-touch-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -1610,7 +1610,6 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                 playedBall(a, 'control');
                 touchedThisTick = true;
                 lastTouch = a;
-                a.touches++;
               }
             }
             return;
@@ -1788,11 +1787,13 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               explanation,
             );
           }
+          // Continuous gait touches stay in `carries`; only deliberate ball
+          // actions add another conventional touch to the match total.
+          if (action.type !== 'dribble') a.touches++;
           a.setPiece = null;
         }
         a.setPiece = null;
         lastTouch = a;
-        a.touches++;
       };
       const actionOrder = actors
         .slice()

@@ -263,6 +263,9 @@ test('archive/live diagnostics stay private while requested match stats and stam
         locomotion: { sprintEfforts: 12 },
         burstReserve: 45,
         saves: 2,
+        touches: 208,
+        dribbleTouches: 194,
+        carryDistance: 210,
       },
     ],
     timeline: [
@@ -287,6 +290,9 @@ test('archive/live diagnostics stay private while requested match stats and stam
     45,
     'the requested stamina bar value stays public',
   );
+  assert.equal(view.performance[0].touches, 208);
+  assert.equal(view.performance[0].dribbleTouches, undefined, 'raw gait contacts stay private');
+  assert.equal(view.performance[0].carryDistance, 210, 'the football statistic stays public');
   assert.equal(view.performance[0].locomotion, undefined);
   assert.equal(view.timeline[0].performance[0].locomotion, undefined);
   assert.equal(view.timeline[0].diagnostics, undefined);

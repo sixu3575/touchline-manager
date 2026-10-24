@@ -127,11 +127,15 @@ export function motorTouch(actor, ball, rng = () => 0.5) {
   const speed = Math.hypot(vx, vz);
   const dragCredit = speed > 0.2 ? (0.65 * contactInterval * 0.5) / speed : 0;
   const error = (rng() - 0.5) * (1 - ability(actor.player, 'dribbling') / 100) * 0.45;
-  return {
+  const outgoing = {
     x: vx * (1 + dragCredit) - h.z * error,
     z: vz * (1 + dragCredit) + h.x * error,
     y: 0.03,
   };
+  // The finite body acceleration above can leave the outgoing ball faster than
+  // the boundary-safe target. A real foot contact can cushion that momentum;
+  // recheck the velocity that kick() will actually apply, but only near edges.
+  return { ...outgoing, ...boundaryVelocity(actor, ball, outgoing, contactInterval) };
 }
 
 // Exit-lane geometry includes the ball's source. A defender already in the
