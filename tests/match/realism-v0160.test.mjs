@@ -134,11 +134,11 @@ test('odometer has an independent physical baseline, speed zones partition time 
   assert.equal(a.distance, before);
 });
 
-test('sprint load requires recovery without erasing acceleration or penalising fresh open carries', () => {
-  const a = actor(0),
+test('sprint reserve is only spent for urgent runs and recovery preserves ordinary jogging', () => {
+  const a = actor(0, 0, 50, 'FWD', 'striker'),
     ball = { x: 51, z: 34 },
     roles = { chasers: [], runnerId: a.player.id };
-  assert.equal(movementMode(a, ball, null, roles, 10), 'sprint');
+  assert.equal(movementMode(a, ball, null, roles, 10), 'jog');
   for (let i = 0; i < 200; i++)
     recordMovement(a, { x: 0, z: 0 }, { x: 0.4, z: 0 }, 0.05, true, false);
   assert.equal(sprintAvailable(a), false);

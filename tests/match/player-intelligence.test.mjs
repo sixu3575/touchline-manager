@@ -403,15 +403,17 @@ test('shot value accounts for pressure and blocked lanes, while ordinary finishi
   assert.ok(clear && screened, 'pressure changes shot quality, not legal shot availability');
   assert.ok(screened.xg < clear.xg, 'a closed, crowded lane is worth less than a clear finish');
 
-  const heights = Array.from({ length: 200 }, (_, seed) =>
-    shotCandidate(shooter, ball, [], 1, quality(0.1), random(seed + 3), false).make().kickAim.y,
+  const heights = Array.from(
+    { length: 200 },
+    (_, seed) =>
+      shotCandidate(shooter, ball, [], 1, quality(0.1), random(seed + 3), false).make().kickAim.y,
   );
   const average = heights.reduce((sum, height) => sum + height, 0) / heights.length;
   assert.ok(average > 0.7 && average < 1.7, 'aims should use the playable goal mouth');
   assert.ok(Math.max(...heights) < 2.6, 'ordinary shots should not mostly be aimed over the bar');
 });
 
-test('supporters form triangles, a loose ball is recovered, and a keeper approaches a slow ball', () => {
+test('supporters form triangles, loose balls are recovered, and runners reserve sprints for the final third', () => {
   const owner = actor('p', 0, 50, 34),
     support = actor('m', 0, 52, 35),
     opponent = actor('d', 1, 60, 36);
@@ -456,7 +458,14 @@ test('supporters form triangles, a loose ball is recovered, and a keeper approac
   );
   assert.equal(
     movementMode(owner, ball, null, { chasers: [], runnerId: owner.player.id }, 10),
+    'jog',
+    'a midfield runner advances without immediately using a full sprint',
+  );
+  owner.pos = { x: 80, z: 34 };
+  owner.direction = 1;
+  assert.equal(
+    movementMode(owner, { ...ball, x: 80.6 }, null, { chasers: [], runnerId: owner.player.id }, 10),
     'sprint',
-    'a give-and-go runner accelerates while the ball is in flight',
+    'a runner bursts to exploit a final-third opportunity',
   );
 });

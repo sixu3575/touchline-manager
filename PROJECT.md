@@ -1,6 +1,6 @@
 # 项目地图
 
-0.35.0候选修正持续体能消耗，基准系数0.32→0.64；八场对照中终场体能/冲刺量更接近参考，总距离与高速距离保持，传球/控球阶段未见下降。五倍速仍只影响观看时钟；没有速度/动作上限。详见[体能节奏校准](packages/shared/modules/matches/design/MATCH_FATIGUE_CALIBRATION_V0350.md)。引擎0.35.0-fatigue-calibration，参数physiology-2；未部署，赛季流程/schema/历史结果不变。
+0.36.0候选修复“短时冲刺储备=冲刺指令”：追球、压迫和战术前插按实际时限与位置触发冲刺。四战术×两种子显示冲刺距离-44%、高速距离-34%，控球阶段中位数仅+6%，4 pass/4 review/0 block；不是节奏问题的完整解决。`npm run check`已通过（127项单元/业务、16项真实比赛集成、类型和构建，259秒）；CI/PR和部署待完成。见[诊断与固定样本](packages/shared/modules/matches/design/SITUATIONAL_SPRINT_V0360.md)。引擎0.36.0-situational-sprint / sprint-intent-1；不跑赛季，历史比赛不重算。
 
 0.33.0候选比赛算法与现实基准扩展：[欧洲联赛、杯赛及欧战数据复核](packages/shared/modules/matches/design/EUROPEAN_MATCH_REALISM_20261023.md)。基准包含11国21项联赛、46国目录的国内比分、Wyscout开放事件及UEFA欧冠数据；更新压迫/封堵射门价值与射门落点、实际碰撞犯规判定。固定八场3 pass/5 review，射门/进球略高、传球/拦截偏高，射正/犯规/角球/黄牌偏低；整体review。定向52项、`npm run check`通过（125项比赛单元、16项真实集成、类型/生产构建，约289秒）；无赛季或部署，流程不变。
 
