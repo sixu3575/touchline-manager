@@ -157,6 +157,61 @@ test('a byline approach brakes through real foot contacts and inertia while a la
   }
 });
 
+test('a continuous high-speed carry keeps the ball inside either end line after the final foot impulse', () => {
+  for (const direction of [-1, 1]) {
+    const physics = createPhysics();
+    const a = actor({ anticipation: 95, dribbling: 95, balance: 95, agility: 95 });
+    Object.keys(a.player.attributes).forEach((key) => (a.player.attributes[key] = 95));
+    const start = direction < 0 ? 26 : 79,
+      bodyX = start - direction * 0.6;
+    Object.assign(a, {
+      direction,
+      facing: direction < 0 ? Math.PI : 0,
+      ...createBody(physics, 180, 70, bodyX, 37),
+      intent: {
+        kind: 'carry',
+        mode: 'carryFast',
+        destination: { x: direction < 0 ? 1 : 104, z: 39 },
+        expiresAt: 30,
+      },
+    });
+    a.body.setLinvel({ x: direction * 5, y: 0, z: 0 }, true);
+    physics.ball.setTranslation({ x: start, y: 0.11, z: 37 }, true);
+    physics.ball.setLinvel({ x: direction * 5, y: 0, z: 0 }, true);
+    let nextTouch = 0,
+      contacts = 0;
+    try {
+      for (let tick = 0; tick < 500; tick++) {
+        const time = tick * 0.05;
+        a.pos = a.body.translation();
+        a.velocity = a.body.linvel();
+        a.target = a.intent.destination;
+        const p = physics.ball.translation(),
+          v = physics.ball.linvel(),
+          ball = { ...p, vx: v.x, vz: v.z };
+        updateFacing(a, ball, 0.05);
+        orientFoot(a, ball);
+        driveMovement(a, controlMovement(a, ball), movement(a.player, a.energy, 'carryFast'), 0.05);
+        if (time >= nextTouch && touchesBall(physics, a.foot)) {
+          if (kick(physics, a, motorTouch(a, ball, () => 0.5))) {
+            nextTouch = time + 0.25;
+            contacts++;
+          }
+        }
+        stepPhysics(physics, null, [a]);
+        const depth = physics.ball.translation().x;
+        assert.ok(
+          direction < 0 ? depth >= -0.11 : depth <= 105.11,
+          `a controlled carry cannot cross the end line (direction ${direction}, x ${depth})`,
+        );
+      }
+      assert.ok(contacts > 20, 'the result comes from repeated real foot contacts');
+    } finally {
+      physics.world.free();
+    }
+  }
+});
+
 test('receivers recognize an approaching end line, with attribute-dependent braking and no blanket loss of open-field speed', () => {
   const high = actor({ anticipation: 95, balance: 95, agility: 95 }),
     low = actor({ anticipation: 20, balance: 20, agility: 20 });

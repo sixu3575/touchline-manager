@@ -32,6 +32,7 @@ export function PhysicalReplay({
 }) {
   const meta = report.replay!;
   const clockScale = meta.clockScale ?? 1;
+  const usesEffectiveTouches = report.engineVersion?.startsWith('0.37.0-') ?? false;
   const [loadedData, setData] = useState<Uint16Array | null>(null);
   const data = live ? live.data : loadedData;
   const [error, setError] = useState(''),
@@ -349,12 +350,21 @@ export function PhysicalReplay({
                     </b>
                   )}
                   {performanceRow.style && <b>{performanceRow.style} · </b>}实际跑动{' '}
-                  {(performanceRow.distance / 1000).toFixed(2)} km · 触球 {performanceRow.touches} ·
+                  {(performanceRow.distance / 1000).toFixed(2)} km ·{' '}
+                  <span
+                    title={
+                      usesEffectiveTouches
+                        ? '按接球控制和主动处理统计；连续带球步伐不重复计数'
+                        : '旧版把连续带球的每次脚触都计入；此数不能与有效触球直接比较'
+                    }
+                  >
+                    {usesEffectiveTouches ? '有效触球' : '物理触点'} {performanceRow.touches}
+                  </span>{' '}
                   成功传球 {eventStats?.completed ?? '—'}/{eventStats?.passes ?? '—'}
                   {performanceRow.yellowCards !== undefined &&
                     ` · 黄牌 ${performanceRow.yellowCards} / 红牌 ${performanceRow.redCards}`}
-                  {performanceRow.dribbleTouches !== undefined &&
-                    ` · 带球触球 ${performanceRow.dribbleTouches} / 推进 ${performanceRow.carryDistance} m · 直塞 ${performanceRow.throughBalls} / 长传 ${performanceRow.longPasses} / 一脚出球 ${performanceRow.oneTouchPasses}`}
+                  {performanceRow.carryDistance !== undefined &&
+                    ` · 带球推进 ${performanceRow.carryDistance} m · 直塞 ${performanceRow.throughBalls} / 长传 ${performanceRow.longPasses} / 一脚出球 ${performanceRow.oneTouchPasses}`}
                   {performanceRow.mind &&
                     ` · 士气 ${Math.round(performanceRow.mind.morale)} / 信心 ${Math.round(performanceRow.mind.confidence)}`}
                 </span>
