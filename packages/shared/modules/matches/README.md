@@ -1,6 +1,6 @@
 # 比赛模块
 
-当前生产引擎`0.37.0-boundary-touch-statistics` / `boundary-touch-1`。带球脚触的最终出球速度现在按边界距离与真实可用制动校验；常规触球数排除连续带球的重复步态触点，原始物理触点仅留后台，带球推进距离继续显示。固定八场4 pass/4 review、无block；余下review是低速跑动占比，不属于本次修改。PR #54于2026-10-24部署，生产SHA为`7334e59118679186e27753a4680e2191a913747c`。历史比赛不重算；测试范围和生产备份见[0.37.0诊断](design/BOUNDARY_TOUCH_V0370.md)与[发布记录](../../../../docs/OPERATIONS.md)。此前0.36情境化冲刺与节奏限制见[设计记录](design/SITUATIONAL_SPRINT_V0360.md)。
+当前实现引擎`0.38.0-pass-reception-contest` / `passing-contest-1`。普通传球与传中现在评估防守者和接球者到达落点的竞速，出脚前风险恶化时按当前阵势重新选择；球员传球质量继续影响真实落点散布，不按完成率或传球数配额改赛果。固定四战术×两种子对照中，完成率85.5%→88.7%、拦截53.8→32.7/队、丢失球权88.3→68.2/队，传球均值543.3→502.3/队；2 pass、6 review、无block，review均属既有低速跑动诊断。详见[传球落点设计](design/PASS_RECEPTION_V0380.md)、[比赛模块变更记录](CHANGELOG.md)与[发布/备份记录](../../../../docs/OPERATIONS.md)。旧报告和回放不重算，历史球员/存档不改写。
 
 0.35.0-fatigue-calibration / physiology-2是0.36.0之前的生产版本：延续0.34射门风险与真实碰撞裁判模型，并将持续体能消耗基准系数由0.32调至0.64。四战术×两种子对照显示终场体能与冲刺距离更接近欧洲赛事参考，而总跑动/高速跑基本保持；传球与控球阶段时长仍未改善。历史对照见[体能与节奏校准](design/MATCH_FATIGUE_CALIBRATION_V0350.md)及[欧洲比赛复核](design/EUROPEAN_MATCH_REALISM_20261023.md)。
 

@@ -29,7 +29,7 @@ import {
   motorTouch,
   canReactToPass,
 } from './onball.mjs';
-import { interceptionRisk } from './decisions.mjs';
+import { releasedPassSuccess } from './decisions.mjs';
 import {
   updateFacing,
   prepareKick,
@@ -106,8 +106,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.37.0-boundary-touch-statistics';
-export const PARAMETER_VERSION = 'boundary-touch-1';
+export const ENGINE_VERSION = '0.38.0-pass-reception-contest';
+export const PARAMETER_VERSION = 'passing-contest-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -1623,16 +1623,15 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             if (!kickReady(a, time)) return;
             execution = a.kickPlan;
             action = releasedKick(execution, ball, playing());
-            if (action.receiverId && !execution.reviewed) {
-              const risk = interceptionRisk(
-                ball,
-                action.destination,
-                Math.hypot(action.x, action.z),
-                opponents,
-                Boolean(action.kickFlight),
-                action.flight ?? action.kickFlight,
-              );
-              if (risk > 1 - (action.estimatedSuccess ?? 0.8) + 0.2) {
+            if (
+              action.receiverId &&
+              !execution.reviewed &&
+              time >= (a.passReviewCooldownUntil ?? 0)
+            ) {
+              const receiver = playing().find((candidate) => candidate.player.id === action.receiverId);
+              const releaseSuccess = releasedPassSuccess(action, receiver, ball, opponents);
+              const reviewTolerance = 0.04 + (100 - ability(a.player, 'decisions')) * 0.0008;
+              if ((action.estimatedSuccess ?? 0.8) - releaseSuccess > reviewTolerance) {
                 const reviewRng = random(seedFrom(`${seed}:action-review:${execution.actionId}`));
                 const alternative = chooseAction(
                   a,
@@ -1645,15 +1644,22 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                     minute: time / 60,
                     time,
                     trailing: score[a.side] < score[1 - a.side],
+                    lapse,
                     continuity,
+                    oneTouch,
                   },
                 );
-                if (
-                  alternative.type === 'hold' ||
-                  alternative.type === 'dribble' ||
-                  alternative.receiverId !== action.receiverId
-                ) {
+                const materiallyDifferent =
+                  alternative.type !== action.type ||
+                  alternative.intent !== action.intent ||
+                  alternative.delivery !== action.delivery ||
+                  alternative.receiverId !== action.receiverId ||
+                  (alternative.destination &&
+                    action.destination &&
+                    distance(alternative.destination, action.destination) > 0.75);
+                if (materiallyDifferent) {
                   a.kickPlan = null;
+                  a.passReviewCooldownUntil = time + 0.8;
                   rememberOnBallAction(a, alternative, ball, opponents, time);
                   a.cooldown = 0;
                   return;

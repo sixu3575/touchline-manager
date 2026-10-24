@@ -5,6 +5,10 @@ import { random } from '../../packages/shared/core/index.mjs';
 import {
   chooseAction,
   interceptionRisk,
+  receptionContestRisk,
+  releasedPassSuccess,
+  passAimError,
+  passExecutionAccuracy,
 } from '../../packages/shared/modules/matches/decisions.mjs';
 import {
   updateFacing,
@@ -402,6 +406,39 @@ test('pass risk includes the time opponents can close during actual preparation'
   const quick = interceptionRisk(from, to, 15, [opponent], false, 1, 0);
   const slow = interceptionRisk(from, to, 15, [opponent], false, 1, 0.5);
   assert.ok(slow > quick, 'preparing does not freeze the pressing defender');
+});
+
+test('pass estimates include the receiver-versus-defender race at the destination', () => {
+  const receiver = { ...actor({ firstTouch: 90 }), pos: { x: 80, z: 34 } };
+  const target = { x: 80, z: 34 };
+  const open = receptionContestRisk(receiver, target, 1.2, []);
+  const waitingDefender = { ...actor({ anticipation: 90 }), pos: { ...target } };
+  const marked = receptionContestRisk(receiver, target, 1.2, [waitingDefender]);
+  const lateDefender = { ...actor(), pos: { x: 60, z: 34 } };
+  const late = receptionContestRisk(receiver, target, 1.2, [lateDefender]);
+  assert.equal(open, 0, 'an unmarked destination has no opponent contest risk');
+  assert.ok(marked > 0.9, 'a defender already at the landing point can claim the pass');
+  assert.equal(late, 0, 'a defender who cannot arrive before the receiver adds no contest risk');
+
+  const action = {
+    type: 'pass',
+    destination: target,
+    x: 10,
+    z: 0,
+    flight: 1.2,
+    estimatedSuccess: 0.9,
+    quality: { value: 90 },
+  };
+  assert.ok(
+    releasedPassSuccess(action, receiver, { x: 75, z: 34 }, []) >
+      releasedPassSuccess(action, receiver, { x: 75, z: 34 }, [waitingDefender]),
+    'release review sees the same destination contest as candidate evaluation',
+  );
+});
+
+test('passing quality improves both target precision and estimated execution accuracy', () => {
+  assert.ok(passAimError(90, 20) < passAimError(60, 20));
+  assert.ok(passExecutionAccuracy(90, 20) > passExecutionAccuracy(60, 20));
 });
 
 test('keeper pre-release reading uses visible body orientation rather than private aim', () => {

@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-24",
-  "baselineCommit": "7e438e08cc23e47a5e530a0f516c9e59994e7b1d",
-  "engineVersion": "0.37.0-boundary-touch-statistics",
-  "parameterVersion": "boundary-touch-1",
+  "baselineCommit": "4182f83a6e83ce9284eebfa2cf7550e0ac5b462c",
+  "engineVersion": "0.38.0-pass-reception-contest",
+  "parameterVersion": "passing-contest-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -32,8 +32,8 @@
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "c955ba34293ad1a783d30664cf7304af561b935f0ff6a18b130cdabd27979e8d",
     "packages/shared/modules/matches/locomotion.mjs": "fdbe8850a4fc9aae0d70222be546664231a3218cb589df9b34fbd1abf0d0d5fb",
-    "packages/shared/modules/matches/decisions.mjs": "6ceb01ca95d4103a4af05219286aa78d337cde32736c716273a094ea59c81567",
-    "packages/shared/modules/matches/simulation.mjs": "8e3baad978473e4cbac85ba1eadc18aa09e1566d2ee59f4ab21954e213efed0e",
+    "packages/shared/modules/matches/decisions.mjs": "46aee61fd081dc4cc563231f143ea1c089e463558a666c6a089dd2323bff4ee6",
+    "packages/shared/modules/matches/simulation.mjs": "a581a5ff34139fa1e2ed7baadcd96bcb8a8470a3783e096bbd29d33c7af01d83",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
@@ -80,8 +80,8 @@
       "svgSha256": "3a5743e3a11f26ca28c353b3afa2c63b731f461a6bfc7fb037d76ff4a60d6280"
     },
     "05-actions": {
-      "mermaidSha256": "0abc5997125b0f71636768a78bfb8ec4d91eeb77a9edf0dfebabdcb413c960dc",
-      "svgSha256": "7e3a397a37f1bd35c1a85da183e2e70a40a11f2ec503cb5ed0cf987f12bf1140"
+      "mermaidSha256": "c1807e3256c33cefdeffd7dd9689e53b44150790769a4af3fce4a11db2f7fe5a",
+      "svgSha256": "807960a65802c8164b0752b5b07278666860aa3b0b49e3dc1771d091bdebe7fd"
     },
     "06-profiles": {
       "mermaidSha256": "7aaf651163921e246e85941ae285be8fe237369520660eafe94a7ffd04ef8797",

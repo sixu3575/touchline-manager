@@ -97,6 +97,74 @@ export function interceptionRisk(
   return 1 - survival;
 }
 
+// A pass can clear every point on its line yet still be won by a defender at
+// the intended receiving point. Estimate that race from the receiver's and
+// defenders' actual movement capabilities, reaction, and current position.
+export function receptionContestRisk(receiver, target, flight, opponents, preparation = 0) {
+  const defenders = opponents.filter((opponent) => !opponent.sentOff);
+  if (!defenders.length) return 0;
+  const receiverArrival =
+    preparation + arrivalTime(receiver, target, pursuitMode(receiver, target), 0);
+  const contestAt = preparation + Math.max(flight, receiverArrival);
+  let survival = 1;
+  for (const opponent of defenders) {
+    const reaction = 0.08 + (100 - ability(opponent.player, 'anticipation')) * 0.002;
+    const reach = preparation + arrivalTime(opponent, target, pursuitMode(opponent, target), reaction);
+    const threat = clamp((contestAt + 0.15 - reach) / 0.55, 0, 0.94);
+    survival *= 1 - threat;
+  }
+  return 1 - survival;
+}
+
+export function passExecutionAccuracy(quality, length) {
+  return clamp(0.88 + 0.001 * (quality - 50) - Math.max(0, length - 15) * 0.002, 0.55, 0.98);
+}
+
+export function passAimError(quality, length) {
+  return (1 - quality / 100) * (0.28 + 0.025 * length);
+}
+
+// Re-estimate a committed pass against the state immediately before release.
+// This is a decision aid only; the eventual outcome still comes from physical
+// contact with the ball and is never forced by this estimate.
+export function releasedPassSuccess(action, receiver, ball, opponents) {
+  if (!receiver || !action.destination) return action.estimatedSuccess ?? 0;
+  const defenders = opponents.filter((opponent) => !opponent.sentOff);
+  const length = distance(ball, action.destination);
+  const speed = Math.hypot(action.x ?? 0, action.z ?? 0);
+  const flight = action.kickFlight ?? action.flight ?? groundArrivalTime(speed, length);
+  if (!Number.isFinite(flight)) return 0;
+  const laneRisk = interceptionRisk(
+    ball,
+    action.destination,
+    speed,
+    defenders,
+    Boolean(action.kickFlight),
+    flight,
+  );
+  const deliveryRisk =
+    action.type === 'cross'
+      ? deliveryReceptionRisk(receiver, action.destination, defenders, {
+          lob: Boolean(action.kickFlight),
+          delivery: action.delivery,
+        })
+      : 0;
+  const receiverArrival = arrivalTime(
+    receiver,
+    action.destination,
+    pursuitMode(receiver, action.destination),
+    0,
+  );
+  const receiveMargin = flight - receiverArrival;
+  const firstTouchRisk =
+    (1 - ability(receiver.player, 'firstTouch') / 120) /
+    (1 + Math.exp((receiveMargin + 0.3) / 0.18));
+  const contestRisk = receptionContestRisk(receiver, action.destination, flight, defenders);
+  const quality = action.quality?.value ?? 50;
+  const accuracy = passExecutionAccuracy(quality, length);
+  return (1 - Math.max(laneRisk, deliveryRisk, contestRisk)) * accuracy * (1 - firstTouchRisk);
+}
+
 export function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) {
   const goalX = direction === 1 ? 105 : 0,
     dist = distance(ball, { x: goalX, z: 34 });
@@ -368,9 +436,9 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         },
         opponents,
       );
-      const risk = cross
-        ? 1 - (1 - laneRisk) * (1 - deliveryReceptionRisk(mate, target, opponents, variant))
-        : Math.max(laneRisk, obstructed ? 0.98 : 0);
+      const contestRisk = receptionContestRisk(mate, futureTarget, flight, opponents, preparation);
+      const deliveryRisk = cross ? deliveryReceptionRisk(mate, target, opponents, variant) : 0;
+      const risk = Math.max(laneRisk, contestRisk, deliveryRisk, obstructed ? 0.98 : 0);
       // A high-risk corridor is not a viable professional pass, except a necessary clearance.
       if (risk > 0.88 && pressure < 0.7) continue;
       if (cross && risk > 0.75) continue;
@@ -383,17 +451,13 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         Math.max(52.5, localX(ball.x, direction), offsideLine) + 0.01
       )
         continue;
-      const accuracy = clamp(
-        0.88 + 0.001 * (q.value - 50) - Math.max(0, len - 15) * 0.002,
-        0.55,
-        0.98,
-      );
+      const accuracy = passExecutionAccuracy(q.value, len);
       const receiveMargin =
         flight + preparation - arrivalTime(mate, futureTarget, pursuitMode(mate, futureTarget), 0);
-      const receptionRisk =
+      const firstTouchRisk =
         (1 - ability(mate.player, 'firstTouch') / 120) /
         (1 + Math.exp((receiveMargin + 0.3) / 0.18));
-      const success = (1 - risk) * accuracy * (1 - receptionRisk);
+      const success = (1 - risk) * accuracy * (1 - firstTouchRisk);
       const style = tacticalPassValue(
         tactics,
         tactical,
@@ -459,7 +523,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
                       ? '通过可用线路向前传递'
                       : '利用接应点保持球权',
         make: () => {
-          const error = (1 - q.value / 100) * (0.28 + 0.025 * len),
+          const error = passAimError(q.value, len),
             aim = {
               x: target.x + (rng() - 0.5) * error * 2,
               z: target.z + (rng() - 0.5) * error * 2,
