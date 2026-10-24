@@ -1,6 +1,6 @@
 # 底线控球与有效触球统计复核
 
-候选引擎 `0.37.0-boundary-touch-statistics` / `boundary-touch-1`。生产部署状态以发布记录为准。
+生产引擎 `0.37.0-boundary-touch-statistics` / `boundary-touch-1`，2026-10-24部署，SHA `7334e59118679186e27753a4680e2191a913747c`。备份和生产核验见[发布记录](../../../../docs/OPERATIONS.md)。
 
 ## 发现
 
