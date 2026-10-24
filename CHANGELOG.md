@@ -1,8 +1,8 @@
 # 变更记录
 
-## 0.36.0 · 跑动节奏校准（候选）
+## 0.36.0 · 情境化冲刺与跑动节奏校准
 
-降低无球球员不必要的冲刺：战术储备不再等同冲刺命令，追球、逼抢、前插和套边必须满足相应距离与比赛情境。固定八场对照中，外场冲刺距离下降44%、高速距离下降34%，球队控球阶段仅增加6%；比赛仍保持5×观看。四场pass、四场review、无block；`npm run check`中127项单元/业务、16项真实比赛集成、类型检查和生产构建通过。PR/CI和部署待完成。旧比赛不重算，详见matches模块[校准记录](packages/shared/modules/matches/design/SITUATIONAL_SPRINT_V0360.md)。
+降低无球球员不必要的冲刺：战术储备不再等同冲刺命令，追球、逼抢、前插和套边必须满足相应距离与比赛情境。固定八场对照中，外场冲刺距离下降44%、高速距离下降34%，球队控球阶段仅增加6%；比赛仍保持5×观看。四场pass、四场review、无block；`npm run check`中127项单元/业务、16项真实比赛集成、类型检查和生产构建通过，Node 22/24 CI通过。PR #52于2026-10-24合并并部署，生产SHA为`84392fdb8fa923c2a401e24f5e2a7ce6cfbeed1e`。旧比赛不重算，详见matches模块[校准记录](packages/shared/modules/matches/design/SITUATIONAL_SPRINT_V0360.md)与[部署记录](docs/OPERATIONS.md)。
 
 ## 0.35.0 · 赛中体能校准
 

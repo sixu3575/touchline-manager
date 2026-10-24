@@ -1,5 +1,13 @@
 # 部署与恢复
 
+## 2026-10-24 发布：0.36.0-situational-sprint
+
+部署 PR #52，合并提交及生产 build 均为 `84392fdb8fa923c2a401e24f5e2a7ce6cfbeed1e`，检查点参数 `sprint-intent-1`。无数据库迁移、存档改写或游戏流程变化；部署前后生产 SQLite 完整性均为 `ok`，存档/战报/完成任务保持31/42/7。公网页面返回HTTP 200，公网与本机健康接口返回相同 build；`touchline-manager.service`、Caddy及备份timer均为active，服务重启计数0。真实浏览器的新标签已加载俱乐部总览，未推进赛季。
+
+发布前离机一致SQLite备份保存在本机私有目录 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-2026-10-24-pre-situational-sprint.sqlite`，111,288,320字节，SHA-256 `b64cac0ddba0ee636cedc3e41a4b4a9834047014a402b22dc8aacba680989cf4`，本机副本 `integrity_check` 为 `ok`，且核对31/42/7数据未变。VM保留快照 `/var/backups/touchline-manager/touchline-2026-10-24T09-55-19-695Z.sqlite`；安装脚本另生成 `/var/backups/touchline-manager/touchline-2026-10-24T09-56-28-316Z.sqlite`。临时发布归档与中转备份已从VM临时目录精确清理。
+
+本次打包的归档SHA-256为 `316B8772CD4492E905165F8E2E571CF8D5EF415BF1D84A1A09B2F682C1997829`。远端安装脚本没有可执行位，直接执行返回权限错误；通过显式调用 `/bin/bash` 完成同一安装流程：`sudo -n /bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> 84392fdb8fa923c2a401e24f5e2a7ce6cfbeed1e`。这只记录本次命令，不更改发布流程或仓库脚本权限。CI Node 22/24及完整检查均在合并前通过；比赛样本4 pass、4 review、无block，数据偏差与验证限制见[比赛校准记录](../packages/shared/modules/matches/design/SITUATIONAL_SPRINT_V0360.md)。
+
 ## 2026-10-24 发布：0.35.0-fatigue-calibration
 
 部署 PR #49，提交 `f32522e70b4025db611d20d3ae4ce268b46d98c0`，比赛体能参数版本 `physiology-2`。不含数据库迁移、存档改写或游戏流程变化。部署前所有7个比赛任务均已完成；离机SQLite备份 `touchline-2026-10-24-pre-fatigue-0.35.sqlite` 大小111,288,320字节，SHA-256 `b64cac0ddba0ee636cedc3e41a4b4a9834047014a402b22dc8aacba680989cf4`，本机副本与服务器一致且 `integrity_check` 为 `ok`。安装脚本另生成部署前快照 `touchline-2026-10-24T06-18-47-101Z.sqlite`。
