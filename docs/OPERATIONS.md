@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-10-24 发布：0.37.0-boundary-touch-statistics
+
+部署 PR #54，提交及生产 build 均为 `7334e59118679186e27753a4680e2191a913747c`，引擎参数 `boundary-touch-1`。部署修正持续带球脚触后的边线制动，并将重复步态触点从玩家常规触球统计中分离；没有数据库迁移、存档改写、历史比赛重算或游戏流程变更。部署前所有7个比赛任务均已完成。
+
+发布前 SQLite 快照为 `/var/backups/touchline-manager/touchline-2026-10-24T11-01-25-703Z.sqlite`，离机副本为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-2026-10-24-pre-boundary-touch-0.37.sqlite`，118,444,032字节。VM与离机副本 SHA-256 均为 `5344482edbf57f3adbb4b9c541d4dedb5e1ff5e720a44d02609364120e8fe724`；离机 `integrity_check` 为 `ok`，部署前后存档/战报/比赛任务数为31/46/7。安装脚本另生成 `/var/backups/touchline-manager/touchline-2026-10-24T11-03-09-811Z.sqlite`。
+
+发布归档 SHA-256 为 `33abba365bb1f49835e34f931a76e6af4395a7131d3ab201a0fa54116885bb87`；通过显式调用 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> 7334e59118679186e27753a4680e2191a913747c` 安装，未更改发布脚本或权限。部署后生产库 `integrity_check` 为 `ok`，current 指向上述版本；`touchline-manager.service`、Caddy、备份timer均为active。本机与公网 `/api/health` 返回该build，公网健康接口和首页均为HTTP 200；新客户端资源包含“有效触球”“物理触点”和“带球推进”文案。临时发布归档和备份中转副本已清理。
+
+PR 合并前 Node 22/24 的完整 `npm run check` 均通过。最终四战术×两种子比赛样本4 pass、4 review、0 block且无分布告警；review项仍是低速跑动占比诊断，详见[0.37.0比赛核验](../packages/shared/modules/matches/design/BOUNDARY_TOUCH_V0370.md)。未模拟赛季，开发和发布流程不变。
+
 ## 2026-10-24 发布：0.36.0-situational-sprint
 
 部署 PR #52，合并提交及生产 build 均为 `84392fdb8fa923c2a401e24f5e2a7ce6cfbeed1e`，检查点参数 `sprint-intent-1`。无数据库迁移、存档改写或游戏流程变化；部署前后生产 SQLite 完整性均为 `ok`，存档/战报/完成任务保持31/42/7。公网页面返回HTTP 200，公网与本机健康接口返回相同 build；`touchline-manager.service`、Caddy及备份timer均为active，服务重启计数0。真实浏览器的新标签已加载俱乐部总览，未推进赛季。
