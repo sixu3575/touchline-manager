@@ -106,8 +106,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.34.0-contact-referee';
-export const PARAMETER_VERSION = 'physiology-1';
+export const ENGINE_VERSION = '0.35.0-fatigue-calibration';
+export const PARAMETER_VERSION = 'physiology-2';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.

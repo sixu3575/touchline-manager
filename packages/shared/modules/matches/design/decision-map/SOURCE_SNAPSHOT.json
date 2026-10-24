@@ -1,8 +1,8 @@
 {
-  "verifiedOn": "2026-10-23",
-  "baselineCommit": "b424cc6f001247eae19e78962209ed7ad7845861",
-  "engineVersion": "0.34.0-contact-referee",
-  "parameterVersion": "physiology-1",
+  "verifiedOn": "2026-10-24",
+  "baselineCommit": "36adce14f6ffb35bb2ba496709497a5285de0100",
+  "engineVersion": "0.35.0-fatigue-calibration",
+  "parameterVersion": "physiology-2",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -33,7 +33,7 @@
     "packages/shared/modules/matches/positioning.mjs": "5aa998b8bc212a0b5b33444fdf042ea72e11eb02eb0116c3218f53983fc84925",
     "packages/shared/modules/matches/locomotion.mjs": "2d7ad29d5c12f53b9b33e70d204ce7372f3a1157214409af365878b027184126",
     "packages/shared/modules/matches/decisions.mjs": "6ceb01ca95d4103a4af05219286aa78d337cde32736c716273a094ea59c81567",
-    "packages/shared/modules/matches/simulation.mjs": "6fc94cb867527357b464193e8405f0cdd25c1c358f7f51dd3f4b9bcc6c96086e",
+    "packages/shared/modules/matches/simulation.mjs": "3184c5ba370c7eb1548189a5b083c50c0594e187b6548e251bc600b54681a98d",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
@@ -44,7 +44,7 @@
     "packages/shared/modules/matches/rules.mjs": "53f37ae04fdd7855cb62dcc6988fc483ae58d36f1e175ebebf915377185a9cd4",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
     "packages/shared/modules/players/index.mjs": "0cca75c59993e91705de435fb2476c3197555c11fbdb5ad513102b69697243c6",
-    "packages/shared/modules/players/match-state.mjs": "2fbab6a490d28e18bd693845855d8fc4ed285a319bf3907c8c224a3034ad2c55",
+    "packages/shared/modules/players/match-state.mjs": "41b0293d8a440690352ab65065d41426e32393e05140dac8904fd6695aaf176e",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
@@ -63,8 +63,8 @@
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "71942f3bb238bdbef745d82f1a3a1211fb098c903c972816f235f9103c67983d",
-      "svgSha256": "607bc942673e9570c5a4d4631c3417e1d022c6d76876ba62a69af1ab53c3f57a"
+      "mermaidSha256": "7b81bd811c2f60d664f8a541ecf697c73e77c5f194645d34d04e88ea4008bd9e",
+      "svgSha256": "97b245592cca0cd0a82e32f81d5578b6c6910169e874b46b142f6fce43fbe15a"
     },
     "02-roles": {
       "mermaidSha256": "478f0fc1239206462685aed0564e265d3df058a43b04c2edcb2fda86590dd3cc",

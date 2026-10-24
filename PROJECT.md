@@ -1,5 +1,7 @@
 # 项目地图
 
+0.35.0候选修正持续体能消耗，基准系数0.32→0.64；八场对照中终场体能/冲刺量更接近参考，总距离与高速距离保持，传球/控球阶段未见下降。五倍速仍只影响观看时钟；没有速度/动作上限。详见[体能节奏校准](packages/shared/modules/matches/design/MATCH_FATIGUE_CALIBRATION_V0350.md)。引擎0.35.0-fatigue-calibration，参数physiology-2；未部署，赛季流程/schema/历史结果不变。
+
 0.33.0候选比赛算法与现实基准扩展：[欧洲联赛、杯赛及欧战数据复核](packages/shared/modules/matches/design/EUROPEAN_MATCH_REALISM_20261023.md)。基准包含11国21项联赛、46国目录的国内比分、Wyscout开放事件及UEFA欧冠数据；更新压迫/封堵射门价值与射门落点、实际碰撞犯规判定。固定八场3 pass/5 review，射门/进球略高、传球/拦截偏高，射正/犯规/角球/黄牌偏低；整体review。定向52项、`npm run check`通过（125项比赛单元、16项真实集成、类型/生产构建，约289秒）；无赛季或部署，流程不变。
 
 0.30.0动作统计与评分入口见[matches设计](packages/shared/modules/matches/design/STATISTICS_V0300.md)。statistics.mjs独立观察已执行动作，ratings/statistics.mjs是客户端/评分共用的只读时钟裁切；新比赛使用opta-conventional-2/match-rating-3。物理/战术/体能仍沿0.29，历史评分不覆盖，四场并发保持关闭。
