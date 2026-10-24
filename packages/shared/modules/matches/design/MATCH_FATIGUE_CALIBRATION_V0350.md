@@ -43,6 +43,6 @@
 
 ## 兼容与验证
 
-引擎升级为`0.35.0-fatigue-calibration`，参数升级为`physiology-2`，因为旧的比赛检查点不能跨能耗曲线续算。存档schema不变；旧赛果、回放、球员赛季统计、历史fitness及已完成比赛都不重算。生产升级前仍须按原要求排空旧引擎任务、一致备份并核验离机副本。
+引擎升级为`0.35.0-fatigue-calibration`，参数升级为`physiology-2`，因为旧的比赛检查点不能跨能耗曲线续算。存档schema不变；旧赛果、回放、球员赛季统计、历史fitness及已完成比赛都不重算。已于2026-10-24部署；排空任务、一致备份、离机副本核验及生产健康检查记录见[部署与恢复](../../../../docs/OPERATIONS.md)。
 
-本次运行`node tests/tools/calibrate-realism.mjs work/realism/match-fatigue-v0350-064-20261024`：四战术×两种子、8场、约66秒；输出在Git忽略的本机`work/realism/`，不写生产。另用0.48系数做同矩阵敏感性对照。专项19项测试通过；`npm run check`通过（类型检查、冒烟与定向业务、125项比赛单元、16项真实引擎/HTTP/恢复集成、生产构建），255.8秒。未运行季赛流程或物理赛季。CI待PR触发，生产未部署；现实性总状态保留review，不把工程检查通过写成现实数据全通过。
+本次运行`node tests/tools/calibrate-realism.mjs work/realism/match-fatigue-v0350-064-20261024`：四战术×两种子、8场、约66秒；输出在Git忽略的本机`work/realism/`，不写生产。另用0.48系数做同矩阵敏感性对照。专项19项测试通过；`npm run check`通过（类型检查、冒烟与定向业务、125项比赛单元、16项真实引擎/HTTP/恢复集成、生产构建），255.8秒。未运行季赛流程或物理赛季。PR #49 的 Node 22/24 CI 均通过；生产已部署。现实性总状态保留review，不把工程检查通过写成现实数据全通过。
