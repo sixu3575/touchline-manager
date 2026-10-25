@@ -2,6 +2,16 @@
 
 联赛球员榜发布只增加一个会话内只读API和有界进程缓存，没有schema迁移、数据批处理或新增服务。部署后应检查带同一存档Cookie访问`/api/league-player-leaders`返回当前赛季覆盖数，换存档时数据隔离，并确认未结算比赛不会进入榜单；不需要推进赛季或重算比赛。
 
+## 2026-10-25 热修：排行榜聚合内存
+
+排行榜读取器原先先解压并保留本赛季全部详细战报，再统一汇总。生产最大存档含43份详细归档，解压数据合计173,359,106字节，单份最大6,112,889字节；在Node老生代128 MiB限制下造成堆内存耗尽，服务先后自动重启3次，期间Caddy返回502。PR #60 改为逐场读取并立即汇总，不改统计口径、存档格式、缓存键或游戏流程。
+
+部署提交与生产build均为 `33c997a1f44675bd998075060e54513f25822c9b`。发布归档 SHA-256 为 `e1a7759d9ea60da092d6932f0f38763f109dad19ddedbeb1ee15c79f88ef33b5`，通过 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> 33c997a1f44675bd998075060e54513f25822c9b` 安装。部署前一致SQLite快照为 `/var/backups/touchline-manager/touchline-2026-10-25T12-35-27-303Z.sqlite`，离机副本为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-2026-10-25-pre-leaderboard-memory-0.39.1.sqlite`，124,375,040字节；两份 SHA-256 均为 `fa0caf19c11382994d4f4ef07ae58409700c2226c7b4222138642181ade354db`，离机副本 `integrity_check` 为 `ok`。部署前后存档/详细报告归档/比赛任务为31/50/7；安装脚本另生成部署快照 `/var/backups/touchline-manager/touchline-2026-10-25T12-37-42-928Z.sqlite`。
+
+部署后用同一只读聚合读取器、实际生产中报告数据量最大的存档和相同128 MiB Node堆上限核验，返回20/20场和96条球员统计；服务未再次重启。生产库 `integrity_check` 为 `ok`，`touchline-manager.service`、Caddy均为active，重启计数0。本机与公网健康接口、公网首页和JS资源均为HTTP 200，并返回该build。按用户要求未操作其桌面浏览器。
+
+PR合并前 Node 22/24 CI通过；`npm run check`通过（62项冒烟/业务检查、类型检查和生产构建）。新增低内存回归在64 MiB堆上处理43份各4 MiB的报告并通过。此次只修服务端读取内存峰值，不涉及比赛算法或重大游戏流程，因此没有模拟比赛或赛季。
+
 ## 2026-10-25 发布：0.39.0-shot-plane-aim
 
 部署 PR #58，合并提交和生产 build 均为 `3c825100114e24b08d0bb457fab6e88392647308`，比赛引擎版本 `0.39.0-shot-plane-aim`、参数 `shot-plane-aim-1`。发布包含联赛球员榜和近角射门目标平面修正；射门目标与整球越过门线的判定对齐，不改射门选择、球员能力或射门配额。没有数据库迁移、存档改写或历史比赛重算。部署前所有7个比赛任务已完成。
