@@ -2,6 +2,16 @@
 
 联赛球员榜发布只增加一个会话内只读API和有界进程缓存，没有schema迁移、数据批处理或新增服务。部署后应检查带同一存档Cookie访问`/api/league-player-leaders`返回当前赛季覆盖数，换存档时数据隔离，并确认未结算比赛不会进入榜单；不需要推进赛季或重算比赛。
 
+## 2026-10-25 发布：0.39.0-shot-plane-aim
+
+部署 PR #58，合并提交和生产 build 均为 `3c825100114e24b08d0bb457fab6e88392647308`，比赛引擎版本 `0.39.0-shot-plane-aim`、参数 `shot-plane-aim-1`。发布包含联赛球员榜和近角射门目标平面修正；射门目标与整球越过门线的判定对齐，不改射门选择、球员能力或射门配额。没有数据库迁移、存档改写或历史比赛重算。部署前所有7个比赛任务已完成。
+
+部署前一致 SQLite 快照为 `/var/backups/touchline-manager/touchline-2026-10-25T11-44-29-413Z.sqlite`，离机副本为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-2026-10-25-pre-shot-0.39.sqlite`，124,375,040字节。VM与离机副本 SHA-256 均为 `fa0caf19c11382994d4f4ef07ae58409700c2226c7b4222138642181ade354db`；离机 `integrity_check` 为 `ok`；部署前后存档/战报/比赛任务数为31/50/7。安装脚本另生成部署备份。
+
+发布归档 SHA-256 为 `a91e47dca3c79f7ee8f9c3fc1c31e3f26fedbf1ffe57caaa800af945e101c8b7`，调用 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> 3c825100114e24b08d0bb457fab6e88392647308` 完成安装。部署后生产库 `integrity_check` 为 `ok`，`current` 指向上述 build；`touchline-manager.service`、Caddy及备份timer均为active，服务重启计数0。本机和公网 `/api/health` 返回该 build，公网健康接口、首页和客户端 JS 均为HTTP 200，客户端资源包含联赛球员榜。按用户要求未操作其桌面浏览器，因此本次以HTTP及资源响应核验部署，没有记录浏览器交互检查。
+
+PR合并前 Node 22/24 CI均通过。`npm run check:quick`与完整`npm run check`通过；后者含131项单元/业务测试、16项真实引擎/API集成、类型检查和生产构建，真实比赛集成约516秒。四战术×种子999/1001的八场同输入比较为2 pass、6 review、0 block，无分布告警；review仍有低速跑动及个别传球/射门提示，样本不支持宣称整体现实性已通过。射正均值4.875→5.375/场，进球3.125→2.625/场；小样本比分方差4.696→0.839。未模拟赛季；完整口径与限制见[射门几何复核](../packages/shared/modules/matches/design/SHOT_AIM_V0390.md)。
+
 ## 2026-10-24 发布：0.37.0-boundary-touch-statistics
 
 部署 PR #54，提交及生产 build 均为 `7334e59118679186e27753a4680e2191a913747c`，引擎参数 `boundary-touch-1`。部署修正持续带球脚触后的边线制动，并将重复步态触点从玩家常规触球统计中分离；没有数据库迁移、存档改写、历史比赛重算或游戏流程变更。部署前所有7个比赛任务均已完成。
