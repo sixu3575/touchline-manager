@@ -1,6 +1,6 @@
 # HTTP与比赛计算
 
-新增只读`GET /api/league-player-leaders`：按当前Cookie存档和赛季读取已归档的联赛比赛明细，调用赛事只读selector聚合球员榜单并返回统计覆盖数；不读杯赛、不包含未结算job、不暴露原始报告/能力/调试字段。聚合以`saveId + revision + season`作有界内存缓存，存档变更后自动失效；不新增SQLite字段、端点写操作或历史重算。
+新增只读`GET /api/league-player-leaders`：按当前Cookie存档和赛季逐场读取已归档的联赛比赛明细，立即交给赛事只读selector聚合球员榜单并返回统计覆盖数，不将整个赛季的解压战报同时留在Node堆内存中；不读杯赛、不包含未结算job、不暴露原始报告/能力/调试字段。聚合以`saveId + revision + season`作有界内存缓存，存档变更后自动失效；不新增SQLite字段、端点写操作或历史重算。
 
 0.30.1 GET /api/state为已结算战报补充两队首发评分均值；旧压缩档只读查询，使用storage/replays的save+report隔离、128条小汇总缓存，不向客户端发送完整评分明细或新增N次详情请求。未改动作路由、任务调度和结算。见matches/ratings/TEAM_RATING_V0301.md。
 

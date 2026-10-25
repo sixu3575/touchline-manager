@@ -1,6 +1,6 @@
 # 架构
 
-`GET /api/league-player-leaders`是当前会话的只读派生查询：服务端批量读取本赛季已结算联赛详情，调用competitions selector汇总安全球员统计；客户端不为每场战报发起详情请求。API不读取直播中的任务报告、不开放AI比赛回放，也不把原始球员能力或比赛诊断发给客户端。聚合以存档revision作有界进程内缓存键。
+`GET /api/league-player-leaders`是当前会话的只读派生查询：服务端逐场读取本赛季已结算联赛详情并立即交给competitions selector聚合，避免整季解压战报同时占用堆内存；客户端不为每场战报发起详情请求。API不读取直播中的任务报告、不开放AI比赛回放，也不把原始球员能力或比赛诊断发给客户端。聚合以存档revision作有界进程内缓存键。
 
 0.12.0新增players/assessment.mjs纯知识规则（经公共index.mjs导出）与server/player-view.mjs统一DTO边界；引擎不导入知识规则。原状态/任务/档案只在出站投影，SQLite仍保存原真值与调试信息。客户端不能上传真值或评估对象，staff/scout动作仍按原事务执行。
 

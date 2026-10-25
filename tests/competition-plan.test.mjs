@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
 import { createGame } from '../packages/shared/game.mjs';
 import {
@@ -121,6 +122,56 @@ test('league leader reader loads detailed reports within the save boundary and c
   assert.equal(reader('save-b', state).availableMatches, 0);
   assert.equal(reads, 2, 'another save cannot reuse cached report details');
   assert.ok(!JSON.stringify(first).includes('attributes'));
+});
+
+test('league leader aggregation streams full reports within the server heap budget', () => {
+  const readerUrl = new URL('../packages/server/src/league-player-leaders.mjs', import.meta.url).href;
+  const script = `
+    import assert from 'node:assert/strict';
+    import { gzipSync } from 'node:zlib';
+    import { createLeaguePlayerLeaderReader } from ${JSON.stringify(readerUrl)};
+
+    const count = 43;
+    const summaries = Array.from({ length: count }, (_, index) => ({
+      id: 's1-r' + index,
+      season: 1,
+      competition: '先锋联赛',
+      detailsStored: true,
+    }));
+    const row = {
+      id: 'player-1', name: 'Player', number: 1, role: 'MID', side: 0,
+      minutes: 90, goals: 0, assists: 0, redCards: 0, ownGoals: 0,
+      shots: 0, onTarget: 0, xg: 0, keyPasses: 0, passes: 10, completed: 9,
+      wonTackles: 0, interceptions: 0, saves: 0, conceded: 0,
+      yellowCards: 0, fouls: 0, offsides: 0, takeOns: 0, blocks: 0,
+      clearances: 0, possessionLost: 0, rating: 7,
+    };
+    const reader = createLeaguePlayerLeaderReader({
+      report(_saveId, reportId) {
+        return gzipSync(JSON.stringify({
+          id: reportId, season: 1, competition: '先锋联赛',
+          homeId: 'home', homeName: 'Home', awayId: 'away', awayName: 'Away',
+          events: [], snapshots: [], playerRatings: { rows: [row] },
+          padding: 'x'.repeat(4 * 1024 * 1024),
+        }));
+      },
+    });
+    const state = {
+      season: 1, revision: 1,
+      results: summaries.map(({ id }) => ({ id })),
+      reports: summaries,
+    };
+    const result = reader('save', state);
+    assert.equal(result.availableMatches, count);
+    assert.equal(result.players[0].appearances, count);
+  `;
+  const run = spawnSync(
+    process.execPath,
+    ['--max-old-space-size=64', '--input-type=module', '-e', script],
+    { encoding: 'utf8', timeout: 60_000 },
+  );
+  assert.equal(run.error, undefined, run.error?.message);
+  assert.equal(run.status, 0, run.stderr || run.stdout);
 });
 
 test('elapsed recovery belongs to frozen pre-match inputs and is not repeated by settlement or same-date cups', () => {

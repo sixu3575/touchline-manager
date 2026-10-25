@@ -17,22 +17,25 @@ export function createLeaguePlayerLeaderReader(replays, cacheLimit = 64) {
         reportSeason(report) === state.season &&
         results.has(report.id),
     );
-    const reports = [];
-    for (const summary of summaries) {
-      let report = summary;
-      if (summary.detailsStored) {
-        const payload = replays.report(saveId, summary.id);
-        if (!payload) continue;
-        try {
-          report = JSON.parse(gunzipSync(payload));
-        } catch {
-          continue;
+    function* detailedReports() {
+      for (const summary of summaries) {
+        let report = summary;
+        if (summary.detailsStored) {
+          const payload = replays.report(saveId, summary.id);
+          if (!payload) continue;
+          try {
+            report = JSON.parse(gunzipSync(payload));
+          } catch {
+            continue;
+          }
         }
+        // The selector consumes each report before requesting the next one, so
+        // full event/snapshot payloads do not accumulate for the whole season.
+        yield report;
       }
-      reports.push(report);
     }
 
-    const result = leaguePlayerLeaders(reports, {
+    const result = leaguePlayerLeaders(detailedReports(), {
       season: state.season,
       expectedMatches: results.size,
     });
