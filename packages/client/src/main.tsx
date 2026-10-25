@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   CalendarDays,
   Check,
   CheckCircle2,
@@ -24,7 +25,7 @@ import { Replay } from './components/Replay';
 import { Badge, Crest } from './components/ui';
 import type { Game, Player, Report } from './model';
 import { useMatchJob, MatchTask, PhysicalReplay, Pitch } from './modules/matches';
-import { Fixtures, MyMatches } from './modules/competitions';
+import { Fixtures, MyMatches, PlayerLeaders } from './modules/competitions';
 import { Finance } from './modules/economy';
 import { Overview } from './modules/overview';
 import { Scouting, Squad } from './modules/players';
@@ -37,6 +38,7 @@ const nav = [
   { id: 'squad', label: '一线队', icon: Users },
   { id: 'tactics', label: '战术室', icon: SlidersHorizontal },
   { id: 'fixtures', label: '赛程与杯赛', icon: CalendarDays },
+  { id: 'league-stats', label: '联赛球员榜', icon: BarChart3 },
   { id: 'my-matches', label: '我的比赛', icon: FileText },
   { id: 'scouting', label: '球探中心', icon: Search },
   { id: 'training', label: '训练基地', icon: Dumbbell },
@@ -257,6 +259,7 @@ function App() {
                       squad: '了解每一位球员，让合适的人站在合适的位置。',
                       tactics: '阵型决定站位，选择决定比赛的方向。',
                       fixtures: '从第一声哨响，到属于你的奖杯。',
+                      'league-stats': '查看本赛季进球、助攻、传球与防守数据榜单。',
                       'my-matches': '重温本队每场较量，查看战报与球队表现。',
                       scouting: '找到下一颗新星，写下俱乐部的未来。',
                       training: '每一份进步，都来自球场之外的积累。',
@@ -296,6 +299,9 @@ function App() {
               onReport={setReport}
               matchProgress={matchProgress}
             />
+          )}
+          {view === 'league-stats' && (
+            <PlayerLeaders season={game.season} revision={game.revision} />
           )}
           {view === 'my-matches' && <MyMatches game={game} onReport={setReport} />}
           {view === 'scouting' && (
