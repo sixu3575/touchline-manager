@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-10-26 发布：0.40.0-workload-fatigue
+
+部署 PR #62，合并提交及生产 build 均为 `65f8d51f3d7b4c18d63aceb34cbd2ae8b9e4ec84`，引擎版本 `0.40.0-workload-fatigue` / 参数 `workload-fatigue-1`。赛内耗能按个人真实位移、冲刺启动和身体接触累计；力量/耐力影响体能消耗效率与七日恢复。无数据库迁移、存档改写或历史比赛重算。部署前全部7个比赛任务已完成；停服后生产库仍为31个存档、7个完成任务，部署后数量不变，`integrity_check` 为 `ok`。
+
+部署前一致 SQLite 快照为 `/var/backups/touchline-manager/touchline-2026-10-25T14-47-33-986Z.sqlite`，离机副本为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-2026-10-25-pre-workload-fatigue-0.40.sqlite`，大小136,060,928字节；VM与本机 SHA-256 均为 `f3ac82040937038c960095fc765681592f94834bf564e9ca36f3a2bb3c6d4aa2`，离机副本 `integrity_check` 为 `ok`。安装脚本另生成部署快照 `/var/backups/touchline-manager/touchline-2026-10-25T14-48-55-720Z.sqlite`。
+
+发布归档 SHA-256 为 `dea0c9d041dbb0c2091788a7b286844bda1e93521a04fcc5d76392fe9e67cb28`，通过 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> 65f8d51f3d7b4c18d63aceb34cbd2ae8b9e4ec84` 安装。部署后生产库 `integrity_check` 为 `ok`；`touchline-manager.service`、Caddy和备份timer均为active，服务重启计数0。公网与本机 `/api/health` 返回该build，公网首页和客户端JS均为HTTP 200。旧发布仍保留用于代码回滚。
+
+PR合并前 Node 22/24 完整检查通过（分别10分40秒、9分16秒）；本机 `npm run check:quick`通过132项、类型检查与生产构建。比赛现实校准为四战术×两种子8场，2 pass、6 review、0 block；review均为已有低速跑动占比告警，不跑完整赛季。分位置统计、恢复公式与样本限制见[0.40体能校准](../packages/shared/modules/matches/design/MATCH_WORKLOAD_V0400.md)。
+
 联赛球员榜发布只增加一个会话内只读API和有界进程缓存，没有schema迁移、数据批处理或新增服务。部署后应检查带同一存档Cookie访问`/api/league-player-leaders`返回当前赛季覆盖数，换存档时数据隔离，并确认未结算比赛不会进入榜单；不需要推进赛季或重算比赛。
 
 ## 2026-10-25 热修：排行榜聚合内存
