@@ -16,7 +16,9 @@ export function physicalProfile(p) {
     energyRecovery: 0.08 + 0.0004 * stamina + 0.0002 * strength,
     adrenalineDuration: 0.9 + 0.012 * strength + 0.004 * stamina,
     debtRecovery: 0.0015 + 0.00003 * stamina + 0.00001 * strength,
-    conditionRecovery: 0.28 + 0.003 * stamina + 0.001 * strength,
+    // Calibrated so an average player returns from roughly 40–50 to the low
+    // 80s over a seven-day interval; stronger physical profiles recover faster.
+    conditionRecovery: 0.10 + 0.0009 * stamina + 0.0003 * strength,
   };
 }
 

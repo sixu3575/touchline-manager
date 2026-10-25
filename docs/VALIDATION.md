@@ -1,5 +1,7 @@
 # 分层验证与开发耗时
 
+2026-10-26 `0.40.0-workload-fatigue`：赛内体能改为实际位移/速度、冲刺启动和身体接触个体计耗；力量/耐力影响损耗及轮间恢复。按 match=true、season=false 执行固定四战术×两种子八场校准，终场体能均值46.6/中位43.6，距离相关系数−0.922；2 pass/6 review/0 block，review均为低速跑动占比。`npm run check:quick`通过132项，完整`npm run check`通过132项单测/业务测试、16项真实比赛/API/检查点集成、类型检查和生产构建，用时约261秒。决策图第1/3/6图、SVG、源码摘要和模块记录同步；不运行赛季。分位置数据与小样本限制见[MATCH_WORKLOAD_V0400.md](../packages/shared/modules/matches/design/MATCH_WORKLOAD_V0400.md)。部署状态见[OPERATIONS.md](OPERATIONS.md)。
+
 2026-10-24 `0.38.0-pass-reception-contest`：传球候选新增接球点竞速估值，出脚前按实时状态重评；按比赛算法流程执行四战术×999/1001八场对照并跑完整`npm run check`，未改赛历/存档流程，不运行赛季。对照队级传球均值543.3→502.3，完成率85.7%→88.7%，拦截53.8→32.7、丢球88.3→68.2；2 pass/6 review/0 block；14条review警报均为低速跑动占比超复核线、无block/分布告警。`npm run check`通过（130项比赛单元、16项真实引擎/API集成、类型检查和生产构建），271秒。决策图第5图/SVG/摘要与比赛模块CHANGELOG同步；旧报告/回放不重算。部署状态见[OPERATIONS.md](OPERATIONS.md)。
 
 2026-10-24 `0.35.0-fatigue-calibration`：比赛内持续体能消耗系数0.32→0.64，按比赛算法变更运行固定四战术×两种子八场现实比较；未改赛季/日历流程，不运行业务赛季或物理赛季。八场完成、5 pass/3 review、无distribution block；外场平均终场体能85.05→63.79，平均冲刺距离201→133米，高速距离516→502米、总距离9048→9008米，传球531→544、阶段中位时长15.31→14.35秒未改善。低速距离与个别射门review仍保留，完整基线、方差和限制见[MATCH_FATIGUE_CALIBRATION_V0350.md](../packages/shared/modules/matches/design/MATCH_FATIGUE_CALIBRATION_V0350.md)。19项定向测试通过；`npm run check`通过（125项比赛单元、16项真实引擎/HTTP集成、类型/生产构建），255.8秒。PR #49 的 Node 22/24 CI通过，生产于2026-10-24部署；运维核验见[OPERATIONS.md](OPERATIONS.md)。流程不变。

@@ -1,8 +1,8 @@
 {
-  "verifiedOn": "2026-10-25",
-  "baselineCommit": "899f3c0ef80f6751374213af48fceb701688086f",
-  "engineVersion": "0.39.0-shot-plane-aim",
-  "parameterVersion": "shot-plane-aim-1",
+  "verifiedOn": "2026-10-26",
+  "baselineCommit": "8ddb8245f50876e975111f9f34366c5c80b75a77",
+  "engineVersion": "0.40.0-workload-fatigue",
+  "parameterVersion": "workload-fatigue-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -33,7 +33,7 @@
     "packages/shared/modules/matches/positioning.mjs": "c955ba34293ad1a783d30664cf7304af561b935f0ff6a18b130cdabd27979e8d",
     "packages/shared/modules/matches/locomotion.mjs": "fdbe8850a4fc9aae0d70222be546664231a3218cb589df9b34fbd1abf0d0d5fb",
     "packages/shared/modules/matches/decisions.mjs": "a38edbba7aea9174a3881ebe96954463fcca160afa26a7da209caaef639abfa6",
-    "packages/shared/modules/matches/simulation.mjs": "24989999fa51851e10ca8191123487963bdb25ce1aecfe3185414cf343f21ecc",
+    "packages/shared/modules/matches/simulation.mjs": "e91b9ccb56c8642918b33894dd5e57aaaa879b3d0eba1bb4abc1c99b18eaae9d",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
@@ -44,36 +44,36 @@
     "packages/shared/modules/matches/rules.mjs": "53f37ae04fdd7855cb62dcc6988fc483ae58d36f1e175ebebf915377185a9cd4",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
     "packages/shared/modules/players/index.mjs": "0cca75c59993e91705de435fb2476c3197555c11fbdb5ad513102b69697243c6",
-    "packages/shared/modules/players/match-state.mjs": "41b0293d8a440690352ab65065d41426e32393e05140dac8904fd6695aaf176e",
+    "packages/shared/modules/players/match-state.mjs": "069a4fabc615a1073356136786096ac9444e23b95d0d9fa19a9e1ca74617d4b9",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
     "packages/shared/modules/matches/attribution.mjs": "8ce1387f8d79286f68555a7b5d7ee89693d844ac66e217797fa6e1c36439f934",
     "packages/shared/modules/matches/ratings/index.mjs": "753b0e63f81c6a3b6e5763dde36f02ed846ceed1a610c0191acbb4d9c724ef27",
-    "packages/shared/modules/matches/activity.mjs": "7547053203cb186699d729ba9793b93a2bac8534280019f35b2ab244dead2a48",
+    "packages/shared/modules/matches/activity.mjs": "2f35445eeea545d3b385a41cb59179e1151a505c0b675783022571096ba3da4f",
     "packages/shared/modules/matches/defending.mjs": "eec884d5ef9e42e136f6189408caff7e187787c863f381fe616bc7030e299b17",
     "packages/shared/modules/matches/execution.mjs": "69aeae1444d6a8e4a518ffd59513984427cabb97f73ef329298b08af11d9f1be",
     "packages/shared/modules/matches/replay-analysis.mjs": "aa43d8ca08c570c694a50eba30ae8a8cbad9c48e93891f0ec68c81bd432dfafb",
     "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56",
     "packages/shared/modules/matches/onball.mjs": "f00dd508161dfd4eca66e7a77d4d301e362adfb66a4401c3cb201b8d04ba0a52",
     "packages/shared/modules/matches/opportunity.mjs": "ff114ae4f6961d61d70225acf0a7773e7ba22620e4da8af489335652abce7e24",
-    "packages/shared/modules/players/physiology.mjs": "2f6a319acb08559e83a70dd531e6326ca313a3c4ba06bcee72f8ec9cb06b4d5b",
+    "packages/shared/modules/players/physiology.mjs": "93bb30472677bc6a9dd2a765ec9ced7f8b9588442eed367ddf7beed55a518e92",
     "packages/shared/modules/matches/statistics.mjs": "f0d1c79408e84fd4419152d6dceabc894ecf6e82ab5d3fe7a37909d5a8591072",
     "packages/shared/modules/matches/ratings/statistics.mjs": "bfe7163a5a58b704d64644222947aca3f129bf74f4e61be53b75b9c16b25479e",
     "packages/client/src/modules/matches/PhysicalReplay.tsx": "36fddb6357c287bf8a4cc0441cb5fe2cc28f22bf83ad9060aa66a6f6dfd9b862"
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "991217b4696ec198d12d4e34a0002e5dc3225135c5b7fd5b0329c3324ba4341c",
-      "svgSha256": "53e5c66e8639ea444ca888cc148aa5ff226700c9f5992ffac0a7227a897f4143"
+      "mermaidSha256": "2ea1a31462e04832baf3e61dc8dea5ca3f63622f7b7c33e90b26e13ce317012a",
+      "svgSha256": "e6e3abd9352861f080164bcc9322087767a7dfb46bf057d08be7aca0ee6db972"
     },
     "02-roles": {
       "mermaidSha256": "478f0fc1239206462685aed0564e265d3df058a43b04c2edcb2fda86590dd3cc",
       "svgSha256": "e76059126189e15414df0505c771d5599cc5d5da2d0a2d4e2a6b94cb0b623e17"
     },
     "03-positioning": {
-      "mermaidSha256": "e8e3679ed94e681f0b6cad614b2c10aac48487dfa8875b303c31932483de21f3",
-      "svgSha256": "19082b7df879602382674c8f1003306deea6c05560c7a6787c84707293345fcd"
+      "mermaidSha256": "be77b22f50969489e15dd5c22af5682e6f52597b7401ed5f200407db4781f17f",
+      "svgSha256": "714dd75979024a805e3e4bd0a5eff013ac3f0308a8e199c6690b29c87ea591ad"
     },
     "04-reception": {
       "mermaidSha256": "f0e1d5a71048fa8d968545ef11015670121ae6ead29b8a88556872a21b8855dd",
@@ -84,8 +84,8 @@
       "svgSha256": "738786dc12ec1e65d21179c160fa6a414416095bbd715ce53806cb217e8d2950"
     },
     "06-profiles": {
-      "mermaidSha256": "7aaf651163921e246e85941ae285be8fe237369520660eafe94a7ffd04ef8797",
-      "svgSha256": "5b7fae589ae226cb1739884c6e67a8ec554565f5faa6c4e455995244ef793ed7"
+      "mermaidSha256": "c8f400a04673a91a7335822b553aebdd947fe86c8f161b1aba46a4c2c2fb9305",
+      "svgSha256": "7318b5fb375a60436c9f3668fab197c8342e16373e9fa2760d4e032c8888fdb0"
     },
     "07-knowledge": {
       "mermaidSha256": "a4a3a2b588a91ad9a202a0f4246c747f12f0d4c719cf19570ff65ce2b95413fb",

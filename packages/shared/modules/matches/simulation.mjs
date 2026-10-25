@@ -39,7 +39,13 @@ import {
   kickRecovery,
   trackKickReceiver,
 } from './execution.mjs';
-import { activityState, burstReserve, recordMovement, restAtHalfTime } from './activity.mjs';
+import {
+  activityState,
+  burstReserve,
+  recordMovement,
+  recordPhysicalDuel,
+  restAtHalfTime,
+} from './activity.mjs';
 import {
   tackleWindow,
   tackleProbability,
@@ -106,8 +112,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.39.0-shot-plane-aim';
-export const PARAMETER_VERSION = 'shot-plane-aim-1';
+export const ENGINE_VERSION = '0.40.0-workload-fatigue';
+export const PARAMETER_VERSION = 'workload-fatigue-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
@@ -605,8 +611,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
 
       const pair = `${defender.index}:${carrier.index}`;
       detected.add(pair);
-      if (physicalContactPairs.has(pair) || (physicalFoulCooldowns[pair] ?? -Infinity) > time)
-        continue;
+      if (physicalContactPairs.has(pair)) continue;
+      recordPhysicalDuel(defender, carrier);
+      if ((physicalFoulCooldowns[pair] ?? -Infinity) > time) continue;
       physicalFoulCooldowns[pair] = time + 2.5;
 
       const dv = defender.body.linvel();
@@ -1815,15 +1822,6 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         a.velocity = a.body.linvel();
         a.direction = direction(a.side);
         a.maxSpeed = Math.max(a.maxSpeed, Math.hypot(a.velocity.x, a.velocity.z));
-        a.energy = updateMatchEnergy(
-          a.player,
-          a.energy,
-          Math.hypot(a.velocity.x, a.velocity.z),
-          clubs[a.side].tactics.press,
-          active,
-          STEP * CLOCK_SCALE,
-        );
-        a.player.matchState.energy = a.energy;
         a.player.matchState.mental = mentalModifier(a.player.matchState);
         a.cooldown -= STEP;
         a.hold = owner === a ? a.hold + STEP : 0;
@@ -2024,7 +2022,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         );
       }
       for (const a of actors)
-        if (!a.sentOff)
+        if (!a.sentOff) {
           recordMovement(
             a,
             movementStarts[a.index],
@@ -2033,6 +2031,20 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             active,
             continuity.controller === a.index,
           );
+          const displacement = Math.hypot(
+            a.body.translation().x - movementStarts[a.index].x,
+            a.body.translation().z - movementStarts[a.index].z,
+          );
+          a.energy = updateMatchEnergy(
+            a.player,
+            a.energy,
+            displacement / STEP,
+            clubs[a.side].tactics.press,
+            active,
+            STEP * CLOCK_SCALE,
+          );
+          a.player.matchState.energy = a.energy;
+        }
       if (!active && deadState && deadState.type !== 'goal') {
         physics.ball.setTranslation(
           { x: deadState.ball.x, y: BALL_RADIUS + 0.015, z: deadState.ball.z },
