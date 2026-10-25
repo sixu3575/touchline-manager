@@ -284,6 +284,7 @@ export interface TrainingRound {
     fieldId: string;
     coachName: string | null;
     status: string;
+    fitnessChange?: number;
     changes: { attribute: string; delta: number; reason: string }[];
   }[];
 }

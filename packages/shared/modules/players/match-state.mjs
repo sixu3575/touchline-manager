@@ -72,7 +72,7 @@ export function energyCost(p, speed, press, live, dt) {
   const role = p.role === 'GK' ? 0.45 : 1;
   const intensity = { high: 1.2, normal: 1, low: 0.85 }[press] ?? 1;
   return (
-    ((dt * 0.64) / 60) *
+    ((dt * 1.08) / 60) *
     role *
     intensity *
     (0.2 + 0.4 * speed + 0.03 * Math.max(0, speed - 4) ** 2) *

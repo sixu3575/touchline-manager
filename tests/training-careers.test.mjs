@@ -75,6 +75,37 @@ test('training reservations never change ability immediately; allocation validat
   assert.throws(() => applyAction(g, 'trainingFacility', { fieldId: 'shooting' }), /不足/);
 });
 
+test('specialist training spends field-specific fitness while the recovery ground restores it', () => {
+  const g = setup(),
+    p = g.clubs[0].players[5];
+  p.fitness = 80;
+  applyAction(g, 'trainingAssign', { fieldId: 'passing', playerIds: [p.id] });
+  g.round = 1;
+  resolveTraining(g);
+  assert.equal(p.fitness, 76);
+  assert.equal(g.training.history[0].rows[0].fitnessChange, -4);
+
+  const intense = setup(),
+    sprinter = intense.clubs[0].players[5];
+  sprinter.fitness = 80;
+  applyAction(intense, 'trainingFacility', { fieldId: 'pace' });
+  applyAction(intense, 'trainingAssign', { fieldId: 'pace', playerIds: [sprinter.id] });
+  intense.round = 1;
+  resolveTraining(intense);
+  assert.equal(sprinter.fitness, 72);
+  assert.equal(intense.training.history[0].rows[0].fitnessChange, -8);
+
+  const next = setup(),
+    recovered = next.clubs[0].players[5];
+  recovered.fitness = 80;
+  applyAction(next, 'trainingAssign', { fieldId: 'physical', playerIds: [recovered.id] });
+  next.round = 1;
+  resolveTraining(next);
+  assert.equal(recovered.fitness, 94);
+  assert.equal(next.training.history[0].rows[0].fitnessChange, 14);
+  assert.equal(publicState(next).training.history[0].rows[0].fitnessChange, 14);
+});
+
 test('one frozen league round trains and pays staff once; cup does neither; all four reports remain available', () => {
   const g = setup(),
     id = g.clubs[0].players[5].id;

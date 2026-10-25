@@ -22,22 +22,42 @@ const allAttributes = Object.values(ATTRIBUTE_GROUPS)
   .flatMap((g) => Object.keys(g.attributes))
   .sort();
 
-test('days-based recovery depends on stamina and strength, preserves identity, and composes over time', () => {
+test('weekly recovery preserves substantial stamina and strength differences after a full match', () => {
   const p = player('recovery', 'MID', 60, random(41));
   const low = structuredClone(p),
     endurance = structuredClone(p),
-    strong = structuredClone(p);
+    strong = structuredClone(p),
+    high = structuredClone(p);
+  p.attributes.stamina = 50;
+  p.attributes.strength = 50;
   for (const a of [low, endurance, strong]) {
     a.attributes.stamina = 20;
     a.attributes.strength = 20;
   }
   endurance.attributes.stamina = 90;
   strong.attributes.strength = 90;
+  high.attributes.stamina = 90;
+  high.attributes.strength = 90;
   assert.ok(physicalProfile(endurance).capacity > physicalProfile(low).capacity);
   assert.ok(physicalProfile(strong).capacity > physicalProfile(low).capacity);
   assert.ok(recoveredCondition(endurance, 28, 3) > recoveredCondition(low, 28, 3));
   assert.ok(recoveredCondition(strong, 28, 3) > recoveredCondition(low, 28, 3));
-  assert.ok(recoveredCondition(low, 28, 7) > 90, 'one week is not the legacy eight points');
+  assert.ok(recoveredCondition(low, 28, 7) < 60, 'low physical attributes recover more slowly');
+  assert.ok(
+    Math.abs(recoveredCondition(low, 45, 7) - 65.1) < 0.2,
+    'low physical attributes recover from realistic full-time fatigue more slowly',
+  );
+  assert.ok(
+    Math.abs(recoveredCondition(p, 45, 7) - 78.2) < 0.2,
+    'average attributes recover close to 80 over seven days after full-match fatigue',
+  );
+  assert.ok(
+    Math.abs(recoveredCondition(high, 45, 7) - 88.4) < 0.2,
+    'high stamina and strength materially accelerate weekly recovery',
+  );
+  assert.ok(recoveredCondition(high, 45, 7) - recoveredCondition(low, 45, 7) > 22);
+  assert.ok(recoveredCondition(endurance, 45, 7) > recoveredCondition(low, 45, 7));
+  assert.ok(recoveredCondition(strong, 45, 7) > recoveredCondition(low, 45, 7));
   assert.equal(recoveredCondition(p, 28, 0), 28);
   assert.equal(recoveredCondition(p, 100, 7), 100);
   assert.throws(() => recoveredCondition(p, 28, -1));
