@@ -12,6 +12,7 @@ import { movementMode, movement } from '../../packages/shared/modules/matches/lo
 import {
   createMatchState,
   physicalProfile,
+  energyCost,
   updateMatchEnergy,
   effectiveAbility,
 } from '../../packages/shared/modules/players/index.mjs';
@@ -226,6 +227,8 @@ test('strength and stamina buy capacity and recovery, never a higher personal fr
   high.player.attributes.stamina = 90;
   high.player.attributes.strength = 90;
   for (const a of [low, high]) a.player.matchState = createMatchState(a.player);
+  assert.ok(physicalProfile(high.player).capacity > physicalProfile(low.player).capacity * 1.5);
+  assert.ok(energyCost(low.player, 7, 'normal', true, 1) > energyCost(high.player, 7, 'normal', true, 1) * 2);
   assert.equal(
     movement(low.player, 100, 'sprint').speed,
     movement(high.player, 100, 'sprint').speed,

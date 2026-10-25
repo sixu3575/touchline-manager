@@ -22,7 +22,7 @@ const allAttributes = Object.values(ATTRIBUTE_GROUPS)
   .flatMap((g) => Object.keys(g.attributes))
   .sort();
 
-test('weekly recovery leaves a full-match player near 80 and still depends on stamina and strength', () => {
+test('weekly recovery preserves substantial stamina and strength differences after a full match', () => {
   const p = player('recovery', 'MID', 60, random(41));
   const low = structuredClone(p),
     endurance = structuredClone(p),
@@ -42,21 +42,22 @@ test('weekly recovery leaves a full-match player near 80 and still depends on st
   assert.ok(physicalProfile(strong).capacity > physicalProfile(low).capacity);
   assert.ok(recoveredCondition(endurance, 28, 3) > recoveredCondition(low, 28, 3));
   assert.ok(recoveredCondition(strong, 28, 3) > recoveredCondition(low, 28, 3));
-  assert.ok(recoveredCondition(low, 28, 7) < 65, 'recovery is gradual rather than near-instant');
+  assert.ok(recoveredCondition(low, 28, 7) < 60, 'low physical attributes recover more slowly');
   assert.ok(
-    Math.abs(recoveredCondition(low, 63.79, 7) - 78.3) < 0.2,
-    'low physical attributes recover slightly less than the 80% target',
+    Math.abs(recoveredCondition(low, 45, 7) - 65.1) < 0.2,
+    'low physical attributes recover from realistic full-time fatigue more slowly',
   );
   assert.ok(
-    Math.abs(recoveredCondition(p, 63.79, 7) - 80) < 0.2,
-    'average attributes recover an average full-match energy to about 80%',
+    Math.abs(recoveredCondition(p, 45, 7) - 78.2) < 0.2,
+    'average attributes recover close to 80 over seven days after full-match fatigue',
   );
-  assert.ok(recoveredCondition(endurance, 63.79, 7) > 80);
-  assert.ok(recoveredCondition(strong, 63.79, 7) > 78.3);
   assert.ok(
-    Math.abs(recoveredCondition(high, 63.79, 7) - 82.1) < 0.2,
-    'high endurance and strength improve weekly recovery without restoring everyone to 100%',
+    Math.abs(recoveredCondition(high, 45, 7) - 88.4) < 0.2,
+    'high stamina and strength materially accelerate weekly recovery',
   );
+  assert.ok(recoveredCondition(high, 45, 7) - recoveredCondition(low, 45, 7) > 22);
+  assert.ok(recoveredCondition(endurance, 45, 7) > recoveredCondition(low, 45, 7));
+  assert.ok(recoveredCondition(strong, 45, 7) > recoveredCondition(low, 45, 7));
   assert.equal(recoveredCondition(p, 28, 0), 28);
   assert.equal(recoveredCondition(p, 100, 7), 100);
   assert.throws(() => recoveredCondition(p, 28, -1));

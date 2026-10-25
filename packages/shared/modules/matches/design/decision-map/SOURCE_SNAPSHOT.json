@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-25",
   "baselineCommit": "899f3c0ef80f6751374213af48fceb701688086f",
-  "engineVersion": "0.38.0-pass-reception-contest",
-  "parameterVersion": "passing-contest-1",
+  "engineVersion": "0.39.0-fatigue-depletion",
+  "parameterVersion": "physiology-3",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -33,7 +33,7 @@
     "packages/shared/modules/matches/positioning.mjs": "c955ba34293ad1a783d30664cf7304af561b935f0ff6a18b130cdabd27979e8d",
     "packages/shared/modules/matches/locomotion.mjs": "fdbe8850a4fc9aae0d70222be546664231a3218cb589df9b34fbd1abf0d0d5fb",
     "packages/shared/modules/matches/decisions.mjs": "46aee61fd081dc4cc563231f143ea1c089e463558a666c6a089dd2323bff4ee6",
-    "packages/shared/modules/matches/simulation.mjs": "a581a5ff34139fa1e2ed7baadcd96bcb8a8470a3783e096bbd29d33c7af01d83",
+    "packages/shared/modules/matches/simulation.mjs": "a2c661e3b7b4088e45e0008dfe41bf471d302136a3e6998963cf2ebd6498ccfa",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
@@ -44,7 +44,7 @@
     "packages/shared/modules/matches/rules.mjs": "53f37ae04fdd7855cb62dcc6988fc483ae58d36f1e175ebebf915377185a9cd4",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
     "packages/shared/modules/players/index.mjs": "0cca75c59993e91705de435fb2476c3197555c11fbdb5ad513102b69697243c6",
-    "packages/shared/modules/players/match-state.mjs": "41b0293d8a440690352ab65065d41426e32393e05140dac8904fd6695aaf176e",
+    "packages/shared/modules/players/match-state.mjs": "50d66683cb001d78192adbdf49319db945be74124b06365236b34ed2738d1915",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
@@ -57,15 +57,15 @@
     "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56",
     "packages/shared/modules/matches/onball.mjs": "f00dd508161dfd4eca66e7a77d4d301e362adfb66a4401c3cb201b8d04ba0a52",
     "packages/shared/modules/matches/opportunity.mjs": "ff114ae4f6961d61d70225acf0a7773e7ba22620e4da8af489335652abce7e24",
-    "packages/shared/modules/players/physiology.mjs": "76e82a49d5bfcafeab2ae2f4c909c2e0c2293cf6edb1ea879bded23e7f78cf53",
+    "packages/shared/modules/players/physiology.mjs": "589b7af02159882bc217fc78706fe38dc018d2f65444d03daa62c800b6a73ac7",
     "packages/shared/modules/matches/statistics.mjs": "f0d1c79408e84fd4419152d6dceabc894ecf6e82ab5d3fe7a37909d5a8591072",
     "packages/shared/modules/matches/ratings/statistics.mjs": "bfe7163a5a58b704d64644222947aca3f129bf74f4e61be53b75b9c16b25479e",
     "packages/client/src/modules/matches/PhysicalReplay.tsx": "36fddb6357c287bf8a4cc0441cb5fe2cc28f22bf83ad9060aa66a6f6dfd9b862"
   },
   "diagrams": {
     "01-overview": {
-      "mermaidSha256": "aff11021a12d8b178aed6a901c77fa8bb945b44c8fd6b3ce995f7cd95fefeba9",
-      "svgSha256": "3b56b739483b172941198158291c53632e55a8af0262bb7d9a40485ec936fcc7"
+      "mermaidSha256": "f3d354d125dd2b1419992d26f15291dcf99960f1de374db13aba36485f3f7168",
+      "svgSha256": "5388708e6bef8ec211c44b9e4532a1bb9feeb8ecff6c92c194f5e0839c971afe"
     },
     "02-roles": {
       "mermaidSha256": "478f0fc1239206462685aed0564e265d3df058a43b04c2edcb2fda86590dd3cc",
@@ -84,8 +84,8 @@
       "svgSha256": "807960a65802c8164b0752b5b07278666860aa3b0b49e3dc1771d091bdebe7fd"
     },
     "06-profiles": {
-      "mermaidSha256": "2f1d8278be0ab9bf42a00ed376fe69a0daeea26c488b7294d0e25d8cf100f46a",
-      "svgSha256": "af3ed70f98af11e91459a199c4cff16da744c6de778b9145af8383c7b8e13f14"
+      "mermaidSha256": "6786a339c79b2910c9bb51f286c2a48043f8fbf388405c50795e73dba973ba53",
+      "svgSha256": "b1e3dfa01af7b7e8804bfe9f5ba46aeb6bd0add8808c83264959f9b398ad615e"
     },
     "07-knowledge": {
       "mermaidSha256": "a4a3a2b588a91ad9a202a0f4246c747f12f0d4c719cf19570ff65ce2b95413fb",

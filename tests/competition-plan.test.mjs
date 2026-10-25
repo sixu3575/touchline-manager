@@ -27,8 +27,8 @@ test('elapsed recovery belongs to frozen pre-match inputs and is not repeated by
   const plan = createCompetitionPlan(g, 'advance');
   assert.equal(g.clubs[0].players[0].fitness, 28, 'queuing does not publish future recovery');
   assert.ok(
-    plan.state.clubs.every((c) => c.players.every((p) => p.fitness > 50 && p.fitness < 70)),
-    'seven days restore exhausted players gradually instead of bringing them close to full',
+    plan.state.clubs.every((c) => c.players.every((p) => p.fitness > 50 && p.fitness < 90)),
+    'seven days restore exhausted players at attribute-dependent rates without filling everyone',
   );
   assert.deepEqual(
     createCompetitionPlan(g, 'advance'),

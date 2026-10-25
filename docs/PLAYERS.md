@@ -1,6 +1,6 @@
 # 球员模型与扩展契约
 
-轮间体能按7日恢复校准：平均球员全场结束约64体能时，下轮约80；力量/耐力仍决定个体差异。联赛训练后，射门/传控/门将训练−4、防守−5、盘带−6、速度−8，体能恢复区+14；每轮结果展示实际体能变化。公式见[体能模型](../packages/shared/modules/matches/design/PHYSIOLOGY_V0290.md)与[训练规则](../packages/shared/modules/training/TRAINING_AND_CAREERS_V0150.md)。
+比赛和轮间体能均体现真实力量/耐力差异：四战术×两种子对照中，打满全场球员终场均值约42.6；七日后，低、高体能属性四分位平均约71、83。专项训练场地仍各自消耗4–8点，体能恢复区补充14点，并记录实际变化。公式和样本限制见[体能模型](../packages/shared/modules/matches/design/PHYSIOLOGY_V0290.md)及[体能消耗复核](../packages/shared/modules/matches/design/MATCH_FATIGUE_DEPLETION_V0390.md)。
 
 0.15.0按游戏日期进行个体/类别差异的长期衰退与潜力下降，训练每项+1/不变，教练、态度、潜力和年龄共同作用，比赛仍消费全部真实细项。只对精确评估过的细项记录公开峰值，六项概览无峰值；私有真实峰值和衰退余数不出站。伤病后续加入。当前成长规则见[训练与生涯](../packages/shared/modules/training/TRAINING_AND_CAREERS_V0150.md)，优先于旧即时训练说明。
 
