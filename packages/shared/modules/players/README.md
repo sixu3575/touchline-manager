@@ -1,6 +1,6 @@
 # 球员模块
 
-当前赛内能量消耗基准为0.64（引擎`0.35.0-fatigue-calibration` / 参数`physiology-2`），由`updateMatchEnergy`按速度、压迫、球员容量和活/死球状态累计；疲劳影响有效身体/技术能力与持续跑动。`physiology.mjs`从裸力量/耐力计算容量和恢复参数，临时matchState缓存不得出站。`recoverPlayer(p, days=7)`接收游戏天数，0天不恢复，同一时间段只应用一次。旧fitness与历史比赛保留。完整数学、比较及局限见[体能模型](../matches/design/PHYSIOLOGY_V0290.md)和[节奏校准](../matches/design/MATCH_FATIGUE_CALIBRATION_V0350.md)；早期20点硬底/固定恢复为历史行为。
+当前赛内能量消耗基准为0.64（引擎`0.35.0-fatigue-calibration` / 参数`physiology-2`），由`updateMatchEnergy`按速度、压迫、球员容量和活/死球状态累计；疲劳影响有效身体/技术能力与持续跑动。`physiology.mjs`从裸力量/耐力计算容量和恢复参数，临时matchState缓存不得出站。`recoverPlayer(p, days=7)`接收游戏天数，0天不恢复，同一时间段只应用一次。轮间恢复当前调为常见全场球员下轮约80%；每轮专项训练按场地消耗体能，体能恢复区主动补充；具体数值与顺序见球员及训练模块公式文档。旧fitness与历史比赛保留。完整数学、比较及局限见[体能模型](../matches/design/PHYSIOLOGY_V0290.md)和[节奏校准](../matches/design/MATCH_FATIGUE_CALIBRATION_V0350.md)；早期20点硬底/固定恢复为历史行为。
 
 99号观察球员免费签入但按综合能力支付轮薪；修复已有零工资存档只能通过`packages/server/src/maintenance/player-profiles.mjs`显式离线维护计划执行，服务启动与HTTP读取不会自动改数据。精确观察门槛和一季14轮保证见[ASSESSMENT.md](ASSESSMENT.md)。
 

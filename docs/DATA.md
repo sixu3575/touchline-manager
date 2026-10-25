@@ -8,6 +8,8 @@
 
 0.29.0保留JSON/SQLite3、原任务/轨迹格式。physiology缓存与本场energyCeiling只存在于临时actor.matchState并随原检查点序列化，不出站、不写长期球员。旧fitness不批量改写；未来合法轮次才应用按天恢复，赛后能量可到0。旧报告/BLOB不重算，升级先排空旧引擎任务并校验离机备份，新引擎不得恢复旧检查点。
 
+2026-10-25调整既有轮间fitness恢复率与训练负荷；不改JSON/SQLite schema。training.history行可选增加`fitnessChange`整数用于显示实际体能点变化，旧行读取时允许缺省，不迁移、不重写历史训练/比赛。每轮按原冻结计划只应用一次，恢复仍先于训练和比赛。
+
 0.28.0-boundary保留JSON3、SQLite表版本3和原检查点包装，仅新比赛使用边界控球参数。未接纳四场候选的新表/增量格式，历史BLOB不改；旧引擎未完成任务先结算。容量/恢复实验均使用隔离或一致备份副本，生产备份不入Git。
 
 2026-10-20观看修补：match_jobs.progress.report为展示副本，剔除原本就不公开的连续性/物理诊断；完整私有检查点/报告保留在work和正式归档。新旧进度均可读取，无schema变化或启动重写。观赛owned/latest/presentation查询不含work BLOB，恢复仍读内部get。进球/助攻等展示只读原有确认事件，不写回历史。

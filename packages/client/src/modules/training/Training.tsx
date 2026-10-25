@@ -16,7 +16,15 @@ type Props = {
 };
 const fields = TRAINING_FIELDS as Record<
   string,
-  { name: string; cost: number; coach: string; keys: string[]; x: number; y: number }
+  {
+    name: string;
+    cost: number;
+    coach: string;
+    fitnessEffect: number;
+    keys: string[];
+    x: number;
+    y: number;
+  }
 >;
 const labels = Object.assign(
   {},
@@ -99,6 +107,11 @@ export function Training({ game, club, busy, act, onPlayer }: Props) {
             <Badge>{level ? `Lv.${level}` : '待建设'}</Badge>
           </div>
           <p>{field.keys.map((k) => labels[k]).join(' / ')}</p>
+          <p className="fine">
+            {field.fitnessEffect > 0
+              ? `本轮专项恢复预计补充体能 ${field.fitnessEffect} 点。`
+              : `本轮专项训练预计消耗体能 ${Math.abs(field.fitnessEffect)} 点。`}
+          </p>
           <p className="fine">
             基础训练无需专训教练；专项指导与激励越高，成长机会越大。态度、潜力、年龄和场地等级也影响结果，每项可能
             +1 或保持。
@@ -248,14 +261,17 @@ export function Training({ game, club, busy, act, onPlayer }: Props) {
                           )}
                         </td>
                         <td>
-                          {r.changes.length
-                            ? r.changes
-                                .map(
+                          {[
+                            ...(r.changes.length
+                              ? r.changes.map(
                                   (c) =>
                                     `${labels[c.attribute]} ${c.delta > 0 ? '+' : ''}${c.delta}${c.reason === 'age' ? '（年龄）' : ''}`,
                                 )
-                                .join('，')
-                            : '保持不变'}
+                              : ['保持不变']),
+                            ...(typeof r.fitnessChange === 'number' && r.fitnessChange !== 0
+                              ? [`体能 ${r.fitnessChange > 0 ? '+' : ''}${r.fitnessChange}`]
+                              : []),
+                          ].join('，')}
                         </td>
                       </tr>
                     ))}

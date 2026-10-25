@@ -16,7 +16,9 @@ export function physicalProfile(p) {
     energyRecovery: 0.08 + 0.0004 * stamina + 0.0002 * strength,
     adrenalineDuration: 0.9 + 0.012 * strength + 0.004 * stamina,
     debtRecovery: 0.0015 + 0.00003 * stamina + 0.00001 * strength,
-    conditionRecovery: 0.28 + 0.003 * stamina + 0.001 * strength,
+    // Weekly recovery is calibrated so an average full-match player (about
+    // 64% energy at full time) returns to roughly 80% before the next fixture.
+    conditionRecovery: 0.065 + 0.0003 * stamina + 0.0001 * strength,
   };
 }
 

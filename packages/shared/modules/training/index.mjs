@@ -12,6 +12,7 @@ export const TRAINING_FIELDS = {
     name: '射门区',
     cost: 22000,
     coach: 'technical',
+    fitnessEffect: -4,
     keys: ['finishing', 'longShots', 'heading', 'setPieces', 'offTheBall', 'composure'],
     x: 74,
     y: 22,
@@ -20,6 +21,7 @@ export const TRAINING_FIELDS = {
     name: '传控区',
     cost: 18000,
     coach: 'tactical',
+    fitnessEffect: -4,
     keys: ['passing', 'crossing', 'vision', 'decisions', 'teamwork'],
     x: 48,
     y: 44,
@@ -28,6 +30,7 @@ export const TRAINING_FIELDS = {
     name: '盘带区',
     cost: 20000,
     coach: 'technical',
+    fitnessEffect: -6,
     keys: ['dribbling', 'firstTouch', 'agility', 'balance'],
     x: 70,
     y: 70,
@@ -36,6 +39,7 @@ export const TRAINING_FIELDS = {
     name: '防守区',
     cost: 22000,
     coach: 'tactical',
+    fitnessEffect: -5,
     keys: ['tackling', 'marking', 'positioning', 'anticipation', 'concentration'],
     x: 27,
     y: 24,
@@ -44,6 +48,7 @@ export const TRAINING_FIELDS = {
     name: '速度跑道',
     cost: 25000,
     coach: 'physical',
+    fitnessEffect: -8,
     keys: ['acceleration', 'sprintSpeed'],
     x: 47,
     y: 10,
@@ -52,6 +57,7 @@ export const TRAINING_FIELDS = {
     name: '体能恢复区',
     cost: 18000,
     coach: 'physical',
+    fitnessEffect: 14,
     keys: ['stamina', 'strength', 'balance'],
     x: 26,
     y: 73,
@@ -60,6 +66,7 @@ export const TRAINING_FIELDS = {
     name: '门将区',
     cost: 28000,
     coach: 'goalkeeping',
+    fitnessEffect: -4,
     keys: ['reflexes', 'handling', 'oneOnOnes', 'aerialReach', 'command', 'distribution'],
     x: 15,
     y: 46,
@@ -174,18 +181,21 @@ export function resolveTraining(g, ageChanges = {}) {
             (r.trainingObservations[key] ?? 0) +
             1 +
             Math.floor((coach?.attributes.assessment ?? 0) / 40);
-        p.fitness = Math.min(100, Math.max(30, p.fitness + (fieldId === 'physical' ? 5 : -2)));
+        const fitnessBefore = p.fitness;
+        p.fitness = Math.min(100, Math.max(0, p.fitness + field.fitnessEffect));
+        const fitnessChange = Math.round(p.fitness - fitnessBefore);
         report.cost += 300;
+        report.rows.push({
+          playerId: p.id,
+          name: p.name,
+          number: p.number,
+          fieldId,
+          coachName: coach?.name ?? null,
+          changes: [...(ageChanges[p.id] ?? []), ...changes],
+          fitnessChange,
+          status: changes.length ? 'improved' : 'unchanged',
+        });
       }
-      report.rows.push({
-        playerId: p.id,
-        name: p.name,
-        number: p.number,
-        fieldId,
-        coachName: coach?.name ?? null,
-        changes: [...(ageChanges[p.id] ?? []), ...changes],
-        status: changes.length ? 'improved' : 'unchanged',
-      });
     }
   }
   for (const p of g.clubs[0].players)

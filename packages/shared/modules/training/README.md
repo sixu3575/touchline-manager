@@ -4,4 +4,6 @@
 
 公共入口：TRAINING_FIELDS、ensureTraining、trainingFacility、assignTraining、resolveTraining；train仅旧预约兼容。默认一级传控/体能，三级封顶，8人/级，实际参训每人£300/轮。安排持续；联赛冻结计划按日期衰退后训练，5×终场统一公布；杯赛不重复。
 
+训练结果逐人记录实际体能变化。专项场地额外消耗体能（4–8点，速度训练最高），体能恢复区补充14点；结果于七日轮间恢复后、下一轮开赛前应用。历史行没有该字段时按旧格式显示，不做批量迁移。
+
 [当前规则、概率与存档契约](TRAINING_AND_CAREERS_V0150.md)。成长每项+1/不变，判断只加快观察；六大属性不记录峰值，伤病后续。跨模块只导入index.mjs，依赖/归属见modules.json。每次变更更新本目录CHANGELOG与决策图；既有流程不改。
