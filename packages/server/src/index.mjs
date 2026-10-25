@@ -6,6 +6,7 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CURRENT_SCHEMA, migrateDatabase } from './storage/migrations.mjs';
 import { createReplayStorage } from './storage/replays.mjs';
+import { createLeaguePlayerLeaderReader } from './league-player-leaders.mjs';
 import { MatchJobs } from './match-jobs.mjs';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { createGame, applyAction } from '../../shared/game.mjs';
@@ -20,6 +21,7 @@ db.exec(
   'PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS saves (id TEXT PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL, state TEXT NOT NULL, updated_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS operations (save_id TEXT NOT NULL, request_id TEXT NOT NULL, body_hash TEXT NOT NULL, PRIMARY KEY(save_id,request_id));',
 );
 const replays = createReplayStorage(db);
+const readLeaguePlayerLeaders = createLeaguePlayerLeaderReader(replays);
 const jobs = new MatchJobs(db, replays);
 const migrated = migrateDatabase(db);
 if (migrated) console.log(`Migrated ${migrated} saves to schema ${CURRENT_SCHEMA}`);
@@ -132,6 +134,12 @@ const server = http.createServer(async (req, res) => {
           version,
           job: publicJob(state, jobs.latest(row.id)),
         });
+        return;
+      }
+      if (req.method === 'GET' && url.pathname === '/api/league-player-leaders') {
+        const row = session(req, res);
+        const state = JSON.parse(row.state);
+        send(res, 200, readLeaguePlayerLeaders(row.id, state));
         return;
       }
       if (req.method === 'GET' && url.pathname.startsWith('/api/reports/')) {

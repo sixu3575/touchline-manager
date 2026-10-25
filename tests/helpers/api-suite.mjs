@@ -256,6 +256,22 @@ export function registerApiSuite({ season = false, real = false, onlyDurable = f
               8,
               'all four fixtures are archived each league round',
             );
+            const leadersResponse = await fetch(app.url + '/api/league-player-leaders', {
+              headers: { cookie },
+            });
+            assert.equal(leadersResponse.status, 200);
+            const leaders = await leadersResponse.json();
+            assert.equal(leaders.season, state.season);
+            assert.equal(leaders.completedMatches, state.results.length);
+            assert.equal(leaders.availableMatches, state.results.length);
+            assert.ok(leaders.players.length > 0, 'league starters appear in the season tables');
+            assert.ok(!JSON.stringify(leaders).includes('attributes'));
+            const isolatedLeadersResponse = await fetch(app.url + '/api/league-player-leaders', {
+              headers: { cookie: otherCookie },
+            });
+            const isolatedLeaders = await isolatedLeadersResponse.json();
+            assert.equal(isolatedLeaders.availableMatches, 0);
+            assert.equal(isolatedLeaders.players.length, 0);
             const report = state.reports[0];
             assert.equal(report.engineVersion, ENGINE_VERSION);
             assert.equal(report.trajectory, undefined, 'large tracks must not enter JSON saves');
