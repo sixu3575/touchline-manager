@@ -2,6 +2,7 @@ import { clamp } from '../../core/index.mjs';
 import { ability, actionQuality } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import {
+  BALL_MOTION,
   groundPassPlan,
   airborneVelocity,
   groundArrivalTime,
@@ -254,7 +255,10 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
       // range and closing pressure call for more power. No shot is removed.
       const availablePower = 23 + 0.1 * ability(actor.player, 'strength');
       const intendedSpeed = Math.min(availablePower, 20 + dist * 0.25 + q.pressure * 4);
-      const target = { x: goalX + direction * 1.5, z: aim },
+      // Aim at the whole-ball crossing plane. A point well behind the goal
+      // makes the ball cross earlier and closer to the shooter, pushing acute-
+      // angle attempts wide even when their nominal aim is inside the posts.
+      const target = { x: goalX + direction * (BALL_MOTION.radius + 0.05), z: aim },
         flight = Math.max(0.15, distance(ball, target) / intendedSpeed);
       // Aim height is a point in the goal mouth, with skill-, range- and
       // pressure-dependent dispersion around it. The previous expression used

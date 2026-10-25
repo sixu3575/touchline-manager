@@ -106,8 +106,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.38.0-pass-reception-contest';
-export const PARAMETER_VERSION = 'passing-contest-1';
+export const ENGINE_VERSION = '0.39.0-shot-plane-aim';
+export const PARAMETER_VERSION = 'shot-plane-aim-1';
 export const SAMPLE_HZ = 5;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.

@@ -18,6 +18,7 @@ import {
   kick,
   stepPhysics,
   touchesBall,
+  goalCrossing,
 } from '../../packages/shared/modules/matches/physics.mjs';
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
 import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
@@ -411,6 +412,52 @@ test('shot value accounts for pressure and blocked lanes, while ordinary finishi
   const average = heights.reduce((sum, height) => sum + height, 0) / heights.length;
   assert.ok(average > 0.7 && average < 1.7, 'aims should use the playable goal mouth');
   assert.ok(Math.max(...heights) < 2.6, 'ordinary shots should not mostly be aimed over the bar');
+});
+
+test('shot aim reaches the goal mouth from close angles on either flank and attack direction', () => {
+  for (const { side, direction, x } of [
+    { side: 0, direction: 1, x: 100 },
+    { side: 1, direction: -1, x: 5 },
+  ]) {
+    for (const z of [15, 53]) {
+      const shooter = actor(
+        `wide-shot-${side}-${z}`,
+        side,
+        x,
+        z,
+        { finishing: 98, longShots: 94, composure: 97, balance: 90, strength: 92 },
+        'FWD',
+      );
+      shooter.player.preferredFoot = 'both';
+      shooter.player.weakFoot = 95;
+      const ball = { x, y: 0.11, z };
+      const candidate = shotCandidate(
+        shooter,
+        ball,
+        [],
+        direction,
+        (key) => actionQuality(shooter, ball, key, []),
+        () => 0.5,
+        false,
+      );
+      assert.ok(candidate);
+      const launch = candidate.make();
+      const physics = createPhysics();
+      try {
+        physics.ball.setTranslation(ball, true);
+        physics.ball.setLinvel({ x: launch.x, y: launch.y, z: launch.z }, true);
+        let crossing = null;
+        for (let i = 0; i < 100 && crossing === null; i++) {
+          const before = physics.ball.translation();
+          stepPhysics(physics);
+          crossing = goalCrossing(before, physics.ball.translation());
+        }
+        assert.equal(crossing, side === 0 ? 1 : 0, `shot from z=${z}, direction=${direction}`);
+      } finally {
+        physics.world.free();
+      }
+    }
+  }
 });
 
 test('supporters form triangles, loose balls are recovered, and runners reserve sprints for the final third', () => {
