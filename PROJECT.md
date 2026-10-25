@@ -1,6 +1,6 @@
 # 项目地图
 
-0.40.0候选`workload-fatigue-1`已完成：体能按个人真实位移/速度、冲刺启动和身体对抗累计，力量/耐力影响相同负荷下的损耗与赛后恢复；八场均值46.6/中位43.6，跑动越多体能下降越明显。八场为2 pass/6 review/0 block，review均来自已有低速距离告警；132项业务/定向、16项真实比赛/API集成、类型检查及生产构建全部通过。不运行赛季；上线状态待更新。设计、分位置结果、决策图和边界见[工作量体能校准](packages/shared/modules/matches/design/MATCH_WORKLOAD_V0400.md)与[决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)。
+0.40.0 `workload-fatigue-1`已于2026-10-26通过PR #62部署：体能按个人真实位移/速度、冲刺启动和身体对抗累计，力量/耐力影响相同负荷下的损耗与赛后恢复；八场均值46.6/中位43.6，跑动越多体能下降越明显。八场为2 pass/6 review/0 block，review均来自已有低速距离告警；132项业务/定向、16项真实比赛/API集成、类型检查及生产构建全部通过，Node 22/24 CI通过。不运行赛季。生产build `65f8d51f3d7b4c18d63aceb34cbd2ae8b9e4ec84`。设计、分位置结果、决策图和边界见[工作量体能校准](packages/shared/modules/matches/design/MATCH_WORKLOAD_V0400.md)与[决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)，备份与部署证据见[部署记录](docs/OPERATIONS.md)。
 
 联赛球员榜功能已加入赛事模块：独立页面汇总当季已结算联赛战报，展示常见进攻、防守、门将与纪律榜；后台只读聚合按存档隔离并标出历史数据覆盖率。比赛引擎同时修正斜角射门目标平面，使其与整球越线判定一致，不更改射门决策。无需存档迁移。
 
