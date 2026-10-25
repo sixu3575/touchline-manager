@@ -72,13 +72,25 @@ export function energyCost(p, speed, press, live, dt) {
   const role = p.role === 'GK' ? 0.45 : 1;
   const intensity = { high: 1.2, normal: 1, low: 0.85 }[press] ?? 1;
   return (
-    ((dt * 0.64) / 60) *
+    ((dt * 0.86) / 60) *
     role *
     intensity *
     (0.2 + 0.4 * speed + 0.03 * Math.max(0, speed - 4) ** 2) *
     profile.economy *
     (100 / profile.capacity) *
     (live ? 1 : 0.2)
+  );
+}
+// Discrete high-effort actions have a real recovery cost in addition to the
+// movement load. Scale each one by the player's physical economy and role.
+export function chargeMatchEffort(p, energy, baseCost) {
+  const profile = matchPhysicalProfile(p);
+  const role = p.role === 'GK' ? 0.45 : 1;
+  const adjustedCost = baseCost * role * profile.economy * (100 / profile.capacity);
+  return clamp(
+    energy - adjustedCost,
+    0,
+    p.matchState?.energyCeiling ?? p.fitness ?? 100,
   );
 }
 export function energyRecovery(p, speed, dt) {

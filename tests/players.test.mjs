@@ -37,7 +37,14 @@ test('days-based recovery depends on stamina and strength, preserves identity, a
   assert.ok(physicalProfile(strong).capacity > physicalProfile(low).capacity);
   assert.ok(recoveredCondition(endurance, 28, 3) > recoveredCondition(low, 28, 3));
   assert.ok(recoveredCondition(strong, 28, 3) > recoveredCondition(low, 28, 3));
-  assert.ok(recoveredCondition(low, 28, 7) > 90, 'one week is not the legacy eight points');
+  const typical = structuredClone(p);
+  typical.attributes.stamina = 60;
+  typical.attributes.strength = 60;
+  assert.ok(
+    recoveredCondition(typical, 45, 7) >= 80 && recoveredCondition(typical, 45, 7) < 85,
+    'average physical attributes recover a full-time player into the low 80s over a week',
+  );
+  assert.ok(recoveredCondition(low, 28, 7) < 80, 'lower physical attributes recover more slowly');
   assert.equal(recoveredCondition(p, 28, 0), 28);
   assert.equal(recoveredCondition(p, 100, 7), 100);
   assert.throws(() => recoveredCondition(p, 28, -1));

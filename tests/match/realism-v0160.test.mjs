@@ -4,6 +4,7 @@ import {
   activityState,
   burstReserve,
   recordMovement,
+  recordPhysicalDuel,
   sprintAvailable,
   triggerAdrenalineSprint,
   restAtHalfTime,
@@ -262,6 +263,69 @@ test('strength and stamina buy capacity and recovery, never a higher personal fr
   assert.equal(triggerAdrenalineSprint(high, true), false);
   assert.ok(movement(high.player, 0, 'run').speed <= 2);
 });
+
+test('match energy follows actual work, repeated sprint starts and individual physical contests', () => {
+  const idle = actor(20),
+    runner = actor(21),
+    repeated = actor(22),
+    continuous = actor(23);
+  for (const a of [idle, runner, repeated, continuous]) {
+    a.player.matchState = createMatchState(a.player);
+  }
+
+  for (let i = 0; i < 120; i++) {
+    recordMovement(idle, { x: 0, z: 0 }, { x: 0, z: 0 }, 0.5, true, false);
+    idle.energy = updateMatchEnergy(idle.player, idle.energy, 0, 'normal', true, 0.5);
+    recordMovement(runner, { x: i * 2, z: 0 }, { x: (i + 1) * 2, z: 0 }, 0.5, true, false);
+    runner.energy = updateMatchEnergy(runner.player, runner.energy, 4, 'normal', true, 0.5);
+  }
+  assert.ok(runner.energy < idle.energy, 'more measured distance costs more energy');
+
+  let repeatedX = 0;
+  for (let i = 0; i < 4; i++) {
+    recordMovement(repeated, { x: repeatedX, z: 0 }, { x: repeatedX + 4, z: 0 }, 0.5, true, false);
+    repeated.energy = updateMatchEnergy(repeated.player, repeated.energy, 8, 'normal', true, 0.5);
+    repeatedX += 4;
+    recordMovement(repeated, { x: repeatedX, z: 0 }, { x: repeatedX, z: 0 }, 0.5, true, false);
+    repeated.energy = updateMatchEnergy(repeated.player, repeated.energy, 0, 'normal', true, 0.5);
+  }
+  for (let i = 0; i < 8; i++) {
+    const before = continuousX(continuous);
+    const sprinting = i < 4;
+    const after = before + (sprinting ? 4 : 0);
+    recordMovement(continuous, { x: before, z: 0 }, { x: after, z: 0 }, 0.5, true, false);
+    continuous.energy = updateMatchEnergy(
+      continuous.player,
+      continuous.energy,
+      sprinting ? 8 : 0,
+      'normal',
+      true,
+      0.5,
+    );
+    continuous.pos.x = after;
+  }
+  assert.equal(repeated.activity.sprintEfforts, 4);
+  assert.equal(continuous.activity.sprintEfforts, 1);
+  assert.ok(repeated.energy < continuous.energy, 'repeated sprint starts add individual effort cost');
+
+  const low = actor(24),
+    high = actor(25);
+  low.player.attributes.stamina = 20;
+  low.player.attributes.strength = 20;
+  high.player.attributes.stamina = 90;
+  high.player.attributes.strength = 90;
+  low.player.matchState = createMatchState(low.player);
+  high.player.matchState = createMatchState(high.player);
+  recordPhysicalDuel(low, high);
+  assert.equal(low.activity.duelEfforts, 1);
+  assert.equal(high.activity.duelEfforts, 1);
+  assert.ok(high.energy > low.energy, 'higher stamina and strength reduce the same contest cost');
+  assert.equal(low.player.matchState.energy, low.energy);
+});
+
+function continuousX(actor) {
+  return actor.pos.x;
+}
 
 test('rest cannot heal pre-match condition and fatigue has bounded distinct physical, technical and gait effects', () => {
   const a = actor(0);

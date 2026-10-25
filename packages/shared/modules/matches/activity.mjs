@@ -1,5 +1,9 @@
 import { clamp } from '../../core/index.mjs';
-import { matchPhysicalProfile, updateMatchEnergy } from '../players/index.mjs';
+import {
+  chargeMatchEffort,
+  matchPhysicalProfile,
+  updateMatchEnergy,
+} from '../players/index.mjs';
 
 // Actor-local state is included by packActors. SI units; no frame/RNG dependence.
 export function activityState() {
@@ -18,6 +22,7 @@ export function activityState() {
     liveMetres: 0,
     deadMetres: 0,
     sprintEfforts: 0,
+    duelEfforts: 0,
     longestSprint: 0,
   };
 }
@@ -94,7 +99,12 @@ export function recordMovement(actor, before, after, dt, active, carrying) {
   );
   a.recovery = Math.max(0, a.recovery - dt * (speed < 4.2 ? 1 : 0.4) * profile.recoveryRate);
   if (kmh > 25) {
-    if (!a.sprinting) a.sprintEfforts++;
+    if (!a.sprinting) {
+      a.sprintEfforts++;
+      // Starting a sprint costs energy beyond its distance and speed load.
+      actor.energy = chargeMatchEffort(actor.player, actor.energy ?? 100, 0.14);
+      if (actor.player.matchState) actor.player.matchState.energy = actor.energy;
+    }
     a.burst += dt;
     a.longestSprint = Math.max(a.longestSprint, a.burst);
   } else a.burst = 0;
@@ -103,6 +113,18 @@ export function recordMovement(actor, before, after, dt, active, carrying) {
   if (actor.player.matchState) {
     actor.player.matchState.exertion = a.load;
     actor.player.matchState.sprintRecovering = !sprintAvailable(actor);
+  }
+}
+
+// Charge both participants once for each newly detected physical contest.
+// The caller de-duplicates contacts by pair and contact episode.
+export function recordPhysicalDuel(first, second) {
+  for (const actor of [first, second]) {
+    if (!actor || actor.sentOff) continue;
+    const a = (actor.activity ??= activityState());
+    a.duelEfforts++;
+    actor.energy = chargeMatchEffort(actor.player, actor.energy ?? 100, 0.28);
+    if (actor.player.matchState) actor.player.matchState.energy = actor.energy;
   }
 }
 
