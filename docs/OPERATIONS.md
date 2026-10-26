@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-10-26 发布：Ink 美术与三阶段头像
+
+PR #68 已合并并部署，生产 build 为 `b912e9539a8bfdf878d8174020cb26c629ad3126`。原创运动漫画主题、球场插画与稳定 ID 头像已上线；≤18青训、19–29青年、≥30中年。只改客户端，无服务端、规则、数据或运行依赖变更。引擎继续为已部署的0.43.0；单 worker、512MiB限额保持。
+
+发布前无未完成任务。新的离机备份为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-ink-20261026-1.sqlite`，VM原件为 `/var/backups/touchline-manager/touchline-pre-ink-20261026-1.sqlite`，101,920,768字节；两端SHA-256均为 `b9911d6c261148d2ef5fe57db4969a3fe2155dcb2f454c343084581e75ab10b1`。离机 integrity_check 和六表指纹均通过。归档SHA-256为 `9be625ef5f71b96faa2844b4d31345e64c439638c4e2df2d4ca055ac004fe630`，安装脚本另保存 `touchline-2026-10-26T05-55-07-407Z.sqlite`。
+
+停服前、停服后、启动后及浏览器验收清理后，原用户存档和六表全列/BLOB指纹完全一致：1个存档、43条操作、21条回放、55份战报、3个已完成任务、1080个轨迹片段。用户保留的临场竞技仍为第2赛季已完成8轮、revision48、2027-08-26、23名球员；没有推进比赛。浏览器产生的独立匿名验收存档无任何玩法操作，仅删除准确识别的该条临时记录；最终仍为1个存档。
+
+本机118项冒烟/针对性测试、类型检查与生产构建通过，PR和main的Node22/24 CI均通过，match/season/physicalSeason=false。桌面/390px本地布局、三阶段实验室切换及公网实际总览/20张名单头像/球员档案/8张球探头像/主场插画通过，无浏览器控制台错误；首发11张头像与11条体力条完整保留。公网和本机health均返回上述build，正式JS/CSS为 `index-u6hGh1wy.js` / `index-CS78BGRh.css`。服务、Caddy与备份timer均active、NRestarts=0，启动后空闲MemoryCurrent约40MiB；该数值不是并发容量测试。旧release保留用于回滚。
+
 ## 2026-10-26 发布：排兵布阵体力显示
 
 部署 PR #66，合并提交及生产 build 均为 `6b3bbc3210622ced7b923b96a9890293539c7dc0`，应用版本 `0.17.0`。排兵布阵名单与首发球场显示球员当前体力百分比及状态条；仅为客户端只读展示，不改排阵、比赛规则、存档结构或历史报告。
