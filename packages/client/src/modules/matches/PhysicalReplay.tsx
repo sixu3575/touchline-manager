@@ -14,6 +14,8 @@ import { PlayerRatings } from './PlayerRatings';
 import { staminaAtTime } from './stamina-view.mjs';
 import { playerEventStatistics } from './player-statistics.mjs';
 import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
+import { replayPlayersAt } from './player-slots.mjs';
+import { LiveManagerBoard, type LiveCommand } from './LiveManagerBoard';
 import { PlayerPortrait, archivedPortraitPlayer } from '../players';
 
 const clock = (t: number) =>
@@ -29,7 +31,13 @@ export function PhysicalReplay({
 }: {
   report: Report;
   onClose: () => void;
-  live?: { job: MatchJob; data: Uint16Array | null; connection: string; onBackground: () => void };
+  live?: {
+    job: MatchJob;
+    data: Uint16Array | null;
+    connection: string;
+    onBackground: () => void;
+    onManagerCommand: (command: LiveCommand) => Promise<void>;
+  };
 }) {
   const meta = report.replay!;
   const clockScale = meta.clockScale ?? 1;
@@ -134,7 +142,26 @@ export function PhysicalReplay({
         (e) => (e.second ?? 0) <= time && e.type === 'goal' && e.minute <= 90 && e.side === side,
       ).length,
   );
-  const player = meta.players[selected];
+  const displayPlayers = useMemo(
+    () => replayPlayersAt(meta.players, report.events, time),
+    [meta.players, report.events, time],
+  );
+  const displayedFormations = [0, 1].map((side) =>
+    report.events
+      .filter(
+        (event) =>
+          event.type === 'tacticalChange' &&
+          event.side === side &&
+          (event.second ?? 0) <= time,
+      )
+      .at(-1)?.formation ?? report.snapshots[side].tactics.formation,
+  );
+  const pitchReport = useMemo(
+    () => ({ ...report, replay: { ...meta, players: displayPlayers } }),
+    [report, meta, displayPlayers],
+  );
+  const player = displayPlayers[selected];
+  const managerPlayer = player && live?.job.manager?.players.find((entry) => entry.id === player.id);
   const performanceRow = player && visiblePerformance?.find((p) => p.id === player.id);
   const eventStats = useMemo(
     () => (player ? playerEventStatistics(report, player.id, time) : null),
@@ -194,7 +221,7 @@ export function PhysicalReplay({
           <div>
             <Crest name={report.homeName} />
             <h3>{report.homeName}</h3>
-            <small>主场 · {report.snapshots[0].tactics.formation}</small>
+            <small>主场 · {displayedFormations[0]}</small>
           </div>
           <div className="score">
             <strong>
@@ -215,7 +242,7 @@ export function PhysicalReplay({
           <div>
             <Crest name={report.awayName} color="#e9e0cf" />
             <h3>{report.awayName}</h3>
-            <small>客场 · {report.snapshots[1].tactics.formation}</small>
+            <small>客场 · {displayedFormations[1]}</small>
           </div>
         </div>
         {(!live || ended) && (
@@ -244,7 +271,7 @@ export function PhysicalReplay({
               {data ? (
                 <PhysicalPitch
                   data={data}
-                  report={report}
+                  report={pitchReport}
                   time={time}
                   playbackTime={playbackTime}
                   selected={selected}
@@ -341,7 +368,7 @@ export function PhysicalReplay({
                 onChange={(e) => setSelected(+e.target.value)}
               >
                 <option value={-1}>选择球员 · 查看赛中数据</option>
-                {meta.players.map((p, i) => (
+                {displayPlayers.map((p, i) => (
                   <option key={p.id} value={i}>
                     {p.side ? '客' : '主'} {p.number} · {p.name}
                   </option>
@@ -380,6 +407,21 @@ export function PhysicalReplay({
                 <span>球员按阵型、攻防阶段和属性寻找位置。</span>
               )}
             </div>
+            {managerPlayer?.overview?.length ? (
+              <div className="physical-player-overview" aria-label={`${player.name}六项公开大数据`}>
+                {managerPlayer.overview.map(
+                  (item: { key: string; label: string; value: number | null }) => (
+                  <div key={item.key}>
+                    <span>{item.label}</span>
+                    <b>{item.value ?? '—'}</b>
+                  </div>
+                  ),
+                )}
+              </div>
+            ) : null}
+            {live?.job.manager && live.onManagerCommand && (
+              <LiveManagerBoard job={live.job} onCommand={live.onManagerCommand} />
+            )}
             {player && eventStats && (
               <div className="physical-player-stats" aria-label={`${player.name}赛中数据`}>
                 {[

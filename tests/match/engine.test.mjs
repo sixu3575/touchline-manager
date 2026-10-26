@@ -87,6 +87,22 @@ test('seeded engine reproduces complete event log and keeps score consistent', (
       a.events.filter((e) => e.type === 'save' && e.side === side).length,
     );
     assert.ok(a.stats[side].completedPasses <= a.stats[side].passes);
+    for (const key of [
+      'interceptions',
+      'saves',
+      'blocks',
+      'clearances',
+      'recoveries',
+      'blockedPasses',
+      'wonTackles',
+      'tackleAttempts',
+      'tackles',
+    ])
+      assert.equal(
+        a.performance.filter((p) => p.side === side).reduce((sum, p) => sum + p[key], 0),
+        a.stats[side][key],
+        side + ': team/player ' + key,
+      );
   }
   for (const goal of a.events.filter((e) => e.type === 'goal' && !e.ownGoal)) {
     const outcome = outcomes.find((e) => e.shotId === goal.shotId);

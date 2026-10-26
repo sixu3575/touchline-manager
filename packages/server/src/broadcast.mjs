@@ -38,6 +38,8 @@ const playerStatEvents = new Set([
   'offside',
   'yellowCard',
   'redCard',
+  'substitution',
+  'tacticalChange',
 ]);
 
 export function broadcastAt(progress, now) {

@@ -5,6 +5,7 @@ import { money, roles } from '../../constants';
 import type { Club, Game, Player } from '../../model';
 import { TRAINING_FIELDS } from '../../../../shared/modules/training/index.mjs';
 import { ATTRIBUTE_GROUPS } from '../../../../shared/modules/players/index.mjs';
+import { trainingAttributeDetails, trainingFitness } from './player-training-data.mjs';
 import { StaffPeople } from './StaffPeople';
 import './training.css';
 type Props = {
@@ -131,42 +132,104 @@ export function Training({ game, club, busy, act, onPlayer }: Props) {
                 <div className="training-player-list">
                   {[...club.players]
                     .sort((a, b) => a.number - b.number)
-                    .map((p) => (
-                      <label
-                        key={p.id}
-                        className={assignedElsewhere.has(p.id) ? 'unavailable' : ''}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={ids.includes(p.id)}
-                          disabled={
-                            assignedElsewhere.has(p.id) ||
-                            (fieldId === 'goalkeeping' && p.role !== 'GK') ||
-                            (!ids.includes(p.id) && ids.length >= 8 * level)
+                    .map((p) => {
+                      const inputId = `training-${fieldId}-${p.id}`;
+                      const fitness = trainingFitness(p.fitness);
+                      const details = trainingAttributeDetails(p, field.keys, labels);
+                      return (
+                        <div
+                          key={p.id}
+                          className={
+                            'training-player-row ' +
+                            (assignedElsewhere.has(p.id) ? 'unavailable' : '')
                           }
-                          onChange={(e) =>
-                            setIds(
-                              e.target.checked ? [...ids, p.id] : ids.filter((id) => id !== p.id),
-                            )
-                          }
-                        />
-                        <span>
-                          {p.number} · {p.name}
-                          <small>
-                            {roles[p.role]} · {p.age}岁
-                            {assignedElsewhere.has(p.id) ? ' · 已安排其他场地' : ''}
-                          </small>
-                        </span>
-                        <button
-                          type="button"
-                          className="icon-button"
-                          aria-label={'查看' + p.name}
-                          onClick={() => onPlayer(p)}
                         >
-                          <UserRound size={14} />
-                        </button>
-                      </label>
-                    ))}
+                          <input
+                            id={inputId}
+                            type="checkbox"
+                            aria-label={`安排${p.name}参加${field.name}`}
+                            checked={ids.includes(p.id)}
+                            disabled={
+                              assignedElsewhere.has(p.id) ||
+                              (fieldId === 'goalkeeping' && p.role !== 'GK') ||
+                              (!ids.includes(p.id) && ids.length >= 8 * level)
+                            }
+                            onChange={(e) =>
+                              setIds(
+                                e.target.checked ? [...ids, p.id] : ids.filter((id) => id !== p.id),
+                              )
+                            }
+                          />
+                          <label htmlFor={inputId} className="training-player-info">
+                            <span className="training-player-heading">
+                              <b>
+                                {p.number} · {p.name}
+                              </b>
+                              {p.age <= 18 && <em>青训</em>}
+                              {p.age > 18 && p.age <= 21 && <em>U21</em>}
+                            </span>
+                            <small>
+                              {roles[p.role]} · {p.age}岁
+                              {assignedElsewhere.has(p.id) ? ' · 已安排其他场地' : ''}
+                            </small>
+                            <span className="training-fitness-row">
+                              <small>体力</small>
+                              <span
+                                className="training-fitness-track"
+                                role="meter"
+                                aria-label={`${p.name}体力`}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={fitness}
+                              >
+                                <i style={{ width: `${fitness}%` }} />
+                              </span>
+                              <b>{fitness}%</b>
+                            </span>
+                            <span
+                              className="training-detail-list"
+                              aria-label={`${field.name}能力观察`}
+                            >
+                              {details.map(
+                                (detail: {
+                                  key: string;
+                                  label: string;
+                                  value: string;
+                                  exact: boolean;
+                                  observed: boolean;
+                                }) => (
+                                  <small
+                                    key={detail.key}
+                                    className={
+                                      'training-detail ' +
+                                      (detail.exact ? 'exact ' : '') +
+                                      (!detail.observed ? 'unknown' : '')
+                                    }
+                                    title={
+                                      detail.exact
+                                        ? `${detail.label}：已准确观察`
+                                        : detail.observed
+                                          ? `${detail.label}：教练评估区间`
+                                          : `${detail.label}：尚待观察`
+                                    }
+                                  >
+                                    {detail.label} {detail.value}
+                                  </small>
+                                ),
+                              )}
+                            </span>
+                          </label>
+                          <button
+                            type="button"
+                            className="icon-button"
+                            aria-label={'查看' + p.name}
+                            onClick={() => onPlayer(p)}
+                          >
+                            <UserRound size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
                 </div>
               </fieldset>
               <button

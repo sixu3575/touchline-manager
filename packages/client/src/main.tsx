@@ -119,6 +119,21 @@ function App() {
       setBusy(false);
     }
   };
+  const managerCommand = async (command: import('./modules/matches/LiveManagerBoard').LiveCommand) => {
+    const id = match.job?.id;
+    if (!id) throw Error('没有可控制的进行中比赛。');
+    const requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), (value) =>
+      value.toString(16).padStart(2, '0'),
+    ).join('');
+    const response = await fetch(`/api/match-jobs/${id}/commands`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ requestId, command }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw Error(payload.error || '临场指令提交失败。');
+    match.accept(payload.job);
+  };
   if (!game)
     return (
       <div className="loading">
@@ -344,6 +359,7 @@ function App() {
               data: match.data,
               connection: match.connection,
               onBackground: () => setWatching(false),
+              onManagerCommand: managerCommand,
             }}
           />
         ) : (

@@ -26,6 +26,7 @@ const key = new Set([
   'penaltyMiss',
   // Recognize these in imported/future reports; the current engine does not create them.
   'substitution',
+  'tacticalChange',
   'injury',
 ]);
 

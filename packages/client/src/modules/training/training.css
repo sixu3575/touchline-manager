@@ -156,22 +156,94 @@
   display: grid;
   gap: 3px;
 }
-.training-player-list > label {
+.training-player-list > .training-player-row {
   display: flex;
-  gap: 9px;
-  align-items: center;
-  padding: 8px 4px;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 4px;
   border-bottom: 1px solid #e8ede4;
   font-size: 12px;
 }
-.training-player-list input {
+.training-player-row > input {
+  margin: 4px 0 0;
   accent-color: #286849;
 }
-.training-player-list small {
+.training-player-info {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 5px;
+  cursor: pointer;
+}
+.training-player-info > small {
   display: block;
   font-size: 10px;
   color: #7d8977;
-  margin-top: 4px;
+}
+.training-player-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.training-player-heading em {
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: #eef5df;
+  color: #547347;
+  font-size: 9px;
+  font-style: normal;
+}
+.training-fitness-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.training-fitness-row > small {
+  color: #71806b;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.training-fitness-row > b {
+  color: #557c43;
+  font-size: 10px;
+  min-width: 31px;
+  text-align: right;
+}
+.training-fitness-track {
+  display: block;
+  height: 5px;
+  flex: 1;
+  max-width: 115px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e7ecdf;
+}
+.training-fitness-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #83aa5e;
+}
+.training-detail-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.training-player-info .training-detail {
+  border-radius: 5px;
+  padding: 2px 5px;
+  background: #f1f4ed;
+  color: #52634d;
+  font-size: 9px;
+}
+.training-player-info .training-detail.exact {
+  background: #e8f3df;
+  color: #38633b;
+}
+.training-player-info .training-detail.unknown {
+  color: #8c9586;
+  background: #f5f6f3;
 }
 .training-player-list .icon-button {
   margin-left: auto;

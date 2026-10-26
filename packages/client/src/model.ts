@@ -33,6 +33,21 @@ export interface MatchEvent {
   y: number;
   playerId?: string;
   assistId?: string;
+  slotIndex?: number;
+  outgoing?: { id: string; name: string; number: number };
+  incoming?: {
+    id: string;
+    name: string;
+    number: number;
+    role: string;
+    positionRole?: string;
+    tacticalRole?: string;
+    overview?: { key: string; label: string; value: number | null }[];
+  };
+  assignments?: { slotIndex: number; role: string; positionRole: string }[];
+  formation?: string;
+  style?: string;
+  press?: string;
   shotId?: number;
   actionId?: number;
   receiverId?: string;
@@ -145,11 +160,14 @@ export interface Report {
       name: string;
       role: string;
       positionRole?: string;
+      tacticalRole?: string;
+      overview?: { key: string; label: string; value: number | null }[];
     }[];
   };
   performance?: {
     id: string;
     side: number;
+    minutes?: number;
     distance: number;
     energy: number;
     burstReserve?: number;

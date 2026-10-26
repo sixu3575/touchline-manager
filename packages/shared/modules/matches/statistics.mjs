@@ -57,17 +57,23 @@ export function createActionStatistics(players, emit, restored = null) {
       ...extra,
     });
   }
-  function finishChallenge(side, second, safe = false) {
+  function registerPlayer(player) {
+    if (!state.rows[player.id])
+      state.rows[player.id] = {
+        id: player.id,
+        side: player.side,
+        ...Object.fromEntries(fields.map((key) => [key, 0])),
+      };
+  }
+  function finishChallenge(side, second) {
     const c = state.challenge;
     if (!c) return;
     state.challenge = null;
-    credit(
-      c.player,
-      c.player.side === side || safe ? { wonTackles: 1 } : {},
-      second,
-      c.player.side === side || safe ? 'tackleWon' : 'tackleLost',
-      { opponentId: c.opponentId, occurredAt: c.second },
-    );
+    const won = c.player.side === side;
+    credit(c.player, won ? { wonTackles: 1 } : {}, second, won ? 'tackleWon' : 'tackleLost', {
+      opponentId: c.opponentId,
+      occurredAt: c.second,
+    });
   }
   function finishTakeOn(outcome, second) {
     const t = state.takeOn;
@@ -201,11 +207,15 @@ export function createActionStatistics(players, emit, restored = null) {
   }
   function stop(kind, side, second, lastTouchId = null) {
     const c = state.context;
+    // At a stoppage, possession/restart side alone does not prove the tackle
+    // won. Only the challenger's throw-in or goal kick is a safe win; a corner
+    // or a foul restart is not a successful tackle just because play stopped.
     const safe =
-      ['throwIn', 'goalKick'].includes(kind) ||
-      (kind === 'corner' && side === state.challenge?.player.side);
-    if (state.challenge && side !== null) finishChallenge(side, second, safe);
-    else state.challenge = null;
+      ['throwIn', 'goalKick'].includes(kind) && side === state.challenge?.player.side;
+    if (state.challenge && side !== null) {
+      const challengerSide = state.challenge.player.side;
+      finishChallenge(safe ? challengerSide : 1 - challengerSide, second);
+    } else state.challenge = null;
     if (['throwIn', 'goalKick', 'corner'].includes(kind) && c && side !== c.player.side)
       lose(second, 'out');
     if (state.takeOn) finishTakeOn('cancelled', second);
@@ -214,6 +224,7 @@ export function createActionStatistics(players, emit, restored = null) {
   return {
     state,
     rows: state.rows,
+    registerPlayer,
     credit,
     control,
     release,

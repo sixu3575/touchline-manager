@@ -8,6 +8,7 @@ import {
 import { ENGINE_VERSION, PARAMETER_VERSION } from '../../shared/modules/matches/index.mjs';
 import { createJobStorage, unpack } from './storage/jobs.mjs';
 import { gunzipSync } from 'node:zlib';
+import { cardOverview, rating } from '../../shared/modules/players/index.mjs';
 import {
   broadcastAt,
   liveReport,
@@ -53,6 +54,13 @@ export class MatchJobs extends EventEmitter {
     const p = this.readProgress(row);
     const broadcast = broadcastAt(p, this.now())?.public;
     const report = summary ? undefined : broadcast ? liveReport(p.report, broadcast) : p.report;
+    const { liveCommands, ...publicProgress } = p;
+    if (publicProgress.manager)
+      publicProgress.manager = {
+        ...publicProgress.manager,
+        simulationComplete: Boolean(p.ownComplete),
+        commands: publicProgress.manager.commands.map(({ body, ...entry }) => entry),
+      };
     return {
       id: row.id,
       status: row.status,
@@ -66,8 +74,9 @@ export class MatchJobs extends EventEmitter {
             report,
             frameCount: report?.replay?.frameCount,
             generatedSeconds: broadcast.seconds,
+            manager: publicProgress.manager,
           }
-        : p),
+        : publicProgress),
     };
   }
   latest(saveId) {
@@ -75,6 +84,74 @@ export class MatchJobs extends EventEmitter {
   }
   locked(saveId) {
     return this.store.pending(saveId);
+  }
+  command(saveId, id, data) {
+    const row = this.store.owned(id, saveId);
+    if (!row) throw problem('比赛任务不存在或不属于此存档。', 404);
+    const progress = this.readProgress(row),
+      manager = progress.manager;
+    if (!manager) throw problem('这场比赛尚不支持临场指挥。');
+    const commandBody = JSON.stringify(data.command),
+      previous = manager.commands.find((item) => item.requestId === data.requestId);
+    if (previous) {
+      if (previous.body !== commandBody) throw problem('操作标识已被使用。');
+      return this.view(row);
+    }
+    const clock = broadcastAt(progress, this.now())?.public;
+    if (row.status === 'complete' || row.status === 'failed' || clock?.finished)
+      throw problem('本队比赛直播已结束，不能再下达临场指令。');
+    if (progress.ownComplete)
+      throw problem('本队比赛的物理模拟已到终场，剩余画面正在播放，指令无法再影响赛果。');
+    if (manager.pending) throw problem('上一条临场指令正在生效，请稍后再操作。');
+    const command = data.command;
+    let type, summary;
+    if (command.type === 'tactics') {
+      if (
+        !['4-4-2', '4-3-3', '3-5-2'].includes(command.formation) ||
+        !['balanced', 'possession', 'counter', 'wide'].includes(command.style) ||
+        !['low', 'normal', 'high'].includes(command.press)
+      )
+        throw problem('阵型或战术选择无效。', 400);
+      type = 'tactics';
+      summary = `${command.formation} · ${command.style} · ${command.press}`;
+    } else if (command.type === 'substitution') {
+      if (manager.usedSubstitutions + manager.reservedSubstitutions >= 5)
+        throw problem('本场最多可进行五次换人。');
+      const outgoing = manager.players.find((player) => player.id === command.playerOutId),
+        incoming = manager.players.find((player) => player.id === command.playerInId);
+      const onPitch = (playerId) =>
+        manager.roles?.some((player) => player.id === playerId) ?? manager.lineup.includes(playerId);
+      if (
+        !outgoing ||
+        !incoming ||
+        outgoing.role !== incoming.role ||
+        !onPitch(outgoing.id) ||
+        onPitch(incoming.id) ||
+        manager.lineup.includes(incoming.id)
+      )
+        throw problem('请选择场上球员，并从同位置替补中选择一名未上场球员。');
+      type = 'substitution';
+      summary = `${outgoing.number}号 ${outgoing.name} → ${incoming.number}号 ${incoming.name}`;
+      manager.reservedSubstitutions++;
+    } else throw problem('临场指令无效。', 400);
+    const effectiveSecond = (progress.generatedSeconds ?? 0) + (this.active?.id === id ? 15 : 0),
+      entry = {
+        requestId: data.requestId,
+        body: commandBody,
+        type,
+        summary,
+        status: '排队中',
+        acceptedAtSecond: clock?.seconds ?? 0,
+        effectiveSecond,
+      };
+    manager.commands.push(entry);
+    manager.pending = data.requestId;
+    progress.liveCommands ??= [];
+    progress.liveCommands.push({ id: data.requestId, version: 1, side: manager.side, ...command });
+    this.store.progress(id, progress);
+    this.notify(id);
+    this.pump();
+    return this.view(this.store.get(id));
   }
   start(saveId, before, data, bodyHash) {
     const prior = this.db
@@ -111,6 +188,30 @@ export class MatchJobs extends EventEmitter {
       .get(saveId, plan.identity);
     if (existing) return this.view(existing);
     const id = randomUUID();
+    const own = plan.state.clubs[0],
+      ownFixture = plan.order[0],
+      manager = {
+        side: ownFixture.homeId === own.id ? 0 : 1,
+        tactics: structuredClone(own.tactics),
+        lineup: [...own.lineup],
+        roles: own.lineup.map((id) => ({
+          id,
+          role: own.players.find((player) => player.id === id).role,
+        })),
+        usedSubstitutions: 0,
+        reservedSubstitutions: 0,
+        pending: null,
+        commands: [],
+        players: own.players.map((player) => ({
+          id: player.id,
+          name: player.name,
+          number: player.number,
+          role: player.role,
+          fitness: Math.round(player.fitness),
+          overall: Number.isFinite(rating(player)) ? rating(player) : null,
+          overview: cardOverview(player),
+        })),
+      };
     this.store.insert(
       {
         id,
@@ -132,6 +233,7 @@ export class MatchJobs extends EventEmitter {
         checkpoint: null,
         seq: 0,
       },
+      { manager, liveCommands: [] },
     );
     this.pump();
     return this.view(this.store.get(id));
@@ -159,6 +261,7 @@ export class MatchJobs extends EventEmitter {
         // A temporary SQLite writer never advances state or loses the last durable clock.
       }
     }
+    if (!this.active) this.pump();
   }
   finishAiring(row) {
     let transaction = false;
@@ -267,6 +370,16 @@ export class MatchJobs extends EventEmitter {
       this.failTask(row.id, '检查点无法读取；请使用原运行版本和备份恢复，存档尚未结算。');
       return;
     }
+    const progress = this.readProgress(row),
+      clock = broadcastAt(progress, this.now())?.public,
+      available = progress.generatedSeconds ?? 0;
+    if (
+      work.index === 0 &&
+      !progress.ownComplete &&
+      progress.report &&
+      available > (clock?.seconds ?? 0) + 15
+    )
+      return;
     this.working = { id: row.id, work };
     if (row.status !== 'running' && !this.writeStatus(row.id, 'running')) return;
     const freshWorker = !this.worker;
@@ -283,7 +396,17 @@ export class MatchJobs extends EventEmitter {
         if (code !== 0) this.failed(worker);
       });
     }
-    this.active = { id: row.id, work, timer: setTimeout(() => this.failed(this.worker), 45000) };
+    const commands = (progress.liveCommands ?? []).filter((command) =>
+      progress.manager?.commands.some(
+        (entry) => entry.requestId === command.id && entry.status === '排队中',
+      ),
+    );
+    this.active = {
+      id: row.id,
+      work,
+      commands,
+      timer: setTimeout(() => this.failed(this.worker), 45000),
+    };
     const f = work.plan.order[work.index];
     const key = row.id + ':' + f.id,
       resume = freshWorker || this.workerKey !== key;
@@ -297,6 +420,7 @@ export class MatchJobs extends EventEmitter {
       expectedTick: work.checkpoint?.tick ?? 0,
       engineVersion: work.engineVersion,
       parameterVersion: work.parameterVersion,
+      commands,
       sliceSeconds: work.index === 0 ? 15 : 60,
     });
   }
@@ -316,6 +440,57 @@ export class MatchJobs extends EventEmitter {
       const { done, part } = result,
         own = work.index === 0;
       const progress = JSON.parse(row.progress);
+      const appliedById = new Map((result.appliedCommands ?? []).map((item) => [item.id, item]));
+      for (const delivered of active.commands ?? []) {
+        const command = progress.manager?.commands.find((item) => item.requestId === delivered.id);
+        if (!command || command.status !== '排队中') continue;
+        const applied = appliedById.get(delivered.id);
+        command.status = applied ? '已生效' : '未生效';
+        if (applied) command.effectiveSecond = applied.effectiveSecond;
+        else command.reason = '球员或比赛状态在指令到达前已变化';
+        if (command.type === 'substitution') {
+          if (applied) progress.manager.usedSubstitutions++;
+          progress.manager.reservedSubstitutions = Math.max(
+            0,
+            progress.manager.reservedSubstitutions - 1,
+          );
+        }
+        if (progress.manager.pending === delivered.id) progress.manager.pending = null;
+      }
+      if (result.managerState && progress.manager) {
+        const sideState = result.managerState[progress.manager.side];
+        if (sideState) {
+          progress.manager.tactics = sideState.tactics;
+          progress.manager.lineup = sideState.lineup;
+          progress.manager.roles = sideState.roles;
+        }
+      }
+      if (active.commands?.length) {
+        const appliedIds = new Set(active.commands.map((command) => command.id));
+        progress.liveCommands = (progress.liveCommands ?? []).filter(
+          (command) => !appliedIds.has(command.id),
+        );
+      }
+      if (own && done && progress.manager) {
+        // A command can arrive while the worker is calculating its final slice.
+        // That worker already took its command snapshot, so no later simulation
+        // boundary exists to apply the newly queued instruction.
+        const deliveredIds = new Set((active.commands ?? []).map((command) => command.id));
+        for (const command of progress.manager.commands) {
+          if (command.status !== '排队中' || deliveredIds.has(command.requestId)) continue;
+          command.status = '未生效';
+          command.reason = '本队比赛物理模拟已结束';
+          if (command.type === 'substitution')
+            progress.manager.reservedSubstitutions = Math.max(
+              0,
+              progress.manager.reservedSubstitutions - 1,
+            );
+          if (progress.manager.pending === command.requestId) progress.manager.pending = null;
+        }
+        progress.liveCommands = (progress.liveCommands ?? []).filter((command) =>
+          deliveredIds.has(command.id),
+        );
+      }
       // An existing job may already be computing AI fixtures when this repair
       // is deployed. Its next ordinary checkpoint also sheds the old live copy.
       if (!own && progress.report) progress.report = compactBroadcastReport(progress.report);

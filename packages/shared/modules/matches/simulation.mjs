@@ -66,6 +66,7 @@ import {
   matchShock,
   updateMatchEnergy,
   mentalModifier,
+  cardOverview,
 } from '../players/index.mjs';
 import {
   RULES_VERSION,
@@ -79,7 +80,8 @@ import {
   localX,
 } from './rules.mjs';
 import { shootout } from './shootout.mjs';
-import { validateLineup } from '../tactics/index.mjs';
+import { validateLineup, formationSlot, FORMATIONS } from '../tactics/index.mjs';
+import { assignFormationRoles, tacticalRoleOf } from './tactical-roles.mjs';
 import {
   createPhysics,
   restorePhysics,
@@ -112,9 +114,10 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.43.0-counter-runs';
-export const PARAMETER_VERSION = 'counter-runs-1';
+export const ENGINE_VERSION = '0.44.0-live-manager';
+export const PARAMETER_VERSION = 'live-manager-1';
 export const SAMPLE_HZ = 5;
+export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
 // Full regulation clock in real SI seconds. Playback speed is a client concern.
 const DURATION = 90 * 60;
@@ -151,6 +154,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   const clubs = [home, away],
     rng = random(seed),
     physics = options.checkpoint ? restorePhysics(options.checkpoint.physics) : createPhysics();
+  if (options.checkpoint?.state?.clubs)
+    for (const side of [0, 1]) {
+      clubs[side].tactics = structuredClone(options.checkpoint.state.clubs[side].tactics);
+      clubs[side].lineup = [...options.checkpoint.state.clubs[side].lineup];
+    }
   const actors = options.checkpoint
     ? unpackActors(options.checkpoint.actors, physics)
     : clubs.flatMap((club, side) =>
@@ -158,6 +166,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           player: { ...player, matchState: createMatchState(player) },
           anchor,
           positionRole,
+          tacticalRole: player.role,
           profile: playerProfile(player, anchor),
           intent: null,
           facing: side === 0 ? 0 : Math.PI,
@@ -262,6 +271,32 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     },
     options.checkpoint?.state.actionStatistics,
   );
+  const substitutedRows = structuredClone(options.checkpoint?.state?.substitutedRows ?? []);
+  const matchPlayers = clubs.map(
+    (club) =>
+      new Map(
+        club.lineup.map((id) => {
+          const player = club.players.find((row) => row.id === id);
+          return [id, player];
+        }),
+      ),
+  );
+  if (options.checkpoint?.state?.matchPlayers)
+    for (const side of [0, 1])
+      for (const player of options.checkpoint.state.matchPlayers[side] ?? [])
+        matchPlayers[side].set(player.id, player);
+  const initialReplayPlayers = options.checkpoint?.state?.initialReplayPlayers ?? actors.map((a) => ({
+    id: a.player.id,
+    side: a.side,
+    number: a.player.number,
+    name: a.player.name,
+    role: a.player.role,
+    positionRole: a.positionRole,
+    overview: cardOverview(a.player),
+  }));
+  const initialLineups = options.checkpoint?.state?.initialLineups ?? clubs.map((club) => [...club.lineup]);
+  const initialTactics = options.checkpoint?.state?.initialTactics ?? clubs.map((club) => structuredClone(club.tactics));
+  let currentSliceCommands = [];
   const ticks = duration * 20;
   const frames =
     options.recordReplay === false
@@ -821,6 +856,12 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         cut,
         cursor,
         roles,
+        clubs: clubs.map((club) => ({ tactics: structuredClone(club.tactics), lineup: [...club.lineup] })),
+        substitutedRows: structuredClone(substitutedRows),
+        matchPlayers: clubs.map((club, side) => [...matchPlayers[side].values()]),
+        initialReplayPlayers: structuredClone(initialReplayPlayers),
+        initialLineups: structuredClone(initialLineups),
+        initialTactics: structuredClone(initialTactics),
         attribution: structuredClone(attribution),
         statisticalContacts: [...statisticalContacts],
         physicalContactPairs: [...physicalContactPairs],
@@ -831,6 +872,208 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   }
   let chunkStart = cursor === FRAME_STRIDE ? 0 : cursor;
   const sliceTicks = (options.sliceSeconds ?? 60) * 20;
+  function actorPerformance(a, until = time, timelineOnly = false) {
+    const row = {
+      id: a.player.id,
+      side: a.side,
+      minutes: Math.max(0, Math.min(until, a.dismissedAt ?? until) - (a.startedAt ?? 0)) / 60,
+      distance: Math.round(a.distance),
+      locomotion: {
+        version: 1,
+        zones: a.activity.zones.map((n) => Math.round(n)),
+        seconds: a.activity.seconds.map((n) => Math.round(n * 100) / 100),
+        liveMetres: Math.round(a.activity.liveMetres),
+        deadMetres: Math.round(a.activity.deadMetres),
+        sprintEfforts: a.activity.sprintEfforts,
+        longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
+        adrenalineEfforts: a.activity.adrenalineEfforts,
+      },
+      defenceTelemetry: {
+        pressSeconds: Math.round(a.pressSeconds ?? 0),
+        markingSeconds: Math.round(a.markingSeconds ?? 0),
+        markingSwitches: a.markSwitches ?? 0,
+        observationLapses: a.markLapses ?? 0,
+      },
+      energy: Math.round(a.energy * 10) / 10,
+      burstReserve: Math.round(burstReserve(a)),
+      touches: a.touches,
+      passes: a.passes,
+      completed: a.completed,
+      style: a.profile.label,
+      positionRole: a.positionRole,
+      dribbleTouches: a.carries,
+      carryDistance: Math.round(a.carryDistance),
+      throughBalls: a.throughBalls,
+      longPasses: a.longPasses,
+      oneTouchPasses: a.oneTouchPasses,
+      maxSpeed: Math.round(a.maxSpeed * 100) / 100,
+      tackles: a.tackles,
+      wonTackles: a.wonTackles,
+      yellowCards: a.yellowCards,
+      redCards: Number(a.sentOff),
+      dismissedAt: a.dismissedAt,
+      mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
+      ...actionStatistics.rows[a.player.id],
+    };
+    if (timelineOnly) {
+      delete row.locomotion;
+      delete row.defenceTelemetry;
+    }
+    return row;
+  }
+  function updateFormation(side, formationName) {
+    for (const role of ['GK', 'DEF', 'MID', 'FWD']) {
+      const group = actors.filter((a) => a.side === side && tacticalRoleOf(a) === role && !a.sentOff);
+      group.forEach((a, index) => {
+        const slot = formationSlot(formationName, role, index, group.length);
+        a.anchor = { x: slot.x, z: slot.z };
+        a.positionRole = slot.positionRole;
+        a.profile = playerProfile({ ...a.player, role: a.tacticalRole }, a.anchor);
+      });
+    }
+  }
+  function applyManagerCommand(command) {
+    if (!command || command.version !== LIVE_MANAGER_COMMANDS_VERSION) return;
+    const side = command.side;
+    if (![0, 1].includes(side)) return;
+    if (command.type === 'tactics') {
+      const { formation: formationName, style, press } = command;
+      if (
+        !Object.hasOwn(FORMATIONS, formationName) ||
+        !['balanced', 'possession', 'counter', 'wide'].includes(style) ||
+        !['low', 'normal', 'high'].includes(press)
+      )
+        return;
+      const previous = clubs[side].tactics;
+      clubs[side].tactics = { formation: formationName, style, press };
+      if (previous.formation !== formationName) {
+        const roles = assignFormationRoles(actors, side, formationName);
+        for (const [actor, role] of roles) actor.tacticalRole = role;
+        updateFormation(side, formationName);
+      }
+      event('tacticalChange', side, `临场调整为 ${formationName} · ${style} · ${press}压迫。`, null, {
+        formation: formationName,
+        style,
+        press,
+        assignments: actors
+          .filter((actor) => actor.side === side && !actor.sentOff)
+          .map((actor) => ({
+            slotIndex: actor.index,
+            role: tacticalRoleOf(actor),
+            positionRole: actor.positionRole,
+          })),
+      });
+      currentSliceCommands.push({ id: command.id, effectiveSecond: time });
+      return;
+    }
+    if (command.type !== 'substitution') return;
+    const club = clubs[side];
+    const outgoing = actors.find((a) => a.side === side && a.player.id === command.playerOutId);
+    const incoming = club.players.find((p) => p.id === command.playerInId);
+    if (
+      !outgoing ||
+      outgoing.sentOff ||
+      !incoming ||
+      incoming.role !== outgoing.player.role ||
+      club.lineup.includes(incoming.id) ||
+      !club.lineup.includes(outgoing.player.id) ||
+      currentSliceCommands.filter((row) => row.kind === 'substitution').length >= 5
+    )
+      return;
+    const oldPlayer = outgoing.player,
+      oldPosition = outgoing.body.translation(),
+      oldVelocity = outgoing.body.linvel(),
+      slot = club.lineup.indexOf(oldPlayer.id),
+      oldHandles = [outgoing.collider, outgoing.foot, outgoing.head, outgoing.hands, ...outgoing.legs]
+        .filter(Boolean)
+        .map((part) => part.handle);
+    substitutedRows.push(actorPerformance(outgoing));
+    actionStatistics.stop('substitution', null, time);
+    if (owner === outgoing) owner = null;
+    if (lastTouch === outgoing) lastTouch = null;
+    if (pendingPass?.actor === outgoing || pendingPass?.receiver === outgoing) pendingPass = null;
+    if (lastPass?.actor === outgoing || lastPass?.receiver === outgoing) lastPass = null;
+    if (continuity.lastController === oldPlayer.id) continuity.lastController = null;
+    for (const handle of oldHandles) colliderActors.delete(handle);
+    for (const handle of oldHandles) statisticalContacts.delete(handle);
+    physics.legRecovery.delete(outgoing);
+    physicalContactPairs.clear();
+    physics.world.removeRigidBody(outgoing.body);
+    const isKeeper = outgoing.isKeeper,
+      body = createBody(physics, incoming.heightCm ?? 180, ability(incoming, 'strength'), oldPosition.x, oldPosition.z);
+    body.body.setLinvel({ x: oldVelocity.x, y: 0, z: oldVelocity.z }, true);
+    actionStatistics.registerPlayer({ id: incoming.id, side });
+    const replacement = {
+      player: { ...incoming, matchState: createMatchState(incoming) },
+      anchor: { ...outgoing.anchor },
+      positionRole: outgoing.positionRole,
+        profile: playerProfile(
+          { ...incoming, role: outgoing.tacticalRole ?? outgoing.player.role },
+          outgoing.anchor,
+        ),
+      intent: null,
+      facing: outgoing.facing,
+      kickPlan: null,
+      movementMode: 'jog',
+      carries: 0,
+      carryDistance: 0,
+      throughBalls: 0,
+      longPasses: 0,
+      oneTouchPasses: 0,
+      maxSpeed: 0,
+      isKeeper,
+      yellowCards: 0,
+      sentOff: false,
+      dismissedAt: null,
+      tackles: 0,
+      wonTackles: 0,
+      tackleAt: 0,
+      side,
+      index: outgoing.index,
+      ...body,
+      pos: { x: oldPosition.x, z: oldPosition.z },
+      velocity: { x: oldVelocity.x, z: oldVelocity.z },
+      target: { x: oldPosition.x, z: oldPosition.z },
+      energy: incoming.fitness,
+      tacticalRole: outgoing.tacticalRole ?? outgoing.player.role,
+      distance: 0,
+      startedAt: time,
+      activity: activityState(),
+      touches: 0,
+      passes: 0,
+      completed: 0,
+      hold: 0,
+      cooldown: 0,
+      bias: outgoing.bias,
+      reaction: 0,
+      setPiece: null,
+      nextDecision: time,
+    };
+    if (isKeeper) replacement.hands = createHands(physics, replacement);
+    for (const key of Object.keys(outgoing)) delete outgoing[key];
+    Object.assign(outgoing, replacement);
+    for (const part of [outgoing.collider, outgoing.foot, outgoing.head, outgoing.hands, ...outgoing.legs])
+      if (part) colliderActors.set(part.handle, outgoing);
+    club.lineup[slot] = incoming.id;
+    matchPlayers[side].set(incoming.id, incoming);
+    event('substitution', side, `${oldPlayer.number}号 ${oldPlayer.name}下场，${incoming.number}号 ${incoming.name}替补登场。`, outgoing, {
+      slotIndex: outgoing.index,
+      outgoing: { id: oldPlayer.id, name: oldPlayer.name, number: oldPlayer.number },
+    incoming: {
+        id: incoming.id,
+        name: incoming.name,
+        number: incoming.number,
+        role: incoming.role,
+        positionRole: outgoing.positionRole,
+        tacticalRole: outgoing.tacticalRole ?? outgoing.player.role,
+        overview: cardOverview(incoming),
+      },
+    });
+    currentSliceCommands.push({ id: command.id, kind: 'substitution', effectiveSecond: time });
+  }
+  function applyManagerCommands(commands) {
+    for (const command of Array.isArray(commands) ? commands : []) applyManagerCommand(command);
+  }
   function publicStats() {
     const total = stats[0].possessionTicks + stats[1].possessionTicks;
     return stats.map((row, side) => {
@@ -869,54 +1112,30 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     });
   }
   function playerStats(timelineOnly = false) {
-    return actors.map((a) => {
-      const row = {
-        id: a.player.id,
-        side: a.side,
-        distance: Math.round(a.distance),
-        locomotion: {
-          version: 1,
-          zones: a.activity.zones.map((n) => Math.round(n)),
-          seconds: a.activity.seconds.map((n) => Math.round(n * 100) / 100),
-          liveMetres: Math.round(a.activity.liveMetres),
-          deadMetres: Math.round(a.activity.deadMetres),
-          sprintEfforts: a.activity.sprintEfforts,
-          longestSprint: Math.round(a.activity.longestSprint * 100) / 100,
-          adrenalineEfforts: a.activity.adrenalineEfforts,
-        },
-        defenceTelemetry: {
-          pressSeconds: Math.round(a.pressSeconds ?? 0),
-          markingSeconds: Math.round(a.markingSeconds ?? 0),
-          markingSwitches: a.markSwitches ?? 0,
-          observationLapses: a.markLapses ?? 0,
-        },
-        energy: Math.round(a.energy * 10) / 10,
-        burstReserve: Math.round(burstReserve(a)),
-        touches: a.touches,
-        passes: a.passes,
-        completed: a.completed,
-        style: a.profile.label,
-        positionRole: a.positionRole,
-        dribbleTouches: a.carries,
-        carryDistance: Math.round(a.carryDistance),
-        throughBalls: a.throughBalls,
-        longPasses: a.longPasses,
-        oneTouchPasses: a.oneTouchPasses,
-        maxSpeed: Math.round(a.maxSpeed * 100) / 100,
-        tackles: a.tackles,
-        wonTackles: a.wonTackles,
-        yellowCards: a.yellowCards,
-        redCards: Number(a.sentOff),
-        dismissedAt: a.dismissedAt,
-        mind: { morale: a.player.matchState.morale, confidence: a.player.matchState.confidence },
-        ...actionStatistics.rows[a.player.id],
-      };
-      if (timelineOnly) {
-        delete row.locomotion;
-        delete row.defenceTelemetry;
-      }
-      return row;
-    });
+    return [
+      ...substitutedRows.map((saved) => {
+        const row = structuredClone(saved);
+        if (timelineOnly) {
+          delete row.locomotion;
+          delete row.defenceTelemetry;
+        }
+        return row;
+      }),
+      ...actors.map((a) => actorPerformance(a, time, timelineOnly)),
+    ];
+  }
+  function managerState() {
+    return clubs.map((club, side) => ({
+      tactics: structuredClone(club.tactics),
+      lineup: [...club.lineup],
+      roles: actors
+        .filter((actor) => actor.side === side && !actor.sentOff)
+        .map((actor) => ({
+          id: actor.player.id,
+          role: tacticalRoleOf(actor),
+          positionRole: actor.positionRole,
+        })),
+    }));
   }
   function timelineContinuity() {
     // Individual control spells are full-match replay diagnostics, not live snapshots.
@@ -952,6 +1171,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         sprintShare: motion.sprintSamples / (motion.playerSamples || 1),
       },
       performance: playerStats(),
+      managerState: managerState(),
+      appliedManagerCommands: structuredClone(currentSliceCommands),
       replay: frames
         ? {
             format: 'positions-u16-v1',
@@ -963,25 +1184,21 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             clockScale: 1,
             physics: 'Rapier 3D 0.21.0',
             stepHz: 20,
-            players: actors.map((a) => ({
-              id: a.player.id,
-              side: a.side,
-              number: a.player.number,
-              name: a.player.name,
-              role: a.player.role,
-              positionRole: a.positionRole,
-            })),
+            players: structuredClone(initialReplayPlayers),
           }
         : undefined,
       snapshots: clubs.map((c) => ({
         id: c.id,
         name: c.name,
-        tactics: structuredClone(c.tactics),
-        players: structuredClone(c.lineup.map((id) => c.players.find((p) => p.id === id))),
+        tactics: structuredClone(initialTactics[clubs.indexOf(c)]),
+        players: structuredClone(
+          initialLineups[clubs.indexOf(c)].map((id) => c.players.find((player) => player.id === id)),
+        ),
       })),
     };
   }
   try {
+    applyManagerCommands(options.initialCommands);
     for (let tick = startTick + 1; tick <= ticks; tick++) {
       time = tick * STEP;
       if (tick === Math.floor(ticks / 2)) {
@@ -2226,9 +2443,12 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           trajectory: frames?.slice(chunkStart, cursor),
           report: options.durable ? buildReport() : undefined,
           checkpoint: options.durable ? checkpoint(tick) : undefined,
+          managerState: managerState(),
+          appliedManagerCommands: structuredClone(currentSliceCommands),
         };
+        currentSliceCommands = [];
         chunkStart = cursor;
-        yield part;
+        applyManagerCommands(yield part);
       }
     }
     resolveAttempt();
@@ -2270,14 +2490,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         clockScale: CLOCK_SCALE,
         physics: 'Rapier 3D 0.21.0',
         stepHz: 20,
-        players: actors.map((a) => ({
-          id: a.player.id,
-          side: a.side,
-          number: a.player.number,
-          name: a.player.name,
-          role: a.player.role,
-          positionRole: a.positionRole,
-        })),
+        players: structuredClone(initialReplayPlayers),
       };
       report.trajectory = new Uint16Array(cursor + (penaltyFrames?.length ?? 0));
       report.trajectory.set(frames.subarray(0, cursor));

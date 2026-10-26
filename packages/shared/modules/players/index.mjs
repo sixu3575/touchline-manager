@@ -116,6 +116,8 @@ export function player(id, role, level, rng, youth = false, date = '2026-07-01')
   };
   for (const key of Object.keys(budgets)) budgets[key] = Math.round(clamp(budgets[key], 1, 95));
   const { attributes, archetype } = profileAttributes(role, budgets, rng, identity.heightCm);
+  const potentialAgeBonus = Math.max(0, 24 - age) * 0.6,
+    potentialVariance = 20 + Math.max(0, 22 - age) * 0.4;
   const p = {
     id,
     name: ['CN', 'JP', 'KR'].includes(identity.nationality) ? last + first : first + '·' + last,
@@ -126,7 +128,11 @@ export function player(id, role, level, rng, youth = false, date = '2026-07-01')
     skills: skillSummary(attributes),
     ...makeCharacter(rng),
     fitness: 100,
-    potential: Math.round(clamp(level + 8 + rng() * 20, 55, 95)),
+    // Younger players trend toward more remaining potential, but age is only
+    // a gradual prior: each player keeps a broad, individual talent roll.
+    potential: Math.round(
+      clamp(level + 8 + potentialAgeBonus + rng() * potentialVariance, 55, age <= 21 ? 98 : 95),
+    ),
     number: 1 + Math.floor(rng() * 98),
     goals: 0,
     assists: 0,

@@ -16,6 +16,7 @@ parentPort.on(
     home,
     away,
     checkpoint,
+    commands = [],
     expectedTick,
     engineVersion,
     parameterVersion,
@@ -26,23 +27,36 @@ parentPort.on(
         throw Error('比赛引擎版本不匹配；请用创建任务时的版本恢复，不能重新抽取赛果。');
       const nextKey = id + ':' + fixture.id;
       const tick = expectedTick ?? checkpoint?.tick ?? 0;
+      let created = false;
       if (key !== nextKey || savedTick !== tick) {
         engine?.return();
         if (tick > 0 && !checkpoint) throw Error('Missing required committed checkpoint');
         engine = createMatchSimulation(home, away, fixture.seed, fixture.id, {
           ...fixture.options,
           checkpoint,
+          initialCommands: commands,
           durable: true,
           sliceSeconds,
         });
         key = nextKey;
+        created = true;
       }
-      const { done, value: part } = engine.next();
+      const result = created ? engine.next() : engine.next(commands);
+      const { done, value: part } = result;
+      const source = done ? part : part.report;
+      const managerState = part.managerState ?? source?.managerState;
+      const appliedCommands = part.appliedManagerCommands ?? source?.appliedManagerCommands ?? [];
+      delete part.managerState;
+      delete part.appliedManagerCommands;
+      if (source) {
+        delete source.managerState;
+        delete source.appliedManagerCommands;
+      }
       savedTick = part.checkpoint?.tick ?? 0;
       const transfers = [];
       if (part.trajectory?.buffer) transfers.push(part.trajectory.buffer);
       if (part.checkpoint?.frames?.buffer) transfers.push(part.checkpoint.frames.buffer);
-      parentPort.postMessage({ id, done, part }, transfers);
+      parentPort.postMessage({ id, done, part, managerState, appliedCommands }, transfers);
       if (done) {
         engine = null;
         key = null;
