@@ -1,6 +1,6 @@
 # 首版玩法契约
 
-待发布候选 `0.43.0-counter-runs` 合并0.41战术差异、0.42防守协同和本次反击增强：控球根据压力/空间回收与转移；边路提高突破、内切和传中；反击提供合法压线跑位、地面/过顶身后球，并按跑者速度和出球者视野/传球比较候选。防守会随球补位、必要时围抢，同时承担漏防风险。十场完整小样本4 pass/6 review、0 block/无分布告警；高压反击的两次身后球仍未接成，不能据此声称比赛整体已校准。算法、决策图和限制见[反击跑位复核](../packages/shared/modules/matches/design/COUNTER_RUNS_V0430.md)、[防守协同复核](../packages/shared/modules/matches/design/DEFENSIVE_COORDINATION_V0420.md)和[战术身份校准](../packages/shared/modules/matches/design/TACTICAL_IDENTITY_V0410.md)。
+已发布 `0.43.0-counter-runs`（PR #64）：合并0.41战术差异、0.42防守协同和反击增强。控球根据压力/空间回收与转移；边路提高突破、内切和传中；反击提供合法压线跑位、地面/过顶身后球，并按跑者速度和出球者视野/传球比较候选。防守会随球补位、必要时围抢，同时承担漏防风险。十场完整小样本4 pass/6 review、0 block/无分布告警；高压反击的两次身后球仍未接成，不能据此声称比赛整体已校准。算法、决策图和限制见[反击跑位复核](../packages/shared/modules/matches/design/COUNTER_RUNS_V0430.md)、[防守协同复核](../packages/shared/modules/matches/design/DEFENSIVE_COORDINATION_V0420.md)和[战术身份校准](../packages/shared/modules/matches/design/TACTICAL_IDENTITY_V0410.md)。
 
 0.39.0修正斜角射门瞄准：瞄准点与整球刚好越过门线的平面对齐，避免门后目标点导致球体在门柱外侧先行过线。球员属性、射门选择、能力影响和比赛统计规则不变；历史战报与回放保留原结果。详细对照见[射门落点设计](../packages/shared/modules/matches/design/SHOT_AIM_V0390.md)。
 
