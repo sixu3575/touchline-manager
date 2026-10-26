@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-10-26 发布：排兵布阵体力显示
+
+部署 PR #66，合并提交及生产 build 均为 `6b3bbc3210622ced7b923b96a9890293539c7dc0`，应用版本 `0.17.0`。排兵布阵名单与首发球场显示球员当前体力百分比及状态条；仅为客户端只读展示，不改排阵、比赛规则、存档结构或历史报告。
+
+部署前7个比赛任务均已完成。停服前一致 SQLite 快照为 `/var/backups/touchline-manager/touchline-2026-10-26T05-30-40-710Z.sqlite`，离机副本为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-tactics-fitness-0.43.sqlite`，大小142,069,760字节。VM和离机副本 SHA-256 均为 `50c8525bfee1811cacbdfff421c27a4a4d90ecc86157be30e3939386438f027e`；离机副本 `integrity_check` 为 `ok`。部署前后均为34个存档、62份战报、7个已完成比赛任务；安装脚本另生成 `/var/backups/touchline-manager/touchline-2026-10-26T05-31-36-291Z.sqlite`。
+
+发布归档 SHA-256 为 `3fb491eddee9d9ed807b54ac828ea484da0723ebc26300c7618e7a2a9e041fe3`，通过 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> 6b3bbc3210622ced7b923b96a9890293539c7dc0` 安装。生产库 `integrity_check` 为 `ok`；`touchline-manager.service`、Caddy和`touchline-backup.timer`均为active，服务重启计数0。本机与公网 `/api/health` 返回该 build；公网首页、JS和CSS均为HTTP 200，下载的资源包含体力文案与样式。
+
+PR合并前 Node 22/24 CI通过；本机77项冒烟/针对性检查、类型检查和生产构建通过。此为界面展示改动，`match=false`、`season=false`，没有运行比赛或赛季模拟。
+
 ## 2026-10-26 发布：0.43.0-counter-runs
 
 部署 PR #64，合并提交及生产 build 均为 `b376ad42652a17c5f73ca33b08a74c55fb8d3163`，引擎版本 `0.43.0-counter-runs` / `counter-runs-1`。本次将0.41战术差异、0.42防守协同与0.43反击身后球增强一并上线；没有数据库迁移、存档改写或历史比赛重算。
