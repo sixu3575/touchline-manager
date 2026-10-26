@@ -1,15 +1,15 @@
 // Authored courtyard object bounds, as percentages of the 1600 × 1000 canvas.
 export const CLUB_OBJECTS = [
-  { id: 'training', label: '训练场', x: 8, y: 4, w: 39, h: 21 },
-  { id: 'stadium', label: '主场看台', x: 54, y: 2, w: 43, h: 31 },
-  { id: 'squad', label: '更衣室', x: 5, y: 29, w: 29, h: 31 },
-  { id: 'tactics', label: '战术棚', x: 35, y: 30, w: 33, h: 32 },
-  { id: 'finance', label: '财务室', x: 70, y: 34, w: 28, h: 31 },
-  { id: 'scouting', label: '球探车', x: 1, y: 63, w: 34, h: 32 },
-  { id: 'fixtures', label: '翻开体育报', x: 39, y: 79, w: 19, h: 14 },
-  { id: 'league-stats', label: '打开数据电视', x: 42, y: 63, w: 17, h: 16 },
-  { id: 'my-matches', label: '比赛档案箱', x: 60, y: 78, w: 13, h: 17 },
-  { id: 'club-honours', label: '荣誉柜', x: 79, y: 65, w: 20, h: 31 },
+  { id: 'training', label: '训练场', x: 25, y: 13, w: 39, h: 19 },
+  { id: 'stadium', label: '主场看台', x: 72, y: 1, w: 26, h: 23 },
+  { id: 'squad', label: '更衣室', x: 10, y: 43, w: 14, h: 21 },
+  { id: 'tactics', label: '战术棚', x: 65, y: 23, w: 11, h: 11 },
+  { id: 'finance', label: '财务室', x: 64, y: 45, w: 8, h: 11 },
+  { id: 'scouting', label: '球探车', x: 65, y: 58, w: 34, h: 32 },
+  { id: 'fixtures', label: '翻开体育报', x: 25, y: 54, w: 8, h: 10 },
+  { id: 'league-stats', label: '打开数据电视', x: 33, y: 51, w: 8, h: 10 },
+  { id: 'my-matches', label: '比赛档案箱', x: 41, y: 58, w: 6, h: 8 },
+  { id: 'club-honours', label: '荣誉柜', x: 46, y: 45, w: 10, h: 12 },
 ];
 /** @type {Record<string, string>} */
 export const ROOM_NAMES = {

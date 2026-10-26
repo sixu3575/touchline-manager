@@ -130,6 +130,7 @@
 .yard-object:hover .object-sign,
 .yard-object:focus-visible .object-sign {
   opacity: 1;
+  pointer-events: auto;
   transform: translate(-50%, 0) rotate(-4deg);
 }
 .yard-object:hover .object-sign,
@@ -147,16 +148,26 @@
   color: #183438;
 }
 .yard-object-fixtures .object-sign {
-  top: 65%;
+  top: 100%;
 }
 .yard-object-league-stats .object-sign {
-  top: 20%;
+  top: -18%;
 }
 .yard-object-my-matches .object-sign {
-  top: 65%;
+  top: 110%;
 }
 .yard-object-stadium .object-sign {
   top: 45%;
+}
+.yard-object-training .object-sign,
+.yard-object-stadium .object-sign,
+.yard-object-tactics .object-sign {
+  padding: 6px 9px;
+}
+.yard-object-training .object-sign b,
+.yard-object-stadium .object-sign b,
+.yard-object-tactics .object-sign b {
+  font-size: 12px;
 }
 .yard-brand-mark {
   position: absolute;

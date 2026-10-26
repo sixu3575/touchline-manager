@@ -21,7 +21,7 @@ export function Overview({
   onPlayer: (p: Player) => void;
   onReport: (r: Report) => void;
 }) {
-  const [labels, setLabels] = useState(true);
+  const [labels, setLabels] = useState(false);
   const club = game.clubs[0];
   const rows = standings(game) as Standing[];
   const rank = rows.findIndex((row) => row.id === 'me') + 1;
@@ -66,10 +66,10 @@ export function Overview({
         <div className="yard-stage">
           <img
             className="yard-art"
-            src="/art/scenes/club-courtyard-cartoon-v3.webp"
+            src="/art/scenes/club-courtyard-depth-v4.webp"
             width="1600"
             height="1000"
-            alt="夸张卡通球会：球鞋形更衣室与口哨烟囱、巨型锥桶训练场、足球门洞看台、怪兽轮胎球探车、巨型计算器办公室和金靴荣誉柜"
+            alt="从球会大门望向纵深院子：近处斜停球探车，连体更衣室与办公室沿路分布，报纸电视和奖杯窗设在门廊，训练场与看台退到远处"
             fetchPriority="high"
           />
           {CLUB_OBJECTS.map((object) => (
@@ -116,7 +116,7 @@ export function Overview({
         <div className="yard-hint">
           <Sparkles size={15} />
           <span>
-            点建筑、报纸或物件进入。<em>手机可左右滑动院子。</em>
+            点建筑或物件进入，可显示路牌查看入口。<em>手机可左右滑动院子。</em>
           </span>
           {game.reports[0] && (
             <button onClick={() => onReport(game.reports[0])}>
