@@ -54,6 +54,8 @@ VM Node22完整复测在384 MiB隔离限额、与正式服务相同的不设CPUQ
 
 部署、离机备份及存档指纹见 [OPERATIONS](../../../../docs/OPERATIONS.md)。本次不降低正式512 MiB限额。
 
+PR #73已部署为build `94ff240768d3b5d9be6070bc60b70be275d2f858`，公网/本机health与实际unit核对通过。公网只读浏览器页面无异常；验收临时会话清理后，原六表全列/BLOB指纹一致、integrity_check为ok。测试服务与隧道全部关闭，生产引擎和用户存档未改写。
+
 ## 依据与后续边界
 
 [Node22 memoryUsage](https://nodejs.org/docs/latest-v22.x/api/process.html#processmemoryusage)解释RSS、线程堆及glibc碎片化；分配区估计按glibc 2.39的 `malloc.c::int_mallinfo` 与 `arena.c::heap_info`校验，仅为锁外瞬时估计。没有对生产调用mallinfo2或强制GC。

@@ -1,12 +1,16 @@
 # 部署与恢复
 
-## 2026-10-27 运行内存验证（待部署）
+## 2026-10-27 发布：实时观战运行内存
 
-systemd候选增加 `--liftoff-only` 与 `MALLOC_ARENA_MAX=2`、三个128 KiB malloc阈值，针对Rapier WASM编译峰值和glibc空闲页保留。服务512 MiB、单Worker、JS128 MiB及5×/5 Hz保持；无存档迁移。Node升级需重新验证V8测试性质开关的兼容性和吞吐；回滚必须恢复旧release的unit及对应BUILD_SHA并daemon-reload/restart，不能只切换current链接。测量、失败样本和固定报告/轨迹哈希见[模块记录](../packages/server/src/design/LIVE_MEMORY_RUNTIME_20261027.md)。
+PR #73 已部署，生产build `94ff240768d3b5d9be6070bc60b70be275d2f858`，引擎保持 `0.44.0-live-manager`。systemd增加 `--liftoff-only` 与 `MALLOC_ARENA_MAX=2`、三个128 KiB malloc阈值，针对Rapier WASM编译峰值和glibc空闲页保留。服务512 MiB、单Worker、JS128 MiB及5×/5 Hz保持；无存档迁移。Node升级需重新验证V8测试性质开关的兼容性和吞吐；回滚必须恢复旧release的unit及对应BUILD_SHA并daemon-reload/restart，不能只切换current链接。测量、失败样本和固定报告/轨迹哈希见[模块记录](../packages/server/src/design/LIVE_MEMORY_RUNTIME_20261027.md)。
 
 正式服务无未结算任务。已生成并校验一致离机备份 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-live-memory-20261027.sqlite`，VM原件 `/var/backups/touchline-manager/touchline-pre-live-memory-20261027.sqlite`；160,096,256字节，SHA-256 `cff6d4cb67a8892fde86b2847b95a3f5b40e4c7bf85e98a431c5eaf7f7d9575f`，两端integrity_check均ok。为隔离测试留出安全余量，备份校验后仅重启原生产build `c07863d`，释放旧进程的空闲分配区；未安装候选或推进存档。
 
-完整90分钟、跨Worker恢复、半场、事件/统计/27,001帧哈希在Node22 VM与Node24本机均一致。VM完整探针346秒、最慢15秒片2392毫秒、OS RSS高水位310.4 MiB；正式资源条件的两组真实5×短观赛各约168秒，候选峰值149.9 MiB，对照440.6 MiB；RAF中位16.7毫秒/P99 33.4毫秒相同，稳定阶段服务端缓冲均0，候选稳定阶段画面衔接提示0。保留首轮更严256 MiB/75% CPU失败记录，不把它记为通过；详见模块记录。26项冒烟/类型/构建、两项真实Worker、19项直播专项及PR Node22/24 CI通过；没有模拟赛季或改开发流程。部署SHA和最终存档指纹待发布后补入。
+完整90分钟、跨Worker恢复、半场、事件/统计/27,001帧哈希在Node22 VM与Node24本机均一致。VM完整探针346秒、最慢15秒片2392毫秒、OS RSS高水位310.4 MiB；正式资源条件的两组真实5×短观赛各约168秒，候选峰值149.9 MiB，对照440.6 MiB；RAF中位16.7毫秒/P99 33.4毫秒相同，稳定阶段服务端缓冲均0，候选稳定阶段画面衔接提示0。保留首轮更严256 MiB/75% CPU失败记录，不把它记为通过；详见模块记录。26项冒烟/类型/构建、两项真实Worker、19项直播专项及PR/main Node22/24 CI通过；没有模拟赛季或改开发流程。
+
+发布归档SHA-256 `b0fd3dd755ea8836feb1a033a46411b1f6d673f52bd147800f98743b60a3dc8b`，通过原install.sh安装；安装另生成 `/var/backups/touchline-manager/touchline-2026-10-26T23-21-05-605Z.sqlite`。发布前无未结算任务。部署后及公网只读浏览器验收清理后，六表全列/BLOB指纹均与发布前相同：2个存档、52条操作、24条回放、67份战报、3个已完成任务、1080个片段，integrity_check为ok。浏览器仅访问总览/20人名单/赛程，无POST、JS错误或比赛推进；仅删除由该隔离会话创建、已核验无玩法记录的验收存档。
+
+公网与本机health返回生产build，实际ExecStart和四个malloc变量均生效；服务、Caddy、备份timer为active，NRestarts=0。验收后的空闲MemoryCurrent约44.8 MiB，不将冷启动空闲数值当作比赛峰值。所有临时模拟/浏览器服务与隧道已关闭，测试SQLite及临时备份传输副本已清理；原生产release及一致离机备份保留。
 
 ## 2026-10-26 发布：实时比赛指挥与天赋训练
 
