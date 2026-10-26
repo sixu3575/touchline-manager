@@ -57,7 +57,23 @@ function paint(fragment, colors) {
 function path(d, fill, extra = '') {
   return d ? `<path d="${d}" fill="${fill}" ${extra}/>` : '';
 }
-export function portraitLayers(spec) {
+// Lifecycle is a rendering layer; the released v1 identity recipe never changes.
+export const LIFECYCLE_VERSION = 'touchline-career-1';
+export function portraitStage(age) {
+  if (!Number.isFinite(age) || age < 0) return 'unknown';
+  return age <= 18 ? 'academy' : age < 30 ? 'young' : 'middle';
+}
+export function portraitStageLabel(age) {
+  return { academy: '青训', young: '青年', middle: '中年', unknown: '年龄未记录' }[
+    portraitStage(age)
+  ];
+}
+// Historical views must use the match snapshot, never today's roster or game date.
+export function archivedPortraitPlayer(report, player) {
+  const snapshot = report.snapshots?.[player.side]?.players?.find((p) => p.id === player.id);
+  return { ...player, age: snapshot?.age };
+}
+export function portraitLayers(spec, { age } = {}) {
   const s = createPortrait(spec.identity, spec);
   const c = palette(s);
   const h = PARTS.head[s.head],
@@ -97,9 +113,26 @@ export function portraitLayers(spec) {
     mouth: paint(PARTS.mouth[s.mouth].svg, c),
     beardFront: paint(beard.front, c),
   };
+  const stage = portraitStage(age);
+  if (stage === 'academy') {
+    // Softer, shorter face with the same core nose/eye/hair recipe; no adult beard.
+    layers.head = path(h.face, c.skin) + path(h.shade, c.shade, 'stroke="none"');
+    for (const key of ['head', 'ears', 'rearHair', 'hair'])
+      layers[key] = `<g transform="translate(5 11) scale(.96 .94)">${layers[key]}</g>`;
+    layers.nose = `<g transform="translate(13 13) scale(.9 .91)">${layers.nose}</g>`;
+    layers.eyes = `<g transform="translate(-3 -3) scale(1.025)">${layers.eyes}</g>`;
+    layers.beardBack = '';
+    layers.beardFront = '';
+    layers.detail = `<path d="M88 153L99 155M156 154L167 151" fill="none" stroke="${c.blush}" stroke-width="6"/>`;
+    // A receding-hair recipe starts with a short fringe in the academy phase.
+    if (hair.id === 'receding')
+      layers.hair += `<path d="M91 67Q119 47 163 66L155 79L139 73L123 81L109 75L94 84Z" fill="${c.hair}"/>`;
+  } else if (stage === 'middle') {
+    layers.career = `<path d="M81 133L87 136M173 134L180 130M96 147L108 146M150 145L163 143M107 164L102 172M149 163L157 170M115 203L140 201" fill="none" stroke="${c.shade}" stroke-width="2.3"/>`;
+  }
   return layers;
 }
-export function renderPortrait(spec, { transparent = false, title = '' } = {}) {
+export function renderPortrait(spec, { transparent = false, title = '', age } = {}) {
   const s = createPortrait(spec.identity, spec);
   const safeTitle = String(title).replace(
     /[&<>"']/g,
@@ -108,7 +141,7 @@ export function renderPortrait(spec, { transparent = false, title = '' } = {}) {
   const bg = transparent
     ? ''
     : `<rect width="256" height="256" rx="16" fill="${BACKGROUNDS[s.background]}"/><path d="M-30 230L200 0H280L24 256Z" fill="#ffffff" opacity=".13"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"${safeTitle ? ' role="img"' : ''}>${safeTitle ? `<title>${safeTitle}</title>` : ''}${bg}<g stroke="${INK}" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round">${Object.values(portraitLayers(s)).join('')}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"${safeTitle ? ' role="img"' : ''}>${safeTitle ? `<title>${safeTitle}</title>` : ''}${bg}<g stroke="${INK}" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round">${Object.values(portraitLayers(s, { age })).join('')}</g></svg>`;
 }
 
 export function portraitDataUrl(identity, overrides, options) {

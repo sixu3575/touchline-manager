@@ -17,6 +17,7 @@ import './players.css';
 import { footName, nationalityName } from './presentation';
 import { AbilityRadar } from './AbilityRadar';
 import { PlayerPortrait } from './PlayerPortrait';
+import { portraitStageLabel } from './portraits/generator.mjs';
 
 const attributeLabels = Object.assign(
   {},
@@ -114,7 +115,7 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
             <PlayerPortrait player={p} size={128} decorative />
             <div>
               <Badge tone="lime">
-                {roles[p.role]} · {p.age <= 18 ? '青年球员' : '一线队球员'}
+                {roles[p.role]} · {portraitStageLabel(p.age)}阶段
               </Badge>
               <h2 id="pm-name">{p.name}</h2>
               <p>

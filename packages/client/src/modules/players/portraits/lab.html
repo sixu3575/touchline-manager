@@ -558,6 +558,14 @@
               <small>256 × 256 / 矢量</small>
             </div>
             <div class="preview-wrap"><img id="preview" alt="当前球员头像" /></div>
+            <label style="display: block; padding: 12px 20px"
+              >生涯形象
+              <select id="career-age" aria-label="生涯形象">
+                <option value="18">青训 · 18岁及以下</option>
+                <option value="24" selected>青年 · 19–29岁</option>
+                <option value="34">中年 · 30岁起</option>
+              </select>
+            </label>
             <div class="identity"><b id="identity"></b><span>种子已固定</span></div>
             <div class="controls" id="controls"><p class="lock-note">右侧勾选 = 锁定零件</p></div>
             <label class="transparency"
@@ -669,10 +677,13 @@
         return Object.fromEntries([...locked].map((key) => [key, spec[key]]));
       }
       function updatePreview() {
-        $('preview').src = portraitDataUrl(spec.identity, spec);
+        $('preview').src = portraitDataUrl(spec.identity, spec, {
+          age: Number($('career-age').value),
+        });
         $('identity').textContent = spec.identity;
         for (const [key, select] of Object.entries(selects)) select.value = spec[key];
       }
+      $('career-age').addEventListener('change', updatePreview);
       function updateCard(index) {
         const card = $('gallery').children[index];
         card.querySelector('img').src = portraitDataUrl(
@@ -766,6 +777,7 @@
           renderPortrait(spec, {
             transparent: $('transparent').checked,
             title: rows[selected].name,
+            age: Number($('career-age').value),
           }),
           'image/svg+xml',
           'touchline-portrait.svg',
@@ -777,7 +789,10 @@
       $('png').addEventListener('click', async () => {
         try {
           const img = new Image();
-          img.src = portraitDataUrl(spec.identity, spec, { transparent: $('transparent').checked });
+          img.src = portraitDataUrl(spec.identity, spec, {
+            transparent: $('transparent').checked,
+            age: Number($('career-age').value),
+          });
           await img.decode();
           const canvas = document.createElement('canvas');
           canvas.width = canvas.height = 512;

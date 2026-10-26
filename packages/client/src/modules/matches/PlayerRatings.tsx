@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Report } from '../../model';
 import { buildPlayerRatings } from '../../../../shared/modules/matches/ratings/index.mjs';
 import { TeamAbility } from './TeamAbility';
-import { PlayerPortrait } from '../players';
+import { PlayerPortrait, archivedPortraitPlayer } from '../players';
 
 const roles: Record<string, string> = { GK: '门将', DEF: '后卫', MID: '中场', FWD: '前锋' };
 export function PlayerRatings({ report }: { report: Report }) {
@@ -39,7 +39,11 @@ export function PlayerRatings({ report }: { report: Report }) {
             <details className="rating-player" key={row.id}>
               <summary>
                 <span className="rating-identity">
-                  <PlayerPortrait player={row} size={40} decorative />
+                  <PlayerPortrait
+                    player={archivedPortraitPlayer(report, row)}
+                    size={40}
+                    decorative
+                  />
                   <b>{row.number !== null ? row.number + '号' : '—'}</b>
                   <span>
                     <strong>{row.name}</strong>

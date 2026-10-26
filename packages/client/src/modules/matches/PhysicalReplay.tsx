@@ -14,7 +14,7 @@ import { PlayerRatings } from './PlayerRatings';
 import { staminaAtTime } from './stamina-view.mjs';
 import { playerEventStatistics } from './player-statistics.mjs';
 import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
-import { PlayerPortrait } from '../players';
+import { PlayerPortrait, archivedPortraitPlayer } from '../players';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -328,7 +328,13 @@ export function PhysicalReplay({
               </div>
             )}
             <div className="physical-player-detail">
-              {player && <PlayerPortrait player={player} size={48} decorative />}
+              {player && (
+                <PlayerPortrait
+                  player={archivedPortraitPlayer(report, player)}
+                  size={48}
+                  decorative
+                />
+              )}
               <select
                 aria-label="查看球员数据"
                 value={selected}

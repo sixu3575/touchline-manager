@@ -12,6 +12,7 @@ import {
   PORTRAIT_VERSION,
   RIG,
   portraitCombinationCount,
+  LIFECYCLE_VERSION,
 } from './generator.mjs';
 import { INK } from './parts.mjs';
 
@@ -82,6 +83,19 @@ samples.forEach((spec, i) =>
     renderPortrait(spec, { transparent: true, title: `原创球员 ${i + 1}` }),
   ),
 );
+for (const [stage, age] of [
+  ['academy', 18],
+  ['young', 24],
+  ['middle', 34],
+]) {
+  mkdirSync(resolve(dest, 'samples', stage), { recursive: true });
+  samples.forEach((spec, i) =>
+    write(
+      `samples/${stage}/player-${String(i + 1).padStart(2, '0')}.svg`,
+      renderPortrait(spec, { age }),
+    ),
+  );
+}
 const contact = samples
   .map(
     (spec, i) =>
@@ -97,6 +111,13 @@ write(
   JSON.stringify(
     {
       version: PORTRAIT_VERSION,
+      lifecycleVersion: LIFECYCLE_VERSION,
+      stages: {
+        academy: 'age <= 18',
+        young: '19 <= age <= 29',
+        middle: 'age >= 30',
+        unknown: 'neutral adult; no inferred age',
+      },
       rig: RIG,
       layers: Object.keys(portraitLayers(baseline)),
       parts: Object.fromEntries(

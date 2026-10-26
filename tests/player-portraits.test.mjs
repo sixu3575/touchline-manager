@@ -6,7 +6,35 @@ import {
   portraitLayers,
   PARTS,
   portraitCombinationCount,
+  portraitStage,
+  archivedPortraitPlayer,
 } from '../packages/client/src/modules/players/portraits/generator.mjs';
+
+test('career boundaries change artwork without rerolling identity; old reports keep match age', () => {
+  assert.deepEqual([0, 18, 19, 29, 30, 80].map(portraitStage), [
+    'academy',
+    'academy',
+    'young',
+    'young',
+    'middle',
+    'middle',
+  ]);
+  for (const age of [undefined, null, NaN, -1, '18']) assert.equal(portraitStage(age), 'unknown');
+  const recipe = createPortrait('career-player', { beard: 5, hair: 7 });
+  const stages = [18, 19, 30].map((age) => renderPortrait(recipe, { age }));
+  assert.equal(new Set(stages).size, 3);
+  assert.equal(renderPortrait(recipe, { age: 19 }), renderPortrait(recipe, { age: 29 }));
+  assert.equal(renderPortrait(recipe), renderPortrait(recipe, { age: 24 }));
+  assert.equal(portraitLayers(recipe, { age: 18 }).beardFront, '');
+  assert.notEqual(portraitLayers(recipe, { age: 30 }).beardBack, '');
+  const report = { snapshots: [{ players: [{ id: 'career-player', age: 18 }] }] };
+  const current = { id: 'career-player', side: 0, age: 32 };
+  const historic = archivedPortraitPlayer(report, current);
+  assert.equal(historic.age, 18);
+  assert.equal(current.age, 32);
+  assert.equal(archivedPortraitPlayer({ snapshots: [] }, current).age, undefined);
+  assert.deepEqual(createPortrait(historic), createPortrait(current));
+});
 
 test('portrait identity survives rename, aging, training and transfer without mutating the player', () => {
   // Pin the released v1 recipe: changing a modulo, order or hash must not silently reroll old faces.

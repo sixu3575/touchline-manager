@@ -33,6 +33,7 @@ import { Stadium } from './modules/stadium';
 import { Training } from './modules/training';
 import { Tactics } from './pages/Tactics';
 import './style.css';
+import './ink-theme.css';
 const nav = [
   { id: 'overview', label: '俱乐部总览', icon: LayoutDashboard },
   { id: 'squad', label: '一线队', icon: Users },
