@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-10-26 发布：0.43.0-counter-runs
+
+部署 PR #64，合并提交及生产 build 均为 `b376ad42652a17c5f73ca33b08a74c55fb8d3163`，引擎版本 `0.43.0-counter-runs` / `counter-runs-1`。本次将0.41战术差异、0.42防守协同与0.43反击身后球增强一并上线；没有数据库迁移、存档改写或历史比赛重算。
+
+部署前7个比赛任务均已完成。停服前一致 SQLite 快照为 `/var/backups/touchline-manager/touchline-2026-10-26T05-06-45-282Z.sqlite`，离机副本为 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-counter-runs-043.sqlite`，大小141,860,864字节。VM与离机副本 SHA-256 均为 `4272f163ecb1e225b76d27f4550d8c08829c112431797c0d16c4ac8cde9f650d`；离机副本 `integrity_check` 为 `ok`。部署前后均为33个存档、62份战报、7个已完成比赛任务；安装脚本另生成 `/var/backups/touchline-manager/touchline-2026-10-26T05-08-13-806Z.sqlite`。
+
+发布归档 SHA-256 为 `1c93d7b96c3f5c4640ee7c4c1d5e336c96bb5915d22a5811ed88da9c6ef3beab`，通过 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> b376ad42652a17c5f73ca33b08a74c55fb8d3163` 安装。部署后 `touchline-manager.service`、Caddy与`touchline-backup.timer`均已启用；备份timer已有下一次计划运行时间。生产库 `integrity_check` 为 `ok`。本机与公网 `/api/health` 均返回 build `b376ad42652a17c5f73ca33b08a74c55fb8d3163`。旧发布仍保留用于代码回滚。
+
+PR合并前 Node 22/24 CI均通过；本机142项检查、16项真实引擎/API/检查点集成、类型检查和生产构建通过。十场校准为4 pass、6 review、0 block，无分布告警；高压反击样本仅有2次身后球尝试且均未接成，不能据此宣称整场比赛已完成现实性校准。此次为比赛算法改动，已执行比赛专项，没有模拟赛季。指标口径、剩余偏差和样本限制见[反击跑位复核](../packages/shared/modules/matches/design/COUNTER_RUNS_V0430.md)与[验证记录](VALIDATION.md)。
+
 ## 2026-10-26 发布：0.40.0-workload-fatigue
 
 部署 PR #62，合并提交及生产 build 均为 `65f8d51f3d7b4c18d63aceb34cbd2ae8b9e4ec84`，引擎版本 `0.40.0-workload-fatigue` / 参数 `workload-fatigue-1`。赛内耗能按个人真实位移、冲刺启动和身体接触累计；力量/耐力影响体能消耗效率与七日恢复。无数据库迁移、存档改写或历史比赛重算。部署前全部7个比赛任务已完成；停服后生产库仍为31个存档、7个完成任务，部署后数量不变，`integrity_check` 为 `ok`。
