@@ -1,4 +1,4 @@
-import { CalendarDays, Fingerprint, Globe2, UserRound, X } from 'lucide-react';
+import { CalendarDays, Fingerprint, Globe2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   ATTRIBUTE_GROUPS,
@@ -16,6 +16,7 @@ import type { Player } from './model';
 import './players.css';
 import { footName, nationalityName } from './presentation';
 import { AbilityRadar } from './AbilityRadar';
+import { PlayerPortrait } from './PlayerPortrait';
 
 const attributeLabels = Object.assign(
   {},
@@ -110,10 +111,7 @@ export function PlayerDetails({ player: p, onClose }: { player: Player; onClose:
             PLAYER DOSSIER <span> / {String(p.number).padStart(2, '0')}</span>
           </span>
           <div className="pm-heading">
-            <div className="pm-avatar" aria-hidden="true">
-              <span>{p.number}</span>
-              <UserRound size={62} strokeWidth={1.3} />
-            </div>
+            <PlayerPortrait player={p} size={128} decorative />
             <div>
               <Badge tone="lime">
                 {roles[p.role]} · {p.age <= 18 ? '青年球员' : '一线队球员'}

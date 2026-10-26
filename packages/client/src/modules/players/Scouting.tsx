@@ -1,4 +1,4 @@
-import { ArrowRight, Search, Users } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Badge, Empty, Filters, Ovr } from '../../components/ui';
 import { money, roles } from '../../constants';
@@ -6,6 +6,7 @@ import type { Club, Game, Player } from '../../model';
 import './players.css';
 import { nationalityName } from './presentation';
 import { AssessmentOffice } from './AssessmentOffice';
+import { PlayerPortrait } from './PlayerPortrait';
 type Props = {
   game: Game;
   club: Club;
@@ -37,12 +38,11 @@ export function Scouting({ game, club, busy, act, onPlayer }: Props) {
                 <Ovr player={p} />
               </div>
               <button
-                className="scout-person pm-open-profile"
+                className="scout-person portrait-person pm-open-profile"
                 aria-label={'查看 ' + p.name + ' 的档案'}
                 onClick={() => onPlayer(p)}
               >
-                <span className="scout-number">{p.number}</span>
-                <Users size={70} />
+                <PlayerPortrait player={p} size={156} decorative />
               </button>
               <h3>{p.name}</h3>
               <p>

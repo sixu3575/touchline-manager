@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TOUCHLINE · 球员头像铸造所</title>
+    <style>
+      :root {
+        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        color: #20363c;
+        background: #e6e7de;
+        --ink: #1c3037;
+        --teal: #356b69;
+        --gold: #efc66b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #dc9f39;
+        outline-offset: 3px;
+      }
+      button {
+        transition:
+          transform 0.14s,
+          background 0.14s;
+      }
+      button:active {
+        transform: translateY(2px);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      .shell {
+        display: grid;
+        grid-template-columns: 212px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      aside {
+        background: var(--ink);
+        color: #d4ded5;
+        padding: 32px 22px;
+        display: flex;
+        flex-direction: column;
+        border-right: 4px solid #112129;
+      }
+      .brand {
+        font-weight: 950;
+        font-size: 23px;
+        letter-spacing: -1px;
+        color: #f5e8c5;
+      }
+      .brand small {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: #8ca7a3;
+        margin-top: 9px;
+      }
+      .aside-tag {
+        margin-top: 48px;
+        background: #426e69;
+        padding: 14px;
+        border: 2px solid #0e242b;
+        border-radius: 7px;
+        color: #ffdf8a;
+        font-weight: 750;
+        box-shadow: 3px 3px #10242a;
+      }
+      .aside-note {
+        margin-top: 24px;
+        font-size: 12px;
+        line-height: 1.9;
+        color: #9db1ac;
+      }
+      .aside-bottom {
+        margin-top: auto;
+        padding-top: 40px;
+      }
+      .aside-bottom img {
+        width: 154px;
+        height: 154px;
+        transform: rotate(-5deg);
+        border: 3px solid #f0dcac;
+        border-radius: 14px;
+        box-shadow: 7px 7px #0d2127;
+      }
+      .aside-bottom p {
+        margin-top: 22px;
+        font-size: 12px;
+        color: #9cb5af;
+        line-height: 1.8;
+      }
+      main {
+        padding: 34px 34px 24px;
+        max-width: 1660px;
+        width: 100%;
+        margin: auto;
+      }
+      .kicker {
+        font-size: 11px;
+        letter-spacing: 2.5px;
+        color: #557773;
+        font-weight: 800;
+      }
+      header {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 26px;
+      }
+      h1 {
+        font-size: 34px;
+        letter-spacing: -1px;
+        margin: 7px 0 9px;
+        font-weight: 950;
+      }
+      .intro {
+        color: #667b78;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .version {
+        border: 2px solid #355751;
+        border-radius: 5px;
+        padding: 9px 12px;
+        font-size: 11px;
+        white-space: nowrap;
+        color: #355751;
+        background: #edf0e3;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 24px;
+        align-items: start;
+      }
+      .panel {
+        background: #f4f0e3;
+        border: 2px solid #2d474a;
+        border-radius: 10px;
+        box-shadow: 4px 4px #20363c1c;
+        overflow: hidden;
+      }
+      .panel-title {
+        background: #d4dfd5;
+        border-bottom: 2px solid #2d474a;
+        padding: 17px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .panel-title h2 {
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .panel-title small {
+        font-size: 11px;
+        color: #4e6b65;
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 18px 18px 13px;
+      }
+      input {
+        min-width: 0;
+        width: 100%;
+        background: #fffaf0;
+        border: 1.5px solid #879d94;
+        border-radius: 5px;
+        padding: 10px 12px;
+        color: var(--ink);
+      }
+      .action {
+        background: var(--gold);
+        border: 2px solid #243c40;
+        color: #243b3d;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 12px;
+        font-weight: 800;
+        box-shadow: 2px 2px #243b3d;
+        white-space: nowrap;
+      }
+      .secondary {
+        background: #e3e8db;
+        box-shadow: none;
+      }
+      .ghost {
+        background: transparent;
+        border: 1.5px solid #93a49a;
+        box-shadow: none;
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        padding: 5px 18px 18px;
+      }
+      .portrait-card {
+        border: 2px solid #b3c1b5;
+        border-radius: 7px;
+        background: #e8e5d6;
+        padding: 0;
+        overflow: hidden;
+        text-align: left;
+        color: var(--ink);
+      }
+      .portrait-card:hover {
+        border-color: #467a70;
+      }
+      .portrait-card.selected {
+        border-color: #b77d22;
+        outline: 3px solid #e6bf62;
+      }
+      .portrait-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+      }
+      .portrait-card span {
+        display: block;
+        padding: 8px 8px 3px;
+        font-weight: 800;
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .portrait-card small {
+        display: block;
+        padding: 0 8px 8px;
+        font-size: 10px;
+        color: #77837a;
+      }
+      .gallery-note {
+        padding: 0 18px 18px;
+        font-size: 11px;
+        color: #7c8880;
+        line-height: 1.8;
+      }
+      .inspector {
+        position: sticky;
+        top: 20px;
+      }
+      .preview-wrap {
+        padding: 18px;
+        background: #20363c;
+        display: grid;
+        place-items: center;
+        background-image:
+          linear-gradient(45deg, #ffffff06 25%, transparent 25%),
+          linear-gradient(-45deg, #ffffff06 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #ffffff06 75%),
+          linear-gradient(-45deg, transparent 75%, #ffffff06 75%);
+        background-size: 20px 20px;
+        background-position:
+          0 0,
+          0 10px,
+          10px -10px,
+          -10px 0;
+      }
+      #preview {
+        display: block;
+        width: 236px;
+        height: 236px;
+        border-radius: 10px;
+      }
+      .identity {
+        padding: 13px 18px;
+        border-bottom: 1px solid #d6d7c9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .identity b {
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .identity span {
+        color: #617d70;
+        font-size: 10px;
+      }
+      .controls {
+        padding: 12px 18px;
+      }
+      .control {
+        display: grid;
+        grid-template-columns: 70px 1fr 22px;
+        gap: 6px;
+        align-items: center;
+        margin: 7px 0;
+      }
+      .control label {
+        font-size: 11px;
+        font-weight: 700;
+      }
+      select {
+        min-width: 0;
+        width: 100%;
+        background: #fffaf0;
+        color: #284143;
+        border: 1px solid #a4b4a7;
+        border-radius: 4px;
+        padding: 6px;
+        font-size: 11px;
+      }
+      input[type='checkbox'] {
+        accent-color: #356b69;
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        cursor: pointer;
+      }
+      .lock-note {
+        font-size: 10px;
+        color: #7a8c7e;
+        text-align: right;
+        margin-bottom: 8px;
+      }
+      .buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 0 18px 16px;
+      }
+      .buttons button {
+        flex: 1;
+      }
+      .exports {
+        padding: 14px 18px;
+        background: #e0e4d6;
+        border-top: 1px solid #bccab9;
+        display: flex;
+        gap: 7px;
+      }
+      .exports button {
+        flex: 1;
+        padding: 8px;
+      }
+      .transparency {
+        padding: 0 18px 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 11px;
+        color: #526d65;
+      }
+      .mechanism {
+        margin-top: 24px;
+        padding: 22px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+        border-top: 2px solid #c0cbbd;
+      }
+      .mechanism b {
+        font-size: 12px;
+        display: block;
+        margin-bottom: 7px;
+      }
+      .mechanism p {
+        font-size: 11px;
+        color: #6e8179;
+        line-height: 1.9;
+      }
+      footer {
+        margin-top: 22px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: #7c8d83;
+      }
+      #status {
+        min-height: 18px;
+        font-size: 11px;
+        color: #315f55;
+        margin: 12px 0 0;
+      }
+      .screen-reader {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      @media (max-width: 1160px) {
+        .shell {
+          grid-template-columns: 160px minmax(0, 1fr);
+        }
+        aside {
+          padding: 24px 15px;
+        }
+        .brand {
+          font-size: 18px;
+        }
+        .aside-bottom img {
+          width: 120px;
+          height: 120px;
+        }
+        main {
+          padding: 24px;
+        }
+        .layout {
+          grid-template-columns: minmax(0, 1fr) 290px;
+          gap: 18px;
+        }
+        .gallery {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 9px;
+        }
+        .toolbar {
+          flex-wrap: wrap;
+        }
+        .toolbar input {
+          flex-basis: 100%;
+        }
+        h1 {
+          font-size: 29px;
+        }
+      }
+      @media (max-width: 820px) {
+        .shell {
+          display: block;
+        }
+        aside {
+          display: none;
+        }
+        .layout {
+          grid-template-columns: minmax(0, 1fr) 280px;
+        }
+        main {
+          padding: 18px;
+        }
+        .gallery {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .version {
+          display: none;
+        }
+        .mechanism {
+          grid-template-columns: 1fr;
+          gap: 15px;
+        }
+      }
+      @media (max-width: 580px) {
+        .layout {
+          display: flex;
+          flex-direction: column;
+        }
+        .inspector {
+          position: static;
+          order: -1;
+          width: 100%;
+        }
+        .gallery {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .controls {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 4px 12px;
+        }
+        .lock-note {
+          grid-column: 1/-1;
+        }
+        .control {
+          grid-template-columns: 52px 1fr 18px;
+        }
+        .layout > .panel {
+          width: 100%;
+        }
+        h1 {
+          font-size: 27px;
+        }
+        .intro {
+          font-size: 12px;
+        }
+        footer {
+          flex-direction: column;
+          gap: 6px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        button {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside>
+        <div class="brand">TOUCHLINE<small>临 场 足 球 经 理</small></div>
+        <div class="aside-tag">◉ 球员头像铸造所</div>
+        <p class="aside-note">一张让人记住的脸，<br />一整个赛季的故事。</p>
+        <div class="aside-bottom">
+          <img id="mascot" alt="原创卡通球员示例" />
+          <p>原创墨线运动卡通<br />大鼻子 · 小眼神 · 怪脾气</p>
+        </div>
+      </aside>
+      <main>
+        <header>
+          <div>
+            <div class="kicker">PLAYER PORTRAIT WORKSHOP / 01</div>
+            <h1>这支球队，全员有脸。</h1>
+            <p class="intro">挑一张脸，拧一拧零件。同一个身份 ID，永远认得出同一个人。</p>
+          </div>
+          <div class="version">● 本地生成 · 无需联网</div>
+        </header>
+        <div class="layout">
+          <section class="panel">
+            <div class="panel-title">
+              <h2>更衣室点名</h2>
+              <small id="batch-label">24 位原创球员</small>
+            </div>
+            <div class="toolbar">
+              <label for="batch" class="screen-reader">批次种子</label
+              ><input id="batch" value="TOUCHLINE-3575" placeholder="输入任意批次种子" /><button
+                class="action"
+                id="generate"
+              >
+                按种子生成</button
+              ><button class="action secondary" id="shuffle">换一批</button>
+            </div>
+            <div class="gallery" id="gallery" aria-label="生成的球员头像"></div>
+            <p class="gallery-note">
+              点击球员可调整外观。勾选零件右侧的锁定框，下一次随机时保留它。此工具只改变头像，不改变任何球员能力。
+            </p>
+          </section>
+          <section class="panel inspector">
+            <div class="panel-title">
+              <h2>球员定妆</h2>
+              <small>256 × 256 / 矢量</small>
+            </div>
+            <div class="preview-wrap"><img id="preview" alt="当前球员头像" /></div>
+            <div class="identity"><b id="identity"></b><span>种子已固定</span></div>
+            <div class="controls" id="controls"><p class="lock-note">右侧勾选 = 锁定零件</p></div>
+            <label class="transparency"
+              ><input type="checkbox" id="transparent" checked />导出透明背景</label
+            >
+            <div class="buttons">
+              <button class="action" id="randomize">随机下一位</button
+              ><button class="action ghost" id="reset">恢复原始外观</button>
+            </div>
+            <div class="exports">
+              <button class="action secondary" id="svg">SVG</button
+              ><button class="action secondary" id="png">PNG 512</button
+              ><button class="action secondary" id="json">配方 JSON</button>
+            </div>
+          </section>
+        </div>
+        <div id="status" role="status" aria-live="polite"></div>
+        <section class="mechanism">
+          <div>
+            <b>01 / 先有身份，再长出脸</b>
+            <p>球员 ID 与版本组成固定种子。改名、训练、签约或刷新都不会换脸；服装可以独立替换。</p>
+          </div>
+          <div>
+            <b>02 / 零件按统一骨架组合</b>
+            <p id="combination-note"></p>
+          </div>
+          <div>
+            <b>03 / 游戏里用同一张脸</b>
+            <p>
+              名单、球探、球员档案、战术板和赛后评分共用同一个渲染器。透明 SVG 可直接转成任意分辨率
+              PNG。
+            </p>
+          </div>
+        </section>
+        <footer>
+          <span>TOUCHLINE · 原创程序化头像 v1 · 外观与能力独立</span
+          ><span>美术参考：Tape to Tape 的运动漫画造型语言</span>
+        </footer>
+      </main>
+    </div>
+    <script type="module">
+      /* GENERATOR */
+      const labels = PART_LABELS;
+      const choices = { ...PARTS, skin: SKINS, hairColor: HAIR_COLORS, kit: KITS };
+      const names = [
+        '许泽宇',
+        '胡安·费尔南德斯',
+        '诺亚·威尔逊',
+        '达尼·加西亚',
+        '阿德耶米',
+        '伊万·巴比奇',
+        '佐藤大翔',
+        '卢卡斯·米勒',
+        '尼古拉斯·莫雷诺',
+        '塞尔希奥·洛佩斯',
+        '马特奥·罗西',
+        '卢卡·佩里奇',
+        '阿莱克斯·加西亚',
+        '卢卡斯·席尔瓦',
+        '田中海斗',
+        '卢卡·科斯塔',
+        '林星野',
+        '尼古拉斯·费尔南德斯',
+        '蒂亚戈·阿尔梅达',
+        '马丁·罗梅罗',
+        '陈小北',
+        '尤里·科瓦奇',
+        '里奥·桑托斯',
+        '凯·安德森',
+      ];
+      const $ = (id) => document.getElementById(id);
+      const locked = new Set();
+      let selected = 0,
+        serial = 0,
+        rows = [],
+        spec;
+      const selects = {};
+      for (const [key, entries] of Object.entries(choices)) {
+        const row = document.createElement('div');
+        row.className = 'control';
+        const label = document.createElement('label');
+        label.htmlFor = 'slot-' + key;
+        label.textContent = labels[key];
+        const select = document.createElement('select');
+        select.id = 'slot-' + key;
+        entries.forEach((entry, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = entry.name;
+          select.append(option);
+        });
+        select.addEventListener('change', () => {
+          spec = createPortrait(spec.identity, { ...spec, [key]: Number(select.value) });
+          rows[selected].spec = spec;
+          updatePreview();
+          updateCard(selected);
+        });
+        const lock = document.createElement('input');
+        lock.type = 'checkbox';
+        lock.setAttribute('aria-label', '锁定' + labels[key]);
+        lock.addEventListener('change', () =>
+          lock.checked ? locked.add(key) : locked.delete(key),
+        );
+        selects[key] = select;
+        row.append(label, select, lock);
+        $('controls').append(row);
+      }
+      function overrides() {
+        return Object.fromEntries([...locked].map((key) => [key, spec[key]]));
+      }
+      function updatePreview() {
+        $('preview').src = portraitDataUrl(spec.identity, spec);
+        $('identity').textContent = spec.identity;
+        for (const [key, select] of Object.entries(selects)) select.value = spec[key];
+      }
+      function updateCard(index) {
+        const card = $('gallery').children[index];
+        card.querySelector('img').src = portraitDataUrl(
+          rows[index].spec.identity,
+          rows[index].spec,
+        );
+      }
+      function choose(index) {
+        selected = index;
+        spec = rows[index].spec;
+        [...$('gallery').children].forEach((card, i) => {
+          card.classList.toggle('selected', i === index);
+          card.setAttribute('aria-pressed', String(i === index));
+        });
+        updatePreview();
+      }
+      function batch(seed) {
+        const keep = spec ? overrides() : {};
+        rows = names.map((name, index) => ({
+          name,
+          spec: createPortrait(`${seed}/player-${String(index + 1).padStart(2, '0')}`, keep),
+        }));
+        $('gallery').replaceChildren();
+        rows.forEach((row, index) => {
+          const card = document.createElement('button');
+          card.className = 'portrait-card';
+          card.setAttribute('aria-label', `选择${row.name}的头像`);
+          const img = document.createElement('img');
+          img.alt = '';
+          img.width = 256;
+          img.height = 256;
+          img.src = portraitDataUrl(row.spec.identity, row.spec);
+          const name = document.createElement('span');
+          name.textContent = row.name;
+          const number = document.createElement('small');
+          number.textContent = `#${String(index + 1).padStart(2, '0')} · ${PARTS.head[row.spec.head].name}`;
+          card.append(img, name, number);
+          card.addEventListener('click', () => choose(index));
+          $('gallery').append(card);
+        });
+        choose(0);
+        $('batch-label').textContent = '24 位原创球员';
+      }
+      function newSeed() {
+        const bytes = new Uint32Array(2);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, (n) => n.toString(36)).join('-');
+      }
+      function notify(message) {
+        $('status').textContent = message;
+      }
+      function download(content, type, name) {
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(new Blob([content], { type }));
+        link.href = url;
+        link.download = name;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        notify('已导出 ' + name);
+      }
+      $('generate').addEventListener('click', () => {
+        batch($('batch').value || 'TOUCHLINE');
+        notify('已按批次种子重新生成；相同种子得到相同头像。');
+      });
+      $('batch').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') $('generate').click();
+      });
+      $('shuffle').addEventListener('click', () => {
+        $('batch').value = newSeed();
+        batch($('batch').value);
+        notify('已生成新一批；锁定的零件已保留。');
+      });
+      $('randomize').addEventListener('click', () => {
+        spec = createPortrait('custom-' + newSeed() + '-' + ++serial, overrides());
+        rows[selected].spec = spec;
+        updatePreview();
+        updateCard(selected);
+        notify('已随机下一位；锁定的零件已保留。');
+      });
+      $('reset').addEventListener('click', () => {
+        spec = createPortrait(spec.identity);
+        rows[selected].spec = spec;
+        updatePreview();
+        updateCard(selected);
+        notify('已恢复当前身份 ID 的默认外观。');
+      });
+      $('svg').addEventListener('click', () =>
+        download(
+          renderPortrait(spec, {
+            transparent: $('transparent').checked,
+            title: rows[selected].name,
+          }),
+          'image/svg+xml',
+          'touchline-portrait.svg',
+        ),
+      );
+      $('json').addEventListener('click', () =>
+        download(JSON.stringify(spec, null, 2), 'application/json', 'touchline-portrait.json'),
+      );
+      $('png').addEventListener('click', async () => {
+        try {
+          const img = new Image();
+          img.src = portraitDataUrl(spec.identity, spec, { transparent: $('transparent').checked });
+          await img.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 512;
+          canvas.getContext('2d').drawImage(img, 0, 0, 512, 512);
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          if (!blob) throw Error('PNG 编码失败');
+          download(blob, 'image/png', 'touchline-portrait-512.png');
+        } catch (error) {
+          notify('导出失败：' + error.message);
+        }
+      });
+      $('combination-note').textContent =
+        `头型、发型、眼神、鼻子、嘴型、胡须、细节与配色共有 ${portraitCombinationCount().toLocaleString()} 种理论配方。随机配方不保证全球唯一。`;
+      $('mascot').src = portraitDataUrl('touchline-coach', {
+        head: 3,
+        hair: 7,
+        beard: 2,
+        eyes: 2,
+        skin: 1,
+        hairColor: 1,
+        kit: 0,
+      });
+      batch($('batch').value);
+    </script>
+  </body>
+</html>
