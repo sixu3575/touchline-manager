@@ -1,6 +1,6 @@
 # HTTP与比赛计算
 
-2026-10-27运行参数候选针对Rapier WASM编译原生峰值及glibc空闲页保留：unit增加`--liftoff-only`与有界malloc参数。它可能牺牲部分WASM吞吐，必须核对完整Worker与VM真实5×供帧；不减5 Hz轨迹、不改画面、物理或随机结果。Node升级需复核该V8开关；回滚同时恢复原release的unit。诊断、逐帧一致性及测量口径见[运行内存记录](design/LIVE_MEMORY_RUNTIME_20261027.md)。单Worker、512 MiB限额与开发流程保持。
+2026-10-27运行参数针对Rapier WASM编译原生峰值及glibc空闲页保留：unit增加`--liftoff-only`与有界malloc参数。完整Worker逐帧一致、VM完整终场及真实5×对照通过；约3分钟同输入观赛峰值440.6→149.9 MiB。它牺牲部分WASM吞吐，不减5 Hz轨迹、不改画面、物理或随机结果。Node升级需复核该V8开关；回滚同时恢复原release的unit及BUILD_SHA。诊断、逐帧一致性及测量边界见[运行内存记录](design/LIVE_MEMORY_RUNTIME_20261027.md)。单Worker、512 MiB限额与开发流程保持。
 
 0.44.0本队实时任务附只读六项概览与管理命令投影。POST `/api/match-jobs/:id/commands`仍校验同会话存档/任务、枚举/同位置替补、5人上限和幂等requestId；仅下一物理模拟片段可应用。若最后片段并发结束，剩余命令标记未生效并释放替补预留；终场后拒收。客户端不会收到原始球员细项、内部命令body或诊断值。使用既有任务progress JSON，不加schema字段；设计见[观看与临场契约](../../shared/modules/matches/design/LIVE_BROADCAST_V070.md)。
 

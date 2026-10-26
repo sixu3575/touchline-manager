@@ -1,10 +1,12 @@
 # 部署与恢复
 
-## 2026-10-27 运行内存候选（尚未部署）
+## 2026-10-27 运行内存验证（待部署）
 
-systemd候选增加 `--liftoff-only` 与 `MALLOC_ARENA_MAX=2`、三个128 KiB malloc阈值，针对Rapier WASM编译峰值和glibc空闲页保留。服务512 MiB、单Worker、JS128 MiB及5×/5 Hz保持；无存档迁移。Node升级需重新验证V8测试性质开关的兼容性和吞吐；回滚必须恢复旧release的unit并daemon-reload/restart，不能只切换current链接。测量、失败样本和固定报告/轨迹哈希见[模块记录](../packages/server/src/design/LIVE_MEMORY_RUNTIME_20261027.md)。
+systemd候选增加 `--liftoff-only` 与 `MALLOC_ARENA_MAX=2`、三个128 KiB malloc阈值，针对Rapier WASM编译峰值和glibc空闲页保留。服务512 MiB、单Worker、JS128 MiB及5×/5 Hz保持；无存档迁移。Node升级需重新验证V8测试性质开关的兼容性和吞吐；回滚必须恢复旧release的unit及对应BUILD_SHA并daemon-reload/restart，不能只切换current链接。测量、失败样本和固定报告/轨迹哈希见[模块记录](../packages/server/src/design/LIVE_MEMORY_RUNTIME_20261027.md)。
 
-正式服务无未结算任务。已生成并校验一致离机备份 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-live-memory-20261027.sqlite`，VM原件 `/var/backups/touchline-manager/touchline-pre-live-memory-20261027.sqlite`；160,096,256字节，SHA-256 `cff6d4cb67a8892fde86b2847b95a3f5b40e4c7bf85e98a431c5eaf7f7d9575f`，两端integrity_check均ok。为隔离测试留出安全余量，备份校验后仅重启原生产build `c07863d`，释放旧进程的空闲分配区；未安装候选或推进存档。最终验证及部署状态待补。
+正式服务无未结算任务。已生成并校验一致离机备份 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-live-memory-20261027.sqlite`，VM原件 `/var/backups/touchline-manager/touchline-pre-live-memory-20261027.sqlite`；160,096,256字节，SHA-256 `cff6d4cb67a8892fde86b2847b95a3f5b40e4c7bf85e98a431c5eaf7f7d9575f`，两端integrity_check均ok。为隔离测试留出安全余量，备份校验后仅重启原生产build `c07863d`，释放旧进程的空闲分配区；未安装候选或推进存档。
+
+完整90分钟、跨Worker恢复、半场、事件/统计/27,001帧哈希在Node22 VM与Node24本机均一致。VM完整探针346秒、最慢15秒片2392毫秒、OS RSS高水位310.4 MiB；正式资源条件的两组真实5×短观赛各约168秒，候选峰值149.9 MiB，对照440.6 MiB；RAF中位16.7毫秒/P99 33.4毫秒相同，稳定阶段服务端缓冲均0，候选稳定阶段画面衔接提示0。保留首轮更严256 MiB/75% CPU失败记录，不把它记为通过；详见模块记录。26项冒烟/类型/构建、两项真实Worker、19项直播专项及PR Node22/24 CI通过；没有模拟赛季或改开发流程。部署SHA和最终存档指纹待发布后补入。
 
 ## 2026-10-26 发布：实时比赛指挥与天赋训练
 
@@ -173,7 +175,7 @@ PR 合并前 Node 22/24 的完整 `npm run check` 均通过。最终四战术×�
 
 在本机执行 npm ci、npm run check、提交并推送。生产归档包含packages/server、packages/shared、scripts/backup.mjs、scripts/player-integers.mjs、scripts/player-profiles.mjs、dist/client、package.json、package-lock.json、deploy；不打包凭据、运行数据或node_modules。上传VM临时目录，运行deploy/install.sh <archive> <commit>。安装脚本执行npm ci --omit=dev --ignore-scripts --no-audit --no-fund，仅安装锁定的运行依赖，Rapier的WASM随包提供，无需编译工具。
 
-安装脚本在已存在数据时先备份；校验 Caddy 配置、重启服务并检查本机健康。公网验证 /api/health 的 build 必须匹配提交。保留上一发布目录用于回滚，回滚只切换 current 并重启，数据结构变更需另行迁移。
+安装脚本在已存在数据时先备份；校验 Caddy 配置、重启服务并检查本机健康。公网验证 /api/health 的 build 必须匹配提交。保留上一发布目录用于回滚；恢复current及对应BUILD_SHA，涉及运行配置的发布须同时恢复旧release的systemd unit并daemon-reload后重启，数据结构变更需另行迁移。
 
 ## 备份
 
