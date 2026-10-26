@@ -749,6 +749,40 @@ main {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.tactics-pitch .pitch-fitness {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin: 2px auto 0;
+  padding: 1px 3px;
+  border-radius: 3px;
+  color: #f4f7ee;
+  background: #26402fe8;
+  font-size: 7px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.pitch-fitness-track {
+  display: block;
+  width: 15px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #ffffff70;
+}
+.pitch-fitness-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #b4d98a;
+}
+.pitch-fitness.medium .pitch-fitness-track i {
+  background: #e1bc63;
+}
+.pitch-fitness.low .pitch-fitness-track i {
+  background: #e48678;
+}
 .pitch-player.away > span {
   background: #d9e0ed;
   border-color: white;
@@ -1351,6 +1385,42 @@ select {
   font-size: 8px;
   min-width: 24px;
   color: #9aa98d;
+}
+.lineup-fitness {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 0 0 48px;
+  color: #6a8355;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.lineup-fitness-track {
+  display: block;
+  width: 22px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #e8eee0;
+}
+.lineup-fitness-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #91b66b;
+}
+.lineup-fitness.medium {
+  color: #a77b2c;
+}
+.lineup-fitness.medium i {
+  background: #d6ad54;
+}
+.lineup-fitness.low {
+  color: #a94f47;
+}
+.lineup-fitness.low i {
+  background: #cb7064;
 }
 .tactics-settings {
   padding: 0 24px 24px;
