@@ -14,4 +14,4 @@
 
 观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
 
-2026-10-27：院子使用club-courtyard-cartoon-v2.webp；新增物件需沿现有粗墨线/平涂样式，核对navigation.mjs热区。
+2026-10-27：院子使用club-courtyard-cartoon-v3.webp；新增物件需沿现有粗墨线/平涂样式，核对navigation.mjs热区。

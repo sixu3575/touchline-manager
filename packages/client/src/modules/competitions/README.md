@@ -30,4 +30,4 @@ RoundReports采用紧凑对阵卡片样式；`report.canReplay`与本队ID的双
 
 观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
 
-2026-10-27：编辑室使用press-room-cartoon-v2.webp，报纸和屏幕维持粗墨线/平涂；数据仍由原组件绘制。
+2026-10-27：编辑室使用press-room-cartoon-v3.webp，报纸和屏幕维持粗墨线/平涂；数据仍由原组件绘制。

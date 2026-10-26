@@ -1,7 +1,7 @@
 .press-room {
   min-height: calc(100dvh - 70px);
   padding: 25px 4% 65px;
-  background: #326d64 url('/art/scenes/press-room-cartoon-v2.webp') center top / cover fixed;
+  background: #326d64 url('/art/scenes/press-room-cartoon-v3.webp') center top / cover fixed;
   color: #283c34;
 }
 .press-media {

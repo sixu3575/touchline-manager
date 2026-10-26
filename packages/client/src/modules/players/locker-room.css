@@ -1,7 +1,7 @@
 .locker-room {
   position: relative;
   min-height: calc(100dvh - 70px);
-  background: #326d64 url('/art/scenes/locker-room-cartoon-v2.webp') center top / cover;
+  background: #326d64 url('/art/scenes/locker-room-cartoon-v3.webp') center top / cover;
   padding: 24px 4% 30px;
   color: #f5e5bf;
   isolation: isolate;
@@ -146,7 +146,7 @@
   color: #f8eaca;
   border: 3px solid #18232a;
   border-right: 5px solid #18232a;
-  border-radius: 4px 7px 2px 5px;
+  border-radius: 15px 5px 12px 6px;
   padding: 0;
   min-width: 0;
   position: relative;
@@ -155,6 +155,15 @@
   align-items: center;
   height: 365px;
   box-shadow: inset 8px 0 #214d4b;
+}
+.player-locker:nth-child(3n + 1) {
+  transform: translateY(-5px) rotate(-1.2deg);
+}
+.player-locker:nth-child(3n + 2) {
+  transform: translateY(3px) rotate(1.1deg);
+}
+.player-locker:nth-child(3n) {
+  transform: rotate(-0.6deg);
 }
 .player-locker::before {
   content: '';
@@ -213,7 +222,7 @@
   border-radius: 2px 5px 2px 4px;
   box-shadow: 3px 4px 0 #18232a;
   transform: rotate(-5deg);
-  width: 71%;
+  width: 76%;
   transition: transform 0.2s;
 }
 .locker-photo::before {
@@ -332,13 +341,24 @@
   right: 9%;
 }
 .locker-page-controls {
-  margin-top: 45px;
+  margin: 45px auto 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 9px 12px;
+  background: #214d4b;
+  border: 3px solid #18232a;
+  border-radius: 5px 10px 4px 8px;
+  box-shadow: 3px 4px #18232a;
   display: flex;
   gap: 22px;
   align-items: center;
   justify-content: center;
   color: #f3e3be;
   font-size: 12px;
+}
+.locker-page-controls [role='status'] {
+  min-width: 0;
+  text-align: center;
 }
 .locker-page-controls button {
   padding: 10px 16px;
@@ -468,6 +488,7 @@
   }
   .locker-page-controls {
     gap: 12px;
+    padding: 8px;
   }
   .locker-page-controls button {
     padding: 11px;

@@ -16,4 +16,4 @@ main.tsx组合会话、导航、模块页面与公共弹层；功能实现留在
 
 观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
 
-2026-10-27：场景素材cartoon-scenes-2与实际头像统一为平涂粗墨线；版本文件名和生成提示词见scenes/README.md。
+2026-10-27：场景素材cartoon-scenes-3与实际头像统一为平涂粗墨线；版本文件名和生成提示词见scenes/README.md。

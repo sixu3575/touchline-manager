@@ -66,10 +66,10 @@ export function Overview({
         <div className="yard-stage">
           <img
             className="yard-art"
-            src="/art/scenes/club-courtyard-cartoon-v2.webp"
+            src="/art/scenes/club-courtyard-cartoon-v3.webp"
             width="1600"
             height="1000"
-            alt="粗墨线平涂卡通俱乐部：歪屋顶更衣室、战术棚、训练场、看台、大轮球探车、报摊和财务室"
+            alt="夸张卡通球会：球鞋形更衣室与口哨烟囱、巨型锥桶训练场、足球门洞看台、怪兽轮胎球探车、巨型计算器办公室和金靴荣誉柜"
             fetchPriority="high"
           />
           {CLUB_OBJECTS.map((object) => (

@@ -206,7 +206,7 @@
   padding: 22px 4% 50px;
   background:
     linear-gradient(#214d4bd9, #214d4bd9),
-    url('/art/scenes/locker-room-cartoon-v2.webp') center / cover fixed;
+    url('/art/scenes/locker-room-cartoon-v3.webp') center / cover fixed;
 }
 .immersive-app .scene-main:has(.room-heading) > .content {
   max-width: 1400px;

@@ -103,9 +103,9 @@
   padding: 7px 11px;
   background: #214d4b;
   border: 3px solid #18232a;
-  border-radius: 3px 7px 4px 6px;
+  border-radius: 8px 3px 11px 4px;
   box-shadow: 3px 4px 0 #18232a;
-  transform: translate(-50%, 6px) rotate(-2deg);
+  transform: translate(-50%, 6px) rotate(-4deg);
   opacity: 0;
   transition:
     opacity 0.15s,
@@ -130,7 +130,7 @@
 .yard-object:hover .object-sign,
 .yard-object:focus-visible .object-sign {
   opacity: 1;
-  transform: translate(-50%, 0) rotate(-2deg);
+  transform: translate(-50%, 0) rotate(-4deg);
 }
 .yard-object:hover .object-sign,
 .yard-object:focus-visible .object-sign {
@@ -147,7 +147,7 @@
   color: #183438;
 }
 .yard-object-fixtures .object-sign {
-  top: 95%;
+  top: 65%;
 }
 .yard-object-league-stats .object-sign {
   top: 20%;
