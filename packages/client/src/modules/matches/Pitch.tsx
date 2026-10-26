@@ -1,5 +1,6 @@
 import { roles } from '../../constants';
 import type { Club, Player } from '../../model';
+import { PlayerPortrait } from '../players';
 import { formationSlot, positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
 export function Pitch({
   club,
@@ -49,7 +50,7 @@ export function Pitch({
           const fitnessBand = fitness < 50 ? 'low' : fitness < 75 ? 'medium' : 'high';
           return (
             <button
-              className={'pitch-player ' + (away ? 'away' : '')}
+              className={'pitch-player ' + (away ? 'away' : 'has-portrait')}
               key={p.id}
               style={{ left: (away ? 100 - x : x) + '%', top: y + '%' }}
               onClick={() => onPlayer?.(p)}
@@ -62,6 +63,7 @@ export function Pitch({
                   : roles[p.role])
               }
             >
+              {!away && <PlayerPortrait player={p} size={40} decorative />}
               <span>{p.number}</span>
               {!away && <small>{p.name.split('·').at(-1)}</small>}
               {showFitness && !away && (

@@ -1,5 +1,5 @@
 import { ArrowUpRight, Landmark, Users } from 'lucide-react';
-import { Badge } from '../../components/ui';
+import { Badge, StadiumIllustration } from '../../components/ui';
 import { money } from '../../constants';
 import type { Game } from '../../model';
 
@@ -17,12 +17,7 @@ export function Stadium({
     <div className="stadium-layout">
       <section className="panel stadium-card">
         <div className="stadium-art">
-          <div className="stadium-ring">
-            <div className="stadium-grass">
-              <div className="centre-circle" />
-              <div className="half-line" />
-            </div>
-          </div>
+          <StadiumIllustration />
           <Badge tone="dark">THE HOME OF {club.name}</Badge>
         </div>
         <div className="stadium-info">

@@ -6,6 +6,7 @@ import './players.css';
 import { nationalityName } from './presentation';
 import { AssessmentOffice } from './AssessmentOffice';
 import { AbilityRadar } from './AbilityRadar';
+import { PlayerPortrait } from './PlayerPortrait';
 
 const columns = [
   ['number', '号码 / 球员'],
@@ -118,18 +119,21 @@ export function Squad({ game, club, busy, act, onPlayer }: Props) {
                 onKeyDown={(e) => e.key === 'Enter' && onPlayer(p)}
               >
                 <td>
-                  <span className="shirt-number">{p.number}</span>
-                  <b>
-                    {p.name}
-                    <small className="pm-country">
-                      {nationalityName(p.nationality)} ·{' '}
-                      {p.preferredFoot === 'left'
-                        ? '左脚'
-                        : p.preferredFoot === 'both'
-                          ? '双脚'
-                          : '右脚'}
-                    </small>
-                  </b>
+                  <div className="roster-person">
+                    <PlayerPortrait player={p} decorative />
+                    <div>
+                      <span className="shirt-number">#{p.number}</span>
+                      <b>{p.name}</b>
+                      <small className="pm-country">
+                        {nationalityName(p.nationality)} ·{' '}
+                        {p.preferredFoot === 'left'
+                          ? '左脚'
+                          : p.preferredFoot === 'both'
+                            ? '双脚'
+                            : '右脚'}
+                      </small>
+                    </div>
+                  </div>
                 </td>
                 <td>
                   <Badge tone={p.role === 'GK' ? 'gold' : 'grey'}>{roles[p.role]}</Badge>

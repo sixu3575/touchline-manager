@@ -1,15 +1,15 @@
 :root {
   font-family: Inter, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #253c38;
-  background: #f5f6f2;
+  color: #243a40;
+  background: #e7e3d6;
   font-synthesis: none;
   font-size: 14px;
-  --ink: #173c32;
-  --muted: #86918b;
-  --green: #377258;
-  --lime: #c7ef76;
-  --line: #e8ece6;
-  --nav: #112e29;
+  --ink: #1c3037;
+  --muted: #65746e;
+  --green: #356b65;
+  --lime: #e8b854;
+  --line: #d3d1bd;
+  --nav: #203c43;
 }
 * {
   box-sizing: border-box;
