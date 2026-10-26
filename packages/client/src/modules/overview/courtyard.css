@@ -1,0 +1,301 @@
+.club-yard {
+  position: relative;
+  color: #f8e9c7;
+  background: #172f32;
+  min-height: calc(100dvh - 70px);
+}
+.yard-heading {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  z-index: 3;
+  pointer-events: none;
+}
+.yard-heading > div {
+  padding: 14px 20px 16px;
+  background: #152f32e8;
+  border: 1px solid #e8d5a24d;
+  box-shadow: 3px 4px 0 #10262b45;
+  transform: rotate(-1deg);
+}
+.yard-heading span {
+  font-size: 10px;
+  color: #e2bc72;
+  letter-spacing: 3px;
+}
+.yard-heading h1 {
+  color: #fff0c9;
+  font-size: 30px;
+  margin: 2px 0 3px;
+  line-height: 1.3;
+}
+.yard-heading p {
+  color: #d7decb;
+  font-size: 12px;
+}
+.scene-label-toggle {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 3px;
+  border: 1px solid #f3e3be55;
+  background: #183735e8;
+  color: #f8ebcf;
+  font-size: 12px;
+}
+.yard-pan {
+  width: 100%;
+  overflow: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-color: #b99351 #203936;
+}
+.yard-stage {
+  position: relative;
+  width: 100%;
+  min-width: 940px;
+  aspect-ratio: 1.6;
+}
+.yard-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.yard-object {
+  position: absolute;
+  background: none;
+  color: #fff2cb;
+  border: 0;
+  border-radius: 15%;
+  isolation: isolate;
+  padding: 0;
+}
+.yard-object:focus-visible {
+  outline: 3px dashed #ffdb87;
+  outline-offset: 5px;
+}
+.object-glow {
+  position: absolute;
+  inset: 8%;
+  opacity: 0;
+  background: radial-gradient(ellipse, #ffdb8766, transparent 70%);
+  mix-blend-mode: screen;
+  transition: opacity 0.18s;
+}
+.yard-object:hover .object-glow,
+.yard-object:focus-visible .object-glow {
+  opacity: 1;
+}
+.object-sign {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: max-content;
+  max-width: 230px;
+  padding: 7px 11px;
+  background: #15332feb;
+  border: 1px solid #d5bc7a;
+  box-shadow: 3px 3px 0 #152c3280;
+  transform: translate(-50%, 6px) rotate(-2deg);
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+  pointer-events: none;
+}
+.object-sign b {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #ffe5a2;
+}
+.object-sign small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #e6e4c9;
+}
+.show-object-labels .object-sign,
+.yard-object:hover .object-sign,
+.yard-object:focus-visible .object-sign {
+  opacity: 1;
+  transform: translate(-50%, 0) rotate(-2deg);
+}
+.yard-object:hover .object-sign,
+.yard-object:focus-visible .object-sign {
+  z-index: 2;
+  background: #e8bd65;
+  color: #183438;
+  border-color: #183438;
+  transform: translate(-50%, -4px) rotate(0);
+}
+.yard-object:hover .object-sign b,
+.yard-object:hover .object-sign small,
+.yard-object:focus-visible .object-sign b,
+.yard-object:focus-visible .object-sign small {
+  color: #183438;
+}
+.yard-object-fixtures .object-sign {
+  top: 95%;
+}
+.yard-object-league-stats .object-sign {
+  top: 20%;
+}
+.yard-object-my-matches .object-sign {
+  top: 65%;
+}
+.yard-object-stadium .object-sign {
+  top: 45%;
+}
+.yard-brand-mark {
+  position: absolute;
+  right: 3%;
+  bottom: 2%;
+  font-size: 19px;
+  font-weight: 900;
+  font-style: italic;
+  color: #f6e8c6c9;
+  text-align: right;
+  text-shadow: 1px 2px #173237;
+  line-height: 1;
+  pointer-events: none;
+}
+.yard-brand-mark small {
+  font-size: 8px;
+  letter-spacing: 2px;
+  font-style: normal;
+}
+.yard-daybook {
+  position: relative;
+  padding: 15px 28px 12px;
+  background: #1d3737;
+  border-top: 3px solid #12292f;
+}
+.daybook-fixture {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  max-width: 1100px;
+  margin: auto;
+}
+.daybook-fixture > svg {
+  color: #e1b968;
+}
+.daybook-fixture > div:not(.match-start-options) {
+  margin-right: auto;
+}
+.daybook-fixture span {
+  display: block;
+  color: #b7c8b6;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.daybook-fixture b {
+  color: #f8eaca;
+  font-size: 16px;
+}
+.yard-daybook .primary {
+  background: #e2b35d;
+  color: #172e34;
+  box-shadow: 3px 3px #0c252d;
+}
+.yard-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #b4c4b0;
+  font-size: 11px;
+  margin-top: 15px;
+}
+.yard-hint em {
+  font-style: normal;
+  display: none;
+}
+.yard-hint button {
+  background: transparent;
+  color: #e7c580;
+  margin-left: 14px;
+  font-size: 11px;
+}
+@media (min-width: 1500px) {
+  .yard-pan {
+    max-height: calc(100dvh - 178px);
+  }
+  .yard-stage {
+    max-width: 1600px;
+    margin: auto;
+  }
+}
+@media (max-width: 700px) {
+  .yard-heading {
+    top: 15px;
+    left: 15px;
+    right: 15px;
+  }
+  .yard-heading > div {
+    padding: 10px 14px;
+  }
+  .yard-heading h1 {
+    font-size: 24px;
+  }
+  .yard-heading p {
+    font-size: 11px;
+  }
+  .yard-heading span {
+    font-size: 9px;
+  }
+  .scene-label-toggle {
+    font-size: 11px;
+    padding: 8px;
+  }
+  .yard-stage {
+    min-width: 1000px;
+  }
+  .yard-pan {
+    max-height: none;
+  }
+  .object-sign b {
+    font-size: 15px;
+  }
+  .object-sign small {
+    font-size: 12px;
+  }
+  .yard-daybook {
+    padding: 16px;
+  }
+  .daybook-fixture {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .daybook-fixture b {
+    font-size: 15px;
+  }
+  .daybook-fixture .match-start-options {
+    width: 100%;
+  }
+  .daybook-fixture .primary {
+    width: 100%;
+  }
+  .yard-hint {
+    align-items: start;
+    line-height: 1.6;
+  }
+  .yard-hint em {
+    display: block;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .object-glow,
+  .object-sign {
+    transition: none;
+  }
+}

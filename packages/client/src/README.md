@@ -1,5 +1,7 @@
 # 客户端集成入口
 
+场景入口由scenes/SceneHeader.tsx和scenes.css维护，数据与动作仍在main.tsx/对应模块。public/art/scenes为原创生成并压缩的本地WebP，不含私有存档；全局版本显示于导览底部，仍读package.json。见docs/IMMERSIVE_UI.md。
+
 全站美术由 integration 的 ink-theme.css 统一覆盖基础样式；模块布局仍归对应模块，不复制赛历或球员规则。StadiumIllustration 为公共原创矢量素材；无需远程图片或服务器渲染。见仓库 docs/ART.md。
 
 main.tsx组合会话、导航、模块页面与公共弹层；功能实现留在各自modules目录。所属integration，遵守根AGENTS与modules.json。不要在集成入口复制比赛/球员领域规则。

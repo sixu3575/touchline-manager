@@ -1,5 +1,7 @@
 # Overview 界面模块
 
+场景Overview使用courtyard.css和CLUB_OBJECTS百分比定位原生按钮。实际资金/积分不烘焙进底图；手机仅院子容器横向探索，比赛按钮和导航热区分离。见docs/IMMERSIVE_UI.md。
+
 比赛日主视觉复用公共 StadiumIllustration 与 players 的 PlayerPortrait，三名首发人物均从现有存档读取，装饰图不计算比赛或改变球员。
 
 公共入口 index.ts 的 Overview。只展示存档并提交意图；规则由对应 shared/modules/ 目录维护。页面私有改动在本目录完成，新增样式使用模块专属文件/类名前缀；公共 ui 和全站样式交由 integration 维护。每次修改更新本目录 CHANGELOG.md；开发流程不变。

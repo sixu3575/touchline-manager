@@ -1,27 +1,13 @@
-import { useState } from 'react';
-import { Badge, Filters, Ovr, PanelHead } from '../../components/ui';
-import { money, roles } from '../../constants';
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { roles } from '../../constants';
 import type { Club, Game, Player } from '../../model';
-import './players.css';
-import { nationalityName } from './presentation';
 import { AssessmentOffice } from './AssessmentOffice';
-import { AbilityRadar } from './AbilityRadar';
 import { PlayerPortrait } from './PlayerPortrait';
+import { lockerPage, lockerRoster } from './locker-roster.mjs';
+import './players.css';
+import './locker-room.css';
 
-const columns = [
-  ['number', '号码 / 球员'],
-  ['role', '位置'],
-  ['age', '年龄'],
-  ['overall', '总能力 / 六维图'],
-  ['fitness', '体能'],
-  ['apps', '出场'],
-  ['goals', '进球'],
-  ['wage', '轮薪'],
-  ['status', '状态'],
-] as const;
-type SortKey = (typeof columns)[number][0];
-const collator = new Intl.Collator('zh-CN', { numeric: true });
-const roleOrder: Record<string, number> = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
 type Props = {
   game: Game;
   club: Club;
@@ -29,143 +15,159 @@ type Props = {
   act: (type: string, payload?: Record<string, unknown>) => Promise<Game | undefined>;
   onPlayer: (p: Player) => void;
 };
-
 export function Squad({ game, club, busy, act, onPlayer }: Props) {
   const [filter, setFilter] = useState('ALL');
-  const [sort, setSort] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({
-    key: 'overall',
-    direction: 'descending',
-  });
-  const sortBy = (key: SortKey) =>
-    setSort((previous) => ({
-      key,
-      direction:
-        previous.key === key
-          ? previous.direction === 'ascending'
-            ? 'descending'
-            : 'ascending'
-          : key === 'number' || key === 'role'
-            ? 'ascending'
-            : 'descending',
-    }));
-  const value = (p: Player): number | string | null =>
-    sort.key === 'status'
-      ? Number(club.lineup.includes(p.id))
-      : sort.key === 'role'
-        ? (roleOrder[p.role] ?? 4)
-        : p[sort.key];
-  const players = club.players
-    .filter((p) => filter === 'ALL' || p.role === filter)
-    .sort((a, b) => {
-      const av = value(a),
-        bv = value(b);
-      // Missing archived values stay last in either direction; ties stay stable.
-      if (av === null || bv === null)
-        return av === bv ? a.id.localeCompare(b.id) : av === null ? 1 : -1;
-      const comparison =
-        typeof av === 'string' && typeof bv === 'string'
-          ? collator.compare(av, bv)
-          : Number(av) - Number(bv);
-      return comparison * (sort.direction === 'ascending' ? 1 : -1) || a.id.localeCompare(b.id);
-    });
+  const [order, setOrder] = useState('overall:descending');
+  const [requestedPage, setPage] = useState(0);
+  const [capacity, setCapacity] = useState(() =>
+    window.matchMedia('(max-width: 700px)').matches ? 3 : 7,
+  );
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 700px)');
+    const update = () => {
+      setCapacity(media.matches ? 3 : 7);
+      setPage(0);
+    };
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+  const [key, direction] = order.split(':');
+  const players = lockerRoster(club.players, filter, key, direction, club.lineup) as Player[];
+  const page = lockerPage(players, requestedPage, capacity) as {
+    page: number;
+    pages: number;
+    offset: number;
+    players: Player[];
+  };
   return (
-    <section className="panel">
-      <PanelHead
-        title="一线队名单"
-        subtitle={club.players.length + ' / 28 名球员 · 点击表头排序，点击球员查看档案'}
-      />
-      <AssessmentOffice game={game} kind="coach" busy={busy} act={act} />
-      <div className="pm-roster-summary">
-        <span>
-          平均年龄{' '}
-          <b>{(club.players.reduce((s, p) => s + p.age, 0) / club.players.length).toFixed(1)}</b> 岁
-        </span>
-        <span>
-          来自 <b>{new Set(club.players.map((p) => p.nationality)).size}</b> 个国家
-        </span>
-        <span>
-          平均士气{' '}
-          <b>
-            {Math.round(
-              club.players.reduce((s, p) => s + p.wellbeing.morale, 0) / club.players.length,
-            )}
-          </b>
-        </span>
+    <section className="locker-room" aria-label="球员更衣室">
+      <header className="locker-heading">
+        <div>
+          <h1>更衣室</h1>
+          <p>{club.players.length}位球员 · 每一件球衣，都有自己的故事。</p>
+        </div>
+        <details className="locker-clipboard">
+          <summary>教练夹板 · Lv.{game.assessment.coach}</summary>
+          <AssessmentOffice game={game} kind="coach" busy={busy} act={act} />
+        </details>
+      </header>
+      <div className="locker-controls">
+        <div className="locker-filters" role="group" aria-label="按位置筛选球员">
+          {Object.entries({ ALL: '全队', ...roles }).map(([value, label]) => (
+            <button
+              key={value}
+              aria-pressed={filter === value}
+              onClick={() => {
+                setFilter(value);
+                setPage(0);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <label>
+          更衣柜排列
+          <select
+            aria-label="更衣柜排列"
+            value={order}
+            onChange={(event) => {
+              setOrder(event.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="overall:descending">总能力 · 从高到低</option>
+            <option value="overall:ascending">总能力 · 从低到高</option>
+            <option value="number:ascending">球衣号码</option>
+            <option value="role:ascending">场上位置</option>
+            <option value="age:ascending">年龄 · 从小到大</option>
+            <option value="age:descending">年龄 · 从大到小</option>
+            <option value="fitness:descending">当前体力</option>
+            <option value="goals:descending">进球最多</option>
+            <option value="apps:descending">出场最多</option>
+            <option value="wage:descending">轮薪最高</option>
+            <option value="status:descending">首发优先</option>
+            <option value="name:ascending">姓名</option>
+          </select>
+        </label>
       </div>
-      <Filters value={filter} onChange={setFilter} />
-      <div className="table-scroll">
-        <table className="squad-table">
-          <thead>
-            <tr>
-              {columns.map(([key, label]) => (
-                <th key={key} scope="col" aria-sort={sort.key === key ? sort.direction : 'none'}>
-                  <button className="roster-sort" data-sort={key} onClick={() => sortBy(key)}>
-                    {label}{' '}
-                    <span aria-hidden="true">
-                      {sort.key === key ? (sort.direction === 'ascending' ? '↑' : '↓') : '↕'}
-                    </span>
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {players.map((p) => (
-              <tr
-                key={p.id}
-                data-player-id={p.id}
-                onClick={() => onPlayer(p)}
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && onPlayer(p)}
-              >
-                <td>
-                  <div className="roster-person">
-                    <PlayerPortrait player={p} decorative />
-                    <div>
-                      <span className="shirt-number">#{p.number}</span>
-                      <b>{p.name}</b>
-                      <small className="pm-country">
-                        {nationalityName(p.nationality)} ·{' '}
-                        {p.preferredFoot === 'left'
-                          ? '左脚'
-                          : p.preferredFoot === 'both'
-                            ? '双脚'
-                            : '右脚'}
-                      </small>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <Badge tone={p.role === 'GK' ? 'gold' : 'grey'}>{roles[p.role]}</Badge>
-                </td>
-                <td>{p.age}</td>
-                <td className="roster-ability-cell">
-                  <div className="roster-ability">
-                    <Ovr player={p} />
-                    <AbilityRadar player={p} compact />
-                  </div>
-                </td>
-                <td>
-                  <div className="fitness">
-                    <i style={{ width: p.fitness + '%' }} />
-                  </div>
-                  <small>{p.fitness}%</small>
-                </td>
-                <td>{p.apps}</td>
-                <td>{p.goals}</td>
-                <td>{money(p.wage)}</td>
-                <td>
-                  {club.lineup.includes(p.id) ? (
-                    <Badge>首发</Badge>
-                  ) : (
-                    <span className="muted">替补</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="locker-cabinets" aria-label="本排更衣柜">
+        {page.players.map((p) => (
+          <button
+            className="player-locker"
+            key={p.id}
+            data-player-id={p.id}
+            data-role={p.role}
+            data-fitness={p.fitness < 50 ? 'low' : 'normal'}
+            onClick={() => onPlayer(p)}
+            aria-label={`打开${p.number}号${p.name}的档案，${roles[p.role]}，${p.age}岁，总能力${p.overall ?? '未知'}，体力${p.fitness}%，${club.lineup.includes(p.id) ? '首发' : '替补'}`}
+          >
+            <span className="locker-hook" aria-hidden="true" />
+            <svg className="locker-shirt" viewBox="0 0 160 180" aria-hidden="true">
+              <path
+                d="M53 18L68 8L92 8L107 18L145 41L127 76L110 64L115 165L45 165L50 64L33 76L15 41Z"
+                fill="currentColor"
+                stroke="#182e30"
+                strokeWidth="4"
+                strokeLinejoin="round"
+              />
+              <path
+                className="shirt-shadow"
+                d="M50 64L61 69L58 165L45 165ZM110 64L99 70L103 165L115 165Z"
+              />
+              <path
+                className="shirt-trim"
+                d="M55 17L80 34L105 17L98 11L80 23L62 11ZM17 42L34 72L42 68L25 37ZM118 68L127 73L143 43L135 38Z"
+              />
+              <text x="80" y="111">
+                {p.number}
+              </text>
+            </svg>
+            <span className="locker-photo">
+              <PlayerPortrait player={p} size={130} decorative />
+            </span>
+            <span className="locker-overall" title="公开总能力值">
+              {p.overall ?? '—'}
+            </span>
+            <span className="locker-nameplate">
+              <b>{p.name}</b>
+              <small>
+                #{p.number} · {roles[p.role]} · {p.age}岁
+              </small>
+            </span>
+            <span className="locker-state">
+              <span className="locker-energy" aria-hidden="true">
+                <i style={{ width: Math.max(0, Math.min(100, p.fitness)) + '%' }} />
+              </span>
+              <span>{p.fitness}%</span>
+              <span>· {club.lineup.includes(p.id) ? '首发' : '替补'}</span>
+            </span>
+          </button>
+        ))}
+        {!players.length && <p className="locker-empty">这排还没有对应位置的球员。</p>}
       </div>
+      <div className="locker-bench" aria-hidden="true" />
+      <div className="locker-page-controls">
+        <button
+          aria-label="上一排更衣柜"
+          disabled={page.page === 0}
+          onClick={() => setPage(page.page - 1)}
+        >
+          <ChevronLeft size={16} /> 上一排
+        </button>
+        <span role="status">
+          {players.length ? `${page.offset + 1}–${page.offset + page.players.length}` : '0'} /{' '}
+          {players.length}人 · 第{page.page + 1}/{page.pages}排
+        </span>
+        <button
+          aria-label="下一排更衣柜"
+          disabled={page.page + 1 === page.pages}
+          onClick={() => setPage(page.page + 1)}
+        >
+          下一排 <ChevronRight size={16} />
+        </button>
+      </div>
+      <p className="locker-guidance">点照片、球衣或名牌，打开这位球员的档案与六维能力图。</p>
     </section>
   );
 }

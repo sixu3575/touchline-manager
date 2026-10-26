@@ -69,6 +69,8 @@
         "packages/client/src/components/ui.tsx",
         "packages/client/src/style.css",
         "packages/client/src/ink-theme.css",
+        "packages/client/src/scenes/",
+        "packages/client/public/art/scenes/",
         "modules.json"
       ],
       "dependencies": []

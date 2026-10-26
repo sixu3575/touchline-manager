@@ -235,7 +235,12 @@ export function PlayerLeaders({ season, revision }: { season: number; revision: 
               场。旧战报缺少的项目不按零补算，排名可能随完整战报增加而变化。
             </p>
           )}
-          <div className="leader-table-wrap">
+          <div
+            className="leader-table-wrap"
+            tabIndex={0}
+            role="region"
+            aria-label="球员数据榜，可上下和左右滚动"
+          >
             <table className="leader-table">
               <thead>
                 <tr>

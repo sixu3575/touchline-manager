@@ -1,32 +1,17 @@
-import {
-  Activity,
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  ChevronRight,
-  CircleDot,
-  Dumbbell,
-  Play,
-  Search,
-  Sparkles,
-  Trophy,
-  Users,
-  Wallet,
-} from 'lucide-react';
+import { useState } from 'react';
+import { ArrowUpRight, MousePointer2, Radio, Sparkles } from 'lucide-react';
 import { standings } from '../../../../shared/modules/competitions/selectors/index.mjs';
-import { Badge, LeagueTable, PanelHead, Stat, StadiumIllustration } from '../../components/ui';
-import { money, styleNames } from '../../constants';
 import type { Game, Player, Report, Standing } from '../../model';
+import { money } from '../../constants';
+import { CLUB_OBJECTS } from '../../scenes/navigation.mjs';
 import { AdvanceButton } from '../competitions';
-import { Pitch } from '../matches';
-import { PlayerPortrait } from '../players';
+import './courtyard.css';
 
 export function Overview({
   game,
   busy,
   act,
   navigate,
-  onPlayer,
   onReport,
 }: {
   game: Game;
@@ -36,171 +21,110 @@ export function Overview({
   onPlayer: (p: Player) => void;
   onReport: (r: Report) => void;
 }) {
-  const club = game.clubs[0],
-    rows = standings(game) as Standing[],
-    rank = rows.findIndex((x) => x.id === 'me') + 1;
-  const next = game.round < 14 ? game.schedule[game.round].find((x) => x.includes('me')) : null;
-  const opponent = next ? game.clubs.find((x) => x.id === next.find((id) => id !== 'me')) : null;
-  const fitness = Math.round(
-    club.players.filter((p) => club.lineup.includes(p.id)).reduce((s, p) => s + p.fitness, 0) / 11,
-  );
-  const latest = game.reports[0];
-  const nextButton = <AdvanceButton game={game} busy={busy} act={act} />;
-
+  const [labels, setLabels] = useState(true);
+  const club = game.clubs[0];
+  const rows = standings(game) as Standing[];
+  const rank = rows.findIndex((row) => row.id === 'me') + 1;
+  const own = rows.find((row) => row.id === 'me');
+  const next = game.schedule[game.round]?.find((pair) => pair.includes('me'));
+  const opponent = next && game.clubs.find((other) => other.id === next.find((id) => id !== 'me'));
+  const hints: Record<string, string> = {
+    squad: `${club.players.length}位球员在这里`,
+    tactics: `${club.tactics.formation} · 赛前排兵`,
+    fixtures: `第${game.season}赛季 · ${own?.points ?? 0}积分`,
+    'league-stats': '进球、助攻与各项数据',
+    'my-matches': `${game.reports.filter((r) => r.homeId === 'me' || r.awayId === 'me').length}份本队战报`,
+    training: '球员分配、教练与成长',
+    scouting: `${game.market.length}位球员待考察`,
+    stadium: `${game.stadium.capacity.toLocaleString()}个座位`,
+    finance: money(game.cash),
+    'club-honours': `${game.trophies.length}项已获荣誉`,
+  };
   return (
-    <>
-      <section className="hero">
-        <div className="hero-copy">
-          <Badge tone="lime">
-            {game.round === 14
-              ? 'SEASON COMPLETE'
-              : 'MATCHDAY ' + String(game.round + 1).padStart(2, '0')}
-          </Badge>
-          <h2>{game.round === 14 ? '这赛季，踢出名堂了！' : '下一场，踢点名堂！'}</h2>
+    <section
+      className={'club-yard ' + (labels ? 'show-object-labels' : '')}
+      aria-label="可点击的俱乐部场景"
+    >
+      <div className="yard-heading">
+        <div>
+          <span>WELCOME HOME</span>
+          <h1>{club.name}</h1>
           <p>
-            {game.round === 14
-              ? '最终排名第 ' + rank + '，赛季奖金已到账。'
-              : club.name +
-                ' vs ' +
-                opponent?.name +
-                ' · ' +
-                (next?.[0] === 'me' ? '主场' : '客场') +
-                ' · 先锋联赛'}
+            先锋联赛第{rank}名 · {own?.points ?? 0}积分 · 今天，先去哪里？
           </p>
-          {nextButton}
-          <span className="hero-note">
-            <Check size={13} /> 阵容已就位 · {club.tactics.formation} ·{' '}
-            {styleNames[club.tactics.style]}
+        </div>
+        <button
+          className="scene-label-toggle"
+          aria-pressed={labels}
+          onClick={() => setLabels(!labels)}
+        >
+          <MousePointer2 size={16} />
+          {labels ? '收起路牌' : '显示路牌'}
+        </button>
+      </div>
+      <div className="yard-pan" tabIndex={0} aria-label="俱乐部全景，手机可左右滑动探索">
+        <div className="yard-stage">
+          <img
+            className="yard-art"
+            src="/art/scenes/club-courtyard.webp"
+            width="1600"
+            height="1000"
+            alt="暖阳下的漫画俱乐部院子：更衣室、战术棚、训练场、看台、球探车、报摊和财务室"
+            fetchPriority="high"
+          />
+          {CLUB_OBJECTS.map((object) => (
+            <button
+              key={object.id}
+              className={'yard-object yard-object-' + object.id}
+              style={{
+                left: object.x + '%',
+                top: object.y + '%',
+                width: object.w + '%',
+                height: object.h + '%',
+              }}
+              aria-label={'进入' + object.label}
+              onClick={() => navigate(object.id)}
+            >
+              <span className="object-glow" aria-hidden="true" />
+              <span className="object-sign">
+                <b>
+                  {object.label}
+                  <ArrowUpRight size={13} />
+                </b>
+                <small>{hints[object.id]}</small>
+              </span>
+            </button>
+          ))}
+          <span className="yard-brand-mark" aria-hidden="true">
+            TOUCHLINE
+            <br />
+            <small>YOUR CLUB. YOUR STORY.</small>
           </span>
         </div>
-        <div className="hero-art" aria-hidden="true">
-          <StadiumIllustration />
-          <div className="hero-squad">
-            {club.players
-              .filter((p) => club.lineup.includes(p.id))
-              .slice(0, 3)
-              .map((p) => (
-                <PlayerPortrait key={p.id} player={p} size={128} decorative />
-              ))}
+      </div>
+      <div className="yard-daybook">
+        <div className="daybook-fixture">
+          <Radio size={20} />
+          <div>
+            <span>{game.round < 14 ? `下一场 · 第${game.round + 1}轮` : '赛季落幕'}</span>
+            <b>
+              {opponent ? `${club.name}  vs  ${opponent.name}` : `最终排名第${rank} · 下一段旅程`}
+            </b>
           </div>
+          <AdvanceButton game={game} busy={busy} act={act} />
         </div>
-      </section>
-      <div className="stat-grid">
-        <Stat
-          icon={Wallet}
-          label="俱乐部资金"
-          value={money(game.cash)}
-          detail="每轮结算工资、赞助与奖金"
-        />
-        <Stat
-          icon={Trophy}
-          label="联赛排名"
-          value={rank + ' / 8'}
-          detail={rows.find((x) => x.id === 'me')?.points + ' 积分 · ' + game.round + ' 场已赛'}
-        />
-        <Stat
-          icon={Users}
-          label="球迷规模"
-          value={game.fans.toLocaleString()}
-          detail={'主场容量 ' + game.stadium.capacity.toLocaleString()}
-        />
-        <Stat
-          icon={Activity}
-          label="首发平均体能"
-          value={fitness + '%'}
-          detail={'本轮训练 ' + game.training.used + ' / 2'}
-        />
-      </div>
-      <div className="dashboard-grid">
-        <section className="panel">
-          <PanelHead
-            title="一线队快照"
-            subtitle={club.players.length + ' 名球员 · ' + club.tactics.formation}
-            action={() => navigate('squad')}
-            label="查看球队"
-          />
-          <div className="mini-pitch-wrap">
-            <Pitch club={club} onPlayer={onPlayer} />
-          </div>
-          <div className="panel-foot">
-            <span>
-              <span className="status-dot" /> 战术已保存
-            </span>
-            <button className="text-button" onClick={() => navigate('tactics')}>
-              进入战术室 <ArrowRight size={15} />
+        <div className="yard-hint">
+          <Sparkles size={15} />
+          <span>
+            点建筑、报纸或物件进入。<em>手机可左右滑动院子。</em>
+          </span>
+          {game.reports[0] && (
+            <button onClick={() => onReport(game.reports[0])}>
+              最新战报 {game.reports[0].score.join(' : ')} ↗
             </button>
-          </div>
-        </section>
-        <section className="panel">
-          <PanelHead
-            title="先锋联赛"
-            subtitle={'赛季 ' + game.season + ' · 积分榜'}
-            action={() => navigate('fixtures')}
-            label="全部"
-          />
-          <LeagueTable rows={rows} compact />
-        </section>
-        <section className="panel">
-          <PanelHead title="俱乐部动态" subtitle="每一次成长，都值得记录" />
-          {latest ? (
-            <button className="latest-match" onClick={() => onReport(latest)}>
-              <span className="match-result-icon">
-                <Play size={20} />
-              </span>
-              <div>
-                <b>
-                  {latest.homeName} <strong>{latest.score.join(' : ')}</strong> {latest.awayName}
-                </b>
-                <small>
-                  {latest.competition} · 第 {latest.round} 轮 · 点击回放
-                </small>
-              </div>
-              <ChevronRight size={18} />
-            </button>
-          ) : (
-            <div className="welcome-note">
-              <Sparkles />
-              <div>
-                <b>你的执教生涯，从这里开始。</b>
-                <p>先看看球队和战术，再开始第一轮比赛。</p>
-              </div>
-            </div>
           )}
-          <div className="news-grid">
-            <button onClick={() => navigate('scouting')}>
-              <Search />
-              <div>
-                <b>{game.market.length} 位球员等待考察</b>
-                <small>补强阵容，把握下一次机会。</small>
-              </div>
-              <ArrowUpRight size={17} />
-            </button>
-            <button onClick={() => navigate('training')}>
-              <Dumbbell />
-              <div>
-                <b>训练计划 {game.training.used}/2</b>
-                <small>每轮两次，能力提升持续保留。</small>
-              </div>
-              <ArrowUpRight size={17} />
-            </button>
-          </div>
-        </section>
-        <section className="panel ambition">
-          <div className="ambition-icon">
-            <Trophy size={28} />
-          </div>
-          <span className="eyebrow">THE NEXT CHAPTER</span>
-          <h3>荣誉，始于坚持。</h3>
-          <p>
-            {game.trophies.length
-              ? '已收获 ' + game.trophies.length + ' 项荣誉，向下一座奖杯进发。'
-              : '完成赛季，冲击联赛前三；第 2 轮后开启城市挑战杯。'}
-          </p>
-          <button className="text-button" onClick={() => navigate('fixtures')}>
-            查看赛季目标 <ArrowRight size={16} />
-          </button>
-        </section>
+        </div>
       </div>
-    </>
+    </section>
   );
 }
