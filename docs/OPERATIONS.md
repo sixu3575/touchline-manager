@@ -1,5 +1,11 @@
 # 部署与恢复
 
+## 2026-10-27 运行内存候选（尚未部署）
+
+systemd候选增加 `--liftoff-only` 与 `MALLOC_ARENA_MAX=2`、三个128 KiB malloc阈值，针对Rapier WASM编译峰值和glibc空闲页保留。服务512 MiB、单Worker、JS128 MiB及5×/5 Hz保持；无存档迁移。Node升级需重新验证V8测试性质开关的兼容性和吞吐；回滚必须恢复旧release的unit并daemon-reload/restart，不能只切换current链接。测量、失败样本和固定报告/轨迹哈希见[模块记录](../packages/server/src/design/LIVE_MEMORY_RUNTIME_20261027.md)。
+
+正式服务无未结算任务。已生成并校验一致离机备份 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-live-memory-20261027.sqlite`，VM原件 `/var/backups/touchline-manager/touchline-pre-live-memory-20261027.sqlite`；160,096,256字节，SHA-256 `cff6d4cb67a8892fde86b2847b95a3f5b40e4c7bf85e98a431c5eaf7f7d9575f`，两端integrity_check均ok。为隔离测试留出安全余量，备份校验后仅重启原生产build `c07863d`，释放旧进程的空闲分配区；未安装候选或推进存档。最终验证及部署状态待补。
+
 ## 2026-10-26 发布：实时比赛指挥与天赋训练
 
 部署 PR #70，合并提交及生产 build 为 `c07863d8b0e23f85d24555cbdb54c8c1359086ae`；比赛引擎 `0.44.0-live-manager`。实时观战加入六项球员大数据、战术板和替补；修正防守事件统计归属；训练基地显示当前体力和对应已观察细项，并加入由个人潜力、稳定训练天赋、教练/态度及平缓年龄因子共同影响的整数成长。没有数据库迁移、发布时存档改写或历史报告重算。
