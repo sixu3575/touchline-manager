@@ -8,6 +8,7 @@ export function Pitch({
   away = false,
   ball,
   tacticalSlots = false,
+  showFitness = false,
 }: {
   club: Club;
   lineup?: string[];
@@ -16,6 +17,7 @@ export function Pitch({
   away?: boolean;
   ball?: { x: number; y: number };
   tacticalSlots?: boolean;
+  showFitness?: boolean;
 }) {
   const ids = lineup || club.lineup;
   const ps = ids.flatMap((id) => club.players.find((p) => p.id === id) ?? []);
@@ -43,6 +45,8 @@ export function Pitch({
             x = (slot.x / 105) * 100;
             y = (slot.z / 68) * 100;
           }
+          const fitness = Math.max(0, Math.min(100, Math.round(p.fitness)));
+          const fitnessBand = fitness < 50 ? 'low' : fitness < 75 ? 'medium' : 'high';
           return (
             <button
               className={'pitch-player ' + (away ? 'away' : '')}
@@ -60,6 +64,18 @@ export function Pitch({
             >
               <span>{p.number}</span>
               {!away && <small>{p.name.split('·').at(-1)}</small>}
+              {showFitness && !away && (
+                <div
+                  className={`pitch-fitness ${fitnessBand}`}
+                  title={`当前体力 ${fitness}%`}
+                  aria-label={`当前体力 ${fitness}%`}
+                >
+                  <span className="pitch-fitness-track" aria-hidden="true">
+                    <i style={{ width: `${fitness}%` }} />
+                  </span>
+                  <b>{fitness}%</b>
+                </div>
+              )}
             </button>
           );
         });
