@@ -17,9 +17,10 @@
 }
 .yard-heading > div {
   padding: 14px 20px 16px;
-  background: #152f32e8;
-  border: 1px solid #e8d5a24d;
-  box-shadow: 3px 4px 0 #10262b45;
+  background: #326d64;
+  border: 3px solid #18232a;
+  border-radius: 5px 9px 4px 7px;
+  box-shadow: 4px 5px 0 #18232a;
   transform: rotate(-1deg);
 }
 .yard-heading span {
@@ -43,9 +44,9 @@
   align-items: center;
   gap: 6px;
   padding: 9px 12px;
-  border-radius: 3px;
-  border: 1px solid #f3e3be55;
-  background: #183735e8;
+  border-radius: 5px 8px 4px 6px;
+  border: 3px solid #18232a;
+  background: #214d4b;
   color: #f8ebcf;
   font-size: 12px;
 }
@@ -84,8 +85,9 @@
   position: absolute;
   inset: 8%;
   opacity: 0;
-  background: radial-gradient(ellipse, #ffdb8766, transparent 70%);
-  mix-blend-mode: screen;
+  background: #eee0bb26;
+  border: 3px dashed #eee0bb;
+  border-radius: 14% 9% 12% 7%;
   transition: opacity 0.18s;
 }
 .yard-object:hover .object-glow,
@@ -99,9 +101,10 @@
   width: max-content;
   max-width: 230px;
   padding: 7px 11px;
-  background: #15332feb;
-  border: 1px solid #d5bc7a;
-  box-shadow: 3px 3px 0 #152c3280;
+  background: #214d4b;
+  border: 3px solid #18232a;
+  border-radius: 3px 7px 4px 6px;
+  box-shadow: 3px 4px 0 #18232a;
   transform: translate(-50%, 6px) rotate(-2deg);
   opacity: 0;
   transition:
@@ -132,7 +135,7 @@
 .yard-object:hover .object-sign,
 .yard-object:focus-visible .object-sign {
   z-index: 2;
-  background: #e8bd65;
+  background: #d5a440;
   color: #183438;
   border-color: #183438;
   transform: translate(-50%, -4px) rotate(0);
@@ -176,8 +179,8 @@
 .yard-daybook {
   position: relative;
   padding: 15px 28px 12px;
-  background: #1d3737;
-  border-top: 3px solid #12292f;
+  background: #214d4b;
+  border-top: 4px solid #18232a;
 }
 .daybook-fixture {
   display: flex;

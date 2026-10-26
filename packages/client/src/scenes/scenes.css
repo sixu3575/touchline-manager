@@ -20,9 +20,9 @@
   align-items: center;
   gap: 21px;
   padding: 0 25px;
-  background: #162f32;
-  border-bottom: 3px solid #b79355;
-  box-shadow: 0 3px 12px #071f2970;
+  background: #214d4b;
+  border-bottom: 4px solid #18232a;
+  box-shadow: 0 3px #18232a;
   color: #ebdfbb;
 }
 .club-home {
@@ -101,8 +101,9 @@
   gap: 6px;
   padding: 9px 11px;
   color: #ecddba;
-  background: #2c4942;
-  border: 1px solid #a38c5a;
+  background: #326d64;
+  border: 2px solid #18232a;
+  box-shadow: 2px 3px #18232a;
   font-size: 12px;
   border-radius: 3px;
 }
@@ -124,7 +125,6 @@
   inset: 70px 0 0;
   z-index: 38;
   background: #071e247a;
-  backdrop-filter: blur(3px);
 }
 .club-wayfinder {
   position: fixed;
@@ -138,8 +138,9 @@
   gap: 10px;
   background: #e2c68c;
   color: #223d34;
-  border: 3px solid #203831;
-  box-shadow: 7px 8px #102b3380;
+  border: 4px solid #18232a;
+  border-radius: 6px 12px 5px 10px;
+  box-shadow: 7px 8px #18232a;
   transform: rotate(0.5deg);
 }
 .wayfinder-version {
@@ -181,8 +182,8 @@
 .club-wayfinder button {
   background: #b59659;
   color: #1e3a32;
-  border: 1px solid #6a714b;
-  border-radius: 2px;
+  border: 2px solid #18232a;
+  border-radius: 4px 7px 3px 6px;
   display: flex;
   align-items: center;
   justify-content: start;
@@ -204,8 +205,8 @@
 .scene-main:has(.room-heading) {
   padding: 22px 4% 50px;
   background:
-    linear-gradient(#14322ae0, #173736c9),
-    url('/art/scenes/locker-room.webp') center / cover fixed;
+    linear-gradient(#214d4bd9, #214d4bd9),
+    url('/art/scenes/locker-room-cartoon-v2.webp') center / cover fixed;
 }
 .immersive-app .scene-main:has(.room-heading) > .content {
   max-width: 1400px;

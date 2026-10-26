@@ -13,3 +13,5 @@
 总览复用competitions/AdvanceButton的单一开赛并5×观看入口；本轮播放结束前维持赛前资金/积分，页面上方全局比赛卡持续显示当前进度。总览本身不持有时钟或计算比赛。
 
 观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
+
+2026-10-27：院子使用club-courtyard-cartoon-v2.webp；新增物件需沿现有粗墨线/平涂样式，核对navigation.mjs热区。

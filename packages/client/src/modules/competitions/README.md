@@ -29,3 +29,5 @@ RoundReports采用紧凑对阵卡片样式；`report.canReplay`与本队ID的双
 联赛只有“进行下一轮并实时观看”入口，杯赛同样自动进入5×观赛；删除后台模拟按钮。未结算时禁止推进其他轮次，继续观看通过全局进度卡；赛后沿用自由回放。
 
 观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
+
+2026-10-27：编辑室使用press-room-cartoon-v2.webp，报纸和屏幕维持粗墨线/平涂；数据仍由原组件绘制。
