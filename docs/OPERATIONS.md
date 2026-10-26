@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-10-26 发布：实时比赛指挥与天赋训练
+
+部署 PR #70，合并提交及生产 build 为 `c07863d8b0e23f85d24555cbdb54c8c1359086ae`；比赛引擎 `0.44.0-live-manager`。实时观战加入六项球员大数据、战术板和替补；修正防守事件统计归属；训练基地显示当前体力和对应已观察细项，并加入由个人潜力、稳定训练天赋、教练/态度及平缓年龄因子共同影响的整数成长。没有数据库迁移、发布时存档改写或历史报告重算。
+
+PR Node 22/24 全量 CI 均通过，包含比赛/API/检查点集成、受控业务赛季、56场完整物理赛季、类型检查和生产构建；Node 22 用时1小时31分24秒，Node 24 用时44分02秒。现实统计报告仍为 `review`：两名样本球员的低速跑动距离占比分别69.95%和68.34%，高于65%的工程复核线；无阻断项，不将其记为现实性通过。
+
+停服前比赛任务均已完成。SQLite一致快照位于VM `/var/backups/touchline-manager/touchline-2026-10-26T11-42-41-594Z.sqlite`，已复制至离机私有目录 `C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-pr70-20261026.sqlite`。离机副本112,828,416字节，VM与本机 SHA-256 均为 `0e362692e9ba91257caf52f487257b0eedcf21ef3c7157b75697304462ac7446`；`integrity_check` 为 `ok`。发布安装脚本另生成 `/var/backups/touchline-manager/touchline-2026-10-26T11-44-07-401Z.sqlite`。
+
+发布归档 SHA-256 为 `812454c00f6a342de90e032a92e78b429faf8b90aab7555a07e7234427422be7`，经 `/bin/bash /srv/touchline-manager/current/deploy/install.sh <archive> c07863d8b0e23f85d24555cbdb54c8c1359086ae` 安装。部署前后均为2个存档、51条操作、23条回放、63份战报、3个已完成比赛任务和1080个轨迹片段；生产库 `integrity_check` 为 `ok`。服务、Caddy与备份timer均为active，服务重启计数0。本机与公网 `/api/health` 返回该build；公网首页、JS和CSS均为HTTP 200，客户端资源含训练基地体力、战术板和替补功能标识。旧release保留用于代码回滚。
+
 ## 2026-10-26 发布：Ink 美术与三阶段头像
 
 PR #68 已合并并部署，生产 build 为 `b912e9539a8bfdf878d8174020cb26c629ad3126`。原创运动漫画主题、球场插画与稳定 ID 头像已上线；≤18青训、19–29青年、≥30中年。只改客户端，无服务端、规则、数据或运行依赖变更。引擎继续为已部署的0.43.0；单 worker、512MiB限额保持。
