@@ -7,6 +7,7 @@ import {
   compareMatchSampleToOpenEuropeStats,
   compareMatch,
   trackedMovement,
+  tacticalOutcomeStats,
   references,
 } from './tools/match-realism.mjs';
 
@@ -41,6 +42,8 @@ function fixture() {
     },
     performance: players.map((p) => ({
       ...p,
+      positionRole:
+        p.side === 1 && p.positionRole !== 'keeper' ? 'holdingMid' : p.positionRole,
       distance: 10000,
       maxSpeed: 8,
       energy: 60,
@@ -49,6 +52,7 @@ function fixture() {
       completed: 32,
       tackles: 4,
       wonTackles: 2,
+      defenceTelemetry: { pressSeconds: 5, markingSeconds: 10, markingSwitches: 2 },
       dismissedAt: null,
     })),
     replay: {
@@ -222,6 +226,69 @@ test('tracking separates speed zones, excludes cut intervals and respects dismis
   assert.ok(Math.abs(t.players[0].zones[0] - t.players[0].metres) < 0.001);
   assert.equal(t.players[0].zones[4], 0);
   assert.throws(() => trackedMovement(r, frames.slice(49)), /geometry/);
+});
+
+test('internal tactical outcome counters attribute crosses, wide take-ons, switches and counter through balls', () => {
+  const r = fixture();
+  r.snapshots[0].tactics.style = 'wide';
+  r.snapshots[0].players[1].positionRole = 'winger';
+  r.snapshots[0].players[2].positionRole = 'striker';
+  r.performance[1].positionRole = 'winger';
+  r.performance[2].positionRole = 'striker';
+  r.continuity.chains = [[2, 5, 7], [3, 4]];
+  r.events = [
+    { type: 'cross', side: 0, actionId: 'cross-1', intent: 'cross', phase: 'finalThird', playerId: 'p1', receiverId: 'p2' },
+    { type: 'pass', side: 0, intent: 'switch', phase: 'midfield', playerId: 'p2', receiverId: 'p3' },
+    {
+      type: 'pass', side: 0, actionId: 'through-1', intent: 'through', phase: 'counter',
+      playerId: 'p3', receiverId: 'p1', x: 30, y: 50,
+      destination: { x: 52, z: 34 }, velocity: { y: 0.08 },
+    },
+    {
+      type: 'pass', side: 0, actionId: 'through-2', intent: 'through', phase: 'counter',
+      playerId: 'p2', receiverId: 'p1', x: 40, y: 50,
+      destination: { x: 70, z: 34 }, velocity: { y: 5 },
+    },
+    { type: 'dribble', side: 0, intent: 'takeOn', playerId: 'p1' },
+    { type: 'passComplete', side: 0, actionId: 'cross-1' },
+    { type: 'passComplete', side: 0, actionId: 'through-1', second: 7 },
+    { type: 'shot', side: 0, second: 14 },
+    { type: 'takeOnWon', side: 0, playerId: 'p1' },
+  ];
+  const [home, away] = tacticalOutcomeStats(r);
+  assert.equal(home.style, 'wide');
+  assert.equal(home.crosses, 1);
+  assert.equal(home.crossesFromWideRoles, 1);
+  assert.equal(home.crossesToStrikers, 1);
+  assert.equal(home.wideTakeOnIntents, 1);
+  assert.equal(home.wideTakeOnAttempts, 1);
+  assert.equal(home.wideTakeOnWins, 1);
+  assert.equal(home.crossesCompleted, 1);
+  assert.equal(home.crossesToStrikersCompleted, 1);
+  assert.equal(home.switches, 1);
+  assert.equal(home.counterThroughBalls, 2);
+  assert.deepEqual(home.counterGroundThrough, {
+    attempts: 1,
+    completed: 1,
+    medianTargetDistance: Math.hypot(52 - 31.5, 34 - 34),
+  });
+  assert.deepEqual(home.counterLoftedThrough, {
+    attempts: 1,
+    completed: 0,
+    medianTargetDistance: Math.hypot(70 - 42, 34 - 34),
+  });
+  assert.equal(home.throughTargetsByRole.winger, 2);
+  assert.equal(home.throughFollowedByShotWithin12Seconds, 1);
+  assert.equal(home.medianChainLength, 5);
+  assert.equal(home.opponentDefenderDistance, 10000);
+  assert.equal(home.opponentOutfieldEnergy, 60);
+  assert.equal(home.opponentDefenderMarkSwitches, 20);
+  assert.equal(home.pressDutyPlayerSeconds, 50);
+  assert.equal(home.playersWithPressDuty, 10);
+  assert.equal(home.markingDutyPlayerSeconds, 100);
+  assert.equal(home.opponentDefenderPressSeconds, 50);
+  assert.equal(home.opponentDefenderMarkingSeconds, 100);
+  assert.equal(away.crosses, 0);
 });
 
 test('comparisons preserve source reports and flag both team and individual extreme loads', () => {

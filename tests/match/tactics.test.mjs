@@ -13,7 +13,13 @@ import {
   deliveryOptions,
   deliveryReceptionRisk,
   midfieldOutletValue,
+  tacticalDecisionValue,
 } from '../../packages/shared/modules/matches/tactical-plan.mjs';
+import {
+  blockPosition,
+  tackleProbability,
+} from '../../packages/shared/modules/matches/defending.mjs';
+import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
 import { chooseAction } from '../../packages/shared/modules/matches/decisions.mjs';
 import {
@@ -204,6 +210,154 @@ test('overlap requires protection and an open route; pressing remains a separate
   }
 });
 
+test('coordinated pressers close the carrier together and leave fewer defenders to cover runners', () => {
+  const scenario = (press, awareness = 70) => {
+    const defenders = team('4-3-3');
+    defenders
+      .filter((a) => !a.isKeeper)
+      .forEach((a, index) => {
+      const angle = (index / 10) * Math.PI * 2;
+      a.pos = { x: 50 + Math.cos(angle) * 7, z: 34 + Math.sin(angle) * 7 };
+      for (const key of Object.keys(a.player.attributes)) a.player.attributes[key] = awareness;
+    });
+    const attackers = team('4-3-3').map((a, index) => {
+      a.side = 1;
+      a.index += 11;
+      a.player.id = `opponent-${a.player.id}`;
+      a.pos = { x: 42 + index, z: 20 + index * 3 };
+      return a;
+    });
+    const owner = attackers.find((a) => a.positionRole === 'centralMid');
+    owner.pos = { x: 50, z: 34 };
+    const ball = { x: 50, z: 34, vx: 0, vz: 0 };
+    const roles = teamRoles(
+      [...defenders, ...attackers],
+      ball,
+      owner,
+      null,
+      (side) => (side ? -1 : 1),
+      [{ style: 'balanced', press }, { style: 'balanced', press: 'normal' }],
+      10,
+      context(),
+    );
+    return { defenders, attackers, owner, ball, roles };
+  };
+
+  const normal = scenario('normal'),
+    high = scenario('high'),
+    lowAwareness = scenario('high', 32);
+  assert.equal(normal.roles.chasers.filter((i) => i < 11).length, 2);
+  assert.equal(high.roles.chasers.filter((i) => i < 11).length, 3);
+  assert.ok(
+    lowAwareness.roles.chasers.filter((i) => i < 11).length < high.roles.chasers.filter((i) => i < 11).length,
+    'low decision/anticipation/positioning/teamwork defenders coordinate fewer pressers',
+  );
+  assert.ok(
+    Object.keys(high.roles.marking).length < Object.keys(normal.roles.marking).length,
+    'committing extra pressers leaves more attacking runners without a dedicated marker',
+  );
+
+  const highPressers = high.roles.chasers
+      .filter((index) => index < 11)
+      .map((index) => high.defenders.find((a) => a.index === index)),
+    pressTargets = highPressers.map((defender) =>
+      targetFor(
+        defender,
+        [...high.defenders, ...high.attackers],
+        high.ball,
+        high.owner,
+        1,
+        { style: 'balanced', press: 'high' },
+        high.roles.chasers,
+        high.roles,
+      ),
+    );
+  assert.ok(
+    pressTargets.every((target) => Math.hypot(target.x - high.owner.pos.x, target.z - high.owner.pos.z) <= 3),
+    'all selected pressers close within real pressure distance',
+  );
+  assert.ok(
+    new Set(pressTargets.map((target) => `${target.x.toFixed(2)}:${target.z.toFixed(2)}`)).size > 1,
+    'the second and third pressers take distinct outlet/shoulder angles instead of standing on one point',
+  );
+
+  const carrier = high.owner;
+  carrier.pos = { x: 50, z: 34 };
+  const single = high.defenders.slice(0, 1).map((a) => ({ ...a, pos: { x: 52, z: 34 } }));
+  const pair = [
+    ...single,
+    { ...high.defenders[1], pos: { x: 52.8, z: 34 }, side: 0 },
+  ];
+  const oneDefenderQuality = actionQuality(carrier, high.ball, 'passing', single).pressure,
+    twoDefenderQuality = actionQuality(carrier, high.ball, 'passing', pair).pressure;
+  assert.ok(twoDefenderQuality > oneDefenderQuality, 'a second close defender compresses the carrier');
+  assert.ok(
+    tackleProbability(single[0], carrier, high.ball, single, 70, 70) <
+      tackleProbability(single[0], carrier, high.ball, pair, 70, 70),
+    'nearby support improves an actual tackle contest through the existing geometric support term',
+  );
+});
+
+test('defensive awareness moves the block toward the ball and reads runners into midfield gaps', () => {
+  const base = team('4-3-3').find((a) => a.positionRole === 'centreBack');
+  const skilled = structuredClone(base),
+    raw = structuredClone(base);
+  for (const key of Object.keys(skilled.player.attributes)) skilled.player.attributes[key] = 92;
+  for (const key of Object.keys(raw.player.attributes)) raw.player.attributes[key] = 28;
+  const ball = { x: 64, z: 8, vx: 0, vz: 0 };
+  const skilledBlock = blockPosition(skilled, ball, 1, { style: 'balanced', press: 'normal' }),
+    rawBlock = blockPosition(raw, ball, 1, { style: 'balanced', press: 'normal' });
+  assert.ok(skilledBlock.z < rawBlock.z, 'the more aware defender shifts farther toward the ball side');
+  assert.ok(skilledBlock.x > rawBlock.x, 'the more aware defender reads the block depth more actively');
+
+  const threat = structuredClone(base);
+  threat.side = 1;
+  threat.index = 11;
+  threat.player.id = `runner-${threat.player.id}`;
+  threat.player.role = 'FWD';
+  threat.pos = { x: 30, z: 24 };
+  threat.velocity = { x: 2, z: 0 };
+  const runnerBall = { x: 45, z: 34, vx: 0, vz: 0 };
+  skilled.side = 0;
+  raw.side = 0;
+  skilled.pos = { ...base.pos };
+  raw.pos = { ...base.pos };
+  const roleFor = (marker) => ({
+    teamSide: 1,
+    time: 10,
+    marking: { [marker.player.id]: threat.player.id },
+    defensiveCover: {},
+    duties: {},
+    press: {},
+    teams: {},
+  });
+  const awareTarget = targetFor(
+      skilled,
+      [skilled, threat],
+      runnerBall,
+      threat,
+      1,
+      { style: 'balanced', press: 'normal' },
+      [],
+      roleFor(skilled),
+    ),
+    shapeTarget = targetFor(
+      raw,
+      [raw, threat],
+      runnerBall,
+      threat,
+      1,
+      { style: 'balanced', press: 'normal' },
+      [],
+      roleFor(raw),
+    );
+  assert.ok(
+    Math.hypot(awareTarget.x - threat.pos.x, awareTarget.z - threat.pos.z) <
+      Math.hypot(shapeTarget.x - threat.pos.x, shapeTarget.z - threat.pos.z),
+    'a high-awareness marker steps out farther to follow a dangerous run into the gap',
+  );
+});
+
 test('counter window starts on regained possession, survives passes, expires and resets at dead balls', () => {
   const actors = team(),
     a = actors[6],
@@ -254,6 +408,56 @@ test('possession provides distinct outlets and protection without wide-play box 
     false,
   );
   assert.equal(new Set(support.map((p) => p.x + ':' + p.z)).size, support.length);
+
+  const opponents = team().map((actor) => ({ ...actor, side: 1 }));
+  for (const actor of opponents) {
+    actor.pos = {
+      x: actor.isKeeper ? 104 : actor.player.role === 'DEF' ? 72 : actor.player.role === 'MID' ? 55 : 30,
+      z: actor.pos.z,
+    };
+  }
+  const stretchedPlan = attackAssignments(
+      [...actors, ...opponents],
+      { x: 55, z: 34 },
+      owner,
+      null,
+      1,
+      { style: 'possession' },
+      10,
+      context(),
+    ),
+    striker = actors.find((actor) => actor.positionRole === 'striker');
+  assert.equal(stretchedPlan.assignments[striker.player.id].duty, 'break');
+  assert.ok(stretchedPlan.assignments[striker.player.id].x > 55);
+
+  for (const actor of opponents)
+    actor.pos.x = actor.isKeeper ? 104 : actor.player.role === 'DEF' ? 60 : actor.player.role === 'MID' ? 55 : 30;
+  const compactPlan = attackAssignments(
+    [...actors, ...opponents],
+    { x: 55, z: 34 },
+    owner,
+    null,
+    1,
+    { style: 'possession' },
+    10,
+    context(),
+  );
+  assert.notEqual(compactPlan.assignments[striker.player.id]?.duty, 'break');
+
+  for (const actor of opponents)
+    actor.pos.x = actor.isKeeper ? 104 : actor.player.role === 'DEF' ? 82 : 55;
+  const finalThirdPlan = attackAssignments(
+    [...actors, ...opponents],
+    { x: 75, z: 34 },
+    owner,
+    null,
+    1,
+    { style: 'possession' },
+    10,
+    context(),
+  );
+  assert.equal(finalThirdPlan.assignments[striker.player.id].duty, 'break');
+  assert.ok(finalThirdPlan.assignments[striker.player.id].x > 75);
 });
 
 test('settled balanced and counter attacks keep central midfield outlets behind the ball', () => {
@@ -315,6 +519,437 @@ test('midfield outlet value rewards safe recycling and yields to counters and fo
   assert.ok(
     midfieldOutletValue(state, central, 0, 0.9, 8) > midfieldOutletValue(state, central, 0, 0.9, 2),
   );
+});
+
+test('possession switches away from a loaded flank and waits for a stretched-line runner', () => {
+  const attackers = team('4-3-3'),
+    defenders = team('4-3-3').map((a) => ({ ...a, side: 1 })),
+    owner = attackers.find((a) => a.positionRole === 'centralMid'),
+    runner = attackers.find((a) => a.positionRole === 'striker'),
+    ball = { x: 42, z: 10 };
+  defenders.forEach((a, i) => {
+    a.pos = a.isKeeper
+      ? { x: 101, z: 34 }
+      : a.player.role === 'DEF'
+        ? { x: 50, z: 10 + i }
+        : { x: 25, z: 30 + (i % 3) * 3 };
+  });
+  const switchValue = tacticalDecisionValue(
+    { style: 'possession' },
+    { phase: 'midfield', fastBreak: false },
+    { intent: 'switch' },
+    owner,
+    attackers.find((a) => a.positionRole === 'winger' && a.anchor.z > 34),
+    ball,
+    { x: 45, z: 55 },
+    1,
+    0.82,
+    10,
+    defenders,
+    50,
+  );
+  assert.ok(switchValue > 0.005, `open far-side switch value was ${switchValue}`);
+  assert.ok(switchValue <= 0.018, `switch preference should remain selective: ${switchValue}`);
+  const passValue = tacticalDecisionValue(
+    { style: 'possession' },
+    { phase: 'midfield', fastBreak: false },
+    { intent: 'through' },
+    owner,
+    runner,
+    ball,
+    { x: 57, z: 34 },
+    1,
+    0.8,
+    9,
+    defenders,
+    50,
+  );
+  assert.ok(passValue > 0.015, `space behind a stretched line should reward the through ball: ${passValue}`);
+  const finalThirdThroughValue = tacticalDecisionValue(
+    { style: 'possession' },
+    { phase: 'finalThird', fastBreak: false },
+    { intent: 'through' },
+    owner,
+    runner,
+    ball,
+    { x: 57, z: 34 },
+    1,
+    0.8,
+    9,
+    defenders,
+    50,
+  );
+  assert.ok(
+    finalThirdThroughValue > 0.05,
+    `a legal final-third channel behind a stretched line should reward the killer pass: ${finalThirdThroughValue}`,
+  );
+  const recyclingValue = tacticalDecisionValue(
+    { style: 'possession' },
+    { phase: 'midfield', fastBreak: false },
+    { intent: 'feet' },
+    owner,
+    owner,
+    ball,
+    { x: 44, z: 18 },
+    1,
+    0.8,
+    9,
+    defenders,
+    50,
+  );
+  assert.ok(recyclingValue > 0.001, `a safe central outlet should reward circulation: ${recyclingValue}`);
+  assert.equal(
+    tacticalDecisionValue(
+      { style: 'possession' },
+      { phase: 'midfield', fastBreak: true },
+      { intent: 'feet' },
+      owner,
+      owner,
+      ball,
+      { x: 44, z: 18 },
+      1,
+      0.8,
+      9,
+      defenders,
+      50,
+    ),
+    0,
+    'circulation bonus should yield during a real counter window',
+  );
+  const closedLaneValue = tacticalDecisionValue(
+      { style: 'possession' },
+      { phase: 'midfield', fastBreak: false },
+      { intent: 'through' },
+      owner,
+      runner,
+      ball,
+      { x: 57, z: 34 },
+      1,
+      0.8,
+      9,
+      defenders.map((a) => ({ ...a, pos: { x: 50, z: a.pos.z } })),
+      50,
+    );
+  assert.ok(
+    closedLaneValue < 0,
+    `a settled possession side should prefer circulation over a closed through lane: ${closedLaneValue}`,
+  );
+  const onsideButNotBehindValue = tacticalDecisionValue(
+    { style: 'possession' },
+    { phase: 'midfield', fastBreak: false },
+    { intent: 'through' },
+    owner,
+    runner,
+    ball,
+    { x: 50.3, z: 34 },
+    1,
+    0.8,
+    9,
+    defenders.map((a) => ({ ...a, pos: { x: 50, z: a.pos.z } })),
+    50,
+  );
+  assert.ok(
+    onsideButNotBehindValue < 0,
+    'a forward pass that does not put the runner behind the line should favor circulation',
+  );
+});
+
+test('counter block protects central width and counter runners receive a forward over-the-top option', () => {
+  const actors = team('4-3-3'),
+    defender = actors.find((a) => a.positionRole === 'fullback' && a.anchor.z < 34),
+    ball = { x: 60, z: 8 };
+  const normal = blockPosition(defender, ball, 1, { style: 'balanced', press: 'normal' }),
+    counter = blockPosition(defender, ball, 1, { style: 'counter', press: 'normal' }),
+    possessionResponse = blockPosition(
+      defender,
+      ball,
+      1,
+      { style: 'balanced', press: 'normal' },
+      'possession',
+    );
+  assert.ok(Math.abs(counter.z - 34) < Math.abs(normal.z - 34));
+  assert.ok(Math.abs(possessionResponse.z - 34) > Math.abs(normal.z - 34));
+  const expectedPossessionZ = Math.max(
+    5,
+    Math.min(63, 34 + (defender.anchor.z - 34) * 0.78 + (ball.z - 34) * 0.65),
+  );
+  assert.ok(Math.abs(possessionResponse.z - expectedPossessionZ) < 1e-12);
+
+  const side = team('4-3-3'),
+    owner = side.find((a) => a.positionRole === 'centralMid'),
+    runner = side.find((a) => a.positionRole === 'striker'),
+    opposition = team('4-3-3').map((a) => ({ ...a, side: 1 }));
+  for (const teammate of side) if (teammate !== owner && teammate !== runner) teammate.sentOff = true;
+  owner.pos = { x: 30, z: 34 };
+  owner.velocity = { x: 0, z: 0 };
+  owner.player.attributes.passing = 98;
+  owner.player.attributes.vision = 98;
+  owner.player.attributes.decisions = 98;
+  owner.player.attributes.dribbling = 35;
+  runner.pos = { x: 52, z: 34 };
+  runner.velocity = { x: 5, z: 0 };
+  runner.player.attributes.offTheBall = 98;
+  runner.player.attributes.sprintSpeed = 98;
+  opposition.forEach((a) => {
+    a.pos = a.isKeeper
+      ? { x: 101, z: 34 }
+      : a.player.role === 'DEF'
+        ? {
+            x: 65,
+            z:
+              a.positionRole === 'centreBack'
+                ? a.anchor.z < 34
+                  ? 12
+                  : 56
+                : a.anchor.z < 34
+                  ? 5
+                  : 63,
+          }
+        : { x: 25, z: 12 + a.index * 4 };
+  });
+  const action = chooseAction(
+    owner,
+    [...side, ...opposition],
+    { x: 30, y: 0.11, z: 34, vx: 0, vz: 0 },
+    1,
+    { style: 'counter', press: 'normal' },
+    random(991),
+    { time: 10, continuity: { side: 0, regainedAt: 9 } },
+  );
+  assert.equal(action.type, 'pass');
+  assert.equal(action.intent, 'through');
+  assert.ok(action.destination.x > 65, `counter pass should lead behind the high line: ${action.destination.x}`);
+  assert.ok(action.y > 0.5, 'the pacey runner should be offered the deeper lofted option');
+  runner.player.attributes.acceleration = 35;
+  runner.player.attributes.sprintSpeed = 35;
+  const selectedProfiles = { ground: 0, lofted: 0 };
+  for (let seed = 991; seed < 1031; seed++) {
+    const choice = chooseAction(
+      owner,
+      [...side, ...opposition],
+      { x: 30, y: 0.11, z: 34, vx: 0, vz: 0 },
+      1,
+      { style: 'counter', press: 'normal' },
+      random(seed),
+      { time: 10, continuity: { side: 0, regainedAt: 9 } },
+    );
+    if (choice.type === 'pass' && choice.intent === 'through')
+      selectedProfiles[choice.y > 0.5 ? 'lofted' : 'ground']++;
+  }
+  assert.ok(
+    selectedProfiles.ground > 0,
+    `a slower runner should favor the shorter grounded option: ${JSON.stringify(selectedProfiles)}`,
+  );
+});
+
+test('counter runners vary their legal line-breaking depth with movement and reading ability', () => {
+  const actors = team('4-3-3'),
+    owner = actors.find((a) => a.positionRole === 'centralMid'),
+    runner = actors.find((a) => a.positionRole === 'striker'),
+    opposition = team('4-3-3').map((a) => ({ ...a, side: 1 })),
+    ball = { x: 30, z: 34 };
+  owner.pos = { ...ball };
+  runner.player.attributes.offTheBall = 98;
+  runner.player.attributes.decisions = 98;
+  runner.player.attributes.acceleration = 98;
+  runner.player.attributes.sprintSpeed = 98;
+  opposition.forEach((a) => {
+    a.pos = a.isKeeper
+      ? { x: 101, z: 34 }
+      : a.player.role === 'DEF'
+        ? { x: 65, z: a.anchor.z }
+        : { x: 25, z: a.anchor.z };
+  });
+  const highReadiness = attackAssignments(
+    [...actors, ...opposition],
+    ball,
+    owner,
+    null,
+    1,
+    { style: 'counter' },
+    10,
+    { side: 0, regainedAt: 9 },
+  );
+  assert.equal(highReadiness.fastBreak, true);
+  assert.equal(highReadiness.assignments[runner.player.id].duty, 'break');
+  assert.ok(highReadiness.assignments[runner.player.id].x <= 65);
+  const highTarget = highReadiness.assignments[runner.player.id].x;
+  for (const key of ['offTheBall', 'decisions', 'acceleration', 'sprintSpeed'])
+    runner.player.attributes[key] = 35;
+  const lowReadiness = attackAssignments(
+    [...actors, ...opposition],
+    ball,
+    owner,
+    null,
+    1,
+    { style: 'counter' },
+    10,
+    { side: 0, regainedAt: 9 },
+  );
+  assert.ok(lowReadiness.assignments[runner.player.id].x < highTarget);
+  assert.ok(lowReadiness.assignments[runner.player.id].x <= 65);
+});
+
+test('counter through-ball value rewards both a capable runner and a passer who reads space', () => {
+  const actors = team('4-3-3'),
+    passer = actors.find((a) => a.positionRole === 'centralMid'),
+    runner = actors.find((a) => a.positionRole === 'striker'),
+    opponents = team('4-3-3').map((a) => ({
+      ...a,
+      side: 1,
+      pos: a.isKeeper ? { x: 101, z: 34 } : { x: 68, z: a.anchor.z },
+    })),
+    ball = { x: 50, z: 34 },
+    target = { x: 82, z: 34 },
+    value = (counterRun) =>
+      tacticalDecisionValue(
+        { style: 'counter' },
+        { phase: 'counter', fastBreak: true },
+        { intent: 'through', counterRun },
+        passer,
+        runner,
+        ball,
+        target,
+        1,
+        0.8,
+        8,
+        opponents,
+        68,
+      );
+  const ordinaryGroundValue = value('ground'),
+    ordinaryLoftedValue = value('lofted');
+  for (const key of ['offTheBall', 'decisions', 'acceleration', 'sprintSpeed'])
+    runner.player.attributes[key] = 98;
+  const strongRunnerGroundValue = value('ground'),
+    strongRunnerLoftedValue = value('lofted');
+  for (const key of ['vision', 'passing', 'decisions']) passer.player.attributes[key] = 98;
+  assert.ok(strongRunnerGroundValue > ordinaryGroundValue);
+  assert.ok(strongRunnerLoftedValue > ordinaryLoftedValue);
+  assert.ok(value('ground') > strongRunnerGroundValue);
+  assert.ok(value('lofted') > strongRunnerLoftedValue);
+});
+
+test('counter breaks keep ground and lofted through runs available alongside flank deliveries', () => {
+  const side = team('4-3-3'),
+    owner = side.find((a) => a.positionRole === 'centralMid'),
+    runner = side.find((a) => a.positionRole === 'winger' && a.anchor.z < 34),
+    opposition = team('4-3-3').map((a) => ({ ...a, side: 1 })),
+    ball = { x: 68, y: 0.11, z: 15, vx: 0, vz: 0 };
+  for (const teammate of side) if (teammate !== owner && teammate !== runner) teammate.sentOff = true;
+  owner.pos = { x: ball.x, z: ball.z };
+  owner.velocity = { x: 0, z: 0 };
+  for (const key of ['passing', 'vision', 'decisions']) owner.player.attributes[key] = 98;
+  runner.pos = { x: 78, z: 16 };
+  runner.velocity = { x: 2, z: 0 };
+  for (const key of ['offTheBall', 'decisions', 'acceleration', 'sprintSpeed'])
+    runner.player.attributes[key] = 98;
+  opposition.forEach((a) => {
+    a.pos = a.isKeeper
+      ? { x: 101, z: 34 }
+      : ['centreBack', 'fullback'].includes(a.positionRole)
+        ? { x: 85, z: a.anchor.z }
+        : { x: 50, z: a.anchor.z };
+  });
+  assert.ok(deliveryOptions(owner, runner, ball, 1).length > 0);
+  let throughAttempts = 0;
+  for (let seed = 60; seed < 100; seed++) {
+    const action = chooseAction(
+      owner,
+      [...side, ...opposition],
+      ball,
+      1,
+      { style: 'counter', press: 'normal' },
+      random(seed),
+      { time: 10, continuity: { side: 0, regainedAt: 9 } },
+    );
+    if (action.type === 'pass' && action.intent === 'through') throughAttempts++;
+  }
+  assert.ok(throughAttempts > 0, 'a flank delivery must not suppress the available legal break run');
+});
+
+test('possession finds an onside striker run beyond a stretched defensive line', () => {
+  const side = team('4-3-3'),
+    owner = side.find((a) => a.positionRole === 'centralMid'),
+    runner = side.find((a) => a.positionRole === 'striker'),
+    opposition = team('4-3-3').map((a) => ({ ...a, side: 1 }));
+  for (const teammate of side) if (teammate !== owner && teammate !== runner) teammate.sentOff = true;
+  owner.pos = { x: 40, z: 34 };
+  owner.velocity = { x: 0, z: 0 };
+  owner.player.attributes.passing = 98;
+  owner.player.attributes.vision = 98;
+  owner.player.attributes.decisions = 98;
+  owner.player.attributes.dribbling = 35;
+  runner.pos = { x: 49.4, z: 34 };
+  runner.velocity = { x: 0, z: 0 };
+  runner.player.attributes.offTheBall = 98;
+  runner.player.attributes.sprintSpeed = 90;
+  opposition.forEach((a) => {
+    a.pos = a.isKeeper
+      ? { x: 101, z: 34 }
+      : ['centreBack', 'fullback'].includes(a.positionRole)
+        ? { x: 50, z: a.anchor.z }
+        : { x: 35, z: a.anchor.z };
+  });
+  const action = chooseAction(
+    owner,
+    [...side, ...opposition],
+    { x: 40, y: 0.11, z: 34, vx: 0, vz: 0 },
+    1,
+    { style: 'possession', press: 'normal' },
+    random(3121),
+    { time: 40, continuity: {} },
+  );
+  assert.equal(action.type, 'pass');
+  assert.equal(action.intent, 'through');
+  assert.ok(action.destination.x > 50, `possession pass should split the line: ${action.destination.x}`);
+});
+
+test('wide wingers get a skill-sensitive inside-carry route and striker-focused delivery value', () => {
+  const actors = team('4-3-3'),
+    winger = actors.find((a) => a.positionRole === 'winger' && a.anchor.z < 34),
+    striker = actors.find((a) => a.positionRole === 'striker');
+  winger.pos = { x: 76, z: 10 };
+  const routes = carryOptions(
+    winger,
+    { x: 76, y: 0.11, z: 10 },
+    1,
+    [],
+    { value: 70 },
+    { inclination: 0 },
+    10,
+    { style: 'wide' },
+  );
+  assert.ok(routes.some((route) => route.destination.z >= 20 && route.destination.z <= 29));
+  const opponents = team('4-3-3').map((a) => ({ ...a, side: 1, pos: { x: 91, z: 45 } }));
+  const wideCross = tacticalDecisionValue(
+    { style: 'wide' },
+    { phase: 'finalThird', fastBreak: false },
+    { intent: 'cross', delivery: 'lofted', lob: true },
+    winger,
+    striker,
+    { x: 83, z: 8 },
+    { x: 92, z: 32 },
+    1,
+    0.75,
+    8,
+    opponents,
+    90,
+  );
+  const balancedCross = tacticalDecisionValue(
+    { style: 'balanced' },
+    { phase: 'finalThird', fastBreak: false },
+    { intent: 'cross', delivery: 'lofted', lob: true },
+    winger,
+    striker,
+    { x: 83, z: 8 },
+    { x: 92, z: 32 },
+    1,
+    0.75,
+    8,
+    opponents,
+    90,
+  );
+  assert.ok(wideCross > balancedCross);
 });
 
 test('deliveries require flank/box geometry; cutbacks go backwards; aerial ability affects receiver contest estimates', () => {

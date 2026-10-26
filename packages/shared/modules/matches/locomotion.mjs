@@ -228,10 +228,14 @@ export function movementMode(actor, ball, owner, roles, gap) {
   ) {
     const duty = roles.duties?.[actor.player.id]?.duty;
     const fastBreak = roles.teams?.[actor.side]?.fastBreak && duty === 'break';
+    const possessionBreak =
+      roles.teams?.[actor.side]?.style === 'possession' && duty === 'break';
     const urgent =
       gap > 9 &&
       distance(actor.pos, ball) < 18 &&
-      (duty === 'overlap' ? attackingDepth >= 45 : attackingDepth >= 74 || fastBreak);
+      (duty === 'overlap'
+        ? attackingDepth >= 45
+        : attackingDepth >= 74 || fastBreak || (possessionBreak && attackingDepth >= 55));
     const emergency =
       gap > 9 && distance(actor.pos, ball) < 18 && (attackingDepth >= 74 || fastBreak);
     return sprintFor(urgent, emergency) ? 'sprint' : 'jog';

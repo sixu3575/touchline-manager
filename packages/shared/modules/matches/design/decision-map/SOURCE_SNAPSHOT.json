@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-26",
-  "baselineCommit": "8ddb8245f50876e975111f9f34366c5c80b75a77",
-  "engineVersion": "0.40.0-workload-fatigue",
-  "parameterVersion": "workload-fatigue-1",
+  "baselineCommit": "560ead871c8151a24a42939db680e20a6764b9aa",
+  "engineVersion": "0.43.0-counter-runs",
+  "parameterVersion": "counter-runs-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -17,10 +17,10 @@
     "packages/shared/modules/staff/index.mjs": "e843fb9815c0d8b5bf7b189e64a5c5baa6bfdb7c85083b35ac5070f773421d24",
     "packages/shared/modules/matches/index.mjs": "4e791d4724f99bcc95c7295e1dbe76989a3cf1e922cd086579be043b4c5f3638",
     "packages/shared/modules/matches/arrival.mjs": "d5c9d3a1ce9255991cb4605baf43abd5e89980e24af1f7c342763eaa09223a05",
-    "packages/shared/modules/matches/offball.mjs": "dd85db2fe9ddbb90d5a1b4b0961eee6f863f36a020cd4b123aa150cff0a4e3a7",
+    "packages/shared/modules/matches/offball.mjs": "e80f260eaa0b2891f7ad71ea887996381834247a48c05ed3bc5609b59dd4a7b9",
     "packages/shared/modules/matches/deadball.mjs": "d148162fed99a80c0d962220c5ce539cb8a27e7dcd06fbf2ad2f97336eac8629",
-    "packages/shared/modules/matches/tactical-plan.mjs": "1e6bba76d45efa135b69fabf7f2980940b051b9617059345580273cf3c1ca94b",
-    "packages/shared/modules/matches/carrying.mjs": "90d0f45d1b5f75cb1e2bb84974ee4eba9b5bdf3e53a54d95c39ace116ab503f8",
+    "packages/shared/modules/matches/tactical-plan.mjs": "cee7921c48bbfceaa7111aa933c514f7cb50766ff77f8597cba47889400d5f6b",
+    "packages/shared/modules/matches/carrying.mjs": "9e7b7bc6389bd88c892fabd7088db6c9dd72c8104f798204c4a175087415237a",
     "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
     "packages/shared/modules/players/assessment.mjs": "81fab9459b8b7ce7f919ff92da3acf8c0141f6fe6ab34af3202283097237dfeb",
@@ -30,14 +30,14 @@
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "3af093453a081e5502bc3f9953b9ec4ca92fed22a988957a0566a833c984f500",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "c955ba34293ad1a783d30664cf7304af561b935f0ff6a18b130cdabd27979e8d",
-    "packages/shared/modules/matches/locomotion.mjs": "fdbe8850a4fc9aae0d70222be546664231a3218cb589df9b34fbd1abf0d0d5fb",
-    "packages/shared/modules/matches/decisions.mjs": "a38edbba7aea9174a3881ebe96954463fcca160afa26a7da209caaef639abfa6",
-    "packages/shared/modules/matches/simulation.mjs": "e91b9ccb56c8642918b33894dd5e57aaaa879b3d0eba1bb4abc1c99b18eaae9d",
+    "packages/shared/modules/matches/positioning.mjs": "a0807acacf4adf381de3f2fef398ac8f399e5f609cfa6c5cff5688d251c3d879",
+    "packages/shared/modules/matches/locomotion.mjs": "3dc360a57ec43ca0a87675b0d63a1dc551c90c5910d207355145d7f72e50f866",
+    "packages/shared/modules/matches/decisions.mjs": "f4fe7846d8e789d50b2d48f16fa0a4c9a03ca9339a14672491f4b278cf380f8d",
+    "packages/shared/modules/matches/simulation.mjs": "e6bde0a479cc9cf762eb8b59f60bea269fea449ef12067b5ed8c75116cb47965",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
-    "packages/shared/modules/matches/skills.mjs": "d2840033c663741f2c0fee717155858c544db7cd176614a07be30c182faf4387",
+    "packages/shared/modules/matches/skills.mjs": "826c903aebd51426b00892baf1e8bea7d9bf551887c38cca80c2b3314cf84c65",
     "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
     "packages/shared/modules/matches/physics.mjs": "3037a6e77586af010fb7ed70ce5e44390ab487797e4a21e2e6537a4ecbda7df7",
     "packages/shared/modules/matches/ball-motion.mjs": "63a4bf259b47bd7e0721d99983d2703fc5802f06b1e64d31d24355301872df38",
@@ -51,7 +51,7 @@
     "packages/shared/modules/matches/attribution.mjs": "8ce1387f8d79286f68555a7b5d7ee89693d844ac66e217797fa6e1c36439f934",
     "packages/shared/modules/matches/ratings/index.mjs": "753b0e63f81c6a3b6e5763dde36f02ed846ceed1a610c0191acbb4d9c724ef27",
     "packages/shared/modules/matches/activity.mjs": "2f35445eeea545d3b385a41cb59179e1151a505c0b675783022571096ba3da4f",
-    "packages/shared/modules/matches/defending.mjs": "eec884d5ef9e42e136f6189408caff7e187787c863f381fe616bc7030e299b17",
+    "packages/shared/modules/matches/defending.mjs": "5959bfa3d38f99bbd4d5eaa0a69b9873ff6c10f97f1eef29b01c2efd7d00a6b4",
     "packages/shared/modules/matches/execution.mjs": "69aeae1444d6a8e4a518ffd59513984427cabb97f73ef329298b08af11d9f1be",
     "packages/shared/modules/matches/replay-analysis.mjs": "aa43d8ca08c570c694a50eba30ae8a8cbad9c48e93891f0ec68c81bd432dfafb",
     "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56",
@@ -68,8 +68,8 @@
       "svgSha256": "e6e3abd9352861f080164bcc9322087767a7dfb46bf057d08be7aca0ee6db972"
     },
     "02-roles": {
-      "mermaidSha256": "478f0fc1239206462685aed0564e265d3df058a43b04c2edcb2fda86590dd3cc",
-      "svgSha256": "e76059126189e15414df0505c771d5599cc5d5da2d0a2d4e2a6b94cb0b623e17"
+      "mermaidSha256": "1754fafe877de20cb56bf38b9a83ab72927d509cd6e309b475ee319117f59a27",
+      "svgSha256": "e4fbae46bd7cd180056ee0319d306851209d8b00197013411ef2a7b334b200e7"
     },
     "03-positioning": {
       "mermaidSha256": "be77b22f50969489e15dd5c22af5682e6f52597b7401ed5f200407db4781f17f",
@@ -80,8 +80,8 @@
       "svgSha256": "3a5743e3a11f26ca28c353b3afa2c63b731f461a6bfc7fb037d76ff4a60d6280"
     },
     "05-actions": {
-      "mermaidSha256": "05a18f5ee89f5412316399863eb71d10f6c3662a2ff3098387debf4cd0c84473",
-      "svgSha256": "738786dc12ec1e65d21179c160fa6a414416095bbd715ce53806cb217e8d2950"
+      "mermaidSha256": "ad4875e7f53238c075012f24bf6c8ab56ddc64e4513700e93f10b7dc0677e4f0",
+      "svgSha256": "7f483ea9ff37bdb8f1fcce488faa6cfab3c171b943f93ed15f9ce3ac154d6fe0"
     },
     "06-profiles": {
       "mermaidSha256": "c8f400a04673a91a7335822b553aebdd947fe86c8f161b1aba46a4c2c2fb9305",

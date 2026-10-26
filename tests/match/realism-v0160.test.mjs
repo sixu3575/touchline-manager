@@ -438,6 +438,18 @@ test('adrenaline is reserved for final-third runs and last-ditch defensive cover
   assert.equal(awayCover.activity.adrenalineEfforts, 1);
 });
 
+test('a possession striker given a real split-line break accelerates from midfield', () => {
+  const runner = actor(0, 0, 50, 'FWD', 'striker'),
+    ball = { x: 58, z: 34 },
+    roles = {
+      chasers: [],
+      duties: { '0': { duty: 'break' } },
+      teams: { 0: { style: 'possession', fastBreak: false } },
+    };
+  assert.equal(movementMode(runner, ball, null, roles, 10), 'sprint');
+  assert.equal(runner.activity.adrenalineEfforts, 0, 'a tactical run uses ordinary sprint effort');
+});
+
 test('brief loss preserves team organisation and contest responsibility but not remote possession or a released pass', () => {
   const s = continuityState(),
     a = actor(0),
