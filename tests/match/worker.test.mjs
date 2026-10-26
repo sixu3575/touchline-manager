@@ -43,7 +43,7 @@ test('published VM memory options preserve real worker checkpoint, halftime, eve
     await worker.terminate();worker=make();
     const last=await request(first.part.checkpoint);await worker.terminate();
     if(last.error||!last.done)throw Error(last.error??'Expected completion');
-    console.log(JSON.stringify(last.part,(key,value)=>ArrayBuffer.isView(value)?Array.from(value):value));
+    console.log(JSON.stringify(last,(key,value)=>ArrayBuffer.isView(value)?Array.from(value):value));
   `;
   const directory = mkdtempSync(join(tmpdir(), 'touchline-runtime-'));
   let stdout;
@@ -65,7 +65,16 @@ test('published VM memory options preserve real worker checkpoint, halftime, eve
       ArrayBuffer.isView(value) ? Array.from(value) : value,
     ),
   );
-  assert.deepEqual(JSON.parse(stdout), canonical);
+  const result = JSON.parse(stdout);
+  assert.equal(result.part.managerState, undefined, 'worker metadata is transported separately');
+  assert.deepEqual(
+    {
+      ...result.part,
+      managerState: result.managerState,
+      appliedManagerCommands: result.appliedCommands,
+    },
+    canonical,
+  );
 });
 
 test('worker continuation and a new worker restored from transferred frames equal uninterrupted simulation', async () => {
@@ -117,7 +126,15 @@ test('worker continuation and a new worker restored from transferred frames equa
     result = await next(false);
     assert.equal(result.done, true);
     const expected = simulate(g.clubs[0], g.clubs[1], fixture.seed, fixture.id, fixture.options);
-    assert.deepEqual(result.part, expected);
+    assert.equal(result.part.managerState, undefined, 'durable report excludes transport metadata');
+    assert.deepEqual(
+      {
+        ...result.part,
+        managerState: result.managerState,
+        appliedManagerCommands: result.appliedCommands,
+      },
+      expected,
+    );
   } finally {
     await worker.terminate();
   }

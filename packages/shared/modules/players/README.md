@@ -4,7 +4,7 @@
 
 99号观察球员免费签入但按综合能力支付轮薪；修复已有零工资存档只能通过`packages/server/src/maintenance/player-profiles.mjs`显式离线维护计划执行，服务启动与HTTP读取不会自动改数据。精确观察门槛和一季14轮保证见[ASSESSMENT.md](ASSESSMENT.md)。
 
-0.15.0新增development.mjs：私有真实峰值/日期衰退/整数成长；对外ensurePlayerDevelopment/trainAssignedPlayer/updateAges，细项变化刷新skills。assessment专项证据与已确认峰值独立保存，不得读取私有峰值当公开认识。当前训练/年龄契约见[训练生涯](../training/TRAINING_AND_CAREERS_V0150.md)。
+0.15.0新增development.mjs：私有真实峰值/日期衰退/整数成长；对外ensurePlayerDevelopment/trainAssignedPlayer/updateAges，细项变化刷新skills。0.16.0加入私有稳定培养天赋与渐进年龄倍率，潜力和个人天赋主导训练机会但不保证年轻球员成长。assessment专项证据与已确认峰值独立保存，不得读取私有峰值当公开认识。当前训练/年龄契约见[训练生涯](../training/TRAINING_AND_CAREERS_V0150.md)及[0.16成长说明](../training/TRAINING_GROWTH_V0160.md)。
 
 0.14.0新增无球/决策的空位选择、无球/灵活与盯防观察博弈，盯人/预判/专注维护观察记忆，决策/预判支持接球预观察。30项长期能力与卡片/整数/知识机制不变，消费者见ATTRIBUTE_AUDIT.md；没有给球风标签隐藏倍率。
 

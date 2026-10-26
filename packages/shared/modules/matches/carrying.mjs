@@ -7,6 +7,7 @@ import { sprintAvailable } from './activity.mjs';
 import { duelProbability } from './defending.mjs';
 import { boundaryAwareness, boundaryVelocity } from './onball.mjs';
 import { movement } from './locomotion.mjs';
+import { tacticalRoleOf } from './tactical-roles.mjs';
 
 // Opportunity estimates rank routes only. Actual touches, tackles and collisions
 // still decide whether the player keeps the independently simulated ball.
@@ -181,7 +182,7 @@ export function carryOptions(
           cutInsideBonus +
           isolatedWideDuelBonus +
           (tactical.fastBreak ? 0.025 * success : 0),
-        ownRisk: actor.player.role === 'DEF' && localX(ball.x, direction) < 35 ? 0.05 * danger : 0,
+        ownRisk: tacticalRoleOf(actor) === 'DEF' && localX(ball.x, direction) < 35 ? 0.05 * danger : 0,
         reason:
           progress < 1
             ? '横向或回撤护球，离开上抢线路并寻找接应'

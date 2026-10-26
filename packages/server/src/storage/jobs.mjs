@@ -41,7 +41,7 @@ export function createJobStorage(db) {
       db.prepare("SELECT id,status,progress FROM match_jobs WHERE status!='complete'").all(),
     count: () =>
       db.prepare("SELECT COUNT(*) AS n FROM match_jobs WHERE status!='complete'").get().n,
-    insert(row, work) {
+    insert(row, work, extras = {}) {
       db.prepare('INSERT INTO match_jobs VALUES (?,?,?,?,?,?,?,?,?,?,?)').run(
         row.id,
         row.saveId,
@@ -57,6 +57,7 @@ export function createJobStorage(db) {
           fixturesTotal: row.total,
           broadcast: newBroadcast(),
           chunkEnds: [],
+          ...extras,
         }),
         pack(work),
         null,

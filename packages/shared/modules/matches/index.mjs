@@ -12,16 +12,17 @@ export function settleClubPlayers(club, report) {
   const won = report.score[side] > report.score[1 - side];
   const drawn = report.score[side] === report.score[1 - side];
   for (const p of club.players) {
+    const playedRow = report.performance?.find((row) => row.id === p.id);
     settlePlayerMatch(p, {
-      played: club.lineup.includes(p.id),
+      played: club.lineup.includes(p.id) || (playedRow?.minutes ?? 0) > 0,
       won,
       drawn,
       goals: report.events.filter((e) => e.type === 'goal' && e.minute <= 90 && e.playerId === p.id)
         .length,
       press: club.tactics.press,
       seed: report.seed,
-      energy: report.performance?.find((row) => row.id === p.id)?.energy,
-      mind: report.performance?.find((row) => row.id === p.id)?.mind,
+      energy: playedRow?.energy,
+      mind: playedRow?.mind,
       assists: report.events.filter((e) => e.type === 'goal' && e.assistId === p.id).length,
     });
   }

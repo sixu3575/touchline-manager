@@ -1,4 +1,5 @@
 import { clamp } from '../../core/index.mjs';
+import { tacticalRoleOf } from './tactical-roles.mjs';
 import { distance, unit, localX } from './spatial.mjs';
 
 const isFreeKick = (state) => ['freeKick', 'indirect'].includes(state.type);
@@ -82,15 +83,15 @@ export function deadballTarget(actor, actors, state, direction, time) {
       !a.sentOff &&
       !a.isKeeper &&
       a.index !== state.taker &&
-      ['FWD', 'MID'].includes(a.player.role),
+      ['FWD', 'MID'].includes(tacticalRoleOf(a)),
   );
   if (state.type === 'corner') {
     const i = attackers.indexOf(actor);
     if (i >= 0)
       target = { x: attackDir === 1 ? 96 - (i % 3) * 3 : 9 + (i % 3) * 3, z: 27 + (i % 5) * 3.5 };
-    if (actor.side !== state.side && actor.player.role === 'DEF') {
+    if (actor.side !== state.side && tacticalRoleOf(actor) === 'DEF') {
       const defenders = actors.filter(
-        (a) => a.side === actor.side && !a.sentOff && a.player.role === 'DEF',
+        (a) => a.side === actor.side && !a.sentOff && tacticalRoleOf(a) === 'DEF',
       );
       const i = defenders.indexOf(actor),
         threat = attackers[i];

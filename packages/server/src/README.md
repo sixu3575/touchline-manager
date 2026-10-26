@@ -1,5 +1,7 @@
 # HTTP与比赛计算
 
+0.44.0本队实时任务附只读六项概览与管理命令投影。POST `/api/match-jobs/:id/commands`仍校验同会话存档/任务、枚举/同位置替补、5人上限和幂等requestId；仅下一物理模拟片段可应用。若最后片段并发结束，剩余命令标记未生效并释放替补预留；终场后拒收。客户端不会收到原始球员细项、内部命令body或诊断值。使用既有任务progress JSON，不加schema字段；设计见[观看与临场契约](../../shared/modules/matches/design/LIVE_BROADCAST_V070.md)。
+
 新增只读`GET /api/league-player-leaders`：按当前Cookie存档和赛季逐场读取已归档的联赛比赛明细，立即交给赛事只读selector聚合球员榜单并返回统计覆盖数，不将整个赛季的解压战报同时留在Node堆内存中；不读杯赛、不包含未结算job、不暴露原始报告/能力/调试字段。聚合以`saveId + revision + season`作有界内存缓存，存档变更后自动失效；不新增SQLite字段、端点写操作或历史重算。
 
 0.30.1 GET /api/state为已结算战报补充两队首发评分均值；旧压缩档只读查询，使用storage/replays的save+report隔离、128条小汇总缓存，不向客户端发送完整评分明细或新增N次详情请求。未改动作路由、任务调度和结算。见matches/ratings/TEAM_RATING_V0301.md。

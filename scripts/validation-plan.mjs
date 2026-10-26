@@ -22,6 +22,7 @@ export const matchUnits = [
   'replay-analysis',
   'stamina-view',
   'tempo-v0180',
+  'live-manager',
 ].map((n) => `tests/match/${n}.test.mjs`);
 export const matchScenarios = [
   'engine',
@@ -162,23 +163,37 @@ export function semanticParts(source, path = 'source.mjs') {
     visit(file);
     result.set('@world-contract', contracts.join('\n'));
   }
-  // Only the action route is a lifecycle contract; a health label fix is ordinary.
+  // Only state-changing routes are lifecycle contracts; health/summary labels are ordinary.
   if (path === 'packages/server/src/index.mjs') {
-    const routes = [];
+    const routes = [],
+      managerRoutes = [];
     const visit = (node) => {
       let actionPath = false;
+      let managerPath = false;
       if (ts.isIfStatement(node)) {
         const scan = (part) => {
           if (ts.isStringLiteral(part) && part.text === '/api/action') actionPath = true;
           ts.forEachChild(part, scan);
         };
         scan(node.expression);
+        const literals = new Set();
+        const scanManager = (part) => {
+          if (ts.isStringLiteral(part)) literals.add(part.text);
+          ts.forEachChild(part, scanManager);
+        };
+        scanManager(node);
+        managerPath =
+          literals.has('POST') &&
+          literals.has('/api/match-jobs/') &&
+          literals.has('commands');
       }
       if (actionPath) routes.push(print(node));
+      if (managerPath) managerRoutes.push(print(node));
       ts.forEachChild(node, visit);
     };
     visit(file);
     result.set('@action-route', routes.join('\n'));
+    result.set('@manager-route', managerRoutes.join('\n'));
   }
   transformed.dispose();
   return result;
@@ -220,6 +235,7 @@ const moduleTests = {
     'tests/match-event-filter.test.mjs',
     'tests/goal-presentation.test.mjs',
     'tests/player-ratings.test.mjs',
+    'tests/live-manager.test.mjs',
   ],
 };
 
@@ -365,6 +381,7 @@ export function classifyChanges(
     if (path === 'packages/server/src/match-jobs.mjs')
       lifecycle = intersects(keys, [
         'MatchJobs.start',
+        'MatchJobs.command',
         'MatchJobs.received',
         'MatchJobs.settle',
         'MatchJobs.finishAiring',
@@ -372,7 +389,8 @@ export function classifyChanges(
       ]);
     if (path === 'packages/server/src/broadcast.mjs')
       lifecycle = intersects(keys, ['LIVE_SPEED', 'newBroadcast', 'broadcastAt']);
-    if (path === 'packages/server/src/index.mjs') lifecycle = keys.includes('@action-route');
+    if (path === 'packages/server/src/index.mjs')
+      lifecycle = intersects(keys, ['@action-route', '@manager-route']);
     if (path === 'packages/shared/core/index.mjs')
       lifecycle = intersects(keys, ['addDays', 'seasonStart']);
     if (path === 'packages/shared/modules/matches/checkpoint.mjs') lifecycle = true;

@@ -16,15 +16,24 @@ const mental = new Set([
 export function developmentState(p, date) {
   if (!p.development)
     p.development = {
-      version: 1,
+      version: 2,
       lastDate: date,
       peaks: Object.fromEntries(keys.map((k) => [k, Math.round(p.attributes[k])])),
       decay: {},
       potentialDecay: 0,
     };
+  const d = p.development;
+  if (!Number.isFinite(d.trainingTalent)) {
+    const talent = random(seedFrom(`${p.id}:${p.birthDate}:training-talent-v1`));
+    d.trainingTalent = Math.round((0.8 + talent() * 0.4) * 1000) / 1000;
+  }
+  d.peaks ??= Object.fromEntries(keys.map((k) => [k, Math.round(p.attributes[k])]));
+  d.decay ??= {};
+  d.potentialDecay ??= 0;
+  d.version = Math.max(d.version ?? 1, 2);
   for (const k of keys)
-    p.development.peaks[k] = Math.max(p.development.peaks[k] ?? 1, Math.round(p.attributes[k]));
-  return p.development;
+    d.peaks[k] = Math.max(d.peaks[k] ?? 1, Math.round(p.attributes[k]));
+  return d;
 }
 export function ageDevelopment(p, date) {
   const d = developmentState(p, date),
@@ -85,9 +94,10 @@ export function assignedTraining(p, attributes, quality, level, rng, date) {
       0.5 +
       (p.personality?.professionalism ?? 50) * 0.007 +
       (p.personality?.ambition ?? 50) * 0.002;
-    const age = p.age <= 21 ? 1.15 : p.age < 29 ? 1 : p.age < 34 ? 0.55 : 0.27;
+    const age = trainingAgeFactor(p.age),
+      talent = trainingTalentFactor(p.potential, d.trainingTalent);
     const probability = clamp(
-      (0.15 + quality / 230) * attitude * room * age * (1 + (level - 1) * 0.12),
+      (0.15 + quality / 230) * attitude * room * age * talent * (1 + (level - 1) * 0.12),
       0.01,
       0.82,
     );
@@ -104,4 +114,22 @@ export function assignedTraining(p, attributes, quality, level, rng, date) {
   }
   developmentState(p, date);
   return changes;
+}
+
+// Age is a gradual influence rather than an automatic youth bonus. Individual
+// potential and a stable player-specific trainability value carry more weight.
+export function trainingAgeFactor(age) {
+  return clamp(
+    1.04 - Math.max(0, age - 21) * 0.018 - Math.max(0, 18 - age) * 0.03,
+    0.58,
+    1.08,
+  );
+}
+
+export function trainingTalentFactor(potential, individualTalent = 1) {
+  return clamp(
+    (0.7 + clamp(potential ?? 50, 1, 100) * 0.004) * clamp(individualTalent, 0.8, 1.2),
+    0.6,
+    1.3,
+  );
 }

@@ -1,5 +1,7 @@
 # 数据与迁移
 
+0.44.0临场指挥只保存在既有`match_jobs`进度/检查点JSON，不迁移到经理存档。阵型/战术及替补写为正常比赛事件并进入最终报告；球员统计、出场与评分按各自球员ID记录，阵型变更不改永久阵容/天然位置。最后物理片段未应用的命令不会进报告或影响赛果；统计边界修正也不重算已保存历史。
+
 联赛球员榜是从同一存档已有的当前赛季`match_reports`明细按需计算的派生视图；不写入`saves`、报告BLOB或新表，不改JSON/SQLite版本。只统计`先锋联赛`且已写入本季results的比赛，杯赛和进行中任务排除。旧摘要无法提供个人明细时显示覆盖场数，不推测缺失数据。服务端按存档revision缓存最多64个聚合结果，重启后可重新生成。
 
 0.39.0射门几何修正不改变存档结构和统计字段。已保存比赛结果、球员统计与回放不重算；只有新模拟比赛使用新引擎版本。
@@ -23,6 +25,8 @@
 0.15.1引擎0.15.1-attribution新增可选statisticsVersion、shotId/shotOutcome及正式来源ID；检查点state增加attribution与statisticalContacts。JSON/SQLite3、事件3/轨迹格式不变，不迁移旧行，不重算历史。新评分match-rating-2消费唯一射门结果；已有评分仍按原版本保存。
 
 0.15.0仍JSON/SQLite3，training可选升级version2（facilities/assignments/history最近40轮/lastResolved），新增staff.version1（具名employees/market），player.development.version1（私有lastDate/30项真实peaks/decay余数/potentialDecay）；assessment记录专项trainingObservations及confirmedPeaks。GET在副本初始化默认值，不改旧存档；第一次合法动作/比赛计划保存可选字段，不追溯衰退。确认峰值只来自精确小项，公开训练仅delta，不发真值/from/to/development。每轮全部报告进入既有match_reports，摘要上限140，他队无轨迹且回放接口强校验本队；旧AI仅比分不重算。详见[训练契约](../packages/shared/modules/training/TRAINING_AND_CAREERS_V0150.md)。
+
+0.16训练成长将可选`player.development.version`提升为2，并新增私有`trainingTalent`（0.800–1.200固定系数）。已有development对象首次进入训练/能力发展时惰性补齐该值及缺失的peaks/decay默认值；不改JSON/SQLite schema3，不批量写入存档，不改变实际能力/潜力或历史比赛。该字段由publicPlayer过滤，不能暴露给训练界面或赛后报告。升级可直接部署；代码回滚前先按常规执行已验证离机备份。
 
 0.14.0保持JSON/SQLite3及旧回放不变。新比赛actor携带可序列化markMemory/offBallPlan/receivePreparation，state携带deadState；现有通用检查点保存它们，引擎0.14.0-movement/movement-1作恢复边界。发布必须排空旧任务，不跨引擎恢复；不做存档重塑或历史重算。
 

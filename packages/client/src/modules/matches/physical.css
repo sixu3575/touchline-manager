@@ -102,6 +102,196 @@
   font-size: 11px;
   padding: 7px;
 }
+.physical-player-overview {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 0 12px;
+}
+.physical-player-overview > div {
+  display: grid;
+  gap: 4px;
+  padding: 9px 7px;
+  border: 1px solid #e0e6d8;
+  border-radius: 8px;
+  background: #f4f7ef;
+  text-align: center;
+}
+.physical-player-overview span {
+  color: #687361;
+  font-size: 10px;
+}
+.physical-player-overview b {
+  color: #214832;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.live-manager {
+  display: grid;
+  gap: 11px;
+  margin: 12px 0 16px;
+  padding: 14px;
+  border: 1px solid #dbe4d2;
+  border-radius: 12px;
+  background: #f5f7ef;
+}
+.live-manager-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.live-manager-heading > div {
+  display: grid;
+  gap: 4px;
+}
+.live-manager-heading b,
+.live-substitution > b {
+  color: #193e2e;
+  font-size: 13px;
+}
+.live-manager-heading small,
+.live-manager-history small {
+  color: #6c766a;
+  font-size: 10px;
+}
+.live-manager-pending {
+  color: #6b6e32;
+  font-size: 10px;
+}
+.live-tactic-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 7px;
+  min-height: 145px;
+  padding: 12px 18px;
+  border: 1px solid #92b08b;
+  border-radius: 10px;
+  background: repeating-linear-gradient(90deg, #256448, #256448 10%, #20583f 10%, #20583f 20%);
+  overflow: hidden;
+}
+.live-tactic-board::before {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid #d5e4c877;
+  border-radius: 6px;
+  content: '';
+}
+.live-tactic-line {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.live-tactic-line > span {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.live-tactic-line i {
+  display: grid;
+  place-items: center;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #173e2c;
+  border-radius: 50%;
+  background: #c8ef77;
+  box-shadow: 0 1px 3px #0005;
+  color: #173e2c;
+  font-size: 0;
+  font-style: normal;
+  font-weight: 700;
+  transition: width 160ms ease, height 160ms ease, font-size 160ms ease;
+}
+.live-tactic-line > span:hover i {
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+}
+.live-tactic-line small {
+  max-width: 56px;
+  overflow: hidden;
+  color: #f4f7ed;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.live-tactic-line i.keeper {
+  background: #f4ece0;
+}
+.live-tactic-board > span {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  color: #eef6e8;
+  font: 10px var(--mono, monospace);
+}
+.live-manager-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.live-manager-fields label {
+  display: grid;
+  gap: 5px;
+  color: #63705f;
+  font-size: 10px;
+}
+.live-manager-fields select {
+  width: 100%;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #d5decd;
+  border-radius: 7px;
+  background: #fff;
+  color: #1f392c;
+  font-size: 11px;
+}
+.live-manager-action {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: #173e2f;
+  color: #f8f9f3;
+  font-size: 11px;
+  cursor: pointer;
+}
+.live-manager-action.secondary {
+  border: 1px solid #d0dcc7;
+  background: #fff;
+  color: #274c38;
+}
+.live-manager-action:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.live-substitution {
+  display: grid;
+  gap: 9px;
+  padding-top: 10px;
+  border-top: 1px solid #dbe4d2;
+}
+.live-manager-error {
+  margin: 0;
+  color: #9e372e;
+  font-size: 11px;
+}
+.live-manager-history {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid #dbe4d2;
+  padding-top: 8px;
+}
+.live-manager-history small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .physical-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -207,6 +397,12 @@
   .physical-stats {
     grid-template-columns: 1fr;
     gap: 6px 12px;
+  }
+  .physical-player-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .live-manager-fields {
+    grid-template-columns: 1fr;
   }
   .physical-replay .replay-controls {
     gap: 4px;

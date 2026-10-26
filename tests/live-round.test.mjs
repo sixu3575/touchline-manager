@@ -70,6 +70,21 @@ function setup() {
   };
 }
 
+test('commands queued during the final physical slice are released as unapplied', () => {
+  const x = setup();
+  x.jobs.command('one', x.job.id, {
+    requestId: 'late-tactics-0001',
+    command: { type: 'tactics', formation: '3-5-2', style: 'wide', press: 'high' },
+  });
+  x.receive(x.fixture(0), true);
+  const progress = JSON.parse(x.jobs.store.get(x.job.id).progress),
+    entry = progress.manager.commands.find((command) => command.requestId === 'late-tactics-0001');
+  assert.equal(entry.status, '未生效');
+  assert.equal(entry.reason, '本队比赛物理模拟已结束');
+  assert.equal(progress.manager.pending, null);
+  assert.deepEqual(progress.liveCommands, []);
+});
+
 test('long broadcasts retain earlier player statistics without retaining private analysis or future events', () => {
   const events = [
     { type: 'shot', second: 10, minute: 1, side: 0, playerId: 'a', shotId: 1 },

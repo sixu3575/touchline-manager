@@ -16,15 +16,24 @@ export function buildPlayerRatings(report) {
     for (const player of team.players ?? []) players.set(player.id, { ...player, side });
   for (const player of report.replay?.players ?? [])
     players.set(player.id, { ...players.get(player.id), ...player });
+  for (const event of report.events ?? [])
+    if (event.type === 'substitution' && event.incoming?.id)
+      players.set(event.incoming.id, { ...event.incoming, side: event.side });
   const performances = new Map((report.performance ?? []).map((row) => [row.id, row]));
   const duration = report.replay?.regulationDuration ?? report.replay?.duration ?? 5400;
   const scale = report.replay?.clockScale ?? 1;
-  const dismissals = new Map();
+  const dismissals = new Map(),
+    substitutions = new Map();
   for (const event of report.events ?? [])
     if (event.type === 'redCard' && Number.isFinite(second(event)))
       dismissals.set(
         event.playerId,
         Math.min(dismissals.get(event.playerId) ?? duration, second(event)),
+      );
+    else if (event.type === 'substitution' && event.outgoing?.id && Number.isFinite(second(event)))
+      substitutions.set(
+        event.outgoing.id,
+        Math.min(substitutions.get(event.outgoing.id) ?? duration, second(event)),
       );
   const rows = new Map(
     [...players.values()].map((player) => {
@@ -33,6 +42,7 @@ export function buildPlayerRatings(report) {
         duration,
         Number.isFinite(p.dismissedAt) ? p.dismissedAt : duration,
         dismissals.get(player.id) ?? duration,
+        substitutions.get(player.id) ?? duration,
       );
       return [
         player.id,
@@ -42,7 +52,10 @@ export function buildPlayerRatings(report) {
           number: player.number ?? null,
           role: player.role ?? 'MID',
           side: player.side,
-          minutes: round(bound((deadline * scale) / 60, 0, 90), 1),
+          minutes: round(
+            bound(Number.isFinite(p.minutes) ? p.minutes : (deadline * scale) / 60, 0, 90),
+            1,
+          ),
           coverage:
             Number.isFinite(p.passes) && Number.isFinite(p.completed) ? 'standard' : 'limited',
           goals: 0,

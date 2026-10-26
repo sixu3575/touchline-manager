@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-10-26",
-  "baselineCommit": "560ead871c8151a24a42939db680e20a6764b9aa",
-  "engineVersion": "0.43.0-counter-runs",
-  "parameterVersion": "counter-runs-1",
+  "baselineCommit": "f3e42f1f619c2cf3e7bdbe5ea970a5377d48bb7b",
+  "engineVersion": "0.44.0-live-manager",
+  "parameterVersion": "live-manager-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -12,15 +12,15 @@
     "htmlLabels": false
   },
   "sourceFiles": {
-    "packages/shared/modules/players/development.mjs": "4a63e99b28c62ca0786932a77b51cf7a8390cfb866ee2b932df8a1803de136bc",
+    "packages/shared/modules/players/development.mjs": "7ed70db4b80ebeca676795dfb8ecf4f5de426fa67371ac002f653a4ec5dce40b",
     "packages/shared/modules/training/index.mjs": "8d55edd45a1275cef85b2dc2226e5253be8d1ab20b2ceae1e0cc7391651a301b",
     "packages/shared/modules/staff/index.mjs": "e843fb9815c0d8b5bf7b189e64a5c5baa6bfdb7c85083b35ac5070f773421d24",
-    "packages/shared/modules/matches/index.mjs": "4e791d4724f99bcc95c7295e1dbe76989a3cf1e922cd086579be043b4c5f3638",
+    "packages/shared/modules/matches/index.mjs": "bb7546f5900dc835f2ca75e9f0b7f760441e61e30915c0e6f2e89bc215950309",
     "packages/shared/modules/matches/arrival.mjs": "d5c9d3a1ce9255991cb4605baf43abd5e89980e24af1f7c342763eaa09223a05",
     "packages/shared/modules/matches/offball.mjs": "e80f260eaa0b2891f7ad71ea887996381834247a48c05ed3bc5609b59dd4a7b9",
-    "packages/shared/modules/matches/deadball.mjs": "d148162fed99a80c0d962220c5ce539cb8a27e7dcd06fbf2ad2f97336eac8629",
+    "packages/shared/modules/matches/deadball.mjs": "b3d414f11343bcec48040cf0d79ab5e3254e7307f24964089d6c91747688db3d",
     "packages/shared/modules/matches/tactical-plan.mjs": "cee7921c48bbfceaa7111aa933c514f7cb50766ff77f8597cba47889400d5f6b",
-    "packages/shared/modules/matches/carrying.mjs": "9e7b7bc6389bd88c892fabd7088db6c9dd72c8104f798204c4a175087415237a",
+    "packages/shared/modules/matches/carrying.mjs": "6dec3a7f9993526d8920cc31dc6dd5bcc284e186306e52087c2111a3d1a4dfe4",
     "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
     "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
     "packages/shared/modules/players/assessment.mjs": "81fab9459b8b7ce7f919ff92da3acf8c0141f6fe6ab34af3202283097237dfeb",
@@ -30,10 +30,10 @@
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "3af093453a081e5502bc3f9953b9ec4ca92fed22a988957a0566a833c984f500",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "a0807acacf4adf381de3f2fef398ac8f399e5f609cfa6c5cff5688d251c3d879",
+    "packages/shared/modules/matches/positioning.mjs": "166563457d0113b79f21fe4501d73f704a4a4c51ab9d6a586b53e23e8e2cfd27",
     "packages/shared/modules/matches/locomotion.mjs": "3dc360a57ec43ca0a87675b0d63a1dc551c90c5910d207355145d7f72e50f866",
-    "packages/shared/modules/matches/decisions.mjs": "f4fe7846d8e789d50b2d48f16fa0a4c9a03ca9339a14672491f4b278cf380f8d",
-    "packages/shared/modules/matches/simulation.mjs": "e6bde0a479cc9cf762eb8b59f60bea269fea449ef12067b5ed8c75116cb47965",
+    "packages/shared/modules/matches/decisions.mjs": "613a38960e05e34d93ca58b951d0bccf51fc01c999bd3d699eb4c3e62d3af3a0",
+    "packages/shared/modules/matches/simulation.mjs": "3fd8f70f368e415f9a341bf3d099b4a12e6565982809071bcd3bf2aa11466e95",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
@@ -43,24 +43,28 @@
     "packages/shared/modules/matches/ball-motion.mjs": "63a4bf259b47bd7e0721d99983d2703fc5802f06b1e64d31d24355301872df38",
     "packages/shared/modules/matches/rules.mjs": "53f37ae04fdd7855cb62dcc6988fc483ae58d36f1e175ebebf915377185a9cd4",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
-    "packages/shared/modules/players/index.mjs": "0cca75c59993e91705de435fb2476c3197555c11fbdb5ad513102b69697243c6",
+    "packages/shared/modules/players/index.mjs": "b933de5ad69016ed6f666836dd8141a3a01115914d596ef1919deca11a3a2911",
     "packages/shared/modules/players/match-state.mjs": "069a4fabc615a1073356136786096ac9444e23b95d0d9fa19a9e1ca74617d4b9",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
     "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
     "packages/shared/modules/matches/attribution.mjs": "8ce1387f8d79286f68555a7b5d7ee89693d844ac66e217797fa6e1c36439f934",
-    "packages/shared/modules/matches/ratings/index.mjs": "753b0e63f81c6a3b6e5763dde36f02ed846ceed1a610c0191acbb4d9c724ef27",
+    "packages/shared/modules/matches/ratings/index.mjs": "120eefc103b65d1709f38aa67c041a023d733b1990097fad28c28e9de80ae6fa",
     "packages/shared/modules/matches/activity.mjs": "2f35445eeea545d3b385a41cb59179e1151a505c0b675783022571096ba3da4f",
-    "packages/shared/modules/matches/defending.mjs": "5959bfa3d38f99bbd4d5eaa0a69b9873ff6c10f97f1eef29b01c2efd7d00a6b4",
+    "packages/shared/modules/matches/defending.mjs": "6ef08dacf046f4bf2363922785663a3c911a2470f13198ffd254437582133917",
     "packages/shared/modules/matches/execution.mjs": "69aeae1444d6a8e4a518ffd59513984427cabb97f73ef329298b08af11d9f1be",
     "packages/shared/modules/matches/replay-analysis.mjs": "aa43d8ca08c570c694a50eba30ae8a8cbad9c48e93891f0ec68c81bd432dfafb",
     "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56",
     "packages/shared/modules/matches/onball.mjs": "f00dd508161dfd4eca66e7a77d4d301e362adfb66a4401c3cb201b8d04ba0a52",
     "packages/shared/modules/matches/opportunity.mjs": "ff114ae4f6961d61d70225acf0a7773e7ba22620e4da8af489335652abce7e24",
     "packages/shared/modules/players/physiology.mjs": "93bb30472677bc6a9dd2a765ec9ced7f8b9588442eed367ddf7beed55a518e92",
-    "packages/shared/modules/matches/statistics.mjs": "f0d1c79408e84fd4419152d6dceabc894ecf6e82ab5d3fe7a37909d5a8591072",
+    "packages/shared/modules/matches/statistics.mjs": "b4f73e96decf04f90069fcdb6a0187d24abe4022d177e321c9aa5e8a71f7ab46",
     "packages/shared/modules/matches/ratings/statistics.mjs": "bfe7163a5a58b704d64644222947aca3f129bf74f4e61be53b75b9c16b25479e",
-    "packages/client/src/modules/matches/PhysicalReplay.tsx": "36fddb6357c287bf8a4cc0441cb5fe2cc28f22bf83ad9060aa66a6f6dfd9b862"
+    "packages/client/src/modules/matches/PhysicalReplay.tsx": "a7f1c3b70fcc5bbc327431a3100d05edd021c270f71a7ce912d1c4de301f5743",
+    "packages/shared/modules/matches/tactical-roles.mjs": "7d70dbe916f9616cff03822ae72309e901799f722813df4dc81deb14f7dd3efc",
+    "packages/server/src/match-jobs.mjs": "4e64d5588e33e67bd0525545db3ab0a142a4216ec4d0cb1b13f45c6c9ea09bff",
+    "packages/server/src/simulation-worker.mjs": "eff94902f73f0637042642d3c8880194ea60b4f73c75fd6b020ed45721d13b36",
+    "packages/client/src/modules/matches/LiveManagerBoard.tsx": "c88ac760c0df2112c548c253ef9054ecd5386582d69978a1d9396fed38be9c80"
   },
   "diagrams": {
     "01-overview": {
@@ -68,8 +72,8 @@
       "svgSha256": "e6e3abd9352861f080164bcc9322087767a7dfb46bf057d08be7aca0ee6db972"
     },
     "02-roles": {
-      "mermaidSha256": "1754fafe877de20cb56bf38b9a83ab72927d509cd6e309b475ee319117f59a27",
-      "svgSha256": "e4fbae46bd7cd180056ee0319d306851209d8b00197013411ef2a7b334b200e7"
+      "mermaidSha256": "4eb9b5a0f3e591f231cd7acd2bdae0bf39cde3fee8fbdd2c80f398a82b0f4535",
+      "svgSha256": "34b4115f397ce7b2ccd9bbd1cfb6c34cd20447c074a47057885e1181fd56d318"
     },
     "03-positioning": {
       "mermaidSha256": "be77b22f50969489e15dd5c22af5682e6f52597b7401ed5f200407db4781f17f",
@@ -84,12 +88,12 @@
       "svgSha256": "7f483ea9ff37bdb8f1fcce488faa6cfab3c171b943f93ed15f9ce3ac154d6fe0"
     },
     "06-profiles": {
-      "mermaidSha256": "c8f400a04673a91a7335822b553aebdd947fe86c8f161b1aba46a4c2c2fb9305",
-      "svgSha256": "7318b5fb375a60436c9f3668fab197c8342e16373e9fa2760d4e032c8888fdb0"
+      "mermaidSha256": "d4c6babfcc61f224a96df4f5463048823fa0d3c05420871b0f19554057f5e5b4",
+      "svgSha256": "f62a4ebc6823ec655a46ee3330b3a069193ac492f09d5e773aa42f7f703e6e4b"
     },
     "07-knowledge": {
-      "mermaidSha256": "a4a3a2b588a91ad9a202a0f4246c747f12f0d4c719cf19570ff65ce2b95413fb",
-      "svgSha256": "0eed5d15eaa7c16279ca70a329bed4690c8c8e710f938eb020cbad25128da43f"
+      "mermaidSha256": "b0a59dca625b70e91096a6d044bea54c95d103fe32d074af832069747dacc37a",
+      "svgSha256": "88ddd9a17cd2de4301a8b2469214877cfdd1eff25c4ce4ed779d3b55fa3f0074"
     }
   }
 }

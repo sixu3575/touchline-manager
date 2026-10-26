@@ -192,6 +192,62 @@ const server = http.createServer(async (req, res) => {
         res.end(payload);
         return;
       }
+      if (req.method === 'POST' && url.pathname.startsWith('/api/match-jobs/')) {
+        const parts = url.pathname.split('/').slice(3);
+        if (parts.length !== 2 || parts[1] !== 'commands') {
+          send(res, 404, { error: '接口不存在。' });
+          return;
+        }
+        if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {
+          send(res, 403, { error: '来源校验失败。' });
+          return;
+        }
+        if (!(req.headers['content-type'] || '').startsWith('application/json')) {
+          send(res, 415, { error: '需要 JSON 请求。' });
+          return;
+        }
+        const raw = cookies(req).tl_session,
+          save = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;
+        if (!save) {
+          send(res, 404, { error: '比赛任务不存在或不属于此存档。' });
+          return;
+        }
+        const data = await body(req);
+        if (
+          !data ||
+          typeof data.requestId !== 'string' ||
+          !/^[a-zA-Z0-9-]{8,80}$/.test(data.requestId) ||
+          !data.command ||
+          typeof data.command !== 'object' ||
+          Array.isArray(data.command)
+        ) {
+          send(res, 400, { error: '临场指令参数无效。' });
+          return;
+        }
+        const source = data.command,
+          command =
+            source.type === 'tactics'
+              ? {
+                  type: source.type,
+                  formation: source.formation,
+                  style: source.style,
+                  press: source.press,
+                }
+              : source.type === 'substitution'
+                ? {
+                    type: source.type,
+                    playerOutId: source.playerOutId,
+                    playerInId: source.playerInId,
+                  }
+                : null;
+        if (!command) {
+          send(res, 400, { error: '临场指令类型无效。' });
+          return;
+        }
+        const job = jobs.command(save.id, parts[0], { requestId: data.requestId, command });
+        send(res, 202, { job: publicJob(JSON.parse(save.state), job) });
+        return;
+      }
       if (req.method === 'GET' && url.pathname.startsWith('/api/match-jobs/')) {
         const raw = cookies(req).tl_session;
         const save = raw && /^[a-f0-9]{64}$/.test(raw) ? findSave.get(hash(raw)) : null;

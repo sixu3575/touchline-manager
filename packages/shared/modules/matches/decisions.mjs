@@ -24,6 +24,7 @@ import {
   tacticalDecisionValue,
 } from './tactical-plan.mjs';
 import { positionRoleNames } from '../tactics/index.mjs';
+import { tacticalRoleOf } from './tactical-roles.mjs';
 
 export function playerProfile(p, anchor = { z: 34 }) {
   const pass = (ability(p, 'passing') + ability(p, 'vision') + ability(p, 'decisions')) / 3;
@@ -236,7 +237,7 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
     utility:
       shotReturnScore -
       (1 - shotReturnScore) * lossValue(ball, direction) * 0.25 +
-      (actor.player.role === 'FWD' ? 0.006 : 0),
+      (tacticalRoleOf(actor) === 'FWD' ? 0.006 : 0),
     reason: direct
       ? '定位球按门将和球门位置瞄准'
       : blocked > 0.7

@@ -3,6 +3,7 @@ import { arrivalTime, pursuitMode, movingBallIntercept } from './arrival.mjs';
 import { distance, localX, segmentPoint } from './spatial.mjs';
 import { sprintAvailable } from './activity.mjs';
 import { clamp } from '../../core/index.mjs';
+import { tacticalRoleOf } from './tactical-roles.mjs';
 
 export function duelProbability(defendingQuality, carryingQuality, reachEdge = 0, support = 0) {
   return clamp(
@@ -140,7 +141,7 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
     (sprintAvailable(a) ? 0 : 2.5) +
     (owner && bx < 35 && localX(a.pos.x, direction) > bx + 0.3 ? 1.1 : 0) +
     (a.positionRole === 'centreBack' ? Math.max(0, bx - 28) * 0.12 : 0) +
-    (a.player.role === 'FWD' ? Math.max(0, 48 - bx) * 0.12 : 0) -
+    (tacticalRoleOf(a) === 'FWD' ? Math.max(0, 48 - bx) * 0.12 : 0) -
     (a.pressUntil > time ? 0.65 : 0);
   candidates.sort((a, b) => cost(a) - cost(b) || a.index - b.index);
   const chasers = [];
@@ -181,7 +182,7 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
     const a = candidates.splice(eligible, 1)[0];
     const radius = !owner ? 105 : tactics.press === 'low' ? 12 : tactics.press === 'high' ? 22 : 17;
     if (owner && (distance(a.pos, ball) > radius || distance(a.pos, owner.pos) > radius)) continue;
-    if (owner && tactics.press !== 'high' && a.player.role === 'FWD' && bx > 60) {
+    if (owner && tactics.press !== 'high' && tacticalRoleOf(a) === 'FWD' && bx > 60) {
       const supported = mates.some((o) => o !== a && !o.isKeeper && distance(o.pos, a.pos) < 12);
       const exits = actors.filter(
         (o) =>
@@ -209,7 +210,7 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
     (a) =>
       !a.isKeeper &&
       !chasers.includes(a.index) &&
-      (a.player.role === 'DEF' || ['holdingMid', 'centralMid'].includes(a.positionRole)),
+      (tacticalRoleOf(a) === 'DEF' || ['holdingMid', 'centralMid'].includes(a.positionRole)),
   );
   const cover = {};
   if (owner && owner.side !== side && bx < 35) {
@@ -232,7 +233,7 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
         a.side !== side &&
         a !== owner &&
         !a.sentOff &&
-        a.player.role === 'FWD' &&
+        tacticalRoleOf(a) === 'FWD' &&
         Math.abs(a.pos.z - 34) < 14 &&
         localX(a.pos.x, direction) < bx + 4,
     ).length;
@@ -250,7 +251,7 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
         !a.isKeeper &&
         a !== owner &&
         localX(a.pos.x, direction) < 58 &&
-        ['FWD', 'MID'].includes(a.player.role),
+        ['FWD', 'MID'].includes(tacticalRoleOf(a)),
     )
     .sort((a, b) => localX(a.pos.x, direction) - localX(b.pos.x, direction));
   const marking = {};
@@ -292,7 +293,7 @@ export function blockPosition(actor, ball, direction, tactics, opponentStyle = '
   const pressShift = tactics.press === 'high' ? 6 : tactics.press === 'low' ? -6 : 0;
   const lineFollow = clamp(0.55 + (awareness - 50) * 0.001, 0.45, 0.65);
   const centre = clamp(10 + bx * lineFollow + pressShift, 22, 52 + pressShift);
-  const line = actor.player.role === 'DEF' ? -12 : actor.player.role === 'FWD' ? 12 : 0;
+  const line = tacticalRoleOf(actor) === 'DEF' ? -12 : tacticalRoleOf(actor) === 'FWD' ? 12 : 0;
   const compact = tactics.style === 'counter';
   const ballSideBase = compact ? 0.12 : opponentStyle === 'possession' ? 0.65 : 0.3;
   const ballSideShift = clamp(ballSideBase + (awareness - 50) * 0.002, 0.06, 0.82);

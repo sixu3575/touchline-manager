@@ -10,6 +10,7 @@ import { markingTarget, supportTarget } from './offball.mjs';
 import { defensiveAssignments, blockPosition, defensiveMismatch } from './defending.mjs';
 import { kickTarget } from './execution.mjs';
 import { keeperCrossing, readKeeperPreparation } from './goalkeeping.mjs';
+import { tacticalRoleOf } from './tactical-roles.mjs';
 
 export function formation(club) {
   const ps = club.lineup.map((id) => club.players.find((p) => p.id === id));
@@ -106,7 +107,7 @@ export function teamRoles(
             a !== carrier &&
             !a.isKeeper &&
             a.player.id !== roles.receiverId &&
-            ['DEF', 'MID'].includes(a.player.role),
+            ['DEF', 'MID'].includes(tacticalRoleOf(a)),
         )
         .sort((a, b) => distance(a.pos, ball) - distance(b.pos, ball))
         .slice(0, 3)
@@ -115,7 +116,7 @@ export function teamRoles(
         (a) =>
           a !== carrier &&
           !a.isKeeper &&
-          ['FWD', 'MID'].includes(a.player.role) &&
+          ['FWD', 'MID'].includes(tacticalRoleOf(a)) &&
           localX(a.pos.x, direction(side)) > localX(carrier.pos.x, direction(side)) - 5,
       );
       const runReadiness = (a) =>
@@ -125,7 +126,7 @@ export function teamRoles(
         ability(a.player, 'sprintSpeed') * 0.3;
       runners.sort((a, b) => runReadiness(b) - runReadiness(a));
       const passer = pendingPass?.actor;
-      const giveGo = passer?.side === side && passer.player.role === 'FWD' ? passer : null;
+      const giveGo = passer?.side === side && tacticalRoleOf(passer) === 'FWD' ? passer : null;
       if (giveGo || runners[0]) roles.runnerId = (giveGo ?? runners[0]).player.id;
       const plan = attackAssignments(
         actors,
@@ -401,16 +402,16 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   } else if (
     attacking &&
     owner &&
-    (roles.support?.includes(p.id) || (p.role === 'MID' && distance(actor.pos, owner.pos) < 7))
+    (roles.support?.includes(p.id) || (tacticalRoleOf(actor) === 'MID' && distance(actor.pos, owner.pos) < 7))
   ) {
     // A distinct passing triangle, rather than a cluster around possession.
     const slot = Math.max(0, roles.support?.indexOf(p.id) ?? 0);
     x = localX(owner.pos.x, direction) + (slot === 2 ? -12 : -3);
     z = owner.pos.z + (slot === 0 ? -10 : slot === 1 ? 10 : 0);
   }
-  if (!attacking && p.role === 'DEF') {
+  if (!attacking && tacticalRoleOf(actor) === 'DEF') {
     const threats = actors
-      .filter((o) => o.side !== actor.side && o.player.role === 'FWD' && !o.sentOff)
+      .filter((o) => o.side !== actor.side && tacticalRoleOf(o) === 'FWD' && !o.sentOff)
       .sort((a, b) => Math.abs(a.pos.z - z) - Math.abs(b.pos.z - z));
     if (threats[0]) {
       const weight = clamp(0.35 + a('marking') * 0.005, 0.4, 0.85);

@@ -252,6 +252,10 @@ test('health metadata is ordinary; action routing or atomic settlement is major'
   const after = "if(url.pathname === '/api/action'){applyAction(a,'advance');}";
   assert.equal(classifyChanges([change(path, before, after)]).season, true);
   assert.equal(classifyChanges([change(path, before, before.replaceAll("'", '"'))]).season, false);
+  const managerBefore =
+    "if(req.method==='POST'&&url.pathname.startsWith('/api/match-jobs/')){if(parts[1]!=='commands')return 404;}";
+  const managerAfter = managerBefore.replace("parts[1]!=='commands'", "parts[1]==='commands'");
+  assert.equal(classifyChanges([change(path, managerBefore, managerAfter)]).season, true);
   const jobs = 'packages/server/src/match-jobs.mjs';
   assert.equal(
     classifyChanges([
@@ -259,6 +263,16 @@ test('health metadata is ordinary; action routing or atomic settlement is major'
         jobs,
         'class MatchJobs{received(){return 1;}}',
         'class MatchJobs{received(){return 2;}}',
+      ),
+    ]).season,
+    true,
+  );
+  assert.equal(
+    classifyChanges([
+      change(
+        jobs,
+        'class MatchJobs{command(){return 1;}}',
+        'class MatchJobs{command(){return 2;}}',
       ),
     ]).season,
     true,

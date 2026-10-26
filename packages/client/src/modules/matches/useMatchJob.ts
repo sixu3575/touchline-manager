@@ -20,6 +20,32 @@ export interface MatchJob {
     finished: boolean;
     buffering: boolean;
   };
+  manager?: {
+    side: 0 | 1;
+    tactics: { formation: string; style: string; press: string };
+    lineup: string[];
+    roles?: { id: string; role: string; positionRole?: string }[];
+    usedSubstitutions: number;
+    simulationComplete?: boolean;
+    pending: string | null;
+    commands: {
+      requestId: string;
+      type: 'tactics' | 'substitution';
+      summary: string;
+      status: string;
+      effectiveSecond: number;
+      reason?: string;
+    }[];
+    players: {
+      id: string;
+      name: string;
+      number: number;
+      role: string;
+      fitness: number;
+      overall: number | null;
+      overview: { key: string; label: string; value: number | null }[];
+    }[];
+  };
 }
 export function useBroadcastSecond(job: MatchJob) {
   const [second, setSecond] = useState(() => liveSecond(job));

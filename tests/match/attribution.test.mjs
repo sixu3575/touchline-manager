@@ -55,6 +55,47 @@ test('action ledger confirms tackles by subsequent possession and counts one los
   assert.equal(s.rows.c.interceptions, 0, 'recovering a tackled ball is not intercepting a pass');
 });
 
+test('a challenge is won on a safe restart only when the restart belongs to the challenger', () => {
+  for (const kind of ['throwIn', 'goalKick']) {
+    const a = { id: `attacking-${kind}`, side: 0 };
+    const b = { id: `defending-${kind}`, side: 1 };
+    const s = createActionStatistics([a, b], () => {});
+    s.control(a, 0);
+    s.challenge(b, a.id, 1);
+    s.challenge(b, a.id, 1, true);
+    s.stop(kind, 0, 2);
+    assert.equal(s.rows[b.id].tackles, 1);
+    assert.equal(s.rows[b.id].wonTackles, 0, `${kind} awarded to opponent is not a win`);
+    assert.equal(s.rows[b.id].tackleAttempts, 1);
+  }
+  const a = { id: 'attacking', side: 0 };
+  const b = { id: 'defending', side: 1 };
+  const s = createActionStatistics([a, b], () => {});
+  s.control(a, 0);
+  s.challenge(b, a.id, 1);
+  s.challenge(b, a.id, 1, true);
+  s.stop('goalKick', 1, 2);
+  assert.equal(s.rows[b.id].wonTackles, 1, 'a goal kick awarded to challenger is safe');
+
+  const corner = createActionStatistics([a, b], () => {});
+  corner.control(a, 0);
+  corner.challenge(b, a.id, 1);
+  corner.challenge(b, a.id, 1, true);
+  corner.stop('corner', 1, 2);
+  assert.equal(corner.rows[b.id].wonTackles, 0, 'a corner is not a safe defensive restart');
+
+  const foulRestart = createActionStatistics([a, b], () => {});
+  foulRestart.control(a, 0);
+  foulRestart.challenge(b, a.id, 1);
+  foulRestart.challenge(b, a.id, 1, true);
+  foulRestart.stop('freeKick', 1, 2);
+  assert.equal(
+    foulRestart.rows[b.id].wonTackles,
+    0,
+    'a foul restart awarded to the challenger is not a won tackle',
+  );
+});
+
 test('action ledger recognizes headed interceptions, separates deflections and excludes clearances from pass accuracy', () => {
   const a = { id: 'a', side: 0 },
     b = { id: 'b', side: 1 },

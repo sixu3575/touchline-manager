@@ -177,10 +177,13 @@ test('league leader aggregation streams full reports within the server heap budg
 test('elapsed recovery belongs to frozen pre-match inputs and is not repeated by settlement or same-date cups', () => {
   const g = createGame('恢复时点', 42);
   g.round = 2;
-  for (const c of g.clubs) for (const p of c.players) p.fitness = 28;
+  for (const c of g.clubs) for (const p of c.players) p.fitness = 45;
   const plan = createCompetitionPlan(g, 'advance');
-  assert.equal(g.clubs[0].players[0].fitness, 28, 'queuing does not publish future recovery');
-  assert.ok(plan.state.clubs.every((c) => c.players.every((p) => p.fitness > 90)));
+  assert.equal(g.clubs[0].players[0].fitness, 45, 'queuing does not publish future recovery');
+  assert.ok(
+    plan.state.clubs.every((c) => c.players.every((p) => p.fitness > 80 && p.fitness < 90)),
+    'seven days of rest recover a heavily used player into the 80s',
+  );
   assert.deepEqual(
     createCompetitionPlan(g, 'advance'),
     plan,
