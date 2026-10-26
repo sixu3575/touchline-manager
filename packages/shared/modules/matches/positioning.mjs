@@ -118,12 +118,12 @@ export function teamRoles(
           ['FWD', 'MID'].includes(a.player.role) &&
           localX(a.pos.x, direction(side)) > localX(carrier.pos.x, direction(side)) - 5,
       );
-      runners.sort(
-        (a, b) =>
-          ability(b.player, 'offTheBall') * 0.6 +
-          ability(b.player, 'sprintSpeed') * 0.4 -
-          (ability(a.player, 'offTheBall') * 0.6 + ability(a.player, 'sprintSpeed') * 0.4),
-      );
+      const runReadiness = (a) =>
+        ability(a.player, 'offTheBall') * 0.3 +
+        ability(a.player, 'decisions') * 0.18 +
+        ability(a.player, 'acceleration') * 0.22 +
+        ability(a.player, 'sprintSpeed') * 0.3;
+      runners.sort((a, b) => runReadiness(b) - runReadiness(a));
       const passer = pendingPass?.actor;
       const giveGo = passer?.side === side && passer.player.role === 'FWD' ? passer : null;
       if (giveGo || runners[0]) roles.runnerId = (giveGo ?? runners[0]).player.id;
@@ -282,10 +282,36 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
         (index) => actors.find((a) => a.index === index)?.side === actor.side,
       );
       const covering = firstPresser !== actor.index;
+      const teamPressers = chasers
+        .map((index) => actors.find((a) => a.index === index))
+        .filter((a) => a?.side === actor.side);
+      const pressRank = teamPressers.findIndex((a) => a.index === actor.index);
       const first = actors.find((a) => a.index === firstPresser);
       const firstBeaten = first && localX(first.pos.x, direction) > localX(owner.pos.x, direction);
       const caution = defensiveMismatch(actor, owner);
       const shotThreat = localX(owner.pos.x, direction) < 26 && separation < 5;
+      if (covering && !shotThreat && pressRank === 1) {
+        // The second presser reads the nearest outlet and closes its passing
+        // lane, while remaining close enough to add real pressure at the ball.
+        const outlet = actors
+          .filter((a) => a.side === owner.side && a !== owner && !a.sentOff && !a.isKeeper)
+          .sort((a, b) => distance(owner.pos, a.pos) - distance(owner.pos, b.pos))[0];
+        const lane = outlet ? unit(owner.pos, outlet.pos) : { x: -direction, z: 0 };
+        const stand = 1.7 + (100 - a('decisions')) * 0.004;
+        return {
+          x: clamp(owner.pos.x + lane.x * stand, 1, 104),
+          z: clamp(owner.pos.z + lane.z * stand, 1, 67),
+        };
+      }
+      if (covering && !shotThreat && pressRank > 1) {
+        // A third player closes from a different shoulder rather than stacking
+        // on the first presser; the empty role/zone is left for the opponent.
+        const shoulder = unit(owner.pos, actor.pos);
+        return {
+          x: clamp(owner.pos.x + shoulder.x * 2.4, 1, 104),
+          z: clamp(owner.pos.z + shoulder.z * 2.4, 1, 67),
+        };
+      }
       const stand = covering
         ? shotThreat && !recovering && firstBeaten
           ? 0.65 + caution * 1.5
@@ -322,11 +348,12 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   if (!attacking && roles.marking?.[p.id]) {
     const threat = actors.find((o) => o.player.id === roles.marking[p.id]);
     const tracked = markingTarget(actor, threat, ball, direction, roles.time ?? 0);
-    const block = blockPosition(actor, ball, direction, tactics);
+    const block = blockPosition(actor, ball, direction, tactics, roles.teams?.[1 - actor.side]?.style);
     // Hand off an opponent who drops far in front of this defensive line.
     // Track dangerous runs behind it fully; otherwise screen from the block.
     const depth = localX(threat.pos.x, direction) - localX(block.x, direction);
-    const weight = clamp((12 - depth) / 12, 0, 1);
+    const reading = (a('decisions') + a('anticipation') + a('positioning')) / 3;
+    const weight = clamp((12 - depth) / 12 + (reading - 50) * 0.004, 0, 1);
     actor.markTrackingWeight = weight;
     return {
       x: tracked.x * weight + block.x * (1 - weight),
@@ -334,7 +361,7 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
     };
   }
   if (!attacking) {
-    const block = blockPosition(actor, ball, direction, tactics);
+    const block = blockPosition(actor, ball, direction, tactics, roles.teams?.[1 - actor.side]?.style);
     const accuracy = (100 - (a('positioning') + a('teamwork')) / 2) / 40;
     return { x: block.x + actor.bias * accuracy, z: block.z + actor.bias * accuracy };
   }

@@ -1,5 +1,11 @@
 # 分层验证与开发耗时
 
+2026-10-26 `0.43.0-counter-runs`：反击地面近空隙/更深过顶直塞并行候选，速度/无球能力分层合法跑位；边路传中不再屏蔽身后球，并按实际传球目标迭代速度/飞行/接球时间。47项比赛/物理/统计/决策图定向测试通过；固定四战术×两种子加两场高压反击共10场，4 pass/6 review/0 block、无分布告警；review均是低速跑动距离占比。高压反击两场1次地面、1次过顶尝试，均未接成；目标约38.9/35.8米。总体进球均值1.625/场、射门均值18.375/场、球队传球均值569.6/场；小样本仍是review。`npm run check:quick`通过142项测试、类型检查和生产构建；完整`npm run check`通过142项单元/业务测试、16项真实引擎/API/检查点集成、类型检查和生产构建，真实集成263.4秒。match=true、season=false、physicalSeason=false；不改验证/开发/发布流程。详见[反击跑位复核](../packages/shared/modules/matches/design/COUNTER_RUNS_V0430.md)。
+
+2026-10-26 `0.42.0-defensive-coordination`：决策/预判/站位/团队配合驱动更积极随球补位、危险空隙跟踪与条件式二/三人围抢；围抢减少专职盯人并通过实际几何产生压力/漏防风险。23项比赛战术与现实分析定向测试通过；4-3-3四战术×种子999/1001的完整90分钟矩阵共10场，6 pass/4 review/0 block、无分布警报；review为低速跑动占比和一场单队1047次传球。成对反击对照高压将压迫职责时间2049→3315.5球员秒、专职盯人7267→6363秒；不保证抢断必然增加。完整`npm run check`通过139项单元/业务测试、16项真实比赛/API/检查点集成、类型检查与生产构建，真实集成456.6秒。计划match=true、season=false、physicalSeason=false；无赛季、未部署、流程不变。整体统计仍是review；数据和限制见[防守协同复核](../packages/shared/modules/matches/design/DEFENSIVE_COORDINATION_V0420.md)。
+
+2026-10-26 `0.41.0-tactical-identity`：战术动作/跑位校准；新增高压线身后反击传球与控球中锋合法越线跑位回归。41项比赛/诊断定向测试通过；四战术×种子999/1001八场，加反击对高压两场，共10场，9 review/1 pass/0 blocked/无分布告警。`npm run check:quick`通过137项测试、类型检查与生产构建；完整`npm run check`通过137项测试、16项真实比赛/API/检查点集成、类型检查与生产构建，真实比赛集成473.5秒。验证发现控球传球链、边路传中/突破倾向清晰增强；高压反击身后球两次都未完成，整场统计仍有review，详见[战术身份校准](../packages/shared/modules/matches/design/TACTICAL_IDENTITY_V0410.md)。match=true、season=false；无赛季模拟、无部署、开发流程不变。
+
 2026-10-26 `0.40.0-workload-fatigue`：赛内体能改为实际位移/速度、冲刺启动和身体接触个体计耗；力量/耐力影响损耗及轮间恢复。按 match=true、season=false 执行固定四战术×两种子八场校准，终场体能均值46.6/中位43.6，距离相关系数−0.922；2 pass/6 review/0 block，review均为低速跑动占比。`npm run check:quick`通过132项，完整`npm run check`通过132项单测/业务测试、16项真实比赛/API/检查点集成、类型检查和生产构建，用时约261秒。决策图第1/3/6图、SVG、源码摘要和模块记录同步；不运行赛季。分位置数据与小样本限制见[MATCH_WORKLOAD_V0400.md](../packages/shared/modules/matches/design/MATCH_WORKLOAD_V0400.md)。部署状态见[OPERATIONS.md](OPERATIONS.md)。
 
 2026-10-24 `0.38.0-pass-reception-contest`：传球候选新增接球点竞速估值，出脚前按实时状态重评；按比赛算法流程执行四战术×999/1001八场对照并跑完整`npm run check`，未改赛历/存档流程，不运行赛季。对照队级传球均值543.3→502.3，完成率85.7%→88.7%，拦截53.8→32.7、丢球88.3→68.2；2 pass/6 review/0 block；14条review警报均为低速跑动占比超复核线、无block/分布告警。`npm run check`通过（130项比赛单元、16项真实引擎/API集成、类型检查和生产构建），271秒。决策图第5图/SVG/摘要与比赛模块CHANGELOG同步；旧报告/回放不重算。部署状态见[OPERATIONS.md](OPERATIONS.md)。

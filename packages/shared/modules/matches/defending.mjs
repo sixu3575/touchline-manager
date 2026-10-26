@@ -122,6 +122,12 @@ export function tackleRecoverySeconds(defender, carrier) {
 // the best defender everywhere on the pitch; abandoning the last line has a cost.
 export function defensiveAssignments(actors, side, ball, owner, direction, tactics, time) {
   const mates = actors.filter((a) => a.side === side && !a.sentOff);
+  const awareness = (a) =>
+    (ability(a.player, 'decisions') +
+      ability(a.player, 'anticipation') +
+      ability(a.player, 'positioning') +
+      ability(a.player, 'teamwork')) /
+    4;
   const bx = localX(ball.x, direction);
   const candidates = mates.filter((a) => a !== owner && (!a.isKeeper || bx < 7));
   const intercepts =
@@ -139,8 +145,27 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
   candidates.sort((a, b) => cost(a) - cost(b) || a.index - b.index);
   const chasers = [];
   while (candidates.length) {
-    const maxChasers = (tactics.press === 'high' && bx > 35) || (!owner && bx < 30) ? 2 : 1;
-    if (chasers.length >= maxChasers) break;
+    const canAddPresser = (next) => {
+      const nextGap = owner ? distance(next.pos, owner.pos) : distance(next.pos, ball);
+      const group = [
+        ...chasers.map((index) => mates.find((a) => a.index === index)),
+        next,
+      ].filter(Boolean);
+      const groupAwareness = group.reduce((sum, a) => sum + awareness(a), 0) / group.length;
+      return !owner
+        ? chasers.length < (bx < 30 ? 2 : 1)
+        : tactics.press === 'high'
+          ? chasers.length === 0
+            ? nextGap <= 22
+            : chasers.length === 1
+              ? nextGap <= 17 && groupAwareness >= 52
+              : chasers.length === 2 && nextGap <= 11 && groupAwareness >= 64 && bx < 78
+          : tactics.press === 'normal'
+            ? chasers.length === 0
+              ? nextGap <= 17
+              : chasers.length === 1 && nextGap <= 7.5 && groupAwareness >= 66 && bx < 72
+            : chasers.length === 0 && nextGap <= 12;
+    };
     // In the danger area, one closes and the other protects the forward lane.
     // Selecting both solely by proximity can put both pursuers behind a break.
     if (chasers.length === 1 && owner && bx < 30)
@@ -151,9 +176,11 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
             cost(b) -
             (localX(b.pos.x, direction) > bx ? 5 : 0) || a.index - b.index,
       );
-    const a = candidates.shift();
+    const eligible = candidates.findIndex(canAddPresser);
+    if (eligible < 0) break;
+    const a = candidates.splice(eligible, 1)[0];
     const radius = !owner ? 105 : tactics.press === 'low' ? 12 : tactics.press === 'high' ? 22 : 17;
-    if (owner && distance(a.pos, ball) > radius) continue;
+    if (owner && (distance(a.pos, ball) > radius || distance(a.pos, owner.pos) > radius)) continue;
     if (owner && tactics.press !== 'high' && a.player.role === 'FWD' && bx > 60) {
       const supported = mates.some((o) => o !== a && !o.isKeeper && distance(o.pos, a.pos) < 12);
       const exits = actors.filter(
@@ -233,7 +260,12 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
         arrivalTime(o, threat.pos) +
         (o.activity?.load ?? 0) * 0.6 -
         (o.defenceMemory?.id === threat.player.id && o.defenceMemory.until > time ? 1.2 : 0) -
-        (ability(o.player, 'marking') + ability(o.player, 'positioning')) * 0.002;
+        (ability(o.player, 'marking') +
+          ability(o.player, 'positioning') +
+          ability(o.player, 'anticipation') +
+          ability(o.player, 'decisions') +
+          ability(o.player, 'teamwork')) *
+          0.0016;
       return value(a) - value(b) || a.index - b.index;
     });
     const defender = pool.shift();
@@ -249,13 +281,29 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
 
 // The three lines move as a block. Pressers and genuinely dangerous runners can
 // leave it; a forward otherwise need not chase every opposing centre-back.
-export function blockPosition(actor, ball, direction, tactics) {
+export function blockPosition(actor, ball, direction, tactics, opponentStyle = 'balanced') {
   const bx = localX(ball.x, direction);
+  const awareness =
+    (ability(actor.player, 'decisions') +
+      ability(actor.player, 'anticipation') +
+      ability(actor.player, 'positioning') +
+      ability(actor.player, 'teamwork')) /
+    4;
   const pressShift = tactics.press === 'high' ? 6 : tactics.press === 'low' ? -6 : 0;
-  const centre = clamp(10 + bx * 0.55 + pressShift, 22, 52 + pressShift);
+  const lineFollow = clamp(0.55 + (awareness - 50) * 0.001, 0.45, 0.65);
+  const centre = clamp(10 + bx * lineFollow + pressShift, 22, 52 + pressShift);
   const line = actor.player.role === 'DEF' ? -12 : actor.player.role === 'FWD' ? 12 : 0;
+  const compact = tactics.style === 'counter';
+  const ballSideBase = compact ? 0.12 : opponentStyle === 'possession' ? 0.65 : 0.3;
+  const ballSideShift = clamp(ballSideBase + (awareness - 50) * 0.002, 0.06, 0.82);
   return {
     x: direction === 1 ? clamp(centre + line, 5, 83) : 105 - clamp(centre + line, 5, 83),
-    z: clamp(34 + (actor.anchor.z - 34) * 0.78 + (ball.z - 34) * 0.18, 5, 63),
+    z: clamp(
+      34 +
+        (actor.anchor.z - 34) * (compact ? 0.66 : 0.78) +
+        (ball.z - 34) * ballSideShift,
+      5,
+      63,
+    ),
   };
 }

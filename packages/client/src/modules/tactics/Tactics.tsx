@@ -30,7 +30,7 @@ export function Tactics({
       <section className="panel tactics-board">
         <PanelHead
           title="首发阵容"
-          subtitle={'已选 ' + lineup.length + ' / 11 · 每个位置须符合阵型人数'}
+          subtitle={'已选 ' + lineup.length + ' / 11 · 体力为当前可用百分比 · 位置人数须符合阵型'}
         />
         <div className="tactics-pitch">
           <Pitch
@@ -38,6 +38,7 @@ export function Tactics({
             lineup={lineup}
             onPlayer={onPlayer}
             tacticalSlots
+            showFitness
           />
         </div>
         <div className="formation-select">
@@ -60,22 +61,38 @@ export function Tactics({
           </button>
         </div>
         <div className="lineup-choices">
-          {club.players.map((p) => (
-            <label key={p.id} className={lineup.includes(p.id) ? 'chosen' : ''}>
-              <input
-                type="checkbox"
-                checked={lineup.includes(p.id)}
-                onChange={() =>
-                  setLineup(
-                    lineup.includes(p.id) ? lineup.filter((id) => id !== p.id) : [...lineup, p.id],
-                  )
-                }
-              />
-              <span className="position-label">{p.role}</span>
-              <b>{p.name}</b>
-              <span title="总能力值">{p.overall ?? '—'}</span>
-            </label>
-          ))}
+          {club.players.map((p) => {
+            const fitness = Math.max(0, Math.min(100, Math.round(p.fitness)));
+            const fitnessBand = fitness < 50 ? 'low' : fitness < 75 ? 'medium' : 'high';
+            return (
+              <label key={p.id} className={lineup.includes(p.id) ? 'chosen' : ''}>
+                <input
+                  type="checkbox"
+                  checked={lineup.includes(p.id)}
+                  onChange={() =>
+                    setLineup(
+                      lineup.includes(p.id)
+                        ? lineup.filter((id) => id !== p.id)
+                        : [...lineup, p.id],
+                    )
+                  }
+                />
+                <span className="position-label">{p.role}</span>
+                <b>{p.name}</b>
+                <span title="总能力值">{p.overall ?? '—'}</span>
+                <span
+                  className={`lineup-fitness ${fitnessBand}`}
+                  title={`当前体力 ${fitness}%`}
+                  aria-label={`当前体力 ${fitness}%`}
+                >
+                  <span className="lineup-fitness-track" aria-hidden="true">
+                    <i style={{ width: `${fitness}%` }} />
+                  </span>
+                  <b>{fitness}%</b>
+                </span>
+              </label>
+            );
+          })}
         </div>
       </section>
       <section className="panel tactics-settings">

@@ -44,6 +44,10 @@ export function attackAssignments(
     outside = Math.abs(ball.z - 34) > 12;
   const wideAttack = tactics.style === 'wide';
   const line = opponents.map((o) => localX(o.pos.x, direction)).sort((a, b) => b - a)[1] ?? 105;
+  const defensiveRows = opponents.filter((o) => ['centreBack', 'fullback'].includes(o.positionRole)),
+    midfieldRows = opponents.filter((o) => ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(o.positionRole)),
+    averageX = (rows) => rows.reduce((sum, o) => sum + localX(o.pos.x, direction), 0) / Math.max(1, rows.length),
+    lineStretch = clamp((Math.abs(averageX(defensiveRows) - averageX(midfieldRows)) - 5) / 8, 0, 1);
   const maxX = Math.max(52.5, bx, line) - 0.6;
   const assignments = {};
   const centralProtection = mates.filter(
@@ -65,7 +69,16 @@ export function attackAssignments(
       z = 34 + (ball.z - 34) * 0.12;
       duty = 'cover';
     } else if (state.fastBreak && ['winger', 'striker', 'wideMid'].includes(role)) {
-      x = bx + 18 + ability(actor.player, 'offTheBall') * 0.06;
+      // Break runners attack the defender's shoulder, but stay onside until
+      // the passer releases the ball. Reading, movement and pace give players
+      // different run depth instead of sending the whole line to one point.
+      const runReadiness =
+        (0.3 * ability(actor.player, 'offTheBall') +
+          0.18 * ability(actor.player, 'decisions') +
+          0.22 * ability(actor.player, 'acceleration') +
+          0.3 * ability(actor.player, 'sprintSpeed')) /
+        100;
+      x = bx + 17 + runReadiness * 13;
       z = role === 'striker' ? actor.anchor.z : 34 + ownFlank * 20;
       duty = 'break';
     } else if (wideAttack && outside && bx > 60 && role === 'striker') {
@@ -113,6 +126,17 @@ export function attackAssignments(
         z = 34 + ownFlank * 18;
         duty = 'cover';
       }
+    } else if (
+      tactics.style === 'possession' &&
+      ['midfield', 'finalThird'].includes(state.phase) &&
+      role === 'striker' &&
+      lineStretch > 0.05
+    ) {
+      // Hold a few metres onside so the striker can build a real run into the
+      // channel when the defensive and midfield lines separate.
+      x = Math.min(bx + 18, line - 0.6);
+      z = actor.anchor.z;
+      duty = 'break';
     } else if (role === 'centralMid' && wideAttack) {
       x = bx - (ownFlank === flank ? 7 : 15);
       z = ownFlank === flank ? 34 + flank * 9 : 34 - flank * 6;
@@ -223,6 +247,123 @@ export function tacticalPassValue(
   if (actor.positionRole === 'centreBack' && localX(ball.x, direction) < 35)
     bonus -= (1 - success) * 0.035;
   return clamp(bonus, -0.06, 0.14);
+}
+
+/** Situation-specific tactical intent, scored only when the physical candidate is viable. */
+export function tacticalDecisionValue(
+  tactics,
+  state,
+  variant,
+  actor,
+  mate,
+  ball,
+  target,
+  direction,
+  success,
+  space,
+  opponents,
+  offsideLine,
+) {
+  const style = tactics.style,
+    forward = (target.x - ball.x) * direction,
+    targetX = localX(target.x, direction);
+  let value = 0;
+
+  if (
+    style === 'possession' &&
+    !state.fastBreak &&
+    ['buildup', 'midfield', 'finalThird'].includes(state.phase)
+  ) {
+    const pressureAtBall = opponents.filter((opponent) => distance(opponent.pos, ball) < 12).length;
+    if (
+      variant.intent === 'feet' &&
+      ['centralMid', 'holdingMid', 'fullback'].includes(mate.positionRole) &&
+      forward >= -12 &&
+      forward <= 7 &&
+      pressureAtBall > 0 &&
+      space > 4
+    )
+      value += 0.002 * success * clamp((space - 3) / 6, 0, 1);
+
+    if (variant.intent === 'switch' && Math.abs(ball.z - 34) > 8) {
+      const ballSide = Math.sign(ball.z - 34),
+        targetSide = Math.sign(target.z - 34),
+        pressureAtBall = opponents.filter((o) => distance(o.pos, ball) < 14).length,
+        pressureAtOutlet = opponents.filter((o) => distance(o.pos, target) < 10).length,
+        overload = clamp((pressureAtBall - pressureAtOutlet - 1) / 3, 0, 1);
+      if (ballSide !== targetSide && pressureAtBall >= 2 && pressureAtOutlet === 0 && space > 4)
+        value += 0.018 * success * overload * clamp((space - 3) / 6, 0, 1);
+    }
+
+    if (
+      variant.intent === 'through' &&
+      forward > 7 &&
+      ['striker', 'winger', 'wideMid'].includes(mate.positionRole)
+    ) {
+      const line = opponents.map((o) => localX(o.pos.x, direction)).sort((a, b) => b - a)[1] ?? 105,
+        defenders = opponents.filter((o) => ['centreBack', 'fullback'].includes(o.positionRole)),
+        midfield = opponents.filter((o) => ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(o.positionRole)),
+        averageX = (rows) => rows.reduce((sum, o) => sum + localX(o.pos.x, direction), 0) / Math.max(1, rows.length),
+        lineStretch = clamp((Math.abs(averageX(defenders) - averageX(midfield)) - 5) / 8, 0, 1),
+        behindLine = clamp((targetX - line + 1) / 6, 0, 1),
+        runnerReadiness = 0.55 +
+          (ability(mate.player, 'offTheBall') + ability(mate.player, 'acceleration')) / 450;
+      if (targetX > offsideLine + 0.5 && lineStretch > 0.05)
+        value +=
+          0.08 *
+          success *
+          clamp((lineStretch - 0.05) / 0.3, 0, 1) *
+          behindLine *
+          runnerReadiness *
+          clamp(space / 8, 0.25, 1);
+      else
+        // A settled possession side should circulate until the defensive lines
+        // separate; penalize legal forward runs that do not actually get behind
+        // a stretched line, while preserving the clear, physically viable route.
+        value -= 0.035 * success * (1 - lineStretch);
+    }
+  }
+
+  if (style === 'counter' && state.fastBreak && variant.counterRun && forward > 8) {
+    const spaceBehindLine = clamp((targetX - offsideLine) / 4, 0.25, 1),
+      runnerReadiness =
+        0.5 +
+        (0.28 * ability(mate.player, 'offTheBall') +
+          0.2 * ability(mate.player, 'decisions') +
+          0.22 * ability(mate.player, 'acceleration') +
+          0.3 * ability(mate.player, 'sprintSpeed')) /
+          200,
+      passerReadiness =
+        (0.45 * ability(actor.player, 'vision') +
+          0.4 * ability(actor.player, 'passing') +
+          0.15 * ability(actor.player, 'decisions')) /
+        100,
+      progression = clamp((forward - 8) / 16, 0, 1) * spaceBehindLine;
+    // Counter intent is a bounded candidate-value preference, never a pass
+    // quota. Pace/off-ball movement makes the run more attractive; vision,
+    // passing and decisions reward players who can read and execute it.
+    value +=
+      (variant.counterRun === 'lofted' ? 0.2 : 0.19) *
+      success *
+      progression *
+      runnerReadiness;
+    value += 0.055 * success * progression * passerReadiness;
+    if (variant.counterRun === 'ground') value += 0.012 * success * progression;
+  }
+
+  if (
+    style === 'wide' &&
+    variant.delivery &&
+    ['winger', 'wideMid', 'wingBack'].includes(actor.positionRole) &&
+    mate.positionRole === 'striker'
+  ) {
+    const finisherReadiness = variant.lob
+      ? (ability(mate.player, 'heading') + ability(mate.player, 'offTheBall')) / 200
+      : (ability(mate.player, 'finishing') + ability(mate.player, 'offTheBall')) / 200;
+    value += 0.04 * success * clamp(space / 8, 0.25, 1) * (0.45 + 0.55 * finisherReadiness);
+  }
+
+  return clamp(value, -0.06, 0.25);
 }
 
 // An available central midfielder is a useful outlet in settled build-up. The
