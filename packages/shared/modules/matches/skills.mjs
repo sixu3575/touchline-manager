@@ -16,11 +16,12 @@ export function actionQuality(actor, ball, key, opponents, lapse = false) {
     setPieces: 0.7 * a('setPieces') + 0.2 * a('longShots') + 0.1 * a('strength'),
     penalty: 0.55 * a('finishing') + 0.45 * a('setPieces'),
   };
-  const pressure = clamp(
-    1 - Math.min(3, ...opponents.map((o) => distance(o.pos, actor.pos))) / 3,
-    0,
-    1,
-  );
+  const pressureDistances = opponents.map((o) => distance(o.pos, actor.pos)).sort((a, b) => a - b);
+  const immediatePressure = 1 - Math.min(3, pressureDistances[0] ?? 3) / 3;
+  // A nearby second defender can close options and compress the touch, but has
+  // diminishing effect. Defenders farther away than four metres add no crowding.
+  const supportPressure = 1 - Math.min(4, pressureDistances[1] ?? 4) / 4;
+  const pressure = clamp(immediatePressure + 0.3 * supportPressure, 0, 1);
   const facing = Number.isFinite(actor.facing)
     ? { x: Math.cos(actor.facing), z: Math.sin(actor.facing) }
     : Math.hypot(actor.velocity.x, actor.velocity.z) > 0.5

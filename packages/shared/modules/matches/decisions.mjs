@@ -21,6 +21,7 @@ import {
   deliveryThreat,
   midfieldOutletValue,
   tacticalPassValue,
+  tacticalDecisionValue,
 } from './tactical-plan.mjs';
 import { positionRoleNames } from '../tactics/index.mjs';
 
@@ -341,6 +342,9 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   const nearest = mates
     .slice()
     .sort((a, b) => distance(actor.pos, a.pos) - distance(actor.pos, b.pos))[0];
+  const counterLine =
+    opponents.map((o) => localX(o.pos.x, direction)).sort((a, b) => b - a)[1] ?? 105;
+  const counterLineGap = counterLine - localX(ball.x, direction);
   for (const mate of mates) {
     const len = distance(ball, mate.pos);
     if (len < 3 || len > 18 + a('vision') * 0.45) continue;
@@ -348,8 +352,56 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     const deliveries = deliveryOptions(actor, mate, ball, direction);
     const variants = deliveries.length ? [] : [{ intent: 'feet', lob: false, lead: 0 }];
     for (const option of deliveries) variants.push({ intent: 'cross', lead: 0, ...option });
-    if (!deliveries.length && forward > 2 && !mate.isKeeper && len > 9)
-      variants.push({ intent: 'through', lob: false, lead: 2 + a('vision') * 0.035 });
+    const lineBreakingPossessionRun =
+      tactics.style === 'possession' &&
+      ['striker', 'winger', 'wideMid'].includes(mate.positionRole) &&
+      forward > 2 &&
+      len > 8 &&
+      localX(mate.pos.x, direction) >= counterLine - 9 &&
+      localX(mate.pos.x, direction) <= counterLine + 0.01;
+    if (
+      !deliveries.length &&
+      forward > 2 &&
+      ['striker', 'winger', 'wideMid'].includes(mate.positionRole) &&
+      len > 9
+    )
+      variants.push({
+        intent: 'through',
+        lob: false,
+        lead: 2 + a('vision') * 0.035,
+        lineBreak: lineBreakingPossessionRun,
+      });
+    if (
+      tactical.fastBreak &&
+      ['striker', 'winger', 'wideMid'].includes(mate.positionRole) &&
+      forward > 6 &&
+      len > 8 &&
+      counterLineGap > 3 &&
+      counterLineGap < 60 &&
+      counterLine < 96
+    ) {
+      // Offer two physically different line-breaking options. The grounded
+      // pass attacks a nearby gap; the lofted pass leads a faster runner into
+      // deeper space. Both still compete with every other action by value.
+      const spaceToRun = counterLine - localX(mate.pos.x, direction) + 2.5,
+        runnerPace =
+          (ability(mate.player, 'sprintSpeed') + ability(mate.player, 'acceleration')) / 2;
+      if (spaceToRun > 2) {
+        variants.push({
+          intent: 'through',
+          lob: false,
+          lead: clamp(spaceToRun + 5, 3, 24),
+          counterRun: 'ground',
+        });
+        if (len > 13)
+          variants.push({
+            intent: 'through',
+            lob: true,
+            lead: clamp(spaceToRun + 7 + runnerPace * 0.035, 3, 34),
+            counterRun: 'lofted',
+          });
+      }
+    }
     if (
       !deliveries.length &&
       len > 26 &&
@@ -367,29 +419,69 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
               ? 'crossing'
               : 'passing',
       );
-      const ground = variant.lob ? null : groundPassPlan(len, q.value);
-      const speed = ground?.speed ?? passSpeed(len, q.value, true),
-        flight = variant.lob ? Math.max(1.15, len / speed) : ground.flight;
-      const leadTime = clamp(flight * 0.45, 0, 0.65);
-      const target = {
-        x: clamp(
-          mate.pos.x +
-            mate.velocity.x * leadTime +
-            direction *
-              (variant.lead
+      const passPlan = (length) => {
+          const ground = variant.lob ? null : groundPassPlan(length, q.value),
+            speed = ground?.speed ?? passSpeed(length, q.value, true);
+          return {
+            speed,
+            flight: variant.lob ? Math.max(1.15, length / speed) : ground.flight,
+            leadTime: clamp((variant.lob ? Math.max(1.15, length / speed) : ground.flight) * 0.45, 0, 0.65),
+          };
+        },
+        targetForPass = (plan) => {
+          const physicalLead =
+              0.3 +
+              0.35 *
+                movement(mate.player, mate.energy).acceleration *
+                Math.max(0.1, plan.flight - 0.2) ** 2,
+            lead = variant.lineBreak
+              ? Math.max(
+                  0,
+                  counterLine +
+                    1.5 -
+                    localX(mate.pos.x, direction) -
+                    mate.velocity.x * direction * plan.leadTime,
+                )
+              : variant.counterRun
                 ? Math.min(
                     variant.lead,
-                    0.3 +
-                      0.35 *
-                        movement(mate.player, mate.energy).acceleration *
-                        Math.max(0.1, flight - 0.2) ** 2,
+                    Math.max(
+                      physicalLead,
+                      counterLine +
+                        (variant.counterRun === 'lofted' ? 6 : 2) -
+                        localX(mate.pos.x, direction) -
+                        mate.velocity.x * direction * plan.leadTime,
+                    ),
                   )
-                : 0),
-          2.5,
-          102.5,
-        ),
-        z: clamp(mate.pos.z + mate.velocity.z * leadTime, 2.5, 65.5),
-      };
+                : variant.lead
+                  ? Math.min(variant.lead, physicalLead)
+                  : 0;
+          return {
+            x: clamp(
+              mate.pos.x + mate.velocity.x * plan.leadTime + direction * lead,
+              2.5,
+              102.5,
+            ),
+            z: clamp(mate.pos.z + mate.velocity.z * plan.leadTime, 2.5, 65.5),
+          };
+        };
+      let pass = passPlan(len),
+        target = targetForPass(pass);
+      // Counter runs lead the ball beyond the receiver's current position.
+      // Recompute speed, drag-limited flight and receiver lead against that
+      // actual landing point so estimates match the kick physics.
+      if (variant.counterRun)
+        for (let i = 0; i < 4; i++) {
+          pass = passPlan(distance(ball, target));
+          target = targetForPass(pass);
+        }
+      const { speed, flight, leadTime } = pass,
+        candidateLength = variant.counterRun ? distance(ball, target) : len;
+      // A through ball must target open space beyond the actual defensive line.
+      // Ordinary forward passes to midfielders and defenders stay feet passes,
+      // so internal through-ball counts measure line-breaking intent.
+      if (variant.intent === 'through' && localX(target.x, direction) <= counterLine + 0.5)
+        continue;
       const corridor = unit(ball, target);
       const preview = prepareKick(
         actor,
@@ -455,7 +547,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         Math.max(52.5, localX(ball.x, direction), offsideLine) + 0.01
       )
         continue;
-      const accuracy = passExecutionAccuracy(q.value, len);
+      const accuracy = passExecutionAccuracy(q.value, candidateLength);
       const receiveMargin =
         flight + preparation - arrivalTime(mate, futureTarget, pursuitMode(mate, futureTarget), 0);
       const firstTouchRisk =
@@ -473,6 +565,20 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         direction,
         success,
         space,
+      );
+      const tacticalIntent = tacticalDecisionValue(
+        tactics,
+        tactical,
+        variant,
+        actor,
+        mate,
+        ball,
+        target,
+        direction,
+        success,
+        space,
+        opponents,
+        offsideLine,
       );
       const escape = success * pressure * clamp(space / 7, 0, 1) * 0.14;
       const outlets = mates.filter(
@@ -494,6 +600,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         midfieldOutletValue(tactical, mate, forward, success, space) +
         (escape + retention + penetration + style) * 0.25 -
         0.035 * 0.25 * profile.inclination * clamp(forward / 10, 0.3, 1) +
+        tacticalIntent +
         ambition * 0.25 * Math.sign(forward);
       candidates.push({
         type: cross ? 'cross' : 'pass',
@@ -527,7 +634,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
                       ? '通过可用线路向前传递'
                       : '利用接应点保持球权',
         make: () => {
-          const error = passAimError(q.value, len),
+          const error = passAimError(q.value, candidateLength),
             aim = {
               x: target.x + (rng() - 0.5) * error * 2,
               z: target.z + (rng() - 0.5) * error * 2,

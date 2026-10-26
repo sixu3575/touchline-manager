@@ -37,6 +37,16 @@ export function carryOptions(
     x: clamp(ball.x + direction * forward, 1, 104),
     z: clamp(ball.z + lane + (34 - ball.z) * (wide ? 0 : 0.07), 3.5, 64.5),
   }));
+  const cutInsideRoute =
+    wide &&
+    actor.positionRole === 'winger' &&
+    Math.abs(ball.z - 34) > 12
+      ? {
+          x: clamp(ball.x + direction * forward, 1, 104),
+          z: clamp(ball.z + (34 - ball.z) * 0.52, 4, 64),
+        }
+      : null;
+  if (cutInsideRoute) routes.push(cutInsideRoute);
   for (const lane of [-5, 5]) {
     routes.push({ x: clamp(ball.x + direction * 0.5, 1, 104), z: clamp(ball.z + lane, 3.5, 64.5) });
     routes.push({
@@ -135,9 +145,21 @@ export function carryOptions(
     );
     const spaceBonus = 0.08 * clamp((near - 2.5) / 6, 0, 1) * clamp(progress / 8, 0, 1);
     const takeOn = danger > 0.15;
+    const cutInsideBonus =
+      destination === cutInsideRoute && progress > 1 && cover < 2
+        ? 0.04 * (0.5 + a('dribbling') / 200) * clamp((near - 2) / 5, 0, 1)
+        : 0;
+    const isolatedWideDuelBonus =
+      wide &&
+      actor.positionRole === 'winger' &&
+      takeOn &&
+      cover === 0 &&
+      progress > 2
+        ? 0.075 * clamp((a('dribbling') - ability(first.opponent.player, 'tackling') + 20) / 70, 0, 1)
+        : 0;
     return [
       {
-        destination,
+        destination: { x: destination.x, z: destination.z },
         mode,
         success,
         danger,
@@ -156,6 +178,8 @@ export function carryOptions(
               clamp((Math.abs(destination.z - 34) - 12) / 12, 0, 1) *
               clamp((near - 1) / 5, 0, 1)
             : 0) +
+          cutInsideBonus +
+          isolatedWideDuelBonus +
           (tactical.fastBreak ? 0.025 * success : 0),
         ownRisk: actor.player.role === 'DEF' && localX(ball.x, direction) < 35 ? 0.05 * danger : 0,
         reason:

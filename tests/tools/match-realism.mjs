@@ -493,6 +493,197 @@ export function trackedMovement(report, trajectory = report.trajectory) {
   return { status: 'available', players: rows };
 }
 
+/** Internal style-effect counters from the archived action events; not player-facing statistics. */
+export function tacticalOutcomeStats(report) {
+  if (!Array.isArray(report?.events) || !Array.isArray(report?.snapshots) || !report.continuity)
+    throw Error('Tactical outcome analysis requires detailed match events and team snapshots');
+  return [0, 1].map((side) => {
+    const snapshot = report.snapshots[side],
+      roles = new Map(
+        (report.performance ?? [])
+          .filter((player) => player.side === side)
+          .map((player) => [player.id, player.positionRole]),
+      ),
+      actions = report.events.filter(
+        (event) =>
+          event.side === side && ['pass', 'cross', 'dribble'].includes(event.type),
+      ),
+      passes = actions.filter((event) => event.type === 'pass' || event.type === 'cross'),
+      completedActionIds = new Set(
+        report.events
+          .filter((event) => event.type === 'passComplete' && event.side === side)
+          .map((event) => event.actionId)
+          .filter((id) => id != null),
+      ),
+      chains = report.continuity.chains?.[side] ?? [],
+      completedThroughPasses = passes.filter(
+        (event) => event.intent === 'through' && completedActionIds.has(event.actionId),
+      ),
+      throughTargetsByRole = Object.fromEntries(
+        ['centreBack', 'fullback', 'holdingMid', 'centralMid', 'wideMid', 'winger', 'striker'].map(
+          (role) => [
+            role,
+            passes.filter(
+              (event) => event.intent === 'through' && roles.get(event.receiverId) === role,
+            ).length,
+          ],
+        ),
+      ),
+      wideRoles = new Set(['winger', 'wideMid', 'wingBack', 'fullback']),
+      average = (values) => (values.length ? mean(values) : null),
+      passOutcomes = (intent) => {
+        const attempts = passes.filter((event) => event.intent === intent);
+        return {
+          attempts: attempts.length,
+          completed: attempts.filter((event) => completedActionIds.has(event.actionId)).length,
+        };
+      },
+      counterThrough = passes.filter(
+        (event) => event.intent === 'through' && event.phase === 'counter',
+      ),
+      counterThroughProfile = (lofted) => {
+        const attempts = counterThrough.filter(
+            (event) => Number.isFinite(event.velocity?.y) && (event.velocity.y > 0.5) === lofted,
+          ),
+          lengths = attempts
+            .filter(
+              (event) =>
+                Number.isFinite(event.destination?.x) &&
+                Number.isFinite(event.destination?.z) &&
+                Number.isFinite(event.x) &&
+                Number.isFinite(event.y),
+            )
+            .map((event) =>
+              Math.hypot(
+                event.destination.x - (event.x * 1.05),
+                event.destination.z - (event.y * 0.68),
+              ),
+            )
+            .sort((a, b) => a - b);
+        return {
+          attempts: attempts.length,
+          completed: attempts.filter((event) => completedActionIds.has(event.actionId)).length,
+          medianTargetDistance: lengths.length
+            ? lengths[Math.floor(lengths.length / 2)]
+            : null,
+        };
+      },
+      takeOnOutcomes = report.events.filter(
+        (event) =>
+          event.side === side &&
+          ['takeOnWon', 'takeOnLost'].includes(event.type) &&
+          wideRoles.has(roles.get(event.playerId)),
+      ),
+      opponentOutfield = (report.performance ?? []).filter(
+        (player) => player.side !== side && player.positionRole !== 'keeper',
+      ),
+      ownOutfield = (report.performance ?? []).filter(
+        (player) => player.side === side && player.positionRole !== 'keeper',
+      ),
+      opponentDefenders = opponentOutfield.filter((player) =>
+        ['centreBack', 'fullback', 'holdingMid'].includes(player.positionRole),
+      );
+    return {
+      side,
+      style: snapshot?.tactics?.style ?? 'balanced',
+      opponentPress: report.snapshots?.[1 - side]?.tactics?.press ?? 'normal',
+      possessionPct: report.stats?.[side]?.possession ?? null,
+      passes: passes.length,
+      passesByPhase: Object.fromEntries(
+        ['buildup', 'midfield', 'finalThird', 'counter'].map((phase) => [
+          phase,
+          passes.filter((event) => event.phase === phase).length,
+        ]),
+      ),
+      switches: passes.filter((event) => event.intent === 'switch').length,
+      switchesCompleted: passOutcomes('switch').completed,
+      throughBalls: passes.filter((event) => event.intent === 'through').length,
+      throughBallsCompleted: passOutcomes('through').completed,
+      throughTargetsByRole,
+      throughFollowedByShotWithin12Seconds: completedThroughPasses.filter((pass) => {
+        const completed = report.events.find(
+          (event) =>
+            event.type === 'passComplete' &&
+            event.side === side &&
+            event.actionId === pass.actionId,
+        );
+        return (
+          completed &&
+          report.events.some(
+            (event) =>
+              event.type === 'shot' &&
+              event.side === side &&
+              event.second >= completed.second &&
+              event.second - completed.second <= 12,
+          )
+        );
+      }).length,
+      counterThroughBalls: counterThrough.length,
+      counterThroughBallsCompleted: counterThrough.filter((event) =>
+        completedActionIds.has(event.actionId),
+      ).length,
+      counterGroundThrough: counterThroughProfile(false),
+      counterLoftedThrough: counterThroughProfile(true),
+      crosses: passes.filter((event) => event.intent === 'cross').length,
+      crossesCompleted: passOutcomes('cross').completed,
+      crossesFromWideRoles: passes.filter(
+        (event) => event.intent === 'cross' && wideRoles.has(roles.get(event.playerId)),
+      ).length,
+      crossesToStrikers: passes.filter(
+        (event) => event.intent === 'cross' && roles.get(event.receiverId) === 'striker',
+      ).length,
+      crossesToStrikersCompleted: passes.filter(
+        (event) =>
+          event.intent === 'cross' &&
+          roles.get(event.receiverId) === 'striker' &&
+          completedActionIds.has(event.actionId),
+      ).length,
+      wideTakeOnIntents: actions.filter(
+        (event) =>
+          event.type === 'dribble' &&
+          event.intent === 'takeOn' &&
+          wideRoles.has(roles.get(event.playerId)),
+      ).length,
+      wideTakeOnAttempts: takeOnOutcomes.length,
+      wideTakeOnWins: takeOnOutcomes.filter((event) => event.type === 'takeOnWon').length,
+      passOriginByRole: Object.fromEntries(
+        ['keeper', 'centreBack', 'fullback', 'wingBack', 'holdingMid', 'centralMid', 'wideMid', 'winger', 'striker'].map(
+          (role) => [role, passes.filter((event) => roles.get(event.playerId) === role).length],
+        ),
+      ),
+      possessionChains: chains.length,
+      meanChainLength: average(chains),
+      medianChainLength: quantile(chains, 0.5),
+      chainsFivePlus: chains.filter((length) => length >= 5).length,
+      pressDutyPlayerSeconds: ownOutfield.reduce(
+        (total, player) => total + (player.defenceTelemetry?.pressSeconds ?? 0),
+        0,
+      ),
+      playersWithPressDuty: ownOutfield.filter((player) => (player.defenceTelemetry?.pressSeconds ?? 0) > 0).length,
+      markingDutyPlayerSeconds: ownOutfield.reduce(
+        (total, player) => total + (player.defenceTelemetry?.markingSeconds ?? 0),
+        0,
+      ),
+      opponentOutfieldDistance: average(opponentOutfield.map((player) => player.distance)),
+      opponentOutfieldEnergy: average(opponentOutfield.map((player) => player.energy)),
+      opponentDefenderDistance: average(opponentDefenders.map((player) => player.distance)),
+      opponentDefenderEnergy: average(opponentDefenders.map((player) => player.energy)),
+      opponentDefenderMarkSwitches: opponentDefenders.reduce(
+        (total, player) => total + (player.defenceTelemetry?.markingSwitches ?? 0),
+        0,
+      ),
+      opponentDefenderPressSeconds: opponentDefenders.reduce(
+        (total, player) => total + (player.defenceTelemetry?.pressSeconds ?? 0),
+        0,
+      ),
+      opponentDefenderMarkingSeconds: opponentDefenders.reduce(
+        (total, player) => total + (player.defenceTelemetry?.markingSeconds ?? 0),
+        0,
+      ),
+    };
+  });
+}
+
 export function compareMatch(report, { trajectory = report.trajectory } = {}) {
   if (report.testFixture) throw Error('Controlled business fixtures are not physical evidence');
   if (
@@ -741,6 +932,7 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
     id: report.id,
     seed: report.seed,
     tactics: report.snapshots?.map((s) => s.tactics),
+    tacticalOutcomes: tacticalOutcomeStats(report),
     status: alerts.some((a) => a.severity === 'block')
       ? 'blocked'
       : alerts.length

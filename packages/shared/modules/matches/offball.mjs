@@ -20,7 +20,13 @@ export function markingTarget(marker, threat, ball, direction, time) {
   }
   if (time >= memory.nextAt) {
     const a = (key) => ability(marker.player, key);
-    const focus = (a('marking') + a('anticipation') + a('concentration')) / 3;
+    const focus =
+      (a('marking') +
+        a('anticipation') +
+        a('concentration') +
+        a('decisions') +
+        a('teamwork')) /
+      5;
     const cunning = (ability(threat.player, 'offTheBall') + ability(threat.player, 'agility')) / 2;
     const speed = Math.hypot(threat.velocity.x, threat.velocity.z);
     const change = Math.hypot(
@@ -53,7 +59,11 @@ export function markingTarget(marker, threat, ball, direction, time) {
   }
   const lead = Math.min(
     0.9,
-    time - memory.seenAt + 0.1 + ability(marker.player, 'anticipation') * 0.002,
+    time -
+      memory.seenAt +
+      0.1 +
+      ability(marker.player, 'anticipation') * 0.0012 +
+      ability(marker.player, 'decisions') * 0.0008,
   );
   const stand = 0.9 + (100 - ability(marker.player, 'marking')) * 0.012;
   return {
