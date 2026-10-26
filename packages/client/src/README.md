@@ -1,5 +1,7 @@
 # 客户端集成入口
 
+全站美术由 integration 的 ink-theme.css 统一覆盖基础样式；模块布局仍归对应模块，不复制赛历或球员规则。StadiumIllustration 为公共原创矢量素材；无需远程图片或服务器渲染。见仓库 docs/ART.md。
+
 main.tsx组合会话、导航、模块页面与公共弹层；功能实现留在各自modules目录。所属integration，遵守根AGENTS与modules.json。不要在集成入口复制比赛/球员领域规则。
 
 界面版本从根package.json的version读取，避免补丁发布后仍显示旧版本；Vite按需打包该字段，TypeScript已有resolveJsonModule。版本显示不作为后端已部署的唯一证据，发布仍核对/api/health的版本及build SHA。

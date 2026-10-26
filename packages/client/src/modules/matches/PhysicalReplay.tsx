@@ -16,6 +16,7 @@ import { playerEventStatistics } from './player-statistics.mjs';
 import { positionRoleNames } from '../../../../shared/modules/tactics/index.mjs';
 import { replayPlayersAt } from './player-slots.mjs';
 import { LiveManagerBoard, type LiveCommand } from './LiveManagerBoard';
+import { PlayerPortrait, archivedPortraitPlayer } from '../players';
 
 const clock = (t: number) =>
   `${Math.floor(t / 60)
@@ -354,6 +355,13 @@ export function PhysicalReplay({
               </div>
             )}
             <div className="physical-player-detail">
+              {player && (
+                <PlayerPortrait
+                  player={archivedPortraitPlayer(report, player)}
+                  size={48}
+                  decorative
+                />
+              )}
               <select
                 aria-label="查看球员数据"
                 value={selected}

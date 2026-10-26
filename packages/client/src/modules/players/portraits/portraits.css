@@ -1,0 +1,88 @@
+.pm-portrait {
+  display: block;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #d6dfd5;
+  border: 2px solid #253b3e;
+  box-shadow: 2px 2px 0 #253b3e25;
+}
+.roster-person {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.roster-person > div {
+  min-width: 125px;
+}
+.roster-person .shirt-number {
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0 6px 0 0;
+  background: transparent;
+  color: #6b8078;
+  font-size: 11px;
+}
+.roster-person b {
+  display: inline;
+}
+.roster-person .pm-country {
+  margin-top: 6px;
+}
+.pm-heading > .pm-portrait {
+  width: 128px;
+  height: 128px;
+  border-color: #eee0bb;
+}
+.scout-person.portrait-person {
+  height: 174px;
+  background: transparent;
+  width: 100%;
+}
+.scout-person.portrait-person::before {
+  display: none;
+}
+.portrait-person .pm-portrait {
+  width: 156px;
+  height: 156px;
+  position: relative;
+}
+.pitch-player.has-portrait > .pm-portrait {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  border-width: 1.5px;
+}
+.pitch-player.has-portrait > span {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  width: 19px;
+  height: 19px;
+  font-size: 10px;
+  border: 1px solid #29453d;
+  z-index: 1;
+}
+.pitch-player.has-portrait {
+  width: 40px;
+}
+@media (max-width: 600px) {
+  .pm-heading > .pm-portrait {
+    width: 92px;
+    height: 92px;
+  }
+  .pitch-player.has-portrait > .pm-portrait {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+  }
+  .pitch-player.has-portrait {
+    width: 32px;
+  }
+  .pitch-player.has-portrait > span {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+  }
+}

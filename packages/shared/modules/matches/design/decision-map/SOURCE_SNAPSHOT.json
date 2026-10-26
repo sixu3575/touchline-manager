@@ -60,7 +60,7 @@
     "packages/shared/modules/players/physiology.mjs": "93bb30472677bc6a9dd2a765ec9ced7f8b9588442eed367ddf7beed55a518e92",
     "packages/shared/modules/matches/statistics.mjs": "b4f73e96decf04f90069fcdb6a0187d24abe4022d177e321c9aa5e8a71f7ab46",
     "packages/shared/modules/matches/ratings/statistics.mjs": "bfe7163a5a58b704d64644222947aca3f129bf74f4e61be53b75b9c16b25479e",
-    "packages/client/src/modules/matches/PhysicalReplay.tsx": "a7f1c3b70fcc5bbc327431a3100d05edd021c270f71a7ce912d1c4de301f5743",
+    "packages/client/src/modules/matches/PhysicalReplay.tsx": "dbdb55008f03b45873b8162bcc3f67b7b1aafb128e38d5b27177fc8c02eb9705",
     "packages/shared/modules/matches/tactical-roles.mjs": "7d70dbe916f9616cff03822ae72309e901799f722813df4dc81deb14f7dd3efc",
     "packages/server/src/match-jobs.mjs": "4e64d5588e33e67bd0525545db3ab0a142a4216ec4d0cb1b13f45c6c9ea09bff",
     "packages/server/src/simulation-worker.mjs": "eff94902f73f0637042642d3c8880194ea60b4f73c75fd6b020ed45721d13b36",

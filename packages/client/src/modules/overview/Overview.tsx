@@ -14,11 +14,12 @@ import {
   Wallet,
 } from 'lucide-react';
 import { standings } from '../../../../shared/modules/competitions/selectors/index.mjs';
-import { Badge, LeagueTable, PanelHead, Stat } from '../../components/ui';
+import { Badge, LeagueTable, PanelHead, Stat, StadiumIllustration } from '../../components/ui';
 import { money, styleNames } from '../../constants';
 import type { Game, Player, Report, Standing } from '../../model';
 import { AdvanceButton } from '../competitions';
 import { Pitch } from '../matches';
+import { PlayerPortrait } from '../players';
 
 export function Overview({
   game,
@@ -55,7 +56,7 @@ export function Overview({
               ? 'SEASON COMPLETE'
               : 'MATCHDAY ' + String(game.round + 1).padStart(2, '0')}
           </Badge>
-          <h2>{game.round === 14 ? '这个赛季，值得铭记。' : '下一场，轮到你定义。'}</h2>
+          <h2>{game.round === 14 ? '这赛季，踢出名堂了！' : '下一场，踢点名堂！'}</h2>
           <p>
             {game.round === 14
               ? '最终排名第 ' + rank + '，赛季奖金已到账。'
@@ -73,15 +74,14 @@ export function Overview({
           </span>
         </div>
         <div className="hero-art" aria-hidden="true">
-          <div className="floodlight one" />
-          <div className="floodlight two" />
-          <div className="stadium-stands" />
-          <div className="hero-field">
-            <div />
-            <span>TOUCHLINE</span>
-          </div>
-          <div className="art-label">
-            <CircleDot size={15} /> THE BEAUTIFUL GAME
+          <StadiumIllustration />
+          <div className="hero-squad">
+            {club.players
+              .filter((p) => club.lineup.includes(p.id))
+              .slice(0, 3)
+              .map((p) => (
+                <PlayerPortrait key={p.id} player={p} size={128} decorative />
+              ))}
           </div>
         </div>
       </section>
