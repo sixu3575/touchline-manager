@@ -17,3 +17,5 @@ main.tsx组合会话、导航、模块页面与公共弹层；功能实现留在
 观看与恢复契约：packages/shared/modules/matches/design/LIVE_BROADCAST_V070.md；入口在根PROJECT.md。改动同步本模块记录，遵守已批准的分层验证；开发流程不变。
 
 2026-10-27：场景素材cartoon-scenes-4-depth沿用粗墨线头像语言，院子重排真实球会空间，室内保持v3；版本文件名和生成提示词见scenes/README.md。
+
+2026-10-27：新增RoomHeading与room-workspaces.css，战术/训练/球探/财务/主场使用确认院子的同一墨线语言；背景按房间加载，不新增运行依赖，原操作及公共弹窗契约保留。

@@ -9,3 +9,5 @@
 0.12.0推荐仅使用DTO评估潜力中点；界面显示区间或待观察。不得重新拉取/使用隐藏真实潜力。
 
 公共入口 index.ts 的 Training。训练名单展示当前体力和所选场地细项的已观察数值/区间/待观察状态，并提交安排意图；不读取服务器私有能力或培养天赋。成长规则归 shared/modules/training 与 shared/modules/players，细节见 [训练成长设计](../../../../shared/modules/training/TRAINING_GROWTH_V0160.md)。
+
+2026-10-27：训练场背景、七区路牌、安排夹板与教练卡统一墨线/纸色；原场地、分配、成长明细及操作保留。共享外观位于client/src/scenes/room-workspaces.css，新增控件需在1280/390px验证对比度、溢出、键盘和原动作条件。

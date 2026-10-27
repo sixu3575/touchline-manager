@@ -38,3 +38,7 @@ node packages/client/src/modules/players/portraits/export-assets.mjs dist/portra
 ```
 
 验证覆盖固定配方、18/19/29/30边界、历史年龄缺失、换衣不换脸、10000个种子的分布及 SVG 输入安全。普通 UI 发布按现有分层检查运行，不为美术改动计算真实比赛或赛季；发布前后备份与数据指纹比较仍必需。
+
+## 全站工作台统一
+
+确认的纵深院子作为画风基准，新增战术棚、训练场、球会办公室和主场看台四张内置image_gen原创背景。五个房间用木框黑板、部署夹板、候选档案夹、财务票据/账本和扩建图承载原控件，保留真实数值和动作。统一RoomHeading、纸色/蓝绿、深墨外轮廓及硬阴影；公共球员档案同步，不修改冻结的头像身份。七图2007308字节，按页加载；完整素材和最终提示词保存于outputs/immersive-release及客户端scenes/asset-prompts.json。

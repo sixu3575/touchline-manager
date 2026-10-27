@@ -6,14 +6,9 @@ import type { Game } from '../../model';
 export function Finance({ game }: { game: Game }) {
   const club = game.clubs[0];
   return (
-    <>
+    <div className="finance-desk">
       <div className="stat-grid finance-stats">
-        <Stat
-          icon={Wallet}
-          label="可用资金"
-          value={money(game.cash)}
-          detail="所有交易由服务器记账"
-        />
+        <Stat icon={Wallet} label="可用资金" value={money(game.cash)} detail="俱乐部当前可用余额" />
         <Stat
           icon={TrendingUp}
           label="本赛季经营收入"
@@ -31,9 +26,9 @@ export function Finance({ game }: { game: Game }) {
           detail={club.players.length + ' 名球员，按联赛轮次扣除'}
         />
       </div>
-      <section className="panel">
+      <section className="panel finance-book">
         <PanelHead title="俱乐部账本" subtitle="近期 150 笔交易 · 英镑为游戏内虚拟货币" />
-        <div className="ledger">
+        <div className="ledger" tabIndex={0} role="region" aria-label="俱乐部交易票据">
           {game.ledger.map((l, i) => (
             <div key={l.id + '-' + i}>
               <span className={'ledger-icon ' + (l.amount > 0 ? 'in' : 'out')}>
@@ -51,6 +46,6 @@ export function Finance({ game }: { game: Game }) {
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }

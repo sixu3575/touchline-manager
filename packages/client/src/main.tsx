@@ -32,8 +32,9 @@ import { Tactics } from './pages/Tactics';
 import './style.css';
 import './ink-theme.css';
 import { SceneHeader } from './scenes/SceneHeader';
-import { ROOM_NAMES } from './scenes/navigation.mjs';
 import './scenes/scenes.css';
+import { RoomHeading } from './scenes/RoomHeading';
+import './scenes/room-workspaces.css';
 const nav = [
   { id: 'overview', label: '俱乐部总览', icon: LayoutDashboard },
   { id: 'squad', label: '一线队', icon: Users },
@@ -193,7 +194,7 @@ function App() {
             'league-stats',
             'my-matches',
             'club-honours',
-          ].includes(view) && <h1 className="room-heading">{ROOM_NAMES[view] ?? '俱乐部'}</h1>}
+          ].includes(view) && <RoomHeading view={view} />}
           {!['fixtures', 'club-honours'].includes(view) && matchProgress}
           {view === 'overview' && (
             <Overview

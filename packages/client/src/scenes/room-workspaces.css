@@ -1,0 +1,470 @@
+/* Original illustrated workspaces; actual controls/data stay in their modules. */
+.immersive-app .scene-main:has(.room-placard) {
+  padding: 24px 4% 60px;
+  background-color: #214d4b;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+  background-attachment: fixed;
+}
+.immersive-app .scene-main-tactics:has(.room-placard) {
+  background-image: url('/art/scenes/tactics-shed-v1.webp');
+}
+.immersive-app .scene-main-training:has(.room-placard) {
+  background-image: url('/art/scenes/training-ground-v1.webp');
+}
+.immersive-app .scene-main-scouting:has(.room-placard),
+.immersive-app .scene-main-finance:has(.room-placard) {
+  background-image: url('/art/scenes/club-office-v1.webp');
+}
+.immersive-app .scene-main-stadium:has(.room-placard) {
+  background-image: url('/art/scenes/home-stands-v1.webp');
+}
+.immersive-app .scene-main:has(.room-placard) > .content {
+  max-width: 1220px;
+}
+.room-placard {
+  display: inline-block;
+  max-width: 100%;
+  padding: 13px 21px 15px;
+  margin: 0 0 28px;
+  color: #eee0bb;
+  background: #214d4b;
+  border: 3px solid #18232a;
+  border-radius: 7px 13px 4px 9px;
+  box-shadow: 4px 5px #18232a;
+  transform: rotate(-0.7deg);
+}
+.room-placard > small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: #edc168;
+}
+.room-placard .room-heading {
+  padding: 5px 0 6px;
+  color: #fff1ce;
+  font-size: 30px;
+  line-height: 1.2;
+  text-shadow: 2px 2px #18232a;
+}
+.room-placard p {
+  font-size: 12px;
+  color: #eee0bb;
+  line-height: 1.6;
+}
+.immersive-app .scene-main:has(.room-placard) .panel {
+  background: #eee0bb;
+  color: #243b37;
+  border: 3px solid #18232a;
+  border-radius: 6px 12px 5px 9px;
+  box-shadow: 5px 6px #18232a;
+}
+.immersive-app .scene-main:has(.room-placard) .panel-head {
+  background: #e1c894;
+  border-bottom: 2px solid #18232a;
+}
+.immersive-app .scene-main:has(.room-placard) :is(.primary, .secondary) {
+  border: 2px solid #18232a;
+  box-shadow: 3px 4px #18232a;
+  border-radius: 4px 8px 3px 6px;
+}
+.immersive-app .scene-main:has(.room-placard) :is(select, input[type='text']) {
+  border: 2px solid #18232a;
+  background: #fff0ca;
+  color: #243b37;
+}
+.immersive-app .scene-main:has(.room-placard) :is(.info-strip, .assessment-office) {
+  background: #eee0bb;
+  border: 3px solid #18232a;
+  color: #243b37;
+  border-radius: 5px 11px 4px 8px;
+  box-shadow: 3px 4px #18232a;
+}
+.immersive-app .scene-main-tactics .tactics-layout {
+  background: none;
+  border: 0;
+  padding: 8px 0 0;
+  box-shadow: none;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.9fr);
+  gap: 26px;
+}
+.immersive-app .scene-main-tactics .panel.tactics-board {
+  background: #214d4b;
+  border: 10px solid #b99648;
+  outline: 3px solid #18232a;
+  border-radius: 10px 5px 12px 4px;
+}
+.immersive-app .scene-main-tactics .tactics-board .panel-head {
+  background: #214d4b;
+  border-bottom: 2px solid #b99648;
+}
+.immersive-app .tactics-board .panel-head h3 {
+  color: #fff0ca;
+}
+.immersive-app .tactics-board .panel-head p,
+.immersive-app .tactics-board .formation-select label {
+  color: #dedfc5;
+}
+.immersive-app .tactics-board .tactics-pitch {
+  padding: 12px 14px 0;
+}
+.immersive-app .lineup-choices {
+  gap: 10px;
+  margin: 0 14px 16px;
+  padding: 2px 4px 7px;
+  max-height: 320px;
+  overflow: auto;
+  scrollbar-color: #b99648 #214d4b;
+}
+.immersive-app .lineup-choices .lineup-member {
+  display: grid;
+  grid-template-columns: 15px 36px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 3px 6px;
+  padding: 8px;
+  border: 2px solid #18232a;
+  background: #e3cfaa;
+  color: #243b37;
+  border-radius: 4px 8px 3px 6px;
+  box-shadow: 2px 3px #18232a;
+}
+.immersive-app .lineup-member.chosen {
+  background: #f2dfad;
+  border-color: #d5a440;
+}
+.immersive-app .lineup-member > input {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+  accent-color: #326d64;
+  width: 14px;
+  height: 14px;
+}
+.immersive-app .lineup-member > .pm-portrait {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  border: 1px solid #18232a;
+  border-radius: 3px;
+}
+.immersive-app .lineup-member > .position-label {
+  grid-column: 3;
+  grid-row: 1;
+  color: #586f5c;
+  font-size: 9px;
+}
+.immersive-app .lineup-member > b {
+  grid-column: 3;
+  grid-row: 2;
+  font-size: 11px;
+  font-weight: 750;
+}
+.immersive-app .lineup-member > span[title='总能力值'] {
+  grid-column: 4;
+  grid-row: 1;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 850;
+}
+.immersive-app .lineup-member > .lineup-fitness {
+  grid-column: 4;
+  grid-row: 2;
+  margin: 0;
+}
+.immersive-app .tactics-settings {
+  position: relative;
+  padding-top: 12px;
+}
+.immersive-app .tactics-settings::before {
+  content: '';
+  position: absolute;
+  width: 84px;
+  height: 17px;
+  top: -10px;
+  left: calc(50% - 42px);
+  background: #66736b;
+  border: 3px solid #18232a;
+  border-radius: 4px;
+}
+.immersive-app .tactics-settings .panel-head {
+  background: none;
+}
+.immersive-app .tactics-settings .tactic-option {
+  border: 2px solid #918b62;
+  background: #f7e8c4;
+  border-radius: 4px 9px 3px 7px;
+}
+.immersive-app .tactics-settings .tactic-option.selected {
+  border-color: #18232a;
+  background: #326d64;
+  color: #fff0ca;
+}
+.immersive-app .tactic-option.selected :is(strong, small) {
+  color: #fff0ca;
+}
+.immersive-app .scene-main-training .training-base-heading {
+  background: #eee0bb;
+  padding: 18px 22px;
+  border: 3px solid #18232a;
+  border-radius: 7px 12px 4px 9px;
+  box-shadow: 4px 5px #18232a;
+}
+.immersive-app .training-base-heading h2 {
+  color: #243b37;
+}
+.immersive-app .training-base-heading :is(p, small) {
+  color: #536b56;
+}
+.immersive-app .training-pitch {
+  border: 12px solid #b99648;
+  outline: 3px solid #18232a;
+  border-radius: 10px 5px 13px 6px;
+  box-shadow:
+    5px 6px #18232a,
+    inset 0 0 0 2px #eee0bb;
+}
+.immersive-app .training-zone {
+  background: #eee0bb;
+  border: 3px solid #18232a;
+  border-radius: 5px 10px 3px 7px;
+  box-shadow: 3px 4px #18232a;
+}
+.immersive-app .training-zone.unbuilt {
+  background: #214d4b;
+  border-style: dashed;
+  color: #eee0bb;
+}
+.immersive-app .training-zone.selected {
+  outline: 3px solid #f0be54;
+}
+.immersive-app .training-player-list {
+  scrollbar-color: #b99648 #d7c89e;
+}
+.immersive-app .staff-person {
+  background: #f8eac6;
+  border: 2px solid #18232a;
+  border-radius: 4px 8px 3px 6px;
+}
+.immersive-app .training-player-row {
+  background: #f8eac6;
+  border: 1px solid #b4ab7d;
+  margin-bottom: 5px;
+  padding: 10px 7px;
+  border-radius: 4px;
+}
+.immersive-app .scene-main-scouting .scout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 30px 24px;
+  padding-top: 18px;
+}
+.immersive-app .scene-main-scouting .scout-card {
+  position: relative;
+  overflow: visible;
+  padding-top: 26px;
+  border-radius: 3px 9px 3px 6px;
+}
+.immersive-app .scout-card::before {
+  content: '';
+  position: absolute;
+  top: -14px;
+  left: 18px;
+  width: 91px;
+  height: 13px;
+  background: #d5a440;
+  border: 3px solid #18232a;
+  border-bottom: 0;
+  border-radius: 6px 10px 0 0;
+}
+.immersive-app .scout-card:nth-child(3n + 1) {
+  transform: rotate(-0.6deg);
+}
+.immersive-app .scout-card:nth-child(3n + 2) {
+  transform: rotate(0.5deg);
+}
+.immersive-app .scout-card .pm-portrait {
+  border: 3px solid #18232a;
+  border-radius: 3px;
+  box-shadow: 4px 5px #18232a;
+  transform: rotate(-3deg);
+}
+.immersive-app .scout-skills {
+  border: 2px solid #b6a476;
+  background: #e3d4a8;
+}
+.immersive-app .finance-desk {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.45fr);
+  gap: 30px;
+  align-items: start;
+}
+.immersive-app .finance-desk .finance-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  margin: 0;
+}
+.immersive-app .finance-desk .stat-card {
+  background: #eee0bb;
+  border: 3px solid #18232a;
+  border-top: 10px solid #d5a440;
+  border-radius: 5px 10px 4px 8px;
+  box-shadow: 4px 5px #18232a;
+}
+.immersive-app .finance-desk .stat-card:nth-child(2) {
+  transform: rotate(-0.8deg);
+  border-top-color: #326d64;
+}
+.immersive-app .finance-book {
+  border-left-width: 12px !important;
+}
+.immersive-app .finance-book .ledger {
+  max-height: 660px;
+  overflow: auto;
+  scrollbar-color: #b99648 #e3d4a8;
+  padding-inline: 18px;
+}
+.immersive-app .finance-book .ledger:focus-visible {
+  outline: 3px solid #d5a440;
+  outline-offset: -4px;
+}
+.immersive-app .finance-book .ledger .positive {
+  color: #326d64;
+}
+.immersive-app .finance-book .ledger .negative {
+  color: #924c39;
+}
+.immersive-app .scene-main-stadium .stadium-layout {
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
+  gap: 28px;
+}
+.immersive-app .scene-main-stadium .panel.stadium-card {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.immersive-app .stadium-art {
+  height: clamp(260px, 28vw, 390px);
+  overflow: hidden;
+  border: 0;
+  background: none;
+}
+.immersive-app .scene-main-stadium .stadium-info {
+  background: #eee0bb;
+  border: 3px solid #18232a;
+  border-radius: 6px 12px 4px 9px;
+  box-shadow: 5px 6px #18232a;
+}
+.immersive-app .stadium-info .stat-grid > div {
+  padding: 13px 7px;
+  background: #e1c894;
+  border: 2px dashed #867448;
+  border-radius: 4px;
+}
+.immersive-app .scene-main-stadium .panel.upgrade-card {
+  background: #214d4b;
+  color: #fff0ca;
+  border: 3px solid #18232a;
+}
+.immersive-app .upgrade-card :is(h2, b) {
+  color: #fff0ca;
+}
+.immersive-app .upgrade-card :is(p, .upgrade-detail span) {
+  color: #dedfc2;
+}
+.immersive-app .upgrade-card .primary {
+  background: #d5a440;
+  color: #18232a;
+}
+.immersive-app .modal {
+  border: 4px solid #18232a;
+  border-radius: 12px 6px 14px 7px;
+  box-shadow: 8px 9px #18232a;
+}
+.immersive-app .pm-dialog .pm-hero {
+  background: #214d4b;
+  border-bottom: 4px solid #18232a;
+}
+.immersive-app .pm-dialog .pm-heading h2 {
+  color: #fff0ca;
+}
+.immersive-app .pm-dialog .pm-caption {
+  color: #e8c478;
+}
+.immersive-app .pm-dialog .pm-tabs button[aria-selected='true'] {
+  background: #214d4b;
+  color: #fff0ca;
+}
+.immersive-app .pm-dialog .pm-tabs button[aria-selected='true'] > span {
+  background: #d5a440;
+  color: #18232a;
+}
+@media (max-width: 1050px) {
+  .immersive-app .scene-main-tactics .tactics-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.9fr);
+    gap: 18px;
+  }
+  .immersive-app .lineup-choices {
+    grid-template-columns: 1fr;
+  }
+  .immersive-app .scene-main-scouting .scout-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .immersive-app .scene-main:has(.room-placard) {
+    padding: 20px 13px 38px;
+    background-size: auto 100dvh;
+  }
+  .room-placard {
+    padding: 11px 16px 13px;
+    margin-bottom: 23px;
+  }
+  .room-placard .room-heading {
+    font-size: 27px;
+  }
+  .immersive-app .scene-main-tactics .tactics-layout,
+  .immersive-app .scene-main-stadium .stadium-layout,
+  .immersive-app .finance-desk {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+  }
+  .immersive-app .scene-main-scouting .scout-grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 3px;
+  }
+  .immersive-app .tactics-board .tactics-pitch {
+    padding-inline: 8px;
+  }
+  .immersive-app .lineup-choices {
+    margin-inline: 8px;
+  }
+  .immersive-app .training-base-heading {
+    padding: 15px;
+    display: block;
+  }
+  .immersive-app .training-base-heading h2 {
+    font-size: 22px;
+  }
+  .immersive-app .training-base-heading > .badge {
+    margin-top: 12px;
+  }
+  .immersive-app .finance-book .ledger {
+    max-height: 520px;
+    padding-inline: 10px;
+  }
+  .immersive-app .stadium-info .stat-grid {
+    gap: 6px;
+  }
+  .immersive-app .stadium-info .stat-grid h2 {
+    font-size: 21px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-placard,
+  .immersive-app .scout-card:nth-child(n),
+  .immersive-app .finance-desk .stat-card:nth-child(n) {
+    transform: none;
+  }
+}

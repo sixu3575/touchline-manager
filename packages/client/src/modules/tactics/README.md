@@ -10,3 +10,5 @@
 公共入口 index.ts；实现从原 components/pages 提取，旧路径保留兼容导出。领域规则由 shared/modules/tactics 公共接口维护，不复制球员或比赛公式。修改此目录后同步 CHANGELOG.md，开发流程不变。
 
 0.3.0评级从players公共入口读取，自动排阵从tactics公共入口读取，禁止通过game.mjs引入比赛WASM。
+
+2026-10-27：战术棚木框黑板、首发/替补照片标签与部署夹板；原阵型、自动排阵、11人校验、保存与档案保留。共享外观位于client/src/scenes/room-workspaces.css，新增控件需在1280/390px验证对比度、溢出、键盘和原动作条件。
