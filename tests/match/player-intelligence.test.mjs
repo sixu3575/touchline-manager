@@ -23,6 +23,10 @@ import {
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
 import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
 import {
+  onTargetEstimate,
+  projectedShotContext,
+} from '../../packages/shared/modules/matches/shot-window.mjs';
+import {
   carryTouchSpeed,
   shotCandidate,
 } from '../../packages/shared/modules/matches/decisions.mjs';
@@ -385,6 +389,137 @@ test('long-shot ability keeps remote shots available and raises their candidate 
   );
   assert.ok(highInRange && ordinaryInRange);
   assert.ok(highInRange.utility > ordinaryInRange.utility);
+});
+
+function shootingWindowChoices(longShots, layout, direction = 1) {
+  const mirror = (x) => (direction === 1 ? x : 105 - x);
+  const striker = controlled(
+    'window-striker',
+    0,
+    mirror(80.6),
+    34,
+    { longShots, finishing: 90, strength: 85, balance: 90, decisions: 95, composure: 90 },
+    'FWD',
+  );
+  striker.facing = direction === 1 ? 0 : Math.PI;
+  const keeper = controlled('window-keeper', 1, mirror(104), 34, {}, 'GK');
+  const opponents = [keeper];
+  if (layout === 'closing') {
+    for (const [z, vz] of [
+      [29, 3],
+      [39, -3],
+    ]) {
+      const defender = controlled('window-defender-' + z, 1, mirror(89), z, {}, 'DEF');
+      defender.velocity.z = vz;
+      opponents.push(defender);
+    }
+  } else if (layout === 'blocked') {
+    for (const z of [32, 34, 36])
+      opponents.push(controlled('screen-' + z, 1, mirror(86), z, {}, 'DEF'));
+  }
+  const counts = { shot: 0, dribble: 0, pass: 0, hold: 0 };
+  for (let seed = 1; seed <= 100; seed++) {
+    const a = structuredClone(striker);
+    const action = chooseAction(
+      a,
+      [a, ...structuredClone(opponents)],
+      { x: mirror(81), z: 34, y: 0.11 },
+      direction,
+      { style: 'balanced' },
+      random(seed),
+      { time: 10 },
+    );
+    counts[action.type]++;
+  }
+  return counts;
+}
+
+test('a long-shot specialist exploits a closing unpressured window, while safe open advancement remains useful in either direction', () => {
+  for (const direction of [1, -1]) {
+    const strong = shootingWindowChoices(95, 'closing', direction);
+    const ordinary = shootingWindowChoices(50, 'closing', direction);
+    const open = shootingWindowChoices(95, 'open', direction);
+    assert.ok(strong.shot > ordinary.shot + 10, 'changing only long shots changes actual choices');
+    assert.ok(
+      strong.shot > open.shot + 30,
+      'the approaching defensive line closes the future window',
+    );
+    assert.ok(open.dribble > 90, 'a truly open route to a better finish is still worth carrying');
+    assert.ok(strong.shot < 95, 'a specialist is not forced to shoot every time');
+  }
+});
+
+test('screening the shot corridor reduces specialist shooting instead of granting a universal long-shot bonus', () => {
+  const closing = shootingWindowChoices(95, 'closing');
+  const blocked = shootingWindowChoices(95, 'blocked');
+  assert.ok(blocked.shot + 15 < closing.shot);
+  assert.ok(blocked.dribble + blocked.pass + blocked.hold > blocked.shot);
+});
+
+test('a backwards-facing shooter needs more preparation before an opponent can close the shot', () => {
+  const a = controlled('body-ready', 0, 81, 34, { longShots: 95, balance: 90 }, 'FWD');
+  const defender = controlled('closer', 1, 84.5, 35, {}, 'DEF');
+  const ball = { x: 81.4, y: 0.11, z: 34 };
+  const assess = (facing) => {
+    a.facing = facing;
+    return shotCandidate(
+      a,
+      ball,
+      [defender],
+      1,
+      (key) => actionQuality(a, ball, key, [defender]),
+      random(1),
+      false,
+    ).window;
+  };
+  const ready = assess(0),
+    turned = assess(Math.PI);
+  assert.ok(turned.preparation > ready.preparation);
+  assert.ok(turned.ready < ready.ready);
+  assert.ok(turned.value < ready.value);
+});
+
+test('short shot forecasts respect observed speed, do not read hidden targets, and never mutate live actors', () => {
+  const a = controlled('carrier', 0, 80, 34, { decisions: 100 }, 'FWD');
+  const defender = controlled('moving', 1, 89, 29, {}, 'DEF');
+  defender.velocity = { x: 0, z: 3 };
+  const actors = [a, defender],
+    before = structuredClone(actors);
+  const future = projectedShotContext(actors, a, { x: 85, z: 34 }, 2, 'carry');
+  assert.deepEqual(actors, before);
+  assert.equal(future.actors[1].pos.z, 35);
+  defender.target = { x: 1, z: 1 };
+  assert.deepEqual(
+    projectedShotContext(actors, a, { x: 85, z: 34 }, 2, 'carry').actors[1].pos,
+    future.actors[1].pos,
+    'another AI target is not information available to the carrier',
+  );
+});
+
+test('on-target estimates track the actual kick-aim sampler across distant shots and skill levels', () => {
+  const a = controlled('dispersion', 0, 78, 34, { longShots: 100, strength: 85 }, 'FWD');
+  for (const dist of [24, 28])
+    for (const value of [50, 95]) {
+      const ball = { x: 105 - dist, z: 34, y: 0.11 },
+        quality = { value, pressure: 0 };
+      let onTarget = 0;
+      for (let seed = 1; seed <= 1500; seed++) {
+        const kick = shotCandidate(
+          a,
+          ball,
+          [],
+          1,
+          () => ({ ...quality }),
+          random(seed),
+          false,
+        ).make();
+        if (Math.abs(kick.kickAim.z - 34) <= 3.55 && kick.kickAim.y <= 2.33) onTarget++;
+      }
+      assert.ok(
+        Math.abs(onTarget / 1500 - onTargetEstimate(a, dist, quality)) < 0.04,
+        'selection accuracy should agree with the unchanged physical aim distribution',
+      );
+    }
 });
 
 test('shot value accounts for pressure and blocked lanes, while ordinary finishing aims inside the goal mouth', () => {

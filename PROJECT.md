@@ -1,5 +1,7 @@
 # 项目地图
 
+2026-10-27远射候选`0.45.0-shot-windows`：按个人落点散布、身体准备与可见防线收拢，比较即时出脚和传带后机会；远射专长形成有条件偏好。原出球随机/球速/物理保留，无射门配额。十场完整矩阵无block/分布告警，整体仍review；完整回归及现机吞吐通过，没有赛季或存档迁移。实现、逐场统计/方差、决策图与限制见[远射窗口设计](packages/shared/modules/matches/design/SHOT_WINDOWS_V0450.md)，发布状态见[运维记录](docs/OPERATIONS.md)。以下保留历史发布记录。
+
 0.40.0 `workload-fatigue-1`已于2026-10-26通过PR #62部署：体能按个人真实位移/速度、冲刺启动和身体对抗累计，力量/耐力影响相同负荷下的损耗与赛后恢复；八场均值46.6/中位43.6，跑动越多体能下降越明显。八场为2 pass/6 review/0 block，review均来自已有低速距离告警；132项业务/定向、16项真实比赛/API集成、类型检查及生产构建全部通过，Node 22/24 CI通过。不运行赛季。生产build `65f8d51f3d7b4c18d63aceb34cbd2ae8b9e4ec84`。设计、分位置结果、决策图和边界见[工作量体能校准](packages/shared/modules/matches/design/MATCH_WORKLOAD_V0400.md)与[决策图](packages/shared/modules/matches/design/PLAYER_DECISION_MAP.md)，备份与部署证据见[部署记录](docs/OPERATIONS.md)。
 
 待发布候选`0.43.0-counter-runs`打包0.41战术身份、0.42防守协同和本次反击跑位增强：控球/边路/反击的动作倾向更鲜明，高判断与预判球员能主动补位，反击可并列比较地面和过顶身后球。10场矩阵4 pass/6 review、无阻断/分布警报；高压反击身后球样本2次均未接成，整体比赛数据仍待改善。142项定向与单元/业务测试、16项真实引擎/API集成、类型和生产构建已通过；无赛季模拟。详见[反击复核](packages/shared/modules/matches/design/COUNTER_RUNS_V0430.md)、[防守协同](packages/shared/modules/matches/design/DEFENSIVE_COORDINATION_V0420.md)、[战术校准](packages/shared/modules/matches/design/TACTICAL_IDENTITY_V0410.md)及[验证记录](docs/VALIDATION.md)。

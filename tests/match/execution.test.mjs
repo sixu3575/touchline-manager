@@ -197,7 +197,13 @@ test('a continuous high-speed carry keeps the ball inside either end line after 
         orientFoot(a, ball);
         driveMovement(a, controlMovement(a, ball), movement(a.player, a.energy, 'carryFast'), 0.05);
         if (time >= nextTouch && touchesBall(physics, a.foot)) {
-          if (kick(physics, a, motorTouch(a, ball, () => 0.5))) {
+          if (
+            kick(
+              physics,
+              a,
+              motorTouch(a, ball, () => 0.5),
+            )
+          ) {
             nextTouch = time + 0.25;
             contacts++;
           }
@@ -787,9 +793,18 @@ test('clear long shots remain natural decisions and delayed release rebases aim 
   let shots = 0;
   for (let seed = 1; seed <= 50; seed++) {
     const a = actor({ longShots: 95, finishing: 90 });
+    // An exposed keeper is recovering towards goal: the clear long-shot window
+    // exists now, but is not an empty pitch that stays open forever.
+    const keeper = actor();
+    keeper.side = 1;
+    keeper.isKeeper = true;
+    keeper.player.role = 'GK';
+    keeper.player.id = 'recovering-keeper';
+    keeper.pos = { x: 104, z: 46 };
+    keeper.velocity = { x: 0, z: -8 };
     const action = chooseAction(
       a,
-      [a],
+      [a, keeper],
       { x: 78.4, y: 0.11, z: 34 },
       1,
       { style: 'balanced' },
