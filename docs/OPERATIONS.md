@@ -1,5 +1,19 @@
 # 部署与恢复
 
+## 2026-10-27 发布：远射窗口与射门专长
+
+PR #76已合并并部署，生产build `23a91467fa0c5665a5391c58511ed23a65cd9084`，引擎`0.45.0-shot-windows` / `shot-windows-1`。按个人射门散布、身体准备与防线收拢比较即时射门和继续传带；未改实际出球随机顺序、球速或进球物理，无存档迁移/历史重算/公开诊断。算法、逐场结果和方差见[远射窗口设计](../packages/shared/modules/matches/design/SHOT_WINDOWS_V0450.md)，决策图第5/6图、属性索引、SVG与来源摘要同步。
+
+本机完整检查通过73项冒烟/业务、149项比赛单元、16项真实比赛/API/检查点集成、类型和构建。基线/候选四战术×两种子及两场压力样本各10场，候选10 review/0 block/无分布警报；已有低速跑动占比及部分控球队传球偏高未解决，不记作完全拟真。PR Node24 CI一次通过；Node22首次联赛结算等待600秒超时，原条件重跑通过（总633.4秒），未修改测试门槛/并发/断言。保留[CI两次记录](https://github.com/sixu3575/touchline-manager/actions/runs/40475209931)。match=true、season=false、physicalSeason=false；没有赛季模拟或开发流程变更。
+
+发布前用正式Node22内存参数在独立Worker跑完整90分钟并跨半场恢复：361.8秒，最慢15秒片2516ms，小于5×播放预算3000ms；OS RSS高水位330.1MiB。正式512MiB、单Worker、`--liftoff-only`及四个malloc变量保持；该探针未读写生产存档，临时服务和源目录已清理。
+
+发布前没有未结束任务。一致离机备份为`C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-shot-windows-20261027.sqlite`，VM原件`/var/backups/touchline-manager/touchline-pre-shot-windows-20261027.sqlite`，160096256字节；SHA-256 `ffa4c13f867061c30508b48e0988fb19a224ff673f576a3fbe8d7cfec2e26a02`，两端integrity_check及六表全列/BLOB指纹一致。安装脚本另生成`/var/backups/touchline-manager/touchline-2026-10-27T09-06-06-787Z.sqlite`。
+
+在本机构建合并提交，确认源码树与已通过CI的PR头一致；发布包5370563字节，SHA-256 `67c5c5c6eca6687a17c6ddd52fc25dd5b2285b0564e83c30a6f5912d067e7afa`，经原install.sh安装。部署后与公网浏览器验收清理后，六表指纹均与发布前完全相同：2个存档、53条操作、25条回放、71份战报、3个完成任务、1080个轨迹片段，integrity_check为ok。浏览器只在独立匿名验收会话查看院子、翻页核对20名球员及开赛入口，无玩法写请求/JS错误；核验该临时存档没有任何玩法记录后仅删除该条记录。
+
+本机和公网health均返回上述build，正式源码包含0.45版本。服务/Caddy/备份timer均active，NRestarts=0，验收后空闲MemoryCurrent约54.5MiB（不是比赛峰值）。旧release `1f0a032abdc10a4c087338814e5479acf00f49b7`保留；回滚须先排空新任务，恢复旧current、unit及BUILD_SHA后重启，不用旧引擎恢复新检查点，也不覆盖玩家进度。
+
 ## 2026-10-27 发布：全站卡通球会场景
 
 用户确认纵深院子风格后，PR #72合并并部署，生产build为`1f0a032abdc10a4c087338814e5479acf00f49b7`。院子、逐排更衣柜、体育报/电视/录像档案及战术、训练、球探、财务和主场工作台全部接入同一套原创美术。七张WebP共2007308字节，按房间加载，院子首屏390864字节；无新运行依赖、存档迁移、数据改写或比赛重算。保留PR #73的`--liftoff-only`、四项malloc环境变量、单Worker、512 MiB服务限制及原0.44.0引擎。
