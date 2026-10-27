@@ -25,6 +25,12 @@ import {
 } from './tactical-plan.mjs';
 import { positionRoleNames } from '../tactics/index.mjs';
 import { tacticalRoleOf } from './tactical-roles.mjs';
+import {
+  shotExecution,
+  shotWindowValue,
+  projectedShotContext,
+  continuationShotValue,
+} from './shot-window.mjs';
 
 export function playerProfile(p, anchor = { z: 34 }) {
   const pass = (ability(p, 'passing') + ability(p, 'vision') + ability(p, 'decisions')) / 3;
@@ -112,7 +118,8 @@ export function receptionContestRisk(receiver, target, flight, opponents, prepar
   let survival = 1;
   for (const opponent of defenders) {
     const reaction = 0.08 + (100 - ability(opponent.player, 'anticipation')) * 0.002;
-    const reach = preparation + arrivalTime(opponent, target, pursuitMode(opponent, target), reaction);
+    const reach =
+      preparation + arrivalTime(opponent, target, pursuitMode(opponent, target), reaction);
     const threat = clamp((contestAt + 0.15 - reach) / 0.55, 0, 0.94);
     survival *= 1 - threat;
   }
@@ -215,9 +222,14 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
           1 /
             (1 +
               Math.exp(
-                -(-2.1 - 0.09 * (dist - 12) + 1.8 * (angle - 0.35) - 1.4 * blocked -
+                -(
+                  -2.1 -
+                  0.09 * (dist - 12) +
+                  1.8 * (angle - 0.35) -
+                  1.4 * blocked -
                   0.9 * q.pressure +
-                  2.5 * g),
+                  2.5 * g
+                ),
               )),
           0.005,
           0.8,
@@ -228,12 +240,19 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
     actor.setPiece === 'penalty'
       ? 0.76
       : opportunity / (opportunity + Math.exp(0.9) * (1 - opportunity));
-  const shotReturnScore = clamp(xg * (0.65 + q.value / 100), 0, 0.98);
+  const window = direct ? null : shotWindowValue(actor, ball, opponents, direction, q, xg, blocked);
+  const legacyReturn = clamp(xg * (0.65 + q.value / 100), 0, 0.98);
+  const rangeWeight = clamp((dist - 16) / 8, 0, 1);
+  const shotReturnScore = window
+    ? legacyReturn * (1 - rangeWeight) + window.value * rangeWeight
+    : legacyReturn;
+  if (window) window.value = shotReturnScore;
   return {
     type: 'shot',
     intent: actor.setPiece === 'penalty' ? 'penalty' : direct ? 'freeKick' : 'shoot',
     quality: q,
     xg,
+    window,
     utility:
       shotReturnScore -
       (1 - shotReturnScore) * lossValue(ball, direction) * 0.25 +
@@ -246,17 +265,12 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
     make: () => {
       // Angular error grows with range and pressure; quality narrows dispersion.
       // Opportunity ranks actions; xG records expectation, neither awards a goal.
-      const speed = Math.hypot(actor.velocity.x, actor.velocity.z);
-      const lateral = Math.abs(actor.velocity.z) / Math.max(1, speed);
-      const error =
-        0.55 + dist * (0.035 + 0.26 * (1 - q.value / 100)) + q.pressure * 0.9 + lateral * 0.35;
+      const { error, speed: intendedSpeed, heightSpread } = shotExecution(actor, dist, q);
       const intendedAim = 34 + (rng() < 0.5 ? -1 : 1) * (1.1 + rng() * 1.2);
       const aim = intendedAim + (rng() + rng() - 1) * error * 1.6;
       // Strength supplies available power, not an instruction to blast every
       // six-metre finish at full effort. Near, unhurried finishes use placement;
       // range and closing pressure call for more power. No shot is removed.
-      const availablePower = 23 + 0.1 * ability(actor.player, 'strength');
-      const intendedSpeed = Math.min(availablePower, 20 + dist * 0.25 + q.pressure * 4);
       // Aim at the whole-ball crossing plane. A point well behind the goal
       // makes the ball cross earlier and closer to the shooter, pushing acute-
       // angle attempts wide even when their nominal aim is inside the posts.
@@ -266,10 +280,7 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
       // pressure-dependent dispersion around it. The previous expression used
       // a low-skill spread of several metres above the turf, so average shots
       // were deliberately launched over the bar far too often.
-      const targetY =
-        0.15 +
-        rng() *
-          (1.5 + (100 - q.value) / 65 + Math.max(0, dist - 10) * 0.035 + q.pressure * 0.4);
+      const targetY = 0.15 + rng() * heightSpread;
       const kickAim = { ...target, y: targetY };
       return {
         ...airborneVelocity(ball, kickAim, flight),
@@ -289,8 +300,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     profile = actor.profile ?? playerProfile(p, actor.anchor);
   const opponents = actors.filter((o) => o.side !== actor.side && !o.sentOff);
   const quality = (key) => actionQuality(actor, ball, key, opponents, context.lapse);
-  const pressure = quality('passing').pressure,
-    currentValue = continuationValue(ball, actor, actors, direction);
+  const pressure = quality('passing').pressure;
   const lost = lossValue(ball, direction);
   const minute = context.minute ?? 0,
     time = context.time ?? 0;
@@ -316,6 +326,32 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     shot.utility += ambition;
     candidates.push(shot);
   }
+  const windowWeight =
+    shot && !direct
+      ? clamp((distance(ball, { x: direction === 1 ? 105 : 0, z: 34 }) - 16) / 8, 0, 1)
+      : 0;
+  const continuation = (point, receiver, delay = 0, mode) => {
+    const baseline = continuationValue(point, receiver, actors, direction);
+    if (!windowWeight) return baseline;
+    const dist = distance(point, { x: direction === 1 ? 105 : 0, z: 34 });
+    if (dist >= 38) return baseline;
+    const future = projectedShotContext(actors, receiver, point, delay, mode);
+    const defenders = future.actors.filter((a) => a.side !== receiver.side && !a.sentOff);
+    const futureShot = shotCandidate(
+      future.receiver,
+      { ...point, y: 0.11 },
+      defenders,
+      direction,
+      (key) => actionQuality(future.receiver, point, key, defenders),
+      rng,
+      false,
+    );
+    const space = continuationValue(point, future.receiver, future.actors, direction);
+    const value = continuationShotValue(space, futureShot?.window, dist, future.confidence);
+    return baseline * (1 - windowWeight) + value * windowWeight;
+  };
+  const observation = 0.4 + (100 - a('vision')) * 0.006;
+  const currentValue = continuation(ball, actor, observation);
   const mates = actors.filter((o) => o.side === actor.side && o !== actor && !o.sentOff);
   const closingTime = Math.min(
     Infinity,
@@ -426,7 +462,11 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
           return {
             speed,
             flight: variant.lob ? Math.max(1.15, length / speed) : ground.flight,
-            leadTime: clamp((variant.lob ? Math.max(1.15, length / speed) : ground.flight) * 0.45, 0, 0.65),
+            leadTime: clamp(
+              (variant.lob ? Math.max(1.15, length / speed) : ground.flight) * 0.45,
+              0,
+              0.65,
+            ),
           };
         },
         targetForPass = (plan) => {
@@ -458,11 +498,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
                   ? Math.min(variant.lead, physicalLead)
                   : 0;
           return {
-            x: clamp(
-              mate.pos.x + mate.velocity.x * plan.leadTime + direction * lead,
-              2.5,
-              102.5,
-            ),
+            x: clamp(mate.pos.x + mate.velocity.x * plan.leadTime + direction * lead, 2.5, 102.5),
             z: clamp(mate.pos.z + mate.velocity.z * plan.leadTime, 2.5, 65.5),
           };
         };
@@ -595,7 +631,12 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         clamp((forward - 10) / 12, 0, 1) *
         clamp((localX(target.x, direction) - 70) / 20, 0, 1);
       const utility =
-        success * continuationValue(target, mate, actors, direction) -
+        success *
+          continuation(
+            target,
+            mate,
+            flight + 0.12 + (100 - ability(mate.player, 'firstTouch')) * 0.004,
+          ) -
         (1 - success) * lost * (cross ? 0.6 : 1) +
         (cross ? deliveryThreat(mate, target, direction, variant, success) * 0.25 : 0) +
         midfieldOutletValue(tactical, mate, forward, success, space) +
@@ -682,7 +723,13 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         mode: option.mode,
         quality: q,
         utility:
-          success * continuationValue(destination, actor, actors, direction) -
+          success *
+            continuation(
+              destination,
+              actor,
+              arrivalTime(actor, destination, option.mode, 0.08),
+              option.mode,
+            ) -
           (1 - success) * lost +
           option.bonus * 0.25 -
           option.ownRisk * 0.4 -

@@ -1,6 +1,8 @@
 # 比赛模块
 
-当前已部署引擎（PR #64）`0.43.0-counter-runs` / `counter-runs-1`。本地未部署候选`0.44.0-live-manager`增加本队实时管理板，不改变AI比赛或物理规则。生产版反击、协同压迫和体能规则及其比赛限制见[反击跑位复核](design/COUNTER_RUNS_V0430.md)、[防守协同复核](design/DEFENSIVE_COORDINATION_V0420.md)和[战术身份校准](design/TACTICAL_IDENTITY_V0410.md)。历史报告/回放不重算，历史球员与存档不改写。
+0.45.0候选增加[远射窗口比较](design/SHOT_WINDOWS_V0450.md)：16～24米渐进接入，当前射门与传带到达后的机会使用个人散布、身体准备和已观察防守运动评估。高远射/信心形成有条件的射门偏好；确实能安全推进时仍带，封线/更好接应仍可传。只改决策估值，原出球随机顺序、飞行/误差、球速和进球物理保持；没有动作配额、存档迁移或公开诊断。引擎`0.45.0-shot-windows` / `shot-windows-1`，旧任务结算后方可切换。
+
+本次发布前生产引擎为`0.44.0-live-manager` / `live-manager-1`，含本队实时管理板。生产版反击、协同压迫和体能规则及其比赛限制见[反击跑位复核](design/COUNTER_RUNS_V0430.md)、[防守协同复核](design/DEFENSIVE_COORDINATION_V0420.md)和[战术身份校准](design/TACTICAL_IDENTITY_V0410.md)。历史报告/回放不重算，历史球员与存档不改写。
 
 0.35.0-fatigue-calibration / physiology-2是0.36.0之前的生产版本：延续0.34射门风险与真实碰撞裁判模型，并将持续体能消耗基准系数由0.32调至0.64。四战术×两种子对照显示终场体能与冲刺距离更接近欧洲赛事参考，而总跑动/高速跑基本保持；传球与控球阶段时长仍未改善。历史对照见[体能与节奏校准](design/MATCH_FATIGUE_CALIBRATION_V0350.md)及[欧洲比赛复核](design/EUROPEAN_MATCH_REALISM_20261023.md)。
 
