@@ -6,7 +6,9 @@ export function lockerRoster(
   key = 'overall',
   direction = 'descending',
   lineup = [],
+  query = '',
 ) {
+  const search = query.trim().toLocaleLowerCase('zh-CN').replace(/^#/, '');
   const value = (p) =>
     key === 'status'
       ? Number(lineup.includes(p.id))
@@ -14,7 +16,13 @@ export function lockerRoster(
         ? (roles[p.role] ?? 4)
         : p[key];
   return players
-    .filter((p) => filter === 'ALL' || p.role === filter)
+    .filter(
+      (p) =>
+        (filter === 'ALL' || p.role === filter) &&
+        (!search ||
+          p.name.toLocaleLowerCase('zh-CN').includes(search) ||
+          String(p.number) === search),
+    )
     .sort((a, b) => {
       const av = value(a),
         bv = value(b);
@@ -26,15 +34,4 @@ export function lockerRoster(
           : Number(av) - Number(bv);
       return comparison * (direction === 'ascending' ? 1 : -1) || a.id.localeCompare(b.id);
     });
-}
-export function lockerPage(players, requestedPage, capacity) {
-  const size = Number.isFinite(capacity) ? Math.max(1, Math.floor(capacity)) : 7;
-  const pages = Math.max(1, Math.ceil(players.length / size));
-  const page = Math.max(0, Math.min(pages - 1, Math.floor(requestedPage) || 0));
-  return {
-    page,
-    pages,
-    offset: page * size,
-    players: players.slice(page * size, (page + 1) * size),
-  };
 }
