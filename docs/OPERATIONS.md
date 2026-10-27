@@ -1,5 +1,17 @@
 # 部署与恢复
 
+## 2026-10-27 发布：全站卡通球会场景
+
+用户确认纵深院子风格后，PR #72合并并部署，生产build为`1f0a032abdc10a4c087338814e5479acf00f49b7`。院子、逐排更衣柜、体育报/电视/录像档案及战术、训练、球探、财务和主场工作台全部接入同一套原创美术。七张WebP共2007308字节，按房间加载，院子首屏390864字节；无新运行依赖、存档迁移、数据改写或比赛重算。保留PR #73的`--liftoff-only`、四项malloc环境变量、单Worker、512 MiB服务限制及原0.44.0引擎。
+
+本机108项冒烟/定向、类型与生产构建通过；PR和合并main的Node22/24 CI均通过，match/season/physicalSeason=false。浏览器在1280/390px验证所有房间、23人战术照片标签与11人排阵、七个训练区域、球员档案及88条财务记录可达；没有提交签约/训练/扩建或推进比赛。历史战报与保存轨迹回放在本次场景开发时已验收，不重新模拟。
+
+发布前无未结算任务。一致离机备份为`C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-scenes-20261027-1f0a032.sqlite`，VM原件为`/var/backups/touchline-manager/touchline-pre-scenes-20261027-1f0a032.sqlite`，118398976字节；两端SHA-256均为`9a3dee625f04f6cadde62f34922c949bf4aa6e80df7b643f54b1a2d165f3c1fd`，integrity_check和六表指纹通过。安装脚本另生成`/var/backups/touchline-manager/touchline-2026-10-27T00-59-06-178Z.sqlite`。
+
+发布包SHA-256为`c6bb9bcaef77c438b1f0a40c5e890c3883816e75d7b1ed99e7de1f281dadbb08`，本机构建后通过原install.sh安装；合并树与已审查PR树一致。停服前、停服后、启动后及公网验收清理后，六表全列/BLOB逻辑指纹均与发布前一致：2个原有存档、52条操作、24条回放、67份战报、3个完成任务、1080个轨迹片段。公网验收仅创建独立空存档，核对其20人公开名单与实际浏览器一致、无任何玩法记录后，事务清理该单条记录；未删除或改写原有存档。
+
+公网与本机health均返回上述build；首页、JS/CSS和七张WebP均为HTTP200且MIME正确。公网真实浏览器逐页进入院子/更衣室/战术/训练/球探/财务/主场/报纸/榜单/档案，390px重点房间无整页横向溢出，控制台无错误。验收后服务、Caddy与备份timer为active，NRestarts=0，空闲MemoryCurrent约52.3 MiB（不是容量测试）。临时备份传输副本与测试名单已精确删除，旧release及一致离机备份保留。
+
 ## 2026-10-27 发布：实时观战运行内存
 
 PR #73 已部署，生产build `94ff240768d3b5d9be6070bc60b70be275d2f858`，引擎保持 `0.44.0-live-manager`。systemd增加 `--liftoff-only` 与 `MALLOC_ARENA_MAX=2`、三个128 KiB malloc阈值，针对Rapier WASM编译峰值和glibc空闲页保留。服务512 MiB、单Worker、JS128 MiB及5×/5 Hz保持；无存档迁移。Node升级需重新验证V8测试性质开关的兼容性和吞吐；回滚必须恢复旧release的unit及对应BUILD_SHA并daemon-reload/restart，不能只切换current链接。测量、失败样本和固定报告/轨迹哈希见[模块记录](../packages/server/src/design/LIVE_MEMORY_RUNTIME_20261027.md)。
