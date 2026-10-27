@@ -1,6 +1,6 @@
 # 首版玩法契约
 
-0.45.0远射窗口候选：禁区外的射门选择会读取个人远射散布、身体朝向/准备、门将和封线，以及传带到达时预计还有多少机会。远射专长与当前信心形成有限倾向，但不保证每次空位都射；前方安全时仍可推进，封线或更好的队友机会仍会改变选择。16米内既有终结逻辑保持，实际足球与接触/进球判定不改，无射门次数或远射比例目标。设计、完整测试和边界见[SHOT_WINDOWS_V0450](../packages/shared/modules/matches/design/SHOT_WINDOWS_V0450.md)，发布状态以OPERATIONS为准。
+0.45.0远射窗口已上线：禁区外的射门选择会读取个人远射散布、身体朝向/准备、门将和封线，以及传带到达时预计还有多少机会。远射专长与当前信心形成有限倾向，但不保证每次空位都射；前方安全时仍可推进，封线或更好的队友机会仍会改变选择。16米内既有终结逻辑保持，实际足球与接触/进球判定不改，无射门次数或远射比例目标。设计、完整测试和边界见[SHOT_WINDOWS_V0450](../packages/shared/modules/matches/design/SHOT_WINDOWS_V0450.md)，发布状态以OPERATIONS为准。
 
 已发布 `0.43.0-counter-runs`（PR #64）：合并0.41战术差异、0.42防守协同和反击增强。控球根据压力/空间回收与转移；边路提高突破、内切和传中；反击提供合法压线跑位、地面/过顶身后球，并按跑者速度和出球者视野/传球比较候选。防守会随球补位、必要时围抢，同时承担漏防风险。十场完整小样本4 pass/6 review、0 block/无分布告警；高压反击的两次身后球仍未接成，不能据此声称比赛整体已校准。算法、决策图和限制见[反击跑位复核](../packages/shared/modules/matches/design/COUNTER_RUNS_V0430.md)、[防守协同复核](../packages/shared/modules/matches/design/DEFENSIVE_COORDINATION_V0420.md)和[战术身份校准](../packages/shared/modules/matches/design/TACTICAL_IDENTITY_V0410.md)。
 
