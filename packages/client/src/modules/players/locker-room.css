@@ -1,0 +1,502 @@
+.locker-room {
+  position: relative;
+  min-height: calc(100dvh - 70px);
+  background: #326d64 url('/art/scenes/locker-room-cartoon-v3.webp') center top / cover;
+  padding: 24px 4% 30px;
+  color: #f5e5bf;
+  isolation: isolate;
+}
+.locker-room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #18232a12;
+  z-index: -1;
+}
+.locker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+.locker-heading > div {
+  background: #214d4b;
+  border: 3px solid #18232a;
+  border-radius: 4px 8px 3px 6px;
+  padding: 8px 14px;
+  box-shadow: 3px 4px #18232a;
+}
+.locker-heading h1 {
+  font-size: 32px;
+  color: #fff0c9;
+  text-shadow: 2px 3px #10282b;
+}
+.locker-heading p {
+  color: #eee0c2;
+  font-size: 12px;
+  text-shadow: 1px 1px #10282b;
+}
+.locker-clipboard {
+  position: relative;
+  z-index: 5;
+  max-width: 340px;
+}
+.locker-clipboard summary {
+  cursor: pointer;
+  color: #253d37;
+  background: #e4d1a3;
+  padding: 12px 16px;
+  border: 2px solid #182e33;
+  border-radius: 3px;
+  transform: rotate(2deg);
+  font-weight: 750;
+  font-size: 12px;
+}
+.locker-clipboard[open] .assessment-office {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: min(400px, 85vw);
+  background: #f3e5c0;
+  color: #2b4439;
+  display: block;
+  padding: 20px;
+  border: 3px solid #243b37;
+  box-shadow: 5px 5px #142d3580;
+}
+.locker-clipboard .assessment-office p,
+.locker-clipboard .assessment-office small {
+  color: #4c6653;
+  font-size: 12px;
+}
+.locker-clipboard .assessment-office button {
+  margin-top: 12px;
+}
+.locker-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 14px;
+  color: #f5e6bf;
+  background: #214d4b;
+  border: 3px solid #18232a;
+  border-radius: 4px 8px 5px 7px;
+  margin-bottom: 16px;
+  box-shadow: 3px 4px #18232a;
+}
+.locker-filters {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.locker-filters button {
+  background: none;
+  color: #ebdfc1;
+  font-size: 12px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+.locker-filters button[aria-pressed='true'] {
+  background: #dfb666;
+  color: #203a34;
+  border-color: #102c31;
+}
+.locker-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.locker-controls select {
+  padding: 7px 9px;
+  background: #e8d6ad;
+  border: 1px solid #263a31;
+  color: #233b34;
+  border-radius: 2px;
+}
+.locker-cabinets {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 4px;
+  padding: 18px 14px 0;
+  margin-top: 70px;
+  border-top: 15px solid #b99648;
+  border-left: 11px solid #b99648;
+  border-right: 11px solid #8b683a;
+  border-radius: 5px 8px 0 0;
+  background: #214d4b;
+  outline: 3px solid #18232a;
+  box-shadow: 6px 5px #18232a;
+}
+.locker-cabinets::after {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -11px;
+  right: -11px;
+  border-top: 3px solid #18232a;
+}
+.player-locker {
+  background: #326d64;
+  color: #f8eaca;
+  border: 3px solid #18232a;
+  border-right: 5px solid #18232a;
+  border-radius: 15px 5px 12px 6px;
+  padding: 0;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 365px;
+  box-shadow: inset 8px 0 #214d4b;
+}
+.player-locker:nth-child(3n + 1) {
+  transform: translateY(-5px) rotate(-1.2deg);
+}
+.player-locker:nth-child(3n + 2) {
+  transform: translateY(3px) rotate(1.1deg);
+}
+.player-locker:nth-child(3n) {
+  transform: rotate(-0.6deg);
+}
+.player-locker::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  right: 10px;
+  height: 16px;
+  border-block: 3px solid #18232a;
+  background: none;
+}
+.locker-hook {
+  position: absolute;
+  top: 53px;
+  left: 57%;
+  width: 8px;
+  height: 15px;
+  border: 3px solid #c1b27e;
+  border-radius: 50% 50% 4px 4px;
+  box-shadow: 1px 2px #102829;
+}
+.locker-shirt {
+  position: absolute;
+  top: 120px;
+  left: 14%;
+  width: 72%;
+  height: 140px;
+  color: #3b7660;
+  filter: drop-shadow(3px 4px 0 #18232a);
+  transition: transform 0.2s;
+}
+.locker-shirt .shirt-trim {
+  fill: #e4cc8d;
+}
+.locker-shirt .shirt-shadow {
+  fill: #244c43;
+}
+.player-locker[data-role='GK'] .locker-shirt {
+  color: #c8a053;
+}
+.locker-shirt text {
+  fill: #eee0b8;
+  font:
+    850 33px 'Segoe UI',
+    sans-serif;
+  text-anchor: middle;
+  stroke: none;
+}
+.locker-photo {
+  position: absolute;
+  top: 40px;
+  left: 12%;
+  padding: 4px 4px 13px;
+  background: #e7ddbd;
+  border: 2px solid #18232a;
+  border-radius: 2px 5px 2px 4px;
+  box-shadow: 3px 4px 0 #18232a;
+  transform: rotate(-5deg);
+  width: 76%;
+  transition: transform 0.2s;
+}
+.locker-photo::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 30%;
+  width: 39%;
+  height: 12px;
+  background: #d8b36bad;
+  transform: rotate(-3deg);
+  z-index: 1;
+}
+.locker-photo > .pm-portrait {
+  width: 100%;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.locker-overall {
+  position: absolute;
+  right: 6px;
+  top: 43px;
+  min-width: 30px;
+  padding: 5px 3px;
+  background: #d7bd76;
+  color: #203b34;
+  border: 2px solid #18232a;
+  font-size: 17px;
+  font-weight: 850;
+  transform: rotate(5deg);
+}
+.locker-nameplate {
+  margin-top: auto;
+  display: block;
+  width: calc(100% - 12px);
+  padding: 8px 4px;
+  background: #e0c591;
+  color: #213a34;
+  border: 2px solid #263b32;
+  box-shadow: 0 2px #152b2e;
+}
+.locker-nameplate b {
+  display: block;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.locker-nameplate small {
+  font-size: 11px;
+  display: block;
+  margin-top: 4px;
+  color: #405a45;
+}
+.locker-state {
+  padding: 10px 6px;
+  width: 100%;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  font-size: 11px;
+  color: #dfdfba;
+}
+.locker-state .locker-energy {
+  display: inline-block;
+  width: 26px;
+  height: 5px;
+  background: #142e2b;
+}
+.locker-energy i {
+  display: block;
+  height: 100%;
+  background: #c6d286;
+}
+.player-locker[data-fitness='low'] .locker-energy i {
+  background: #de9071;
+}
+.player-locker:hover .locker-photo,
+.player-locker:focus-visible .locker-photo {
+  transform: rotate(-1deg) translateY(-4px);
+}
+.player-locker:hover .locker-shirt,
+.player-locker:focus-visible .locker-shirt {
+  transform: rotate(3deg);
+}
+.player-locker:hover {
+  border-color: #d5b56b;
+  border-right-color: #be9352;
+}
+.locker-bench {
+  position: relative;
+  height: 28px;
+  margin: -1px -1% 0;
+  background: #b99648;
+  border: 3px solid #18232a;
+  border-radius: 4px 7px 3px 5px;
+  box-shadow: 0 7px #18232a;
+}
+.locker-bench::before,
+.locker-bench::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  width: 15px;
+  height: 30px;
+  background: #513d29;
+  border: 2px solid #24332c;
+}
+.locker-bench::before {
+  left: 9%;
+}
+.locker-bench::after {
+  right: 9%;
+}
+.locker-page-controls {
+  margin: 45px auto 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 9px 12px;
+  background: #214d4b;
+  border: 3px solid #18232a;
+  border-radius: 5px 10px 4px 8px;
+  box-shadow: 3px 4px #18232a;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  justify-content: center;
+  color: #f3e3be;
+  font-size: 12px;
+}
+.locker-page-controls [role='status'] {
+  min-width: 0;
+  text-align: center;
+}
+.locker-page-controls button {
+  padding: 10px 16px;
+  background: #dabb7a;
+  color: #253d34;
+  border: 2px solid #24362f;
+  box-shadow: 2px 3px #172f33;
+  border-radius: 3px;
+  font-weight: 750;
+}
+.locker-guidance {
+  text-align: center;
+  font-size: 12px;
+  color: #ead9b6;
+  padding: 14px 0 4px;
+  text-shadow: 1px 1px #1c3634;
+}
+.locker-empty {
+  grid-column: 1/-1;
+  padding: 90px 0;
+  text-align: center;
+}
+@media (min-width: 1450px) {
+  .player-locker {
+    height: 420px;
+  }
+  .locker-shirt {
+    top: 158px;
+    height: 170px;
+  }
+}
+@media (max-width: 1000px) and (min-width: 701px) {
+  .locker-room {
+    padding: 20px 2%;
+  }
+  .locker-cabinets {
+    gap: 2px;
+    padding: 13px 3px 0;
+    border-left-width: 5px;
+    border-right-width: 5px;
+  }
+  .player-locker {
+    height: 320px;
+  }
+  .locker-photo {
+    left: 9%;
+    width: 79%;
+  }
+  .locker-shirt {
+    top: 115px;
+    height: 115px;
+  }
+  .locker-nameplate b {
+    font-size: 11px;
+  }
+  .locker-overall {
+    font-size: 15px;
+    min-width: 25px;
+  }
+}
+@media (max-width: 700px) {
+  .locker-room {
+    padding: 20px 13px 30px;
+    background-position: center top;
+  }
+  .locker-heading {
+    align-items: start;
+    gap: 8px;
+  }
+  .locker-heading h1 {
+    font-size: 28px;
+  }
+  .locker-heading p {
+    font-size: 11px;
+    max-width: 185px;
+  }
+  .locker-clipboard summary {
+    padding: 9px;
+    font-size: 11px;
+  }
+  .locker-controls {
+    display: block;
+    padding: 10px 8px;
+  }
+  .locker-controls label {
+    margin-top: 10px;
+    justify-content: space-between;
+  }
+  .locker-filters {
+    gap: 1px;
+    justify-content: space-between;
+  }
+  .locker-filters button {
+    padding: 8px 9px;
+    font-size: 12px;
+  }
+  .locker-cabinets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 32px;
+    padding: 8px 3px 0;
+    border-left-width: 5px;
+    border-right-width: 5px;
+  }
+  .player-locker {
+    height: 340px;
+  }
+  .locker-photo {
+    width: 80%;
+    left: 7%;
+  }
+  .locker-shirt {
+    top: 125px;
+    height: 120px;
+  }
+  .locker-nameplate b {
+    font-size: 12px;
+  }
+  .locker-overall {
+    font-size: 15px;
+    min-width: 25px;
+    right: 2px;
+  }
+  .locker-state {
+    flex-wrap: wrap;
+    font-size: 11px;
+    gap: 5px;
+  }
+  .locker-page-controls {
+    gap: 12px;
+    padding: 8px;
+  }
+  .locker-page-controls button {
+    padding: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .locker-photo,
+  .locker-shirt {
+    transition: none;
+  }
+}

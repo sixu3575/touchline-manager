@@ -5,6 +5,7 @@ import { PanelHead } from '../../components/ui';
 import { styleNames } from '../../constants';
 import type { Club, Game, Player } from '../../model';
 import { Pitch } from '../matches';
+import { PlayerPortrait } from '../players';
 export function Tactics({
   club,
   act,
@@ -60,12 +61,15 @@ export function Tactics({
             <RefreshCw size={16} /> 自动排阵
           </button>
         </div>
-        <div className="lineup-choices">
+        <div className="lineup-choices" tabIndex={0} role="group" aria-label="首发与替补球员标签">
           {club.players.map((p) => {
             const fitness = Math.max(0, Math.min(100, Math.round(p.fitness)));
             const fitnessBand = fitness < 50 ? 'low' : fitness < 75 ? 'medium' : 'high';
             return (
-              <label key={p.id} className={lineup.includes(p.id) ? 'chosen' : ''}>
+              <label
+                key={p.id}
+                className={'lineup-member ' + (lineup.includes(p.id) ? 'chosen' : '')}
+              >
                 <input
                   type="checkbox"
                   checked={lineup.includes(p.id)}
@@ -77,6 +81,7 @@ export function Tactics({
                     )
                   }
                 />
+                <PlayerPortrait player={p} size={36} decorative />
                 <span className="position-label">{p.role}</span>
                 <b>{p.name}</b>
                 <span title="总能力值">{p.overall ?? '—'}</span>
