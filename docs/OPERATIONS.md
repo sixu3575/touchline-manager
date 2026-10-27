@@ -1,5 +1,19 @@
 # 部署与恢复
 
+## 2026-10-27 发布：多人带球路线与协同风险
+
+PR #78已合并并部署，生产build `b3363ee7e52d9cb7643aca55ee3662e3744627e3`，引擎`0.46.0-carry-routes` / `carry-routes-1`。每名防守者沿路线选择一次代表性接触窗口，估计整段条件保球风险，区分同时合围与先后拦抢；取消固定按人数扣分及最低12%保球估值。射门分数、真实技术对抗与物理不改，无新属性/依赖/存档迁移/公开诊断，历史不重算。数学、图文、完整样本和局限见[多人路线设计](../packages/shared/modules/matches/design/CARRY_ROUTES_V0460.md)。
+
+本机`npm run check`通过73项冒烟/业务、155项比赛单元、16项真实比赛/API/检查点集成、类型及生产构建，共302.8秒。基线/候选各10场90分钟，候选3 pass/7 review/0 block、无分布警报；review仍为低速跑动距离占比和控球队917次传球。进球方差上升且含两场0:5，保留结果，不能宣称整体已完全拟真。PR的Node22/24 CI均一次通过，分别9分38秒/8分56秒；原测试门槛、并发和工作流不变。match=true、season=false、physicalSeason=false，没有赛季模拟。
+
+现机以正式Node22及原内存参数独立测试90分钟分片Worker并跨半场恢复：323.6秒，首片1702ms/P95 1607ms/最慢2094ms，小于5×播放的3000ms分片预算，OS RSS高水位280.6MiB。探针不读写生产存档，设置384MiB上限并在玩家开赛时停止；临时服务/源码目录已精确清理。正式512MiB、单Worker、`--liftoff-only`与四项malloc变量保持。
+
+发布前没有未结束任务。一致离机备份为`C:\Users\siyan\Documents\Codex\private-backups\touchline-manager\touchline-pre-carry-routes-20261027.sqlite`，VM原件`/var/backups/touchline-manager/touchline-pre-carry-routes-20261027.sqlite`，160096256字节，SHA-256 `ff30d7dd898077b86bfa7daf6ac988f5fb19f6d562c0539fdfaf277639757f9e`，两端完整性和六表全列/BLOB指纹通过。安装脚本另生成`/var/backups/touchline-manager/touchline-2026-10-27T09-59-00-087Z.sqlite`。
+
+合并树与已测试PR树一致，按合并提交本机构建并使用原install.sh；发布包5385248字节，SHA-256 `651d9d677db92e1e40e7ba925c97e459db851553c9e1ae47991602ab27d1761a`。部署后及浏览器验收清理后，六表全列/BLOB指纹与发布前一致：2个存档、53条操作、25条回放、71份战报、3个完成任务、1080个轨迹片段，integrity_check为ok。独立匿名浏览器核对20人名单翻页和开赛入口，无玩法写请求/JS错误；确认该临时存档没有任何玩法记录后仅清理该条记录。
+
+本机/公网health均返回上述build，正式carry-route/carrying源码SHA-256与Git对象一致；服务/Caddy/备份timer均active，NRestarts=0，验收后空闲MemoryCurrent约47.4MiB（不是比赛峰值）。旧release `23a91467fa0c5665a5391c58511ed23a65cd9084`保留；回滚前须排空新任务，恢复旧current、unit及BUILD_SHA再重启，不用旧引擎恢复新检查点，不覆盖玩家进度。
+
 ## 2026-10-27 发布：远射窗口与射门专长
 
 PR #76已合并并部署，生产build `23a91467fa0c5665a5391c58511ed23a65cd9084`，引擎`0.45.0-shot-windows` / `shot-windows-1`。按个人射门散布、身体准备与防线收拢比较即时射门和继续传带；未改实际出球随机顺序、球速或进球物理，无存档迁移/历史重算/公开诊断。算法、逐场结果和方差见[远射窗口设计](../packages/shared/modules/matches/design/SHOT_WINDOWS_V0450.md)，决策图第5/6图、属性索引、SVG与来源摘要同步。
