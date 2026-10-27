@@ -114,8 +114,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.45.0-shot-windows';
-export const PARAMETER_VERSION = 'shot-windows-1';
+export const ENGINE_VERSION = '0.46.0-carry-routes';
+export const PARAMETER_VERSION = 'carry-routes-1';
 export const SAMPLE_HZ = 5;
 export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
