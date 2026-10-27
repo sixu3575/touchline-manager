@@ -26,6 +26,12 @@ test('published VM memory options preserve real worker checkpoint, halftime, eve
     .slice(10)
     .split(/\s+/);
   const flags = command.slice(1, -1);
+  const allocatorEnvironment = Object.fromEntries(
+    [...unit.matchAll(/^Environment=(MALLOC_[A-Z_]+)=(\d+)\s*$/gm)].map((match) => [
+      match[1],
+      match[2],
+    ]),
+  );
   const gameUrl = new URL('../../packages/shared/game.mjs', import.meta.url).href;
   const matchUrl = new URL('../../packages/shared/modules/matches/index.mjs', import.meta.url).href;
   const workerUrl = new URL('../../packages/server/src/simulation-worker.mjs', import.meta.url)
@@ -54,6 +60,7 @@ test('published VM memory options preserve real worker checkpoint, halftime, eve
       timeout: 30000,
       maxBuffer: 8 * 1024 * 1024,
       windowsHide: true,
+      env: { ...process.env, ...allocatorEnvironment },
     }));
   } finally {
     rmSync(directory, { recursive: true, force: true });

@@ -8,7 +8,12 @@ User=football
 Group=football
 WorkingDirectory=/srv/touchline-manager/current
 EnvironmentFile=/etc/touchline-manager.env
-ExecStart=/usr/bin/node --max-old-space-size=128 --max-semi-space-size=4 --wasm-num-compilation-tasks=1 --wasm-lazy-compilation /srv/touchline-manager/current/packages/server/src/index.mjs
+# Bound glibc arenas and return large temporary compiler allocations promptly.
+Environment=MALLOC_ARENA_MAX=2
+Environment=MALLOC_MMAP_THRESHOLD_=131072
+Environment=MALLOC_TRIM_THRESHOLD_=131072
+Environment=MALLOC_TOP_PAD_=131072
+ExecStart=/usr/bin/node --max-old-space-size=128 --max-semi-space-size=4 --wasm-num-compilation-tasks=1 --wasm-lazy-compilation --liftoff-only /srv/touchline-manager/current/packages/server/src/index.mjs
 Restart=on-failure
 RestartSec=3
 MemoryMax=512M
