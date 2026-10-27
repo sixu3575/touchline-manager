@@ -21,6 +21,7 @@ import {
   goalCrossing,
 } from '../../packages/shared/modules/matches/physics.mjs';
 import { carryOptions } from '../../packages/shared/modules/matches/carrying.mjs';
+import { carryRouteRisk } from '../../packages/shared/modules/matches/carry-route.mjs';
 import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
 import {
   onTargetEstimate,
@@ -78,6 +79,163 @@ function decisions(p, others, direction = 1, time = 10) {
   }
   return counts;
 }
+
+function routeFixture(layout = 'sequence', dribbling = 65, direction = 1) {
+  const x = (n) => (direction === 1 ? n : 105 - n);
+  const carrier = controlled(
+    'route-carrier',
+    0,
+    x(80.4),
+    34,
+    {
+      dribbling,
+      agility: 60,
+      balance: 70,
+      longShots: 85,
+      finishing: 85,
+      decisions: 95,
+      composure: 85,
+    },
+    'FWD',
+  );
+  carrier.facing = direction === 1 ? 0 : Math.PI;
+  const defenders =
+    layout === 'pair'
+      ? [controlled('route-d1', 1, x(87), 32), controlled('route-d2', 1, x(87), 36)]
+      : [controlled('route-d1', 1, x(84), 33), controlled('route-d2', 1, x(90), 35)];
+  const ball = { x: x(81), z: 34, y: 0.11 },
+    destination = { x: x(90), z: 34 };
+  const evaluate = (opponents = defenders) =>
+    carryRouteRisk(carrier, ball, destination, 'carry', opponents, [carrier, ...opponents], 10);
+  return { carrier, defenders, ball, destination, evaluate };
+}
+
+test('route survival includes both sequential defenders and keeps open advancement useful in either direction', () => {
+  for (const direction of [1, -1]) {
+    const f = routeFixture('sequence', 65, direction);
+    const one = f.evaluate([f.defenders[0]]),
+      two = f.evaluate(),
+      open = f.evaluate([]);
+    assert.equal(open.survival, 1);
+    assert.equal(two.encounters.length, 2);
+    assert.ok(two.survival < one.survival * 0.7, 'the second reachable line is not ignored');
+    assert.ok(two.survival > 0, 'risk is an estimate rather than an automatic loss');
+    assert.ok(two.encounters[1].own > two.encounters[0].own);
+    assert.equal(two.cover, 0, 'later protection is not simultaneous help');
+  }
+});
+
+test('a defender is counted once across route samples and duplicate input, independently of input order', () => {
+  const f = routeFixture();
+  const normal = f.evaluate(),
+    reversed = f.evaluate([...f.defenders].reverse());
+  assert.equal(normal.survival, reversed.survival);
+  const first = f.evaluate([f.defenders[0]]);
+  const duplicate = carryRouteRisk(
+    f.carrier,
+    f.ball,
+    f.destination,
+    'carry',
+    [f.defenders[0], f.defenders[0]],
+    [f.carrier, f.defenders[0]],
+    10,
+  );
+  assert.equal(duplicate.survival, first.survival);
+  assert.equal(duplicate.encounters.length, 1);
+});
+
+test('personal dribbling and the actual defenders tackling change the whole-route survival estimate', () => {
+  const raw = routeFixture('sequence', 35),
+    skilled = routeFixture('sequence', 95);
+  assert.ok(skilled.evaluate().survival > raw.evaluate().survival * 2);
+  const f = routeFixture();
+  for (const d of f.defenders) d.player.attributes.tackling = 35;
+  const weakDefence = f.evaluate();
+  for (const d of f.defenders) d.player.attributes.tackling = 95;
+  const strongDefence = f.evaluate();
+  assert.ok(strongDefence.survival < weakDefence.survival);
+  assert.equal(
+    strongDefence.danger,
+    weakDefence.danger,
+    'tackling does not secretly increase speed',
+  );
+});
+
+test('simultaneous support depends on overlap and defensive coordination rather than a flat extra-player deduction', () => {
+  const f = routeFixture('pair');
+  for (const d of f.defenders)
+    Object.assign(d.player.attributes, { anticipation: 25, positioning: 25, teamwork: 25 });
+  const loose = f.evaluate();
+  for (const d of f.defenders)
+    Object.assign(d.player.attributes, { anticipation: 95, positioning: 95, teamwork: 95 });
+  const coordinated = f.evaluate();
+  assert.ok(loose.cover > 0);
+  assert.ok(coordinated.cover > loose.cover);
+  assert.ok(coordinated.survival < loose.survival);
+});
+
+test('unavailable or unreachable defenders do not create phantom encounters and route estimates do not mutate actors', () => {
+  const f = routeFixture();
+  for (const d of f.defenders) d.tackleAt = 18;
+  assert.equal(f.evaluate().encounters.length, 0, 'a missed challenge is still recovering');
+  for (const d of f.defenders) {
+    d.tackleAt = 0;
+    d.sentOff = true;
+  }
+  assert.equal(f.evaluate().survival, 1);
+  const far = controlled('unreachable', 1, 1, 65);
+  assert.equal(f.evaluate([far]).survival, 1);
+  for (const d of f.defenders) d.sentOff = false;
+  const inputs = {
+    carrier: f.carrier,
+    defenders: f.defenders,
+    ball: f.ball,
+    destination: f.destination,
+  };
+  const before = structuredClone(inputs);
+  f.evaluate();
+  assert.deepEqual(inputs, before);
+});
+
+test('the route model changes real choices without suppressing open carries or single-defender skill', () => {
+  const choices = (skill, pair) => {
+    const f = routeFixture('sequence', skill);
+    f.defenders[0].pos = { x: 86, z: 33 };
+    const opponents = pair ? f.defenders : [f.defenders[0]];
+    const keeper = controlled('route-gk', 1, 104, 34, {}, 'GK');
+    const count = { shot: 0, forward: 0, escape: 0 };
+    for (let seed = 1; seed <= 100; seed++) {
+      const a = structuredClone(f.carrier);
+      const result = chooseAction(
+        a,
+        [a, ...structuredClone(opponents), keeper],
+        f.ball,
+        1,
+        { style: 'balanced' },
+        random(seed),
+        { time: 10 },
+      );
+      if (result.type === 'shot') count.shot++;
+      if (result.type === 'dribble') {
+        if (result.destination.x > f.ball.x + 1) count.forward++;
+        else count.escape++;
+      }
+    }
+    return count;
+  };
+  const single = choices(35, false),
+    surrounded = choices(35, true),
+    specialist = choices(95, false);
+  assert.ok(
+    surrounded.forward + 20 < single.forward,
+    'do not carry directly through the second line',
+  );
+  assert.ok(surrounded.shot > single.shot, 'an available shot can beat the risky forward carry');
+  assert.ok(
+    specialist.forward > single.forward + 20,
+    'high dribbling still wins suitable one-on-ones',
+  );
+});
 
 test('an ordinary midfielder uses unmarked forward space instead of circulating automatically, in either direction', () => {
   for (const direction of [-1, 1]) {

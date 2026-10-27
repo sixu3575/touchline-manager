@@ -1,10 +1,9 @@
 import { clamp } from '../../core/index.mjs';
-import { ability, actionQuality } from './skills.mjs';
+import { ability } from './skills.mjs';
 import { distance, unit, segmentPoint, localX } from './spatial.mjs';
 import { tacticalPreset } from '../tactics/index.mjs';
-import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { sprintAvailable } from './activity.mjs';
-import { duelProbability } from './defending.mjs';
+import { carryRouteRisk } from './carry-route.mjs';
 import { boundaryAwareness, boundaryVelocity } from './onball.mjs';
 import { movement } from './locomotion.mjs';
 import { tacticalRoleOf } from './tactical-roles.mjs';
@@ -39,9 +38,7 @@ export function carryOptions(
     z: clamp(ball.z + lane + (34 - ball.z) * (wide ? 0 : 0.07), 3.5, 64.5),
   }));
   const cutInsideRoute =
-    wide &&
-    actor.positionRole === 'winger' &&
-    Math.abs(ball.z - 34) > 12
+    wide && actor.positionRole === 'winger' && Math.abs(ball.z - 34) > 12
       ? {
           x: clamp(ball.x + direction * forward, 1, 104),
           z: clamp(ball.z + (34 - ball.z) * 0.52, 4, 64),
@@ -65,8 +62,7 @@ export function carryOptions(
   if (persistent) routes.unshift(persistent);
   return routes.flatMap((destination) => {
     const progress = (destination.x - ball.x) * direction;
-    const heading = unit(ball, destination),
-      length = distance(ball, destination);
+    const heading = unit(ball, destination);
     const clear = !opponents.some(
       (o) =>
         distance(o.pos, ball) < 4.5 ||
@@ -78,72 +74,10 @@ export function carryOptions(
     const boundary = boundaryAwareness(actor, ball, planned);
     const safe = boundaryVelocity(actor, ball, planned);
     if (Math.hypot(safe.x, safe.z) < pace * 0.85) mode = 'carry';
-    const defenders = opponents
-      .filter((o) => distance(o.pos, ball) < 24)
-      .map((opponent) => {
-        let risk = 0,
-          carrierAdvantage = 0.5;
-        for (const fraction of [0.2, 0.4, 0.65, 1]) {
-          const point = {
-            x: ball.x + heading.x * length * fraction,
-            z: ball.z + heading.z * length * fraction,
-          };
-          const own = arrivalTime(actor, point, mode, actor.reaction ?? 0.08);
-          const theirs = arrivalTime(
-            opponent,
-            point,
-            pursuitMode(opponent, point),
-            opponent.reaction ?? 0.08,
-          );
-          const carrierAt = { ...actor, pos: point },
-            defenderAt = { ...opponent, pos: point },
-            attackers = allActors
-              .filter((a) => !a.sentOff && a.side === actor.side)
-              .map((a) => (a === actor ? carrierAt : a)),
-            defendersAtRoute = allActors
-              .filter((a) => !a.sentOff && a.side === opponent.side)
-              .map((a) => (a === opponent ? defenderAt : a)),
-            carryingQuality = actionQuality(carrierAt, point, 'dribbling', defendersAtRoute).value,
-            defendingQuality = actionQuality(defenderAt, point, 'tackling', attackers).value,
-            support = Math.min(
-              2,
-              defendersAtRoute.filter((a) => a !== defenderAt && distance(a.pos, point) < 3).length,
-            ),
-            tackleChance = duelProbability(
-              defendingQuality,
-              carryingQuality,
-              (own - theirs) / 0.6,
-              support,
-            ),
-            arrivalChance = clamp((own + 0.35 - theirs) / 1.1, 0, 1) / (1 + own * 0.12);
-          if (arrivalChance > risk) {
-            risk = arrivalChance;
-            carrierAdvantage = 1 - tackleChance;
-          }
-        }
-        // Immediate pressure still matters before a predicted interception point.
-        risk = clamp(risk + 0.6 * clamp((4 - distance(opponent.pos, ball)) / 4, 0, 1), 0, 1);
-        return {
-          opponent,
-          risk,
-          carrierAdvantage,
-          gap: segmentPoint(ball, destination, opponent.pos).gap,
-        };
-      })
-      .sort((a, b) => b.risk - a.risk);
-    const first = defenders[0],
-      near = Math.min(12, first?.gap ?? 12);
-    const danger = first?.risk ?? 0;
-    const cover = Math.min(2, defenders.slice(1).filter((d) => d.risk > 0.22).length);
-    const duel = first?.carrierAdvantage ?? 0.5;
-    const success = clamp(
-      0.97 -
-        danger * (1 - duel) -
-        0.14 * cover -
-        boundary.risk * (0.35 + 0.35 * (1 - a('dribbling') / 100)),
-      0.12,
-      0.98,
-    );
+    const route = carryRouteRisk(actor, ball, destination, mode, opponents, allActors, time);
+    const { danger, cover, duel, near } = route;
+    const success =
+      0.97 * route.survival * (1 - boundary.risk * (0.35 + 0.35 * (1 - a('dribbling') / 100)));
     const spaceBonus = 0.08 * clamp((near - 2.5) / 6, 0, 1) * clamp(progress / 8, 0, 1);
     const takeOn = danger > 0.15;
     const cutInsideBonus =
@@ -151,12 +85,9 @@ export function carryOptions(
         ? 0.04 * (0.5 + a('dribbling') / 200) * clamp((near - 2) / 5, 0, 1)
         : 0;
     const isolatedWideDuelBonus =
-      wide &&
-      actor.positionRole === 'winger' &&
-      takeOn &&
-      cover === 0 &&
-      progress > 2
-        ? 0.075 * clamp((a('dribbling') - ability(first.opponent.player, 'tackling') + 20) / 70, 0, 1)
+      wide && actor.positionRole === 'winger' && takeOn && cover === 0 && progress > 2
+        ? 0.075 *
+          clamp((a('dribbling') - ability(route.opponent.player, 'tackling') + 20) / 70, 0, 1)
         : 0;
     return [
       {
@@ -169,7 +100,7 @@ export function carryOptions(
           spaceBonus +
           quality.pressure *
             0.05 *
-            clamp((near - distance(first?.opponent?.pos ?? destination, ball)) / 5, 0, 1) +
+            clamp((near - distance(route.opponent?.pos ?? destination, ball)) / 5, 0, 1) +
           0.045 * profile.inclination +
           (0.22 * danger * Math.max(0, duel - 0.45)) / (1 + cover) +
           (destination === persistent ? 0.015 : 0) -
@@ -182,7 +113,8 @@ export function carryOptions(
           cutInsideBonus +
           isolatedWideDuelBonus +
           (tactical.fastBreak ? 0.025 * success : 0),
-        ownRisk: tacticalRoleOf(actor) === 'DEF' && localX(ball.x, direction) < 35 ? 0.05 * danger : 0,
+        ownRisk:
+          tacticalRoleOf(actor) === 'DEF' && localX(ball.x, direction) < 35 ? 0.05 * danger : 0,
         reason:
           progress < 1
             ? '横向或回撤护球，离开上抢线路并寻找接应'
