@@ -2,14 +2,19 @@ import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
 import { movement } from './locomotion.mjs';
 import { groundTravel, AIR_DRAG } from './ball-motion.mjs';
-import { distance, localX, unit } from './spatial.mjs';
+import { distance, localX, unit, segmentPoint } from './spatial.mjs';
 import { formationSlot, tacticalPreset } from '../tactics/index.mjs';
 import { attackAssignments } from './tactical-plan.mjs';
 import { arrivalTime, pursuitMode, movingBallIntercept } from './arrival.mjs';
 import { markingTarget, supportTarget } from './offball.mjs';
 import { defensiveAssignments, blockPosition, defensiveMismatch } from './defending.mjs';
 import { kickTarget } from './execution.mjs';
-import { keeperCrossing, readKeeperPreparation } from './goalkeeping.mjs';
+import {
+  keeperCrossing,
+  keeperGoalThreat,
+  keeperSweepTarget,
+  readKeeperPreparation,
+} from './goalkeeping.mjs';
 import { tacticalRoleOf } from './tactical-roles.mjs';
 
 export function formation(club) {
@@ -54,6 +59,7 @@ export function teamRoles(
     runnerId: null,
     receiveTarget: pendingPass?.target,
     passTime: pendingPass?.time,
+    receiveAt: pendingPass?.arrivalAt,
     support: [],
     teams: {},
     duties: {},
@@ -152,6 +158,9 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
     ownGoal = direction === 1 ? 0 : 105;
   if (actor.isKeeper ?? p.role === 'GK') {
     if (actor.keeperHold) return { x: ownGoal + direction * 2, z: clamp(actor.pos.z, 30.5, 37.5) };
+    const sweep =
+      !owner && chasers.includes(actor.index) ? keeperSweepTarget(actor, ball, direction) : null;
+    if (sweep) return { x: clamp(sweep.point.x - direction * 0.45, 0.3, 104.7), z: sweep.point.z };
     if (
       (chasers.includes(actor.index) || owner === actor) &&
       Math.abs(ball.x - ownGoal) < 16.5 &&
@@ -170,17 +179,20 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
             o !== actor &&
             !o.sentOff &&
             localX(o.pos.x, direction) < localX(owner.pos.x, direction) &&
+            segmentPoint(owner.pos, { x: ownGoal, z: 34 }, o.pos).gap < 2 &&
             distance(o.pos, owner.pos) < 7,
         ),
-      incomingShot = ball.vx * direction < -8 && dist < 35,
+      incomingShot =
+        Math.hypot(ball.vx, ball.vz) > 8 &&
+        dist < 35 &&
+        keeperGoalThreat(actor, ball, roles.time ?? 0),
       depth = incomingShot
         ? clamp(Math.abs(actor.pos.x - ownGoal), 0.3, 7)
         : behind && dist < 16
-          ? clamp(dist * (0.1 + a('oneOnOnes') * 0.0015), 1.2, 4)
-          : clamp(dist * 0.065, 1, 5),
+          ? clamp(dist * (0.18 + a('oneOnOnes') * 0.002), 0.3, 5)
+          : clamp(0.4 + dist * 0.12, 1, 5),
       x = ownGoal + direction * depth;
-    const intercept =
-      ball.vx * direction < 0 ? keeperCrossing(actor, ball, x, roles.time ?? 0) : null;
+    const intercept = incomingShot ? keeperCrossing(actor, ball, x, roles.time ?? 0) : null;
     const preparation =
       owner?.side !== actor.side && dist < 35
         ? readKeeperPreparation(actor, owner, x, roles.time ?? 0)
@@ -256,6 +268,9 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
         ball.y > 0.2 ? Math.log1p(AIR_DRAG * speed * t) / AIR_DRAG : groundTravel(speed, t);
       const f = travel / Math.max(0.001, speed);
       const point = { x: ball.x + ball.vx * f, z: ball.z + ball.vz * f };
+      const height = Math.max(0.11, (ball.y ?? 0.11) + (ball.vy ?? 0) * t - 4.905 * t * t);
+      if (height > (actor.height ?? 1.8) + 0.35) continue;
+      if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) break;
       if (arrivalTime(actor, point, distance(actor.pos, ball) > 5 ? 'sprint' : 'run') <= t) {
         target = point;
         break;
@@ -315,13 +330,13 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
       }
       const stand = covering
         ? shotThreat && !recovering && firstBeaten
-          ? 0.65 + caution * 1.5
-          : 2.6 + caution
+          ? 0.65 + caution * 0.35
+          : 2.6 + caution * 0.35
         : recovering
           ? 1.7
           : separation > 2.5
             ? 1.5
-            : 1.05 + caution * 1.5;
+            : 1.05 + caution * 0.35;
       return {
         x: clamp(owner.pos.x + front.x * stand + owner.velocity.x * anticipation * 0.4, 1, 104),
         z: clamp(owner.pos.z + front.z * stand + owner.velocity.z * anticipation * 0.4, 1, 67),
@@ -349,12 +364,28 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   if (!attacking && roles.marking?.[p.id]) {
     const threat = actors.find((o) => o.player.id === roles.marking[p.id]);
     const tracked = markingTarget(actor, threat, ball, direction, roles.time ?? 0);
-    const block = blockPosition(actor, ball, direction, tactics, roles.teams?.[1 - actor.side]?.style);
+    const block = blockPosition(
+      actor,
+      ball,
+      direction,
+      tactics,
+      roles.teams?.[1 - actor.side]?.style,
+    );
     // Hand off an opponent who drops far in front of this defensive line.
     // Track dangerous runs behind it fully; otherwise screen from the block.
     const depth = localX(threat.pos.x, direction) - localX(block.x, direction);
     const reading = (a('decisions') + a('anticipation') + a('positioning')) / 3;
-    const weight = clamp((12 - depth) / 12 + (reading - 50) * 0.004, 0, 1);
+    const centralDanger = localX(threat.pos.x, direction) < 22 && Math.abs(threat.pos.z - 34) < 13;
+    const responsibility =
+      tactics.press === 'low' && actor.positionRole === 'centreBack' && !centralDanger
+        ? 0.2 + 0.8 * clamp((15 - Math.abs(tracked.z - block.z)) / 10, 0, 1)
+        : 1;
+    const relevance =
+      tactics.press === 'low' && !centralDanger
+        ? 0.15 + 0.85 * clamp((24 - distance(threat.pos, ball)) / 16, 0, 1)
+        : 1;
+    const weight =
+      clamp((12 - depth) / 12 + (reading - 50) * 0.004, 0, 1) * responsibility * relevance;
     actor.markTrackingWeight = weight;
     return {
       x: tracked.x * weight + block.x * (1 - weight),
@@ -362,7 +393,13 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
     };
   }
   if (!attacking) {
-    const block = blockPosition(actor, ball, direction, tactics, roles.teams?.[1 - actor.side]?.style);
+    const block = blockPosition(
+      actor,
+      ball,
+      direction,
+      tactics,
+      roles.teams?.[1 - actor.side]?.style,
+    );
     const accuracy = (100 - (a('positioning') + a('teamwork')) / 2) / 40;
     return { x: block.x + actor.bias * accuracy, z: block.z + actor.bias * accuracy };
   }
@@ -402,7 +439,8 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
   } else if (
     attacking &&
     owner &&
-    (roles.support?.includes(p.id) || (tacticalRoleOf(actor) === 'MID' && distance(actor.pos, owner.pos) < 7))
+    (roles.support?.includes(p.id) ||
+      (tacticalRoleOf(actor) === 'MID' && distance(actor.pos, owner.pos) < 7))
   ) {
     // A distinct passing triangle, rather than a cluster around possession.
     const slot = Math.max(0, roles.support?.indexOf(p.id) ?? 0);

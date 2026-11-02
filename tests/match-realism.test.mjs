@@ -42,8 +42,7 @@ function fixture() {
     },
     performance: players.map((p) => ({
       ...p,
-      positionRole:
-        p.side === 1 && p.positionRole !== 'keeper' ? 'holdingMid' : p.positionRole,
+      positionRole: p.side === 1 && p.positionRole !== 'keeper' ? 'holdingMid' : p.positionRole,
       distance: 10000,
       maxSpeed: 8,
       energy: 60,
@@ -135,8 +134,24 @@ test('England and Scotland league benchmark compares team statistics without a p
 
 test('European league match-stat comparisons cover available countries and retain each competition variance', () => {
   const sample = [0, 1].map((index) => ({
-    home: { goals: index, shots: 8 + index, shotsOnTarget: 3, fouls: 9, corners: 3, yellowCards: 1, redCards: 0 },
-    away: { goals: 1, shots: 7, shotsOnTarget: 2, fouls: 10, corners: 4, yellowCards: 0, redCards: 0 },
+    home: {
+      goals: index,
+      shots: 8 + index,
+      shotsOnTarget: 3,
+      fouls: 9,
+      corners: 3,
+      yellowCards: 1,
+      redCards: 0,
+    },
+    away: {
+      goals: 1,
+      shots: 7,
+      shotsOnTarget: 2,
+      fouls: 10,
+      corners: 4,
+      yellowCards: 0,
+      redCards: 0,
+    },
   }));
   const result = compareMatchSampleToEuropeanLeagueStats(sample);
   assert.equal(result.status, 'descriptive-only');
@@ -178,7 +193,10 @@ test('open European event data and UEFA campaign totals stay separate and descri
   assert.equal(result.uefaCampaignAnchors[0].competition, 'UEFA Champions League');
   assert.equal(result.uefaCampaignAnchors[0].goalsPerMatch, 3.27);
   assert.match(result.interpretation, /no match-level variance/);
-  assert.throws(() => compareMatchSampleToOpenEuropeStats([{ home: row(0, 0, 0), away: row(0, 0, 0) }]), /At least two/);
+  assert.throws(
+    () => compareMatchSampleToOpenEuropeStats([{ home: row(0, 0, 0), away: row(0, 0, 0) }]),
+    /At least two/,
+  );
 });
 
 test('European goal-only benchmark keeps complete-score context separate from missing coverage', () => {
@@ -203,14 +221,19 @@ test('European goal-only benchmark keeps complete-score context separate from mi
     'official-total-cross-checked',
   );
   assert.equal(
-    result.comparisons.find((row) => row.competition === 'UEFA Champions League - Quali 2024/25').usableAsBroadContext,
+    result.comparisons.find((row) => row.competition === 'UEFA Champions League - Quali 2024/25')
+      .usableAsBroadContext,
     false,
   );
   assert.equal(references.openEuropeanGoalStats.method.domesticCompetitionRows, 66);
   assert.equal(references.openEuropeanGoalStats.method.eligibleDomesticCompetitionRows, 15);
   assert.match(result.interpretation, /no player\/action metric is inferred/);
   assert.throws(
-    () => compareMatchSampleToOpenFootballGoals([{ home: { goals: -1 }, away: { goals: 0 } }, ...sample]),
+    () =>
+      compareMatchSampleToOpenFootballGoals([
+        { home: { goals: -1 }, away: { goals: 0 } },
+        ...sample,
+      ]),
     /non-negative integer goals/,
   );
 });
@@ -235,19 +258,53 @@ test('internal tactical outcome counters attribute crosses, wide take-ons, switc
   r.snapshots[0].players[2].positionRole = 'striker';
   r.performance[1].positionRole = 'winger';
   r.performance[2].positionRole = 'striker';
-  r.continuity.chains = [[2, 5, 7], [3, 4]];
+  r.continuity.chains = [
+    [2, 5, 7],
+    [3, 4],
+  ];
   r.events = [
-    { type: 'cross', side: 0, actionId: 'cross-1', intent: 'cross', phase: 'finalThird', playerId: 'p1', receiverId: 'p2' },
-    { type: 'pass', side: 0, intent: 'switch', phase: 'midfield', playerId: 'p2', receiverId: 'p3' },
     {
-      type: 'pass', side: 0, actionId: 'through-1', intent: 'through', phase: 'counter',
-      playerId: 'p3', receiverId: 'p1', x: 30, y: 50,
-      destination: { x: 52, z: 34 }, velocity: { y: 0.08 },
+      type: 'cross',
+      side: 0,
+      actionId: 'cross-1',
+      intent: 'cross',
+      phase: 'finalThird',
+      playerId: 'p1',
+      receiverId: 'p2',
     },
     {
-      type: 'pass', side: 0, actionId: 'through-2', intent: 'through', phase: 'counter',
-      playerId: 'p2', receiverId: 'p1', x: 40, y: 50,
-      destination: { x: 70, z: 34 }, velocity: { y: 5 },
+      type: 'pass',
+      side: 0,
+      intent: 'switch',
+      phase: 'midfield',
+      playerId: 'p2',
+      receiverId: 'p3',
+    },
+    {
+      type: 'pass',
+      side: 0,
+      actionId: 'through-1',
+      intent: 'through',
+      phase: 'counter',
+      playerId: 'p3',
+      receiverId: 'p1',
+      x: 30,
+      y: 50,
+      destination: { x: 52, z: 34 },
+      velocity: { y: 0.08 },
+    },
+    {
+      type: 'pass',
+      side: 0,
+      actionId: 'through-2',
+      intent: 'through',
+      phase: 'counter',
+      playerId: 'p2',
+      receiverId: 'p1',
+      x: 40,
+      y: 50,
+      destination: { x: 70, z: 34 },
+      velocity: { y: 5 },
     },
     { type: 'dribble', side: 0, intent: 'takeOn', playerId: 'p1' },
     { type: 'passComplete', side: 0, actionId: 'cross-1' },
@@ -325,6 +382,32 @@ test('comparisons preserve source reports and flag both team and individual extr
     'looseCarry is not an opposing possession',
   );
   assert.equal(references.physical.positions.striker[4], 141);
+});
+
+test('realism separates attempted challenges from ball-contact tackles without relaxing the attempt guard', () => {
+  const r = fixture();
+  r.performance[9].tackleAttempts = 37;
+  r.performance[9].tackles = 3;
+  r.performance[9].wonTackles = 1;
+  const result = compareMatch(r),
+    p = result.players[9];
+  assert.equal(p.tackles, 3);
+  assert.equal(p.tackleAttempts, 37);
+  assert.equal(p.tackleDefinition, 'ball-contact');
+  assert.equal(
+    result.alerts.some((a) => a.scope === 'p9' && a.metric === 'tacklesPer90-extreme'),
+    false,
+  );
+  assert.ok(
+    result.alerts.some(
+      (a) =>
+        a.scope === 'p9' && a.metric === 'tackleAttemptsPer90-extreme' && a.severity === 'block',
+    ),
+  );
+  assert.equal(
+    result.teams[0].tackles,
+    r.performance.filter((p) => p.side === 0).reduce((s, p) => s + p.tackles, 0),
+  );
 });
 
 test('unknown tracking, incomplete games and missing numerical measurements cannot silently pass', () => {

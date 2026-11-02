@@ -4,6 +4,52 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, basename, sep } from 'node:path';
 import { startServer } from './helpers/api-suite.mjs';
+
+test('HTTP accepts the shared 5-4-1 formation for a live manager command', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'touchline-541-test-'));
+  const app = await startServer(
+    dir,
+    false,
+    new URL('./helpers/stream-fixtures.mjs', import.meta.url).href,
+  );
+  try {
+    const fresh = await fetch(app.url + '/api/state');
+    const cookie = fresh.headers.get('set-cookie').split(';')[0],
+      state = (await fresh.json()).state;
+    const headers = { cookie, 'content-type': 'application/json' };
+    const begin = await fetch(app.url + '/api/action', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        type: 'advance',
+        payload: {},
+        requestId: 'http-five-four-one-start',
+        revision: state.revision,
+      }),
+    });
+    assert.equal(begin.status, 202);
+    const { job } = await begin.json();
+    const response = await fetch(app.url + `/api/match-jobs/${job.id}/commands`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        requestId: 'http-five-four-one-command',
+        command: { type: 'tactics', formation: '5-4-1', style: 'counter', press: 'low' },
+      }),
+    });
+    assert.equal(response.status, 202);
+    assert.equal((await response.json()).job.manager.commands.length, 1);
+  } finally {
+    await app.stop();
+    const target = resolve(dir);
+    if (
+      !basename(target).startsWith('touchline-541-test-') ||
+      !target.startsWith(resolve(tmpdir()) + sep)
+    )
+      throw Error('Unsafe cleanup');
+    rmSync(target, { recursive: true, force: true });
+  }
+});
 test('HTTP hides staged results, future events, raw chunks and other saves while the broadcast continues', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'touchline-live-test-'));
   let app = await startServer(

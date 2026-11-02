@@ -165,9 +165,14 @@ export function orientHands(actor, ballPosition, reach, dt = null) {
   const p = actor.body.translation();
   const d = Math.hypot(ballPosition.x - p.x, ballPosition.z - p.z) || 1;
   const extension = Math.min(d, reach);
+  // Raised arms reach above standing height; a reacted dive/jump adds a finite
+  // extension. Previously aerialReach only opened the eligibility gate while
+  // the real hand was permanently capped below the crossbar.
+  const aerial = actor.player ? ability(actor.player, 'aerialReach') : 50;
+  const ceiling = actor.height * 1.28 + (0.2 + aerial * 0.004) * (actor.diveLean ?? 0);
   const desired = vector(
     ((ballPosition.x - p.x) / d) * extension,
-    Math.max(0.3, Math.min(actor.height + 0.35, ballPosition.y)) - actor.height / 2,
+    Math.max(0.3, Math.min(ceiling, ballPosition.y)) - actor.height / 2,
     ((ballPosition.z - p.z) / d) * extension,
   );
   if (dt === null) actor.handOffset = desired;

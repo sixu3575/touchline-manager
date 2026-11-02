@@ -23,6 +23,23 @@ export function tacticalPreset(style) {
 }
 
 const layouts = {
+  '5-4-1': {
+    GK: [[5, 34, 'keeper']],
+    DEF: [
+      [25, 7, 'fullback'],
+      [24, 22, 'centreBack'],
+      [24, 34, 'centreBack'],
+      [24, 46, 'centreBack'],
+      [25, 61, 'fullback'],
+    ],
+    MID: [
+      [45, 12, 'wideMid'],
+      [41, 27, 'holdingMid'],
+      [45, 41, 'centralMid'],
+      [45, 56, 'wideMid'],
+    ],
+    FWD: [[65, 34, 'striker']],
+  },
   '4-3-3': {
     GK: [[5, 34, 'keeper']],
     DEF: [

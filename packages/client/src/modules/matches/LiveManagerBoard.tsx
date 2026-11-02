@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FORMATIONS } from '../../../../shared/modules/tactics/index.mjs';
 import { styleNames } from '../../constants';
 import type { MatchJob } from './useMatchJob';
 
@@ -36,7 +37,8 @@ export function LiveManagerBoard({
     substitutes = manager.players.filter(
       (player) =>
         player.role === outgoing?.role &&
-        !activePlayerIds.includes(player.id) && !manager.lineup.includes(player.id),
+        !activePlayerIds.includes(player.id) &&
+        !manager.lineup.includes(player.id),
     ),
     disabled =
       busy ||
@@ -75,9 +77,7 @@ export function LiveManagerBoard({
           <div className="live-tactic-line" key={row}>
             {players.map((player) => (
               <span key={player.id} title={`${player.number}号 ${player.name}`}>
-                <i className={row === formationRows.length - 1 ? 'keeper' : ''}>
-                  {player.number}
-                </i>
+                <i className={row === formationRows.length - 1 ? 'keeper' : ''}>{player.number}</i>
                 <small>{player.name.slice(-4)}</small>
               </span>
             ))}
@@ -89,7 +89,7 @@ export function LiveManagerBoard({
         <label>
           阵型
           <select value={formation} onChange={(event) => setFormation(event.target.value)}>
-            {['4-4-2', '4-3-3', '3-5-2'].map((value) => (
+            {Object.keys(FORMATIONS).map((value) => (
               <option key={value}>{value}</option>
             ))}
           </select>
@@ -164,14 +164,21 @@ export function LiveManagerBoard({
           确认换人
         </button>
       </div>
-      {error && <p className="live-manager-error" role="alert">{error}</p>}
+      {error && (
+        <p className="live-manager-error" role="alert">
+          {error}
+        </p>
+      )}
       {manager.commands.length > 0 && (
         <div className="live-manager-history" aria-label="临场指令记录">
-          {manager.commands.slice(-3).reverse().map((command) => (
-            <small key={command.requestId}>
-              {command.summary} · {command.status}
-            </small>
-          ))}
+          {manager.commands
+            .slice(-3)
+            .reverse()
+            .map((command) => (
+              <small key={command.requestId}>
+                {command.summary} · {command.status}
+              </small>
+            ))}
         </div>
       )}
     </section>

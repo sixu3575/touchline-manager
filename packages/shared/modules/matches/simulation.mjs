@@ -9,6 +9,8 @@ import {
   keeperDiveVelocity,
   parryVelocity,
   keeperHandTarget,
+  keeperGoalThreat,
+  keeperCloseClaim,
 } from './goalkeeping.mjs';
 import {
   STATISTICS_VERSION,
@@ -114,8 +116,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.46.0-carry-routes';
-export const PARAMETER_VERSION = 'carry-routes-1';
+export const ENGINE_VERSION = '0.47.2-matchup-cover';
+export const PARAMETER_VERSION = 'role-containment-1';
 export const SAMPLE_HZ = 5;
 export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -285,17 +287,21 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     for (const side of [0, 1])
       for (const player of options.checkpoint.state.matchPlayers[side] ?? [])
         matchPlayers[side].set(player.id, player);
-  const initialReplayPlayers = options.checkpoint?.state?.initialReplayPlayers ?? actors.map((a) => ({
-    id: a.player.id,
-    side: a.side,
-    number: a.player.number,
-    name: a.player.name,
-    role: a.player.role,
-    positionRole: a.positionRole,
-    overview: cardOverview(a.player),
-  }));
-  const initialLineups = options.checkpoint?.state?.initialLineups ?? clubs.map((club) => [...club.lineup]);
-  const initialTactics = options.checkpoint?.state?.initialTactics ?? clubs.map((club) => structuredClone(club.tactics));
+  const initialReplayPlayers =
+    options.checkpoint?.state?.initialReplayPlayers ??
+    actors.map((a) => ({
+      id: a.player.id,
+      side: a.side,
+      number: a.player.number,
+      name: a.player.name,
+      role: a.player.role,
+      positionRole: a.positionRole,
+      overview: cardOverview(a.player),
+    }));
+  const initialLineups =
+    options.checkpoint?.state?.initialLineups ?? clubs.map((club) => [...club.lineup]);
+  const initialTactics =
+    options.checkpoint?.state?.initialTactics ?? clubs.map((club) => structuredClone(club.tactics));
   let currentSliceCommands = [];
   const ticks = duration * 20;
   const frames =
@@ -604,15 +610,16 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     );
     if (judgement.card)
       card(a, judgement.card, source === 'bodyContact' ? '身体对抗动作' : '抢断动作');
-    if (
-      !a.sentOff &&
-      rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50)
-    )
+    if (!a.sentOff && rulesRng() < dissentProbability(a.player.personality?.temperament ?? 50))
       card(a, 'yellow', '抗议判罚');
     restart(
       penalty ? 'penalty' : 'freeKick',
       victim.side,
-      penalty ? (direction(victim.side) === 1 ? 94 : 11) : clamp(physics.ball.translation().x, 1, 104),
+      penalty
+        ? direction(victim.side) === 1
+          ? 94
+          : 11
+        : clamp(physics.ball.translation().x, 1, 104),
       penalty ? 34 : clamp(physics.ball.translation().z, 1, 67),
     );
   }
@@ -661,8 +668,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       // neutral and use the same relative-speed danger scale as ball challenges.
       const late = 0;
       const danger = clamp((closingSpeed - 2) / 9, 0, 1);
-      const behind =
-        (defenderPosition.x - carrierPosition.x) * direction(carrier.side) < -0.25;
+      const behind = (defenderPosition.x - carrierPosition.x) * direction(carrier.side) < -0.25;
       const contact = physicalContactFoulRisk({ closingSpeed, late, danger, behind });
       const penalty = inPenaltyArea(ballPosition, direction(defender.side));
       const progress = localX(carrierPosition.x, direction(carrier.side));
@@ -856,7 +862,10 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         cut,
         cursor,
         roles,
-        clubs: clubs.map((club) => ({ tactics: structuredClone(club.tactics), lineup: [...club.lineup] })),
+        clubs: clubs.map((club) => ({
+          tactics: structuredClone(club.tactics),
+          lineup: [...club.lineup],
+        })),
         substitutedRows: structuredClone(substitutedRows),
         matchPlayers: clubs.map((club, side) => [...matchPlayers[side].values()]),
         initialReplayPlayers: structuredClone(initialReplayPlayers),
@@ -923,7 +932,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
   }
   function updateFormation(side, formationName) {
     for (const role of ['GK', 'DEF', 'MID', 'FWD']) {
-      const group = actors.filter((a) => a.side === side && tacticalRoleOf(a) === role && !a.sentOff);
+      const group = actors.filter(
+        (a) => a.side === side && tacticalRoleOf(a) === role && !a.sentOff,
+      );
       group.forEach((a, index) => {
         const slot = formationSlot(formationName, role, index, group.length);
         a.anchor = { x: slot.x, z: slot.z };
@@ -951,18 +962,24 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         for (const [actor, role] of roles) actor.tacticalRole = role;
         updateFormation(side, formationName);
       }
-      event('tacticalChange', side, `临场调整为 ${formationName} · ${style} · ${press}压迫。`, null, {
-        formation: formationName,
-        style,
-        press,
-        assignments: actors
-          .filter((actor) => actor.side === side && !actor.sentOff)
-          .map((actor) => ({
-            slotIndex: actor.index,
-            role: tacticalRoleOf(actor),
-            positionRole: actor.positionRole,
-          })),
-      });
+      event(
+        'tacticalChange',
+        side,
+        `临场调整为 ${formationName} · ${style} · ${press}压迫。`,
+        null,
+        {
+          formation: formationName,
+          style,
+          press,
+          assignments: actors
+            .filter((actor) => actor.side === side && !actor.sentOff)
+            .map((actor) => ({
+              slotIndex: actor.index,
+              role: tacticalRoleOf(actor),
+              positionRole: actor.positionRole,
+            })),
+        },
+      );
       currentSliceCommands.push({ id: command.id, effectiveSecond: time });
       return;
     }
@@ -984,7 +1001,13 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
       oldPosition = outgoing.body.translation(),
       oldVelocity = outgoing.body.linvel(),
       slot = club.lineup.indexOf(oldPlayer.id),
-      oldHandles = [outgoing.collider, outgoing.foot, outgoing.head, outgoing.hands, ...outgoing.legs]
+      oldHandles = [
+        outgoing.collider,
+        outgoing.foot,
+        outgoing.head,
+        outgoing.hands,
+        ...outgoing.legs,
+      ]
         .filter(Boolean)
         .map((part) => part.handle);
     substitutedRows.push(actorPerformance(outgoing));
@@ -1000,17 +1023,23 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     physicalContactPairs.clear();
     physics.world.removeRigidBody(outgoing.body);
     const isKeeper = outgoing.isKeeper,
-      body = createBody(physics, incoming.heightCm ?? 180, ability(incoming, 'strength'), oldPosition.x, oldPosition.z);
+      body = createBody(
+        physics,
+        incoming.heightCm ?? 180,
+        ability(incoming, 'strength'),
+        oldPosition.x,
+        oldPosition.z,
+      );
     body.body.setLinvel({ x: oldVelocity.x, y: 0, z: oldVelocity.z }, true);
     actionStatistics.registerPlayer({ id: incoming.id, side });
     const replacement = {
       player: { ...incoming, matchState: createMatchState(incoming) },
       anchor: { ...outgoing.anchor },
       positionRole: outgoing.positionRole,
-        profile: playerProfile(
-          { ...incoming, role: outgoing.tacticalRole ?? outgoing.player.role },
-          outgoing.anchor,
-        ),
+      profile: playerProfile(
+        { ...incoming, role: outgoing.tacticalRole ?? outgoing.player.role },
+        outgoing.anchor,
+      ),
       intent: null,
       facing: outgoing.facing,
       kickPlan: null,
@@ -1052,23 +1081,35 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
     if (isKeeper) replacement.hands = createHands(physics, replacement);
     for (const key of Object.keys(outgoing)) delete outgoing[key];
     Object.assign(outgoing, replacement);
-    for (const part of [outgoing.collider, outgoing.foot, outgoing.head, outgoing.hands, ...outgoing.legs])
+    for (const part of [
+      outgoing.collider,
+      outgoing.foot,
+      outgoing.head,
+      outgoing.hands,
+      ...outgoing.legs,
+    ])
       if (part) colliderActors.set(part.handle, outgoing);
     club.lineup[slot] = incoming.id;
     matchPlayers[side].set(incoming.id, incoming);
-    event('substitution', side, `${oldPlayer.number}号 ${oldPlayer.name}下场，${incoming.number}号 ${incoming.name}替补登场。`, outgoing, {
-      slotIndex: outgoing.index,
-      outgoing: { id: oldPlayer.id, name: oldPlayer.name, number: oldPlayer.number },
-    incoming: {
-        id: incoming.id,
-        name: incoming.name,
-        number: incoming.number,
-        role: incoming.role,
-        positionRole: outgoing.positionRole,
-        tacticalRole: outgoing.tacticalRole ?? outgoing.player.role,
-        overview: cardOverview(incoming),
+    event(
+      'substitution',
+      side,
+      `${oldPlayer.number}号 ${oldPlayer.name}下场，${incoming.number}号 ${incoming.name}替补登场。`,
+      outgoing,
+      {
+        slotIndex: outgoing.index,
+        outgoing: { id: oldPlayer.id, name: oldPlayer.name, number: oldPlayer.number },
+        incoming: {
+          id: incoming.id,
+          name: incoming.name,
+          number: incoming.number,
+          role: incoming.role,
+          positionRole: outgoing.positionRole,
+          tacticalRole: outgoing.tacticalRole ?? outgoing.player.role,
+          overview: cardOverview(incoming),
+        },
       },
-    });
+    );
     currentSliceCommands.push({ id: command.id, kind: 'substitution', effectiveSecond: time });
   }
   function applyManagerCommands(commands) {
@@ -1192,7 +1233,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         name: c.name,
         tactics: structuredClone(initialTactics[clubs.indexOf(c)]),
         players: structuredClone(
-          initialLineups[clubs.indexOf(c)].map((id) => c.players.find((player) => player.id === id)),
+          initialLineups[clubs.indexOf(c)].map((id) =>
+            c.players.find((player) => player.id === id),
+          ),
         ),
       })),
     };
@@ -1299,7 +1342,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         if (
           a.isKeeper &&
           !a.keeperHold &&
-          bv.x * direction(a.side) < -1 &&
+          (bv.x * direction(a.side) < -0.05 ||
+            keeperCloseClaim(a, ball, owner, direction(a.side))) &&
+          inPenaltyArea(ball, direction(a.side)) &&
           Math.abs(a.pos.x - (direction(a.side) === 1 ? 0 : 105)) < 16.5 &&
           Math.abs(a.pos.z - 34) < 20 &&
           ball.y < a.height + 0.3 + ability(a.player, 'aerialReach') * 0.006 &&
@@ -1520,8 +1565,8 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             'dribbling',
             playing().filter((o) => o.side !== previous.side),
           ).value;
-          const success = tackleProbability(a, previous, ball, playing(), qa, qd),
-            won = rulesRng() <= success;
+          const success = tackleProbability(a, previous, ball, playing(), qa, qd);
+          const won = rulesRng() <= success;
           const relative = Math.hypot(
             a.velocity.x - previous.velocity.x,
             a.velocity.z - previous.velocity.z,
@@ -1532,9 +1577,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           const progress = localX(previous.pos.x, direction(previous.side));
           const covering = playing().filter(
             (o) =>
-              o.side === a.side &&
-              o !== a &&
-              localX(o.pos.x, direction(previous.side)) > progress,
+              o.side === a.side && o !== a && localX(o.pos.x, direction(previous.side)) > progress,
           ).length;
           const contact = physicalPlayerContact(physics, a, previous) ? 1 : 0;
           const judgement = contact
@@ -1852,7 +1895,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               !execution.reviewed &&
               time >= (a.passReviewCooldownUntil ?? 0)
             ) {
-              const receiver = playing().find((candidate) => candidate.player.id === action.receiverId);
+              const receiver = playing().find(
+                (candidate) => candidate.player.id === action.receiverId,
+              );
               const releaseSuccess = releasedPassSuccess(action, receiver, ball, opponents);
               const reviewTolerance = 0.04 + (100 - ability(a.player, 'decisions')) * 0.0008;
               if ((action.estimatedSuccess ?? 0.8) - releaseSuccess > reviewTolerance) {
@@ -2090,20 +2135,32 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             active &&
             !deadState &&
             !a.keeperHold &&
-            bv.x * direction(a.side) < -8 &&
+            bv.x * direction(a.side) < -0.05 &&
+            Math.hypot(bv.x, bv.z) > 8 &&
             Math.abs(ball.x - a.pos.x) < 25;
           const response = Math.max(
             0.08,
             a.reaction - (a.keeperSet?.until > time ? a.keeperSet.readiness * 0.12 : 0),
           );
-          const ready = incoming && (!shot || time - shot.time >= response);
+          const closeClaim =
+            active &&
+            !deadState &&
+            !a.keeperHold &&
+            keeperCloseClaim(a, ball, owner, direction(a.side));
+          const ready = (incoming || closeClaim) && (!shot || time - shot.time >= response);
           a.diveLean = clamp(
             (a.diveLean ?? 0) +
               (ready ? STEP * (1.5 + ability(a.player, 'oneOnOnes') * 0.02) : -STEP * 2),
             0,
             1,
           );
-          const target = ready ? keeperHandTarget(a, ball, time) : ball;
+          // A keeper waits with hands at a balanced catching height, rather
+          // than tracking every ground pass with both hands on the turf.
+          const target = ready
+            ? closeClaim
+              ? ball
+              : keeperHandTarget(a, ball, time)
+            : { ...ball, y: Math.max(0.9, ball.y) };
           const reach = 0.45 + ability(a.player, 'oneOnOnes') * 0.004 + a.height * 0.4 * a.diveLean;
           orientHands(a, target, reach, STEP);
         }
@@ -2164,7 +2221,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           vz = routed.z;
         }
         const diving =
-          a.isKeeper && bv.x * direction(a.side) < -8 && Math.abs(ball.x - a.pos.x) < 25;
+          a.isKeeper &&
+          bv.x * direction(a.side) < -0.05 &&
+          Math.hypot(bv.x, bv.z) > 8 &&
+          Math.abs(ball.x - a.pos.x) < 25 &&
+          keeperGoalThreat(a, ball, time);
         if (diving) vz = keeperDiveVelocity(a, ball, time) ?? vz;
         const setStance = a.keeperSet?.until > time ? a.keeperSet.readiness : 0;
         driveMovement(

@@ -1,10 +1,11 @@
 import { clamp } from '../../core/index.mjs';
 import { ability } from './skills.mjs';
-import { distance } from './spatial.mjs';
+import { distance, segmentPoint } from './spatial.mjs';
 import { movement } from './locomotion.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { angleDifference, turnRate } from './execution.mjs';
 import { BALL_MOTION } from './ball-motion.mjs';
+import { preparationChallengeRisk } from './defending.mjs';
 
 // Shared with the actual kick sampler: these are dispersion/flight parameters,
 // never a sampled goal, a desired shot count, or a second physical simulation.
@@ -24,6 +25,38 @@ export function shotExecution(actor, dist, quality) {
       20 + dist * 0.25 + quality.pressure * 4,
     ),
   };
+}
+
+// Deterministic quadrature of the same two-corner, elevated shot plan used by
+// the kick sampler. A grounded pass to the centre of goal wrongly treats a
+// defender below a rising shot as an unavoidable block. This predicts contact;
+// Rapier and the actual sampled kick still decide the outcome.
+export function shotBlockRisk(actor, ball, opponents, direction, quality) {
+  const goalX = direction === 1 ? 105 : 0;
+  const execution = shotExecution(actor, distance(ball, { x: goalX, z: 34 }), quality);
+  let total = 0;
+  for (const corner of [-1, 1]) {
+    const target = { x: goalX + direction * (BALL_MOTION.radius + 0.05), z: 34 + corner * 1.7 };
+    const flight = Math.max(0.15, distance(ball, target) / execution.speed);
+    for (const quantile of [0.25, 0.75]) {
+      const targetY = 0.15 + execution.heightSpread * quantile;
+      let survival = 1;
+      for (const opponent of opponents) {
+        if (opponent.sentOff || opponent.isKeeper || opponent.player.role === 'GK') continue;
+        const { t, gap } = segmentPoint(ball, target, opponent.pos);
+        if (t <= 0 || t >= 1) continue;
+        const height = (ball.y ?? 0.11) * (1 - t) + targetY * t + 4.905 * flight ** 2 * t * (1 - t);
+        if (height > (opponent.height ?? 1.8) + 0.35) continue;
+        const point = { x: ball.x + (target.x - ball.x) * t, z: ball.z + (target.z - ball.z) * t };
+        const reaction = 0.08 + (100 - ability(opponent.player, 'anticipation')) * 0.002;
+        const reach = arrivalTime(opponent, point, pursuitMode(opponent, point), reaction);
+        const contact = gap < 0.43 ? 0.98 : clamp((flight * t + 0.08 - reach) / 0.35, 0, 0.94);
+        survival *= 1 - contact;
+      }
+      total += 1 - survival;
+    }
+  }
+  return total / 4;
 }
 
 // CDF of U(0,1)+U(0,1)-1, the same lateral noise used by a real shot.
@@ -59,13 +92,7 @@ export function shotWindowValue(actor, ball, opponents, direction, quality, xg, 
     execution.speed * 0.004 +
     Math.hypot(actor.velocity.x, actor.velocity.z) * 0.015 +
     turn;
-  const closing = Math.min(
-    Infinity,
-    ...opponents
-      .filter((o) => !o.sentOff)
-      .map((o) => arrivalTime(o, ball, pursuitMode(o, ball), o.reaction ?? 0.15)),
-  );
-  const ready = 1 / (1 + Math.exp((preparation - closing) / 0.25));
+  const ready = 1 - preparationChallengeRisk(actor, ball, opponents, preparation);
   // xG remains the existing average-player report metric. Only action utility
   // uses the shooter's dispersion relative to a reference-quality 65 kick.
   const accuracy =
