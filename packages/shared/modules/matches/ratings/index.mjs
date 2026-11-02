@@ -268,7 +268,7 @@ export function buildPlayerRatings(report) {
       }
   }
   const result = [...rows.values()].map((row) => {
-    const modern = report.statisticsVersion === 'opta-conventional-2';
+    const modern = /^opta-conventional-[2-9]$/.test(report.statisticsVersion ?? '');
     const p = performances.get(row.id) ?? {};
     row.passes = Number.isFinite(p.passes) ? row.passes : row.eventPasses;
     row.completed = Math.min(

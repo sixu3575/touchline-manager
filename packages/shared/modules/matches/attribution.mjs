@@ -1,5 +1,5 @@
 // Statistical provenance only. No random draws, player abilities or ball impulses.
-export const STATISTICS_VERSION = 'opta-conventional-2';
+export const STATISTICS_VERSION = 'opta-conventional-3';
 
 export function attributionState() {
   return { version: STATISTICS_VERSION, sequence: 0, credit: null, attempt: null };
@@ -53,6 +53,10 @@ export function recordIntervention(
     attempt.defender = null;
     attempt.savedAt = second;
   } else {
+    // A save or woodwork already settled this attempt. A later outfield touch
+    // on the rebound is a new phase, not a block, unless the ball is still
+    // travelling into the goal (a goal-line clearance after a keeper touch).
+    if ((attempt.keeper || attempt.woodwork) && incomingGoalSide !== attempt.side) return;
     attempt.keeper = null;
     attempt.defender = { id: player.id, side: player.side };
     attempt.blocked = true;

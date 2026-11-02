@@ -2,6 +2,7 @@ import { ability } from './skills.mjs';
 import { BALL_MOTION } from './ball-motion.mjs';
 import { movingBallIntercept } from './arrival.mjs';
 import { distance, localX } from './spatial.mjs';
+import { movement } from './locomotion.mjs';
 
 // The hands may reach a slow dribble or a loose ball as well as a fast shot.
 // This opens a physical catching posture, not a remote possession transfer.
@@ -35,7 +36,33 @@ export function keeperSweepTarget(actor, ball, direction) {
 }
 // Engineering parameters for a reaction gate, distinct from outfield tactical scanning.
 export const keeperReaction = (player) => 0.12 + (100 - ability(player, 'reflexes')) / 600;
-export const diveResponse = (player) => 2.3 + 0.018 * ability(player, 'oneOnOnes');
+// A dive is its own explosive action, not a running start. One-on-one
+// technique and agility set it; running acceleration and response are not
+// counted a second time. A 65/65 keeper keeps the previous dive (~13.7 m/s²);
+// a 55 and an 80 keeper now differ by about 15% instead of about 57%.
+export const diveAcceleration = (player) =>
+  12.6 *
+  (0.85 + 0.003 * ability(player, 'oneOnOnes')) *
+  (0.85 + 0.003 * ability(player, 'agility'));
+// driveMovement multiplies the running limits, so convert to that multiplier.
+export const diveResponse = (player, limits) =>
+  diveAcceleration(player) / (limits.acceleration * limits.response);
+
+// How far sideways a keeper can get a hand to a ball arriving after `flight`
+// seconds. It mirrors the executed save: reaction gate, dive acceleration via
+// driveMovement, the dive-lean build-up and the hand reach used in simulation.
+// A shooter reads it from the visible keeper; it never decides a save.
+export function keeperLateralCover(keeper, flight) {
+  const p = keeper.player;
+  const m = movement(p, keeper.energy, 'sprint');
+  const accel = diveAcceleration(p);
+  const t = Math.max(0, flight - keeperReaction(p));
+  const ramp = m.speed / accel;
+  const body = t < ramp ? 0.5 * accel * t * t : 0.5 * accel * ramp * ramp + m.speed * (t - ramp);
+  const lean = Math.min(1, t * (1.5 + ability(p, 'oneOnOnes') * 0.02));
+  const hands = 0.45 + ability(p, 'oneOnOnes') * 0.004 + (keeper.height ?? 1.88) * 0.4 * lean;
+  return body + hands + 0.35 + BALL_MOTION.radius;
+}
 
 // A parry tries to send danger outside the posts, rather than returning every
 // save straight into the central shooting area. Handling controls the angular

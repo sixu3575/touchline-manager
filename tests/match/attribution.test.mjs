@@ -131,7 +131,7 @@ test('action ledger measures an actual take-on, prevents repeated touch credit a
   s.takeOn(a, b, { x: 10, z: 10 }, 1.1, 1);
   a.pos = { x: 10.5, z: 10 };
   s.observe([a, b], a.pos, 'a', 1.2);
-  assert.equal(s.rows.a.takeOnAttempts, 1);
+  assert.equal(s.rows.a.takeOnAttempts, 0, 'an engaged duel is counted once it has a result');
   assert.equal(s.rows.a.takeOns, 0);
   const restored = createActionStatistics([a, b], (e) => events.push(e), structuredClone(s.state));
   a.pos = { x: 14, z: 10 };
@@ -156,6 +156,17 @@ test('action ledger distinguishes a loss from a recoverable miscontrol, safe res
   s.takeOn(a, b, a.pos, 3, 1);
   s.release(a, 'pass', 4, { expiresAt: 9 });
   assert.equal(s.rows.a.takeOnAttempts, 0, 'an unengaged intention is not an attempt');
+  s.control(a, 4.5);
+  s.takeOn(a, b, a.pos, 4.6, 1);
+  b.pos = { x: 11, z: 10 };
+  s.observe([a, b], a.pos, 'a', 4.7);
+  s.release(a, 'pass', 4.8, { expiresAt: 9 });
+  assert.equal(
+    s.rows.a.takeOnAttempts,
+    0,
+    'engaging then passing without beating him is not an attempt',
+  );
+  b.pos = { x: 14, z: 10 };
   s.stop('throwIn', 0, 5);
   assert.equal(s.rows.a.possessionLost, 0);
   s.control(a, 6);
@@ -176,6 +187,22 @@ test('the decisive later goal-line block replaces an earlier keeper intervention
   assert.equal(r.onTarget, true);
   assert.equal(r.keeper, undefined);
   assert.equal(r.defender.id, defender.id);
+});
+
+test('a defender collecting a saved or woodwork rebound does not turn the shot into a block', () => {
+  const saved = attributionState();
+  startAttempt(saved, striker);
+  recordIntervention(saved, keeper, 0, false, null, 1);
+  recordIntervention(saved, defender, null, false, null, 3);
+  const r = finishAttempt(saved);
+  assert.equal(r.outcome, 'saved');
+  assert.equal(r.onTarget, true);
+  assert.equal(r.keeper.id, keeper.id);
+  const post = attributionState();
+  startAttempt(post, striker);
+  post.attempt.woodwork = true;
+  recordIntervention(post, defender, null, false, null, 2);
+  assert.equal(finishAttempt(post).outcome, 'woodwork');
 });
 
 test('an on-target shot remains the striker goal through keeper or defender touches, with no save or own goal', () => {

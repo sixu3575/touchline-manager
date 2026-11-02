@@ -87,7 +87,7 @@ export function liveReport(report, broadcast) {
   const events = report.events.filter((e) => (e.second ?? e.minute * 60) <= second);
   const liveTimeline = report.timeline?.filter((p) => p.second <= second).slice(-2) ?? [];
   const counterBase =
-    !broadcast.finished && report.statisticsVersion === 'opta-conventional-2'
+    !broadcast.finished && /^opta-conventional-[2-9]$/.test(report.statisticsVersion ?? '')
       ? liveTimeline[0]
       : null;
   // Bounded live payload. Preserve goals/cards even when ordinary touches roll out.

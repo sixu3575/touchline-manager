@@ -306,6 +306,23 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
       const firstBeaten = first && localX(first.pos.x, direction) > localX(owner.pos.x, direction);
       const caution = defensiveMismatch(actor, owner);
       const shotThreat = localX(owner.pos.x, direction) < 26 && separation < 5;
+      // A carry touch leaves the ball briefly away from the carrier's foot. A
+      // presser who can reach that ball before the carrier steps in to contest
+      // it instead of holding his standing distance; the duel model still
+      // decides who wins, and a beaten defender still pays the recovery time.
+      if (
+        !recovering &&
+        (!covering || shotThreat) &&
+        distance(owner.pos, ball) > 0.72 &&
+        arrivalTime(actor, ball, 'run', 0.08 + (100 - a('anticipation')) * 0.002) <
+          arrivalTime(owner, ball, 'carry', 0)
+      ) {
+        const approach = unit(ball, actor.pos);
+        return {
+          x: clamp(ball.x + (ball.vx ?? 0) * 0.15 + approach.x * 0.3, 0.5, 104.5),
+          z: clamp(ball.z + (ball.vz ?? 0) * 0.15 + approach.z * 0.3, 0.5, 67.5),
+        };
+      }
       if (covering && !shotThreat && pressRank === 1) {
         // The second presser reads the nearest outlet and closes its passing
         // lane, while remaining close enough to add real pressure at the ball.

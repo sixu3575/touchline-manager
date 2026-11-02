@@ -77,6 +77,7 @@ import {
   offsideInvolvement,
   foulAssessment,
   physicalContactFoulRisk,
+  promisingAttack,
   applyCard,
   dissentProbability,
   localX,
@@ -116,8 +117,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.47.2-matchup-cover';
-export const PARAMETER_VERSION = 'role-containment-1';
+export const ENGINE_VERSION = '0.48.0-defence-fatigue';
+export const PARAMETER_VERSION = 'defence-fatigue-1';
 export const SAMPLE_HZ = 5;
 export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -689,6 +690,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           aggression: defender.player.personality?.aggression ?? 50,
           penalty,
           dogso: progress > 82 && Math.abs(ballPosition.z - 34) < 12 && covering <= 1,
+          promising: promisingAttack({
+            progress,
+            forwardSpeed: cv.x * direction(carrier.side),
+            covering,
+          }),
         },
         rulesRng(),
       );
@@ -1591,6 +1597,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
                   aggression: a.player.personality?.aggression ?? 50,
                   penalty,
                   dogso: progress > 82 && Math.abs(ball.z - 34) < 12 && covering <= 1,
+                  promising: promisingAttack({
+                    progress,
+                    forwardSpeed: (previous.velocity?.x ?? 0) * direction(previous.side),
+                    covering,
+                  }),
                 },
                 rulesRng(),
               )
@@ -2233,7 +2244,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           { x: vx, z: vz },
           m,
           STEP,
-          diving ? diveResponse(a.player) * (1 + 0.4 * setStance) : 1,
+          diving ? diveResponse(a.player, m) * (1 + 0.4 * setStance) : 1,
         );
         attemptTouch(a);
       }
