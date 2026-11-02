@@ -1,0 +1,3117 @@
+{
+  "version": 1,
+  "date": "2026-11-02",
+  "engine": "0.47.2-matchup-cover (production 029c5e2)",
+  "method": "95 real 2023-24 FC24-rated fixtures (no red cards), stratified by FC team OVR gap; real home/away kept; both sides 4-3-3 balanced normal; one deterministic seed per fixture; FC24 player attributes via tests/tools/fc-fixtures.mjs. keeperFlat72 = same inputs with both starting keepers reflexes/handling/oneOnOnes/aerialReach/command set to 72 (diagnostic only).",
+  "limits": "16 matches per league bin, 12/3 for cup bins; engine has no home advantage; fixed tactics; FC proxies are not FM CA; reference has no possession/pass data, Wyscout PL 2017/18 used for passing context.",
+  "baseline": {
+    "n": 95,
+    "meanMs": 32790,
+    "all": {
+      "sim": {
+        "n": 95,
+        "strongWinPct": 56.8,
+        "drawPct": 34.7,
+        "weakWinPct": 8.4,
+        "strongGoals": {
+          "n": 95,
+          "mean": 1.505,
+          "var": 2.636
+        },
+        "weakGoals": {
+          "n": 95,
+          "mean": 0.337,
+          "var": 0.417
+        },
+        "totalGoals": {
+          "n": 95,
+          "mean": 1.842,
+          "var": 2.858
+        },
+        "goalDiff": {
+          "n": 95,
+          "mean": 1.168,
+          "var": 3.248
+        },
+        "strongShots": {
+          "n": 95,
+          "mean": 12.821,
+          "var": 50.234
+        },
+        "weakShots": {
+          "n": 95,
+          "mean": 9.716,
+          "var": 22.291
+        },
+        "strongOnTarget": {
+          "n": 95,
+          "mean": 3.853,
+          "var": 9.999
+        },
+        "weakOnTarget": {
+          "n": 95,
+          "mean": 2.516,
+          "var": 3.742
+        },
+        "shotShareStrongPct": 56.9,
+        "goalsPerShot": 0.082,
+        "onTargetPerShot": 0.283,
+        "corners": {
+          "n": 95,
+          "mean": 3.189,
+          "var": 2.198
+        },
+        "fouls": {
+          "n": 95,
+          "mean": 16.926,
+          "var": 20.516
+        },
+        "zeroZeroPct": 22.1,
+        "margin3PlusPct": 20,
+        "goals5PlusPct": 6.3,
+        "strongShots30PlusPct": 3.2
+      },
+      "realPopulation": {
+        "n": 3434,
+        "strongWinPct": 49.3,
+        "drawPct": 25.3,
+        "weakWinPct": 25.4,
+        "strongGoals": {
+          "n": 3434,
+          "mean": 1.706,
+          "var": 1.841
+        },
+        "weakGoals": {
+          "n": 3434,
+          "mean": 1.15,
+          "var": 1.19
+        },
+        "totalGoals": {
+          "n": 3434,
+          "mean": 2.856,
+          "var": 2.857
+        },
+        "goalDiff": {
+          "n": 3434,
+          "mean": 0.556,
+          "var": 3.205
+        },
+        "strongShots": {
+          "n": 3434,
+          "mean": 14.289,
+          "var": 29.601
+        },
+        "weakShots": {
+          "n": 3434,
+          "mean": 11.332,
+          "var": 21.343
+        },
+        "strongOnTarget": {
+          "n": 3434,
+          "mean": 5.073,
+          "var": 6.861
+        },
+        "weakOnTarget": {
+          "n": 3434,
+          "mean": 3.852,
+          "var": 4.867
+        },
+        "shotShareStrongPct": 55.8,
+        "goalsPerShot": 0.111,
+        "onTargetPerShot": 0.348,
+        "corners": {
+          "n": 3434,
+          "mean": 10.186,
+          "var": 12.134
+        },
+        "fouls": {
+          "n": 3434,
+          "mean": 22.515,
+          "var": 30.321
+        },
+        "zeroZeroPct": 6.1,
+        "margin3PlusPct": 16.7,
+        "goals5PlusPct": 16,
+        "strongShots30PlusPct": 1.3
+      }
+    },
+    "groups": {
+      "league/equal": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 18.8,
+          "drawPct": 56.3,
+          "weakWinPct": 25,
+          "strongGoals": {
+            "n": 16,
+            "mean": 0.875,
+            "var": 1.05
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.875,
+            "var": 1.05
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 1.75,
+            "var": 2.733
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0,
+            "var": 1.467
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 12.125,
+            "var": 35.317
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 11.5,
+            "var": 30
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 2.625,
+            "var": 1.45
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 2.938,
+            "var": 5.529
+          },
+          "shotShareStrongPct": 51.3,
+          "goalsPerShot": 0.074,
+          "onTargetPerShot": 0.235,
+          "corners": {
+            "n": 16,
+            "mean": 2.75,
+            "var": 1.8
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 18.813,
+            "var": 27.762
+          },
+          "zeroZeroPct": 37.5,
+          "margin3PlusPct": 0,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 50,
+          "drawPct": 25,
+          "weakWinPct": 25,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.313,
+            "var": 1.563
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.75,
+            "var": 1.133
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 1.796
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.563,
+            "var": 3.596
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 14.563,
+            "var": 17.729
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 12.688,
+            "var": 13.296
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 4.313,
+            "var": 2.229
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 4.313,
+            "var": 2.096
+          },
+          "shotShareStrongPct": 53.4,
+          "goalsPerShot": 0.076,
+          "onTargetPerShot": 0.317,
+          "corners": {
+            "n": 16,
+            "mean": 10.938,
+            "var": 10.596
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 22.25,
+            "var": 25.8
+          },
+          "zeroZeroPct": 12.5,
+          "margin3PlusPct": 18.8,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 429,
+          "strongWinPct": 41.3,
+          "drawPct": 28.4,
+          "weakWinPct": 30.3,
+          "strongGoals": {
+            "n": 429,
+            "mean": 1.427,
+            "var": 1.661
+          },
+          "weakGoals": {
+            "n": 429,
+            "mean": 1.212,
+            "var": 1.406
+          },
+          "totalGoals": {
+            "n": 429,
+            "mean": 2.639,
+            "var": 3.138
+          },
+          "goalDiff": {
+            "n": 429,
+            "mean": 0.214,
+            "var": 2.996
+          },
+          "strongShots": {
+            "n": 429,
+            "mean": 13.667,
+            "var": 23.326
+          },
+          "weakShots": {
+            "n": 429,
+            "mean": 11.73,
+            "var": 18.511
+          },
+          "strongOnTarget": {
+            "n": 429,
+            "mean": 4.697,
+            "var": 5.782
+          },
+          "weakOnTarget": {
+            "n": 429,
+            "mean": 4.016,
+            "var": 4.53
+          },
+          "shotShareStrongPct": 53.8,
+          "goalsPerShot": 0.104,
+          "onTargetPerShot": 0.343,
+          "corners": {
+            "n": 429,
+            "mean": 10.28,
+            "var": 11.851
+          },
+          "fouls": {
+            "n": 429,
+            "mean": 23.075,
+            "var": 31.046
+          },
+          "zeroZeroPct": 9.8,
+          "margin3PlusPct": 14.7,
+          "goals5PlusPct": 13.8,
+          "strongShots30PlusPct": 0
+        },
+        "simScores": "1-1 0-0 0-0 1-2 1-1 1-3 1-1 3-1 1-3 2-0 0-0 0-0 3-1 0-1 0-0 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": -0.182,
+          "var": 0.441
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": -0.557,
+          "var": 2.189
+        },
+        "blocked": 0
+      },
+      "league/0-2": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 50,
+          "drawPct": 37.5,
+          "weakWinPct": 12.5,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.188,
+            "var": 1.096
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.5,
+            "var": 0.533
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 1.688,
+            "var": 1.429
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.688,
+            "var": 1.829
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 11.75,
+            "var": 33.267
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 10.938,
+            "var": 31.663
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 2.75,
+            "var": 5
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 2.25,
+            "var": 4.067
+          },
+          "shotShareStrongPct": 51.8,
+          "goalsPerShot": 0.074,
+          "onTargetPerShot": 0.22,
+          "corners": {
+            "n": 16,
+            "mean": 3,
+            "var": 2.4
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 18.188,
+            "var": 17.229
+          },
+          "zeroZeroPct": 18.8,
+          "margin3PlusPct": 12.5,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 37.5,
+          "drawPct": 37.5,
+          "weakWinPct": 25,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.438,
+            "var": 1.196
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 1.125,
+            "var": 0.917
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.563,
+            "var": 2.663
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.313,
+            "var": 1.563
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 13.625,
+            "var": 35.85
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 11.375,
+            "var": 13.183
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 5.438,
+            "var": 12.129
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 4.438,
+            "var": 6.796
+          },
+          "shotShareStrongPct": 54.5,
+          "goalsPerShot": 0.102,
+          "onTargetPerShot": 0.395,
+          "corners": {
+            "n": 16,
+            "mean": 10.5,
+            "var": 18.933
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 23.75,
+            "var": 43
+          },
+          "zeroZeroPct": 6.3,
+          "margin3PlusPct": 0,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 1373,
+          "strongWinPct": 39.5,
+          "drawPct": 28.8,
+          "weakWinPct": 31.7,
+          "strongGoals": {
+            "n": 1373,
+            "mean": 1.471,
+            "var": 1.523
+          },
+          "weakGoals": {
+            "n": 1373,
+            "mean": 1.272,
+            "var": 1.216
+          },
+          "totalGoals": {
+            "n": 1373,
+            "mean": 2.744,
+            "var": 2.678
+          },
+          "goalDiff": {
+            "n": 1373,
+            "mean": 0.199,
+            "var": 2.801
+          },
+          "strongShots": {
+            "n": 1373,
+            "mean": 13.233,
+            "var": 26.83
+          },
+          "weakShots": {
+            "n": 1373,
+            "mean": 11.931,
+            "var": 20.579
+          },
+          "strongOnTarget": {
+            "n": 1373,
+            "mean": 4.535,
+            "var": 5.949
+          },
+          "weakOnTarget": {
+            "n": 1373,
+            "mean": 4.084,
+            "var": 4.792
+          },
+          "shotShareStrongPct": 52.6,
+          "goalsPerShot": 0.109,
+          "onTargetPerShot": 0.343,
+          "corners": {
+            "n": 1373,
+            "mean": 10.137,
+            "var": 11.747
+          },
+          "fouls": {
+            "n": 1373,
+            "mean": 22.992,
+            "var": 29.374
+          },
+          "zeroZeroPct": 6.9,
+          "margin3PlusPct": 12.5,
+          "goals5PlusPct": 14.4,
+          "strongShots30PlusPct": 0.9
+        },
+        "simScores": "3-0 0-0 2-1 2-0 1-1 0-2 0-0 3-0 1-1 2-2 2-0 0-1 1-0 1-0 1-0 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 1.557,
+          "var": 0.752
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 1.597,
+          "var": 1.639
+        },
+        "blocked": 1
+      },
+      "league/3-5": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 68.8,
+          "drawPct": 31.3,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.375,
+            "var": 1.183
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.125,
+            "var": 0.117
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 1.5,
+            "var": 1.2
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 1.25,
+            "var": 1.4
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 12.313,
+            "var": 35.563
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 7.563,
+            "var": 15.996
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 3.438,
+            "var": 6.529
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 1.563,
+            "var": 1.863
+          },
+          "shotShareStrongPct": 61.9,
+          "goalsPerShot": 0.075,
+          "onTargetPerShot": 0.252,
+          "corners": {
+            "n": 16,
+            "mean": 3.438,
+            "var": 2.129
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 15.125,
+            "var": 14.25
+          },
+          "zeroZeroPct": 18.8,
+          "margin3PlusPct": 12.5,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 50,
+          "drawPct": 18.8,
+          "weakWinPct": 31.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.563,
+            "var": 1.462
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 1.063,
+            "var": 0.996
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.625,
+            "var": 2.383
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.5,
+            "var": 2.533
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 15.625,
+            "var": 50.117
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 9.875,
+            "var": 51.317
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 4.813,
+            "var": 3.096
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 3.688,
+            "var": 7.829
+          },
+          "shotShareStrongPct": 61.3,
+          "goalsPerShot": 0.103,
+          "onTargetPerShot": 0.333,
+          "corners": {
+            "n": 16,
+            "mean": 11.5,
+            "var": 20.267
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 21.375,
+            "var": 34.383
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 6.3,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 6.3
+        },
+        "realPopulation": {
+          "n": 890,
+          "strongWinPct": 52,
+          "drawPct": 23.8,
+          "weakWinPct": 24.2,
+          "strongGoals": {
+            "n": 890,
+            "mean": 1.737,
+            "var": 1.764
+          },
+          "weakGoals": {
+            "n": 890,
+            "mean": 1.116,
+            "var": 1.18
+          },
+          "totalGoals": {
+            "n": 890,
+            "mean": 2.853,
+            "var": 2.693
+          },
+          "goalDiff": {
+            "n": 890,
+            "mean": 0.621,
+            "var": 3.196
+          },
+          "strongShots": {
+            "n": 890,
+            "mean": 14.246,
+            "var": 27.02
+          },
+          "weakShots": {
+            "n": 890,
+            "mean": 11.291,
+            "var": 21.262
+          },
+          "strongOnTarget": {
+            "n": 890,
+            "mean": 5.093,
+            "var": 6.017
+          },
+          "weakOnTarget": {
+            "n": 890,
+            "mean": 3.815,
+            "var": 4.88
+          },
+          "shotShareStrongPct": 55.8,
+          "goalsPerShot": 0.112,
+          "onTargetPerShot": 0.349,
+          "corners": {
+            "n": 890,
+            "mean": 10.138,
+            "var": 12.067
+          },
+          "fouls": {
+            "n": 890,
+            "mean": 22.474,
+            "var": 29.865
+          },
+          "zeroZeroPct": 5.3,
+          "margin3PlusPct": 18.1,
+          "goals5PlusPct": 14.7,
+          "strongShots30PlusPct": 0.6
+        },
+        "simScores": "2-0 2-0 1-0 1-0 1-1 4-0 3-0 2-0 1-0 1-1 2-0 0-0 0-0 1-0 1-0 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 3.443,
+          "var": 0.739
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 3.159,
+          "var": 4.446
+        },
+        "blocked": 0
+      },
+      "league/6-9": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 56.3,
+          "drawPct": 43.8,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.063,
+            "var": 1.262
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.188,
+            "var": 0.163
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 1.25,
+            "var": 1.8
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.875,
+            "var": 1.05
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 9.625,
+            "var": 21.85
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 7.938,
+            "var": 11.529
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 3.313,
+            "var": 4.096
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 2.5,
+            "var": 2.533
+          },
+          "shotShareStrongPct": 54.8,
+          "goalsPerShot": 0.071,
+          "onTargetPerShot": 0.331,
+          "corners": {
+            "n": 16,
+            "mean": 3.375,
+            "var": 2.117
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 17.938,
+            "var": 9.796
+          },
+          "zeroZeroPct": 31.3,
+          "margin3PlusPct": 12.5,
+          "goals5PlusPct": 6.3,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 93.8,
+          "drawPct": 0,
+          "weakWinPct": 6.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 2.625,
+            "var": 1.85
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.563,
+            "var": 0.263
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 3.188,
+            "var": 2.163
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 2.063
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 16.25,
+            "var": 38.2
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 9.25,
+            "var": 19.267
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 6.875,
+            "var": 11.717
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 3.438,
+            "var": 2.396
+          },
+          "shotShareStrongPct": 63.7,
+          "goalsPerShot": 0.125,
+          "onTargetPerShot": 0.404,
+          "corners": {
+            "n": 16,
+            "mean": 9.563,
+            "var": 12.396
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 22.938,
+            "var": 21.796
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 31.3,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 448,
+          "strongWinPct": 67.9,
+          "drawPct": 20.3,
+          "weakWinPct": 11.8,
+          "strongGoals": {
+            "n": 448,
+            "mean": 2.27,
+            "var": 2.283
+          },
+          "weakGoals": {
+            "n": 448,
+            "mean": 0.938,
+            "var": 0.967
+          },
+          "totalGoals": {
+            "n": 448,
+            "mean": 3.208,
+            "var": 3.096
+          },
+          "goalDiff": {
+            "n": 448,
+            "mean": 1.333,
+            "var": 3.404
+          },
+          "strongShots": {
+            "n": 448,
+            "mean": 16.563,
+            "var": 29.2
+          },
+          "weakShots": {
+            "n": 448,
+            "mean": 9.967,
+            "var": 20.909
+          },
+          "strongOnTarget": {
+            "n": 448,
+            "mean": 6.263,
+            "var": 7.206
+          },
+          "weakOnTarget": {
+            "n": 448,
+            "mean": 3.366,
+            "var": 4.769
+          },
+          "shotShareStrongPct": 62.4,
+          "goalsPerShot": 0.121,
+          "onTargetPerShot": 0.363,
+          "corners": {
+            "n": 448,
+            "mean": 10.089,
+            "var": 12.122
+          },
+          "fouls": {
+            "n": 448,
+            "mean": 21.839,
+            "var": 28.985
+          },
+          "zeroZeroPct": 3.3,
+          "margin3PlusPct": 25.9,
+          "goals5PlusPct": 21.7,
+          "strongShots30PlusPct": 2
+        },
+        "simScores": "0-0 1-0 1-0 2-0 1-1 1-1 0-0 1-0 0-0 1-0 0-0 0-0 1-0 4-1 3-0 1-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 7.619,
+          "var": 1.627
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 7.216,
+          "var": 2.519
+        },
+        "blocked": 0
+      },
+      "league/10-14": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 68.8,
+          "drawPct": 25,
+          "weakWinPct": 6.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 2.313,
+            "var": 5.429
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.25,
+            "var": 0.2
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.563,
+            "var": 5.196
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 6.063
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 17.5,
+            "var": 77.867
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 9.688,
+            "var": 14.896
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 6.313,
+            "var": 21.563
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 2.75,
+            "var": 3.4
+          },
+          "shotShareStrongPct": 64.4,
+          "goalsPerShot": 0.094,
+          "onTargetPerShot": 0.333,
+          "corners": {
+            "n": 16,
+            "mean": 2.688,
+            "var": 1.163
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 15.313,
+            "var": 21.296
+          },
+          "zeroZeroPct": 12.5,
+          "margin3PlusPct": 37.5,
+          "goals5PlusPct": 25,
+          "strongShots30PlusPct": 12.5
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 87.5,
+          "drawPct": 6.3,
+          "weakWinPct": 6.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 3.25,
+            "var": 2.2
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.813,
+            "var": 0.829
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 4.063,
+            "var": 2.996
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 2.438,
+            "var": 3.063
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 18.188,
+            "var": 48.829
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 10.938,
+            "var": 32.996
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 6.75,
+            "var": 7.267
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 4.063,
+            "var": 5.129
+          },
+          "shotShareStrongPct": 62.4,
+          "goalsPerShot": 0.139,
+          "onTargetPerShot": 0.371,
+          "corners": {
+            "n": 16,
+            "mean": 10.438,
+            "var": 9.063
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 18.625,
+            "var": 34.383
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 43.8,
+          "goals5PlusPct": 50,
+          "strongShots30PlusPct": 12.5
+        },
+        "realPopulation": {
+          "n": 137,
+          "strongWinPct": 81,
+          "drawPct": 13.1,
+          "weakWinPct": 5.8,
+          "strongGoals": {
+            "n": 137,
+            "mean": 2.657,
+            "var": 2.051
+          },
+          "weakGoals": {
+            "n": 137,
+            "mean": 0.781,
+            "var": 0.761
+          },
+          "totalGoals": {
+            "n": 137,
+            "mean": 3.438,
+            "var": 2.91
+          },
+          "goalDiff": {
+            "n": 137,
+            "mean": 1.876,
+            "var": 2.712
+          },
+          "strongShots": {
+            "n": 137,
+            "mean": 18.818,
+            "var": 42.827
+          },
+          "weakShots": {
+            "n": 137,
+            "mean": 9.095,
+            "var": 20.131
+          },
+          "strongOnTarget": {
+            "n": 137,
+            "mean": 7.365,
+            "var": 10.307
+          },
+          "weakOnTarget": {
+            "n": 137,
+            "mean": 2.942,
+            "var": 4.438
+          },
+          "shotShareStrongPct": 67.4,
+          "goalsPerShot": 0.123,
+          "onTargetPerShot": 0.369,
+          "corners": {
+            "n": 137,
+            "mean": 11.007,
+            "var": 13.537
+          },
+          "fouls": {
+            "n": 137,
+            "mean": 19.927,
+            "var": 30.465
+          },
+          "zeroZeroPct": 3.6,
+          "margin3PlusPct": 29.9,
+          "goals5PlusPct": 24.1,
+          "strongShots30PlusPct": 8.8
+        },
+        "simScores": "0-1 0-0 3-0 1-0 1-1 1-1 1-0 1-0 1-0 3-0 2-0 7-0 5-0 4-1 7-0 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 11.676,
+          "var": 1.911
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 11.375,
+          "var": 1.584
+        },
+        "blocked": 3
+      },
+      "cup/10-14": {
+        "sim": {
+          "n": 12,
+          "strongWinPct": 75,
+          "drawPct": 16.7,
+          "weakWinPct": 8.3,
+          "strongGoals": {
+            "n": 12,
+            "mean": 1.583,
+            "var": 2.265
+          },
+          "weakGoals": {
+            "n": 12,
+            "mean": 0.083,
+            "var": 0.083
+          },
+          "totalGoals": {
+            "n": 12,
+            "mean": 1.667,
+            "var": 2.061
+          },
+          "goalDiff": {
+            "n": 12,
+            "mean": 1.5,
+            "var": 2.636
+          },
+          "strongShots": {
+            "n": 12,
+            "mean": 10.833,
+            "var": 32.879
+          },
+          "weakShots": {
+            "n": 12,
+            "mean": 9.333,
+            "var": 16.424
+          },
+          "strongOnTarget": {
+            "n": 12,
+            "mean": 3.417,
+            "var": 4.992
+          },
+          "weakOnTarget": {
+            "n": 12,
+            "mean": 2.667,
+            "var": 3.515
+          },
+          "shotShareStrongPct": 53.7,
+          "goalsPerShot": 0.083,
+          "onTargetPerShot": 0.302,
+          "corners": {
+            "n": 12,
+            "mean": 4,
+            "var": 2.364
+          },
+          "fouls": {
+            "n": 12,
+            "mean": 16.833,
+            "var": 29.97
+          },
+          "zeroZeroPct": 16.7,
+          "margin3PlusPct": 33.3,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 12,
+          "strongWinPct": 75,
+          "drawPct": 16.7,
+          "weakWinPct": 8.3,
+          "strongGoals": {
+            "n": 12,
+            "mean": 2.25,
+            "var": 2.932
+          },
+          "weakGoals": {
+            "n": 12,
+            "mean": 0.667,
+            "var": 0.606
+          },
+          "totalGoals": {
+            "n": 12,
+            "mean": 2.917,
+            "var": 4.629
+          },
+          "goalDiff": {
+            "n": 12,
+            "mean": 1.583,
+            "var": 2.447
+          },
+          "strongShots": {
+            "n": 12,
+            "mean": 16.5,
+            "var": 29.364
+          },
+          "weakShots": {
+            "n": 12,
+            "mean": 9.417,
+            "var": 18.083
+          },
+          "strongOnTarget": {
+            "n": 12,
+            "mean": 6.5,
+            "var": 22.091
+          },
+          "weakOnTarget": {
+            "n": 12,
+            "mean": 3.333,
+            "var": 4.424
+          },
+          "shotShareStrongPct": 63.7,
+          "goalsPerShot": 0.113,
+          "onTargetPerShot": 0.379,
+          "corners": {
+            "n": 12,
+            "mean": 8.667,
+            "var": 15.333
+          },
+          "fouls": {
+            "n": 12,
+            "mean": 18.083,
+            "var": 34.083
+          },
+          "zeroZeroPct": 8.3,
+          "margin3PlusPct": 25,
+          "goals5PlusPct": 8.3,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 18,
+          "strongWinPct": 77.8,
+          "drawPct": 11.1,
+          "weakWinPct": 11.1,
+          "strongGoals": {
+            "n": 18,
+            "mean": 2.389,
+            "var": 2.369
+          },
+          "weakGoals": {
+            "n": 18,
+            "mean": 0.722,
+            "var": 0.801
+          },
+          "totalGoals": {
+            "n": 18,
+            "mean": 3.111,
+            "var": 3.634
+          },
+          "goalDiff": {
+            "n": 18,
+            "mean": 1.667,
+            "var": 2.706
+          },
+          "strongShots": {
+            "n": 18,
+            "mean": 16.611,
+            "var": 45.428
+          },
+          "weakShots": {
+            "n": 18,
+            "mean": 7.944,
+            "var": 22.173
+          },
+          "strongOnTarget": {
+            "n": 18,
+            "mean": 6.556,
+            "var": 20.026
+          },
+          "weakOnTarget": {
+            "n": 18,
+            "mean": 2.556,
+            "var": 4.85
+          },
+          "shotShareStrongPct": 67.6,
+          "goalsPerShot": 0.127,
+          "onTargetPerShot": 0.371,
+          "corners": {
+            "n": 18,
+            "mean": 8.722,
+            "var": 16.801
+          },
+          "fouls": {
+            "n": 18,
+            "mean": 17.333,
+            "var": 42.471
+          },
+          "zeroZeroPct": 5.6,
+          "margin3PlusPct": 27.8,
+          "goals5PlusPct": 11.1,
+          "strongShots30PlusPct": 0
+        },
+        "simScores": "4-0 0-0 3-0 1-0 4-0 3-0 1-0 1-0 1-0 0-1 0-0 1-0",
+        "simFcMeanGap": {
+          "n": 12,
+          "mean": 12.356,
+          "var": 2.931
+        },
+        "simGameAbilityGap": {
+          "n": 12,
+          "mean": 10.174,
+          "var": 4.657
+        },
+        "blocked": 0
+      },
+      "cup/15+": {
+        "sim": {
+          "n": 3,
+          "strongWinPct": 100,
+          "drawPct": 0,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 3,
+            "mean": 5,
+            "var": 7
+          },
+          "weakGoals": {
+            "n": 3,
+            "mean": 0,
+            "var": 0
+          },
+          "totalGoals": {
+            "n": 3,
+            "mean": 5,
+            "var": 7
+          },
+          "goalDiff": {
+            "n": 3,
+            "mean": 5,
+            "var": 7
+          },
+          "strongShots": {
+            "n": 3,
+            "mean": 25,
+            "var": 133
+          },
+          "weakShots": {
+            "n": 3,
+            "mean": 16.333,
+            "var": 10.333
+          },
+          "strongOnTarget": {
+            "n": 3,
+            "mean": 10,
+            "var": 21
+          },
+          "weakOnTarget": {
+            "n": 3,
+            "mean": 5,
+            "var": 7
+          },
+          "shotShareStrongPct": 60.5,
+          "goalsPerShot": 0.121,
+          "onTargetPerShot": 0.363,
+          "corners": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 9.333
+          },
+          "fouls": {
+            "n": 3,
+            "mean": 13.333,
+            "var": 6.333
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 100,
+          "goals5PlusPct": 33.3,
+          "strongShots30PlusPct": 33.3
+        },
+        "realSameFixtures": {
+          "n": 3,
+          "strongWinPct": 100,
+          "drawPct": 0,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 2.333
+          },
+          "weakGoals": {
+            "n": 3,
+            "mean": 0.667,
+            "var": 1.333
+          },
+          "totalGoals": {
+            "n": 3,
+            "mean": 4.333,
+            "var": 4.333
+          },
+          "goalDiff": {
+            "n": 3,
+            "mean": 3,
+            "var": 3
+          },
+          "strongShots": {
+            "n": 3,
+            "mean": 24.333,
+            "var": 60.333
+          },
+          "weakShots": {
+            "n": 3,
+            "mean": 9.333,
+            "var": 56.333
+          },
+          "strongOnTarget": {
+            "n": 3,
+            "mean": 10,
+            "var": 13
+          },
+          "weakOnTarget": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 8.333
+          },
+          "shotShareStrongPct": 72.3,
+          "goalsPerShot": 0.129,
+          "onTargetPerShot": 0.406,
+          "corners": {
+            "n": 3,
+            "mean": 11,
+            "var": 9
+          },
+          "fouls": {
+            "n": 3,
+            "mean": 14.667,
+            "var": 2.333
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 33.3,
+          "goals5PlusPct": 66.7,
+          "strongShots30PlusPct": 33.3
+        },
+        "realPopulation": {
+          "n": 3,
+          "strongWinPct": 100,
+          "drawPct": 0,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 2.333
+          },
+          "weakGoals": {
+            "n": 3,
+            "mean": 0.667,
+            "var": 1.333
+          },
+          "totalGoals": {
+            "n": 3,
+            "mean": 4.333,
+            "var": 4.333
+          },
+          "goalDiff": {
+            "n": 3,
+            "mean": 3,
+            "var": 3
+          },
+          "strongShots": {
+            "n": 3,
+            "mean": 24.333,
+            "var": 60.333
+          },
+          "weakShots": {
+            "n": 3,
+            "mean": 9.333,
+            "var": 56.333
+          },
+          "strongOnTarget": {
+            "n": 3,
+            "mean": 10,
+            "var": 13
+          },
+          "weakOnTarget": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 8.333
+          },
+          "shotShareStrongPct": 72.3,
+          "goalsPerShot": 0.129,
+          "onTargetPerShot": 0.406,
+          "corners": {
+            "n": 3,
+            "mean": 11,
+            "var": 9
+          },
+          "fouls": {
+            "n": 3,
+            "mean": 14.667,
+            "var": 2.333
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 33.3,
+          "goals5PlusPct": 66.7,
+          "strongShots30PlusPct": 33.3
+        },
+        "simScores": "3-0 4-0 8-0",
+        "simFcMeanGap": {
+          "n": 3,
+          "mean": 19.788,
+          "var": 10.135
+        },
+        "simGameAbilityGap": {
+          "n": 3,
+          "mean": 17.333,
+          "var": 7.656
+        },
+        "blocked": 1
+      }
+    }
+  },
+  "keeperFlat72": {
+    "n": 95,
+    "meanMs": 32178,
+    "all": {
+      "sim": {
+        "n": 95,
+        "strongWinPct": 54.7,
+        "drawPct": 32.6,
+        "weakWinPct": 12.6,
+        "strongGoals": {
+          "n": 95,
+          "mean": 1.453,
+          "var": 2.059
+        },
+        "weakGoals": {
+          "n": 95,
+          "mean": 0.537,
+          "var": 0.847
+        },
+        "totalGoals": {
+          "n": 95,
+          "mean": 1.989,
+          "var": 2.691
+        },
+        "goalDiff": {
+          "n": 95,
+          "mean": 0.916,
+          "var": 3.12
+        },
+        "strongShots": {
+          "n": 95,
+          "mean": 12.516,
+          "var": 61.401
+        },
+        "weakShots": {
+          "n": 95,
+          "mean": 10.495,
+          "var": 22.125
+        },
+        "strongOnTarget": {
+          "n": 95,
+          "mean": 4.032,
+          "var": 10.52
+        },
+        "weakOnTarget": {
+          "n": 95,
+          "mean": 2.158,
+          "var": 3.773
+        },
+        "shotShareStrongPct": 54.4,
+        "goalsPerShot": 0.086,
+        "onTargetPerShot": 0.269,
+        "corners": {
+          "n": 95,
+          "mean": 3.484,
+          "var": 3.784
+        },
+        "fouls": {
+          "n": 95,
+          "mean": 16.716,
+          "var": 14.44
+        },
+        "zeroZeroPct": 20,
+        "margin3PlusPct": 20,
+        "goals5PlusPct": 7.4,
+        "strongShots30PlusPct": 4.2
+      },
+      "realPopulation": {
+        "n": 3434,
+        "strongWinPct": 49.3,
+        "drawPct": 25.3,
+        "weakWinPct": 25.4,
+        "strongGoals": {
+          "n": 3434,
+          "mean": 1.706,
+          "var": 1.841
+        },
+        "weakGoals": {
+          "n": 3434,
+          "mean": 1.15,
+          "var": 1.19
+        },
+        "totalGoals": {
+          "n": 3434,
+          "mean": 2.856,
+          "var": 2.857
+        },
+        "goalDiff": {
+          "n": 3434,
+          "mean": 0.556,
+          "var": 3.205
+        },
+        "strongShots": {
+          "n": 3434,
+          "mean": 14.289,
+          "var": 29.601
+        },
+        "weakShots": {
+          "n": 3434,
+          "mean": 11.332,
+          "var": 21.343
+        },
+        "strongOnTarget": {
+          "n": 3434,
+          "mean": 5.073,
+          "var": 6.861
+        },
+        "weakOnTarget": {
+          "n": 3434,
+          "mean": 3.852,
+          "var": 4.867
+        },
+        "shotShareStrongPct": 55.8,
+        "goalsPerShot": 0.111,
+        "onTargetPerShot": 0.348,
+        "corners": {
+          "n": 3434,
+          "mean": 10.186,
+          "var": 12.134
+        },
+        "fouls": {
+          "n": 3434,
+          "mean": 22.515,
+          "var": 30.321
+        },
+        "zeroZeroPct": 6.1,
+        "margin3PlusPct": 16.7,
+        "goals5PlusPct": 16,
+        "strongShots30PlusPct": 1.3
+      }
+    },
+    "groups": {
+      "league/equal": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 31.3,
+          "drawPct": 37.5,
+          "weakWinPct": 31.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 0.938,
+            "var": 0.996
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 1.188,
+            "var": 1.762
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.125,
+            "var": 2.517
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": -0.25,
+            "var": 3
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 10.563,
+            "var": 28.529
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 13.438,
+            "var": 25.329
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 2.813,
+            "var": 8.162
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 3.188,
+            "var": 4.429
+          },
+          "shotShareStrongPct": 44,
+          "goalsPerShot": 0.089,
+          "onTargetPerShot": 0.25,
+          "corners": {
+            "n": 16,
+            "mean": 3,
+            "var": 2.267
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 18.75,
+            "var": 13.933
+          },
+          "zeroZeroPct": 18.8,
+          "margin3PlusPct": 6.3,
+          "goals5PlusPct": 6.3,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 50,
+          "drawPct": 25,
+          "weakWinPct": 25,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.313,
+            "var": 1.563
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.75,
+            "var": 1.133
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 1.796
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.563,
+            "var": 3.596
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 14.563,
+            "var": 17.729
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 12.688,
+            "var": 13.296
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 4.313,
+            "var": 2.229
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 4.313,
+            "var": 2.096
+          },
+          "shotShareStrongPct": 53.4,
+          "goalsPerShot": 0.076,
+          "onTargetPerShot": 0.317,
+          "corners": {
+            "n": 16,
+            "mean": 10.938,
+            "var": 10.596
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 22.25,
+            "var": 25.8
+          },
+          "zeroZeroPct": 12.5,
+          "margin3PlusPct": 18.8,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 429,
+          "strongWinPct": 41.3,
+          "drawPct": 28.4,
+          "weakWinPct": 30.3,
+          "strongGoals": {
+            "n": 429,
+            "mean": 1.427,
+            "var": 1.661
+          },
+          "weakGoals": {
+            "n": 429,
+            "mean": 1.212,
+            "var": 1.406
+          },
+          "totalGoals": {
+            "n": 429,
+            "mean": 2.639,
+            "var": 3.138
+          },
+          "goalDiff": {
+            "n": 429,
+            "mean": 0.214,
+            "var": 2.996
+          },
+          "strongShots": {
+            "n": 429,
+            "mean": 13.667,
+            "var": 23.326
+          },
+          "weakShots": {
+            "n": 429,
+            "mean": 11.73,
+            "var": 18.511
+          },
+          "strongOnTarget": {
+            "n": 429,
+            "mean": 4.697,
+            "var": 5.782
+          },
+          "weakOnTarget": {
+            "n": 429,
+            "mean": 4.016,
+            "var": 4.53
+          },
+          "shotShareStrongPct": 53.8,
+          "goalsPerShot": 0.104,
+          "onTargetPerShot": 0.343,
+          "corners": {
+            "n": 429,
+            "mean": 10.28,
+            "var": 11.851
+          },
+          "fouls": {
+            "n": 429,
+            "mean": 23.075,
+            "var": 31.046
+          },
+          "zeroZeroPct": 9.8,
+          "margin3PlusPct": 14.7,
+          "goals5PlusPct": 13.8,
+          "strongShots30PlusPct": 0
+        },
+        "simScores": "1-1 1-0 2-1 2-0 0-0 0-5 0-1 2-2 0-0 2-1 1-1 1-3 3-1 0-2 0-0 0-1",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": -0.182,
+          "var": 0.441
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": -0.534,
+          "var": 2.425
+        },
+        "blocked": 0
+      },
+      "league/0-2": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 43.8,
+          "drawPct": 37.5,
+          "weakWinPct": 18.8,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.063,
+            "var": 1.663
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.563,
+            "var": 0.662
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 1.625,
+            "var": 2.117
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.5,
+            "var": 2.533
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 12.313,
+            "var": 41.829
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 10.625,
+            "var": 20.517
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 3.625,
+            "var": 8.917
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 2.188,
+            "var": 2.962
+          },
+          "shotShareStrongPct": 53.7,
+          "goalsPerShot": 0.071,
+          "onTargetPerShot": 0.253,
+          "corners": {
+            "n": 16,
+            "mean": 3.25,
+            "var": 3
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 18.5,
+            "var": 16.8
+          },
+          "zeroZeroPct": 31.3,
+          "margin3PlusPct": 12.5,
+          "goals5PlusPct": 0,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 37.5,
+          "drawPct": 37.5,
+          "weakWinPct": 25,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.438,
+            "var": 1.196
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 1.125,
+            "var": 0.917
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.563,
+            "var": 2.663
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.313,
+            "var": 1.563
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 13.625,
+            "var": 35.85
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 11.375,
+            "var": 13.183
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 5.438,
+            "var": 12.129
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 4.438,
+            "var": 6.796
+          },
+          "shotShareStrongPct": 54.5,
+          "goalsPerShot": 0.102,
+          "onTargetPerShot": 0.395,
+          "corners": {
+            "n": 16,
+            "mean": 10.5,
+            "var": 18.933
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 23.75,
+            "var": 43
+          },
+          "zeroZeroPct": 6.3,
+          "margin3PlusPct": 0,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 1373,
+          "strongWinPct": 39.5,
+          "drawPct": 28.8,
+          "weakWinPct": 31.7,
+          "strongGoals": {
+            "n": 1373,
+            "mean": 1.471,
+            "var": 1.523
+          },
+          "weakGoals": {
+            "n": 1373,
+            "mean": 1.272,
+            "var": 1.216
+          },
+          "totalGoals": {
+            "n": 1373,
+            "mean": 2.744,
+            "var": 2.678
+          },
+          "goalDiff": {
+            "n": 1373,
+            "mean": 0.199,
+            "var": 2.801
+          },
+          "strongShots": {
+            "n": 1373,
+            "mean": 13.233,
+            "var": 26.83
+          },
+          "weakShots": {
+            "n": 1373,
+            "mean": 11.931,
+            "var": 20.579
+          },
+          "strongOnTarget": {
+            "n": 1373,
+            "mean": 4.535,
+            "var": 5.949
+          },
+          "weakOnTarget": {
+            "n": 1373,
+            "mean": 4.084,
+            "var": 4.792
+          },
+          "shotShareStrongPct": 52.6,
+          "goalsPerShot": 0.109,
+          "onTargetPerShot": 0.343,
+          "corners": {
+            "n": 1373,
+            "mean": 10.137,
+            "var": 11.747
+          },
+          "fouls": {
+            "n": 1373,
+            "mean": 22.992,
+            "var": 29.374
+          },
+          "zeroZeroPct": 6.9,
+          "margin3PlusPct": 12.5,
+          "goals5PlusPct": 14.4,
+          "strongShots30PlusPct": 0.9
+        },
+        "simScores": "0-1 0-0 2-1 1-0 3-0 2-2 0-2 2-0 2-1 1-0 0-0 0-0 0-0 4-0 0-2 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 1.557,
+          "var": 0.752
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 1.324,
+          "var": 1.61
+        },
+        "blocked": 1
+      },
+      "league/3-5": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 43.8,
+          "drawPct": 31.3,
+          "weakWinPct": 25,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.313,
+            "var": 1.429
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.75,
+            "var": 1.267
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 2.462
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.563,
+            "var": 2.929
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 11.75,
+            "var": 28.6
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 10.063,
+            "var": 17.929
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 3.5,
+            "var": 3.6
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 2.313,
+            "var": 3.962
+          },
+          "shotShareStrongPct": 53.9,
+          "goalsPerShot": 0.095,
+          "onTargetPerShot": 0.266,
+          "corners": {
+            "n": 16,
+            "mean": 3.375,
+            "var": 1.85
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 16.938,
+            "var": 15.662
+          },
+          "zeroZeroPct": 18.8,
+          "margin3PlusPct": 25,
+          "goals5PlusPct": 6.3,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 50,
+          "drawPct": 18.8,
+          "weakWinPct": 31.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.563,
+            "var": 1.462
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 1.063,
+            "var": 0.996
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.625,
+            "var": 2.383
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 0.5,
+            "var": 2.533
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 15.625,
+            "var": 50.117
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 9.875,
+            "var": 51.317
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 4.813,
+            "var": 3.096
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 3.688,
+            "var": 7.829
+          },
+          "shotShareStrongPct": 61.3,
+          "goalsPerShot": 0.103,
+          "onTargetPerShot": 0.333,
+          "corners": {
+            "n": 16,
+            "mean": 11.5,
+            "var": 20.267
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 21.375,
+            "var": 34.383
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 6.3,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 6.3
+        },
+        "realPopulation": {
+          "n": 890,
+          "strongWinPct": 52,
+          "drawPct": 23.8,
+          "weakWinPct": 24.2,
+          "strongGoals": {
+            "n": 890,
+            "mean": 1.737,
+            "var": 1.764
+          },
+          "weakGoals": {
+            "n": 890,
+            "mean": 1.116,
+            "var": 1.18
+          },
+          "totalGoals": {
+            "n": 890,
+            "mean": 2.853,
+            "var": 2.693
+          },
+          "goalDiff": {
+            "n": 890,
+            "mean": 0.621,
+            "var": 3.196
+          },
+          "strongShots": {
+            "n": 890,
+            "mean": 14.246,
+            "var": 27.02
+          },
+          "weakShots": {
+            "n": 890,
+            "mean": 11.291,
+            "var": 21.262
+          },
+          "strongOnTarget": {
+            "n": 890,
+            "mean": 5.093,
+            "var": 6.017
+          },
+          "weakOnTarget": {
+            "n": 890,
+            "mean": 3.815,
+            "var": 4.88
+          },
+          "shotShareStrongPct": 55.8,
+          "goalsPerShot": 0.112,
+          "onTargetPerShot": 0.349,
+          "corners": {
+            "n": 890,
+            "mean": 10.138,
+            "var": 12.067
+          },
+          "fouls": {
+            "n": 890,
+            "mean": 22.474,
+            "var": 29.865
+          },
+          "zeroZeroPct": 5.3,
+          "margin3PlusPct": 18.1,
+          "goals5PlusPct": 14.7,
+          "strongShots30PlusPct": 0.6
+        },
+        "simScores": "3-0 1-0 2-2 1-1 0-0 1-3 3-0 2-3 1-0 1-0 0-0 0-1 3-0 0-2 3-0 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 3.443,
+          "var": 0.739
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 2.92,
+          "var": 4.34
+        },
+        "blocked": 0
+      },
+      "league/6-9": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 75,
+          "drawPct": 25,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 3.129
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.25,
+            "var": 0.333
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.313,
+            "var": 3.163
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 1.813,
+            "var": 3.763
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 11.25,
+            "var": 42.6
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 8.313,
+            "var": 10.363
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 3.75,
+            "var": 6.067
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 1.313,
+            "var": 1.029
+          },
+          "shotShareStrongPct": 57.5,
+          "goalsPerShot": 0.118,
+          "onTargetPerShot": 0.259,
+          "corners": {
+            "n": 16,
+            "mean": 3.938,
+            "var": 7.796
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 15.875,
+            "var": 10.383
+          },
+          "zeroZeroPct": 6.3,
+          "margin3PlusPct": 25,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 93.8,
+          "drawPct": 0,
+          "weakWinPct": 6.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 2.625,
+            "var": 1.85
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.563,
+            "var": 0.263
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 3.188,
+            "var": 2.163
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 2.063,
+            "var": 2.063
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 16.25,
+            "var": 38.2
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 9.25,
+            "var": 19.267
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 6.875,
+            "var": 11.717
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 3.438,
+            "var": 2.396
+          },
+          "shotShareStrongPct": 63.7,
+          "goalsPerShot": 0.125,
+          "onTargetPerShot": 0.404,
+          "corners": {
+            "n": 16,
+            "mean": 9.563,
+            "var": 12.396
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 22.938,
+            "var": 21.796
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 31.3,
+          "goals5PlusPct": 12.5,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 448,
+          "strongWinPct": 67.9,
+          "drawPct": 20.3,
+          "weakWinPct": 11.8,
+          "strongGoals": {
+            "n": 448,
+            "mean": 2.27,
+            "var": 2.283
+          },
+          "weakGoals": {
+            "n": 448,
+            "mean": 0.938,
+            "var": 0.967
+          },
+          "totalGoals": {
+            "n": 448,
+            "mean": 3.208,
+            "var": 3.096
+          },
+          "goalDiff": {
+            "n": 448,
+            "mean": 1.333,
+            "var": 3.404
+          },
+          "strongShots": {
+            "n": 448,
+            "mean": 16.563,
+            "var": 29.2
+          },
+          "weakShots": {
+            "n": 448,
+            "mean": 9.967,
+            "var": 20.909
+          },
+          "strongOnTarget": {
+            "n": 448,
+            "mean": 6.263,
+            "var": 7.206
+          },
+          "weakOnTarget": {
+            "n": 448,
+            "mean": 3.366,
+            "var": 4.769
+          },
+          "shotShareStrongPct": 62.4,
+          "goalsPerShot": 0.121,
+          "onTargetPerShot": 0.363,
+          "corners": {
+            "n": 448,
+            "mean": 10.089,
+            "var": 12.122
+          },
+          "fouls": {
+            "n": 448,
+            "mean": 21.839,
+            "var": 28.985
+          },
+          "zeroZeroPct": 3.3,
+          "margin3PlusPct": 25.9,
+          "goals5PlusPct": 21.7,
+          "strongShots30PlusPct": 2
+        },
+        "simScores": "1-0 1-0 1-0 1-0 3-0 3-0 2-2 2-0 1-1 2-0 1-0 1-1 5-0 7-0 2-0 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 7.619,
+          "var": 1.627
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 6.75,
+          "var": 2.089
+        },
+        "blocked": 0
+      },
+      "league/10-14": {
+        "sim": {
+          "n": 16,
+          "strongWinPct": 75,
+          "drawPct": 25,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 16,
+            "mean": 1.813,
+            "var": 1.896
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.313,
+            "var": 0.362
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 2.125,
+            "var": 2.917
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 1.5,
+            "var": 1.6
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 16.125,
+            "var": 133.05
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 10.188,
+            "var": 16.029
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 5.125,
+            "var": 13.583
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 1.75,
+            "var": 3.267
+          },
+          "shotShareStrongPct": 61.3,
+          "goalsPerShot": 0.081,
+          "onTargetPerShot": 0.261,
+          "corners": {
+            "n": 16,
+            "mean": 3.375,
+            "var": 5.583
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 15.438,
+            "var": 6.529
+          },
+          "zeroZeroPct": 12.5,
+          "margin3PlusPct": 25,
+          "goals5PlusPct": 6.3,
+          "strongShots30PlusPct": 18.8
+        },
+        "realSameFixtures": {
+          "n": 16,
+          "strongWinPct": 87.5,
+          "drawPct": 6.3,
+          "weakWinPct": 6.3,
+          "strongGoals": {
+            "n": 16,
+            "mean": 3.25,
+            "var": 2.2
+          },
+          "weakGoals": {
+            "n": 16,
+            "mean": 0.813,
+            "var": 0.829
+          },
+          "totalGoals": {
+            "n": 16,
+            "mean": 4.063,
+            "var": 2.996
+          },
+          "goalDiff": {
+            "n": 16,
+            "mean": 2.438,
+            "var": 3.063
+          },
+          "strongShots": {
+            "n": 16,
+            "mean": 18.188,
+            "var": 48.829
+          },
+          "weakShots": {
+            "n": 16,
+            "mean": 10.938,
+            "var": 32.996
+          },
+          "strongOnTarget": {
+            "n": 16,
+            "mean": 6.75,
+            "var": 7.267
+          },
+          "weakOnTarget": {
+            "n": 16,
+            "mean": 4.063,
+            "var": 5.129
+          },
+          "shotShareStrongPct": 62.4,
+          "goalsPerShot": 0.139,
+          "onTargetPerShot": 0.371,
+          "corners": {
+            "n": 16,
+            "mean": 10.438,
+            "var": 9.063
+          },
+          "fouls": {
+            "n": 16,
+            "mean": 18.625,
+            "var": 34.383
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 43.8,
+          "goals5PlusPct": 50,
+          "strongShots30PlusPct": 12.5
+        },
+        "realPopulation": {
+          "n": 137,
+          "strongWinPct": 81,
+          "drawPct": 13.1,
+          "weakWinPct": 5.8,
+          "strongGoals": {
+            "n": 137,
+            "mean": 2.657,
+            "var": 2.051
+          },
+          "weakGoals": {
+            "n": 137,
+            "mean": 0.781,
+            "var": 0.761
+          },
+          "totalGoals": {
+            "n": 137,
+            "mean": 3.438,
+            "var": 2.91
+          },
+          "goalDiff": {
+            "n": 137,
+            "mean": 1.876,
+            "var": 2.712
+          },
+          "strongShots": {
+            "n": 137,
+            "mean": 18.818,
+            "var": 42.827
+          },
+          "weakShots": {
+            "n": 137,
+            "mean": 9.095,
+            "var": 20.131
+          },
+          "strongOnTarget": {
+            "n": 137,
+            "mean": 7.365,
+            "var": 10.307
+          },
+          "weakOnTarget": {
+            "n": 137,
+            "mean": 2.942,
+            "var": 4.438
+          },
+          "shotShareStrongPct": 67.4,
+          "goalsPerShot": 0.123,
+          "onTargetPerShot": 0.369,
+          "corners": {
+            "n": 137,
+            "mean": 11.007,
+            "var": 13.537
+          },
+          "fouls": {
+            "n": 137,
+            "mean": 19.927,
+            "var": 30.465
+          },
+          "zeroZeroPct": 3.6,
+          "margin3PlusPct": 29.9,
+          "goals5PlusPct": 24.1,
+          "strongShots30PlusPct": 8.8
+        },
+        "simScores": "2-1 0-0 1-0 1-0 1-0 3-0 1-1 1-0 1-1 2-0 4-0 3-0 2-0 2-0 5-2 0-0",
+        "simFcMeanGap": {
+          "n": 16,
+          "mean": 11.676,
+          "var": 1.911
+        },
+        "simGameAbilityGap": {
+          "n": 16,
+          "mean": 10.67,
+          "var": 1.339
+        },
+        "blocked": 3
+      },
+      "cup/10-14": {
+        "sim": {
+          "n": 12,
+          "strongWinPct": 50,
+          "drawPct": 50,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 12,
+            "mean": 1.333,
+            "var": 2.606
+          },
+          "weakGoals": {
+            "n": 12,
+            "mean": 0.167,
+            "var": 0.152
+          },
+          "totalGoals": {
+            "n": 12,
+            "mean": 1.5,
+            "var": 3.364
+          },
+          "goalDiff": {
+            "n": 12,
+            "mean": 1.167,
+            "var": 2.152
+          },
+          "strongShots": {
+            "n": 12,
+            "mean": 10.833,
+            "var": 50.152
+          },
+          "weakShots": {
+            "n": 12,
+            "mean": 8,
+            "var": 16
+          },
+          "strongOnTarget": {
+            "n": 12,
+            "mean": 4.667,
+            "var": 14.424
+          },
+          "weakOnTarget": {
+            "n": 12,
+            "mean": 1.167,
+            "var": 1.424
+          },
+          "shotShareStrongPct": 57.5,
+          "goalsPerShot": 0.08,
+          "onTargetPerShot": 0.31,
+          "corners": {
+            "n": 12,
+            "mean": 4.083,
+            "var": 2.992
+          },
+          "fouls": {
+            "n": 12,
+            "mean": 15.5,
+            "var": 12.636
+          },
+          "zeroZeroPct": 41.7,
+          "margin3PlusPct": 25,
+          "goals5PlusPct": 8.3,
+          "strongShots30PlusPct": 0
+        },
+        "realSameFixtures": {
+          "n": 12,
+          "strongWinPct": 75,
+          "drawPct": 16.7,
+          "weakWinPct": 8.3,
+          "strongGoals": {
+            "n": 12,
+            "mean": 2.25,
+            "var": 2.932
+          },
+          "weakGoals": {
+            "n": 12,
+            "mean": 0.667,
+            "var": 0.606
+          },
+          "totalGoals": {
+            "n": 12,
+            "mean": 2.917,
+            "var": 4.629
+          },
+          "goalDiff": {
+            "n": 12,
+            "mean": 1.583,
+            "var": 2.447
+          },
+          "strongShots": {
+            "n": 12,
+            "mean": 16.5,
+            "var": 29.364
+          },
+          "weakShots": {
+            "n": 12,
+            "mean": 9.417,
+            "var": 18.083
+          },
+          "strongOnTarget": {
+            "n": 12,
+            "mean": 6.5,
+            "var": 22.091
+          },
+          "weakOnTarget": {
+            "n": 12,
+            "mean": 3.333,
+            "var": 4.424
+          },
+          "shotShareStrongPct": 63.7,
+          "goalsPerShot": 0.113,
+          "onTargetPerShot": 0.379,
+          "corners": {
+            "n": 12,
+            "mean": 8.667,
+            "var": 15.333
+          },
+          "fouls": {
+            "n": 12,
+            "mean": 18.083,
+            "var": 34.083
+          },
+          "zeroZeroPct": 8.3,
+          "margin3PlusPct": 25,
+          "goals5PlusPct": 8.3,
+          "strongShots30PlusPct": 0
+        },
+        "realPopulation": {
+          "n": 18,
+          "strongWinPct": 77.8,
+          "drawPct": 11.1,
+          "weakWinPct": 11.1,
+          "strongGoals": {
+            "n": 18,
+            "mean": 2.389,
+            "var": 2.369
+          },
+          "weakGoals": {
+            "n": 18,
+            "mean": 0.722,
+            "var": 0.801
+          },
+          "totalGoals": {
+            "n": 18,
+            "mean": 3.111,
+            "var": 3.634
+          },
+          "goalDiff": {
+            "n": 18,
+            "mean": 1.667,
+            "var": 2.706
+          },
+          "strongShots": {
+            "n": 18,
+            "mean": 16.611,
+            "var": 45.428
+          },
+          "weakShots": {
+            "n": 18,
+            "mean": 7.944,
+            "var": 22.173
+          },
+          "strongOnTarget": {
+            "n": 18,
+            "mean": 6.556,
+            "var": 20.026
+          },
+          "weakOnTarget": {
+            "n": 18,
+            "mean": 2.556,
+            "var": 4.85
+          },
+          "shotShareStrongPct": 67.6,
+          "goalsPerShot": 0.127,
+          "onTargetPerShot": 0.371,
+          "corners": {
+            "n": 18,
+            "mean": 8.722,
+            "var": 16.801
+          },
+          "fouls": {
+            "n": 18,
+            "mean": 17.333,
+            "var": 42.471
+          },
+          "zeroZeroPct": 5.6,
+          "margin3PlusPct": 27.8,
+          "goals5PlusPct": 11.1,
+          "strongShots30PlusPct": 0
+        },
+        "simScores": "2-0 3-0 0-0 0-0 5-1 1-1 0-0 3-0 1-0 0-0 0-0 1-0",
+        "simFcMeanGap": {
+          "n": 12,
+          "mean": 12.356,
+          "var": 2.931
+        },
+        "simGameAbilityGap": {
+          "n": 12,
+          "mean": 9.409,
+          "var": 4.217
+        },
+        "blocked": 0
+      },
+      "cup/15+": {
+        "sim": {
+          "n": 3,
+          "strongWinPct": 100,
+          "drawPct": 0,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 3,
+            "mean": 2.333,
+            "var": 5.333
+          },
+          "weakGoals": {
+            "n": 3,
+            "mean": 0,
+            "var": 0
+          },
+          "totalGoals": {
+            "n": 3,
+            "mean": 2.333,
+            "var": 5.333
+          },
+          "goalDiff": {
+            "n": 3,
+            "mean": 2.333,
+            "var": 5.333
+          },
+          "strongShots": {
+            "n": 3,
+            "mean": 22.333,
+            "var": 236.333
+          },
+          "weakShots": {
+            "n": 3,
+            "mean": 19.667,
+            "var": 2.333
+          },
+          "strongOnTarget": {
+            "n": 3,
+            "mean": 8.667,
+            "var": 52.333
+          },
+          "weakOnTarget": {
+            "n": 3,
+            "mean": 6.333,
+            "var": 4.333
+          },
+          "shotShareStrongPct": 53.2,
+          "goalsPerShot": 0.056,
+          "onTargetPerShot": 0.357,
+          "corners": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 1.333
+          },
+          "fouls": {
+            "n": 3,
+            "mean": 11.333,
+            "var": 4.333
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 33.3,
+          "goals5PlusPct": 33.3,
+          "strongShots30PlusPct": 33.3
+        },
+        "realSameFixtures": {
+          "n": 3,
+          "strongWinPct": 100,
+          "drawPct": 0,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 2.333
+          },
+          "weakGoals": {
+            "n": 3,
+            "mean": 0.667,
+            "var": 1.333
+          },
+          "totalGoals": {
+            "n": 3,
+            "mean": 4.333,
+            "var": 4.333
+          },
+          "goalDiff": {
+            "n": 3,
+            "mean": 3,
+            "var": 3
+          },
+          "strongShots": {
+            "n": 3,
+            "mean": 24.333,
+            "var": 60.333
+          },
+          "weakShots": {
+            "n": 3,
+            "mean": 9.333,
+            "var": 56.333
+          },
+          "strongOnTarget": {
+            "n": 3,
+            "mean": 10,
+            "var": 13
+          },
+          "weakOnTarget": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 8.333
+          },
+          "shotShareStrongPct": 72.3,
+          "goalsPerShot": 0.129,
+          "onTargetPerShot": 0.406,
+          "corners": {
+            "n": 3,
+            "mean": 11,
+            "var": 9
+          },
+          "fouls": {
+            "n": 3,
+            "mean": 14.667,
+            "var": 2.333
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 33.3,
+          "goals5PlusPct": 66.7,
+          "strongShots30PlusPct": 33.3
+        },
+        "realPopulation": {
+          "n": 3,
+          "strongWinPct": 100,
+          "drawPct": 0,
+          "weakWinPct": 0,
+          "strongGoals": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 2.333
+          },
+          "weakGoals": {
+            "n": 3,
+            "mean": 0.667,
+            "var": 1.333
+          },
+          "totalGoals": {
+            "n": 3,
+            "mean": 4.333,
+            "var": 4.333
+          },
+          "goalDiff": {
+            "n": 3,
+            "mean": 3,
+            "var": 3
+          },
+          "strongShots": {
+            "n": 3,
+            "mean": 24.333,
+            "var": 60.333
+          },
+          "weakShots": {
+            "n": 3,
+            "mean": 9.333,
+            "var": 56.333
+          },
+          "strongOnTarget": {
+            "n": 3,
+            "mean": 10,
+            "var": 13
+          },
+          "weakOnTarget": {
+            "n": 3,
+            "mean": 3.667,
+            "var": 8.333
+          },
+          "shotShareStrongPct": 72.3,
+          "goalsPerShot": 0.129,
+          "onTargetPerShot": 0.406,
+          "corners": {
+            "n": 3,
+            "mean": 11,
+            "var": 9
+          },
+          "fouls": {
+            "n": 3,
+            "mean": 14.667,
+            "var": 2.333
+          },
+          "zeroZeroPct": 0,
+          "margin3PlusPct": 33.3,
+          "goals5PlusPct": 66.7,
+          "strongShots30PlusPct": 33.3
+        },
+        "simScores": "1-0 1-0 5-0",
+        "simFcMeanGap": {
+          "n": 3,
+          "mean": 19.788,
+          "var": 10.135
+        },
+        "simGameAbilityGap": {
+          "n": 3,
+          "mean": 16.152,
+          "var": 6.3
+        },
+        "blocked": 1
+      }
+    }
+  }
+}
