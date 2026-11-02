@@ -6,11 +6,11 @@
 
 - GitHub：<https://github.com/sixu3575/touchline-manager>，公开仓库。
 - 本地开发目录：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/work/tactical-block-v047`。上一级 `wo` **不是 Git 仓库**。
-- 当前分支：`feat/tactical-blocks`。本轮开始时有大量未提交的0.47改动，不能只交接 GitHub main 而遗失这些文件。
+- 功能分支 `feat/tactical-blocks` 已通过 [PR #82](https://github.com/sixu3575/touchline-manager/pull/82) 合入 main，此前未提交的0.47改动均已归档。接手请从最新 main 新建分支/worktree。
 - 已先合入远端 `a8e6e975f964768bef22acf8a61d916e935b6d02`，保留 PR #80/#81 的整队更衣室资料墙，不能用旧前端覆盖它。合入时 CHANGELOG 的冲突保留了两侧内容；自动备份 stash `60adada` 保留，未擅自删除。
 - 发布前实测服务器 build：`9d7560725431c5f0500539549c99bfccf8422305`，比赛引擎仍为0.46；不是旧记录里的 `b3363ee` 前端。
-- 本次要发布的比赛引擎：`0.47.2-matchup-cover`，参数 `role-containment-1`，包含尚未上线的0.47/0.47.1改动。
-- **当前发布阶段：执行检查与备份中，尚未声称部署成功。** 本任务仍持有 matches/tactics/integration 模块锁，owner=`handover-release-20261102`；接手AI不要同时写此worktree，应等待交接完成或另开独立worktree。 最终 SHA、备份与验收结果以本文件末尾及 `docs/OPERATIONS.md` 的本次记录为准。
+- **已部署：`0.47.2-matchup-cover` / `role-containment-1`**，包含0.47/0.47.1保留改动；生产 build 为 `029c5e2286abb778e5474b408876dc50b8a5aae2`。
+- 发布与公网验收已完成，详情见末尾及 `docs/OPERATIONS.md`。本次 matches/tactics/integration 模块锁已释放；接手仍须查询锁状态、以自己的 owner 认领并使用独立worktree。其他旧worktree及保留stash不代表最新主分支，不要盲目套用。
 
 ### 用户授权与必须保留的问题
 
@@ -141,4 +141,16 @@ node tests/tools/compare-matchup.mjs BASELINE_DIR CANDIDATE_DIR OUTPUT.json
 
 ## 本次最终发布记录
 
-待完成工程检查、PR、数据备份、安装与公网验收后填写。未填写之前，不将本文件理解为“已上线”。
+2026-11-02已发布PR #82，功能头 `75ac38c610025b9899b32c741d3c7980f9bee26c`，合并/生产SHA **`029c5e2286abb778e5474b408876dc50b8a5aae2`**。合并树与已验证PR头完全相同，保留整队更衣室资料墙。此后纯文档提交不需要重新安装相同运行代码；生产以health build和实际引擎源码为准。
+
+- 本机`npm run check`全部通过：122项冒烟/业务、181项比赛单元、16项真实比赛/API、9项受控API/业务赛季、1项完整物理赛季，合计329项，加类型和构建。物理计算56场联赛及换季后4场；总2,211,423ms，物理赛季1,921,386ms。
+- [CI 41391924200](https://github.com/sixu3575/touchline-manager/actions/runs/41391924200) Node22/24均通过。Node22总4,896,982ms、物理赛季4,300,387ms；Node24总3,364,404ms、物理赛季2,905,776ms。沿用原分类，没有新流程优化。
+- VM隔离单Worker完整90分钟346,970ms，首15秒片1,879ms、最慢2,370ms、P95 1,801ms；OS RSS高水位296,525,824字节（约283MiB），27,001帧。这不代表四场并发或整轮耗时；临时服务/目录/日志已清理。
+- 一致离机备份：`C:/Users/siyan/Documents/Codex/private-backups/touchline-manager/touchline-handover-preflight-20261102.sqlite`；VM原件`/var/backups/touchline-manager/touchline-handover-preflight-20261102.sqlite`。160,096,256字节，两端SHA256 `3c08cffb406743736cbd5ab7c88831f8296394dc68dd8f0d951f97ee96cf50f6`及integrity_check通过。安装另生成`touchline-2026-11-02T06-29-26-899Z.sqlite`。
+- 发布包3,884,299字节，SHA256 `444ae752872d8995a68eb509ae0de2eb3edc688f4aca849926421b25393324d6`，原install.sh安装。上线后211个实际文件与包一致；本机/公网health及实际引擎/参数核对通过。
+- 部署前后六表全列/BLOB指纹与离机快照相同：6 saves、54 operations、26 replays、75 match_reports、3 complete match_jobs、1080 match_chunks。没有推进真实存档、改写历史或删除额外匿名存档。
+- 公网资产用独立无界面浏览器验证20柜/雷达、搜索/排序、5-4-1的1/5/4/1选人及390px名单；零JS错误/写请求。`/api/state`拦截为本地公开DTO，未创建生产存档，不冒充玩家原存档交互。阵型切换动画结束后截图正常。
+- 服务/Caddy/备份timer active，NRestarts=0，验收空闲MemoryCurrent约35MiB（不是比赛峰值）。旧release `9d7560725431c5f0500539549c99bfccf8422305`保留；回滚须排空新任务，不能拿旧库覆盖新进度。
+- 日志、CI报告、截图及SHA清单：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/outputs/handover-release-evidence-20261102/`。独立交接副本：`.../outputs/HANDOVER_TOUCHLINE_MANAGER_20261102.md`。玩家SQLite继续保密。
+
+**部署完成不等于拟真完成。** FC20场9 blocked、同水平进球/方差下降等问题仍在；下一位AI应以固定0.46基线逐项消融。

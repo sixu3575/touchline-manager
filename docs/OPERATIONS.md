@@ -1,5 +1,17 @@
 # 部署与恢复
 
+## 2026-11-02 发布：0.47.2与AI交接
+
+PR #82已部署，生产build `029c5e2286abb778e5474b408876dc50b8a5aae2`，引擎`0.47.2-matchup-cover` / `role-containment-1`。合并树与已检查PR头`75ac38c`相同，保留整队更衣室。用户在获知FC20场9 blocked及同水平进球/方差下降后明确要求发布当前候选；本次不改变以后流程或拟真门槛。交接、失败证据与后续工作见[HANDOVER](HANDOVER.md)。
+
+本机完整`npm run check`通过329项、类型与构建，含16项真实比赛/API和60场物理计算（56场联赛及换季首轮4场）；总2,211,423ms，物理赛季1,921,386ms。PR CI 41391924200的Node22/24均通过，分别总4,896,982/3,364,404ms。VM隔离单Worker90分钟346,970ms，最慢15秒片2,370ms、P95 1,801ms，OS RSS高水位296,525,824字节；不代表四场并发。单Worker/512MiB、JS128MiB、原WASM/`--liftoff-only`/malloc配置保持，临时探针已清理。
+
+旧任务全部完成后切换。一致离机备份`C:/Users/siyan/Documents/Codex/private-backups/touchline-manager/touchline-handover-preflight-20261102.sqlite`，VM原件`/var/backups/touchline-manager/touchline-handover-preflight-20261102.sqlite`，160,096,256字节；两端SHA256 `3c08cffb406743736cbd5ab7c88831f8296394dc68dd8f0d951f97ee96cf50f6`及integrity_check通过。原安装另生成`/var/backups/touchline-manager/touchline-2026-11-02T06-29-26-899Z.sqlite`。部署前后六表全列/BLOB指纹与离机快照相同：6存档、54操作、26回放、75战报、3 complete任务、1080片段，保留额外匿名存档和全部历史。
+
+本机构建发布包3,884,299字节，SHA256 `444ae752872d8995a68eb509ae0de2eb3edc688f4aca849926421b25393324d6`，上传复核后由原install.sh安装。211个实际文件与包逐项一致，本机/公网health和实际引擎参数正确。公网资产通过独立无界面浏览器验证：20柜/雷达、查找/排序、5-4-1角色人数和390px名单，无JS错误/写请求。`/api/state`使用拦截的本地公开DTO，未创建生产存档、不操作用户活动浏览器；已有阵型动画结束后截图正常。
+
+服务/Caddy/备份timer active，NRestarts=0，验收空闲MemoryCurrent约35MiB、MemoryPeak约47MiB，不能当比赛峰值。旧release `9d7560725431c5f0500539549c99bfccf8422305`保留；回滚须排空新版任务并恢复对应unit/BUILD_SHA，不能跨引擎恢复检查点或覆盖新玩家进度。完整日志、CI报告、截图/SHA清单位于`.../wo/outputs/handover-release-evidence-20261102/`。
+
 ## 2026-10-27 发布：整队更衣柜资料墙
 
 PR #80已合并并部署，生产build `9d7560725431c5f0500539549c99bfccf8422305`。更衣室取消逐排分页，全队同页连续展示；每柜常显公开六维雷达/数值、轮薪、出场/进球/助攻、比赛状态、体能/整数士气和国籍/惯用脚。新增姓名/号码查找、全部字段双向排序和固定工具栏，恢复全队概况与总轮薪。沿用原头像/三阶段、场景和完整档案；没有新API、依赖、存档迁移或规则改动，保留main的0.46引擎及原512MiB/单Worker/malloc配置。

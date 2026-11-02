@@ -1,5 +1,7 @@
 # 项目地图
 
+2026-11-02当前生产：`0.47.2-matchup-cover` / `role-containment-1`，build `029c5e2286abb778e5474b408876dc50b8a5aae2`，PR #82已部署。5-4-1及保留的强弱对抗/防守/门将/接应优化上线，拟真仍未达标；本次按用户知情后的明确上线指令发布，不改变以后门槛。接手先读[HANDOVER](docs/HANDOVER.md)，备份及验证见[运维记录](docs/OPERATIONS.md)。下文候选/生产0.46状态是此前研发历史。
+
 2026-10-28续作：`0.47.2-matchup-cover`同时冻结线上0.46与本地0.47.1作对照后修复不可达球追赶、边前卫盯防岗位和门将实际出击/近身扑球。当前整包未达发布要求；本地验证状态、均值/方差与未解决项见[强弱对抗续查](packages/shared/modules/matches/design/MATCHUP_COVER_V0472.md)。未改变开发流程，生产仍为0.46.0。
 
 2026-10-28追加：`0.47.1-fc-strength`仍为本地开发候选。新增[FC/FM强弱基准与算法复核](packages/shared/modules/matches/design/FC_FM_CALIBRATION_V0471.md)，覆盖4,165场真实比赛及缺项/方差，FC/FIFA与FM社区评分不混算，尚无原始FM CA。后台测试采用真实FC属性形状，并继续保留旧合成压力测试；生产与存档未替换。发布门槛与待答复例外不变。
