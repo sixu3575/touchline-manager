@@ -4,6 +4,7 @@ import { distance, localX, segmentPoint } from './spatial.mjs';
 import { sprintAvailable } from './activity.mjs';
 import { clamp } from '../../core/index.mjs';
 import { tacticalRoleOf } from './tactical-roles.mjs';
+import { keeperSweepTarget } from './goalkeeping.mjs';
 
 export function duelProbability(defendingQuality, carryingQuality, reachEdge = 0, support = 0) {
   return clamp(
@@ -21,6 +22,42 @@ export function duelProbability(defendingQuality, carryingQuality, reachEdge = 0
   );
 }
 
+// Reaching a carrier before his next action is not the same as winning the
+// ball. Forecast the same skill/shield contest used by real challenges instead
+// of treating every reachable opponent as a certain interruption.
+export function preparationChallengeRisk(actor, ball, opponents, seconds) {
+  const shielding =
+    0.5 * ability(actor.player, 'firstTouch') +
+    0.3 * ability(actor.player, 'strength') +
+    0.2 * ability(actor.player, 'balance');
+  return Math.max(
+    0,
+    ...opponents
+      .filter((o) => !o.sentOff)
+      .map((o) => {
+        const closing = arrivalTime(o, ball, pursuitMode(o, ball), o.reaction ?? 0.15);
+        const support = opponents.filter(
+          (m) => m !== o && !m.sentOff && distance(m.pos, ball) < 3,
+        ).length;
+        const protectedSide =
+          (o.pos.x - actor.pos.x) * (ball.x - actor.pos.x) +
+            (o.pos.z - actor.pos.z) * (ball.z - actor.pos.z) <
+          0;
+        const defending = o.isKeeper
+          ? 0.5 * ability(o.player, 'oneOnOnes') +
+            0.3 * ability(o.player, 'handling') +
+            0.2 * ability(o.player, 'reflexes')
+          : 0.7 * ability(o.player, 'tackling') +
+            0.2 * ability(o.player, 'balance') +
+            0.1 * ability(o.player, 'strength');
+        return (
+          duelProbability(defending, shielding, protectedSide ? -1 : 0, support) /
+          (1 + Math.exp((closing - seconds) / 0.25))
+        );
+      }),
+  );
+}
+
 export function tackleProbability(
   defender,
   carrier,
@@ -29,7 +66,21 @@ export function tackleProbability(
   defendingQuality,
   carryingQuality,
 ) {
-  const reachEdge = (distance(carrier.pos, ball) - distance(defender.pos, ball)) / 0.6;
+  // This runs only after the defender's finite foot actually reaches the
+  // football. Comparing torso centres here penalised that same reach again:
+  // an extended tackling leg lost to a carrier whose foot was no longer near
+  // the ball. Compare the actual observed foot geometry instead.
+  const contactDistance = (actor) => {
+    const point =
+      Number.isFinite(actor.footAngle) && Number.isFinite(actor.footReach)
+        ? {
+            x: actor.pos.x + Math.cos(actor.footAngle) * actor.footReach,
+            z: actor.pos.z + Math.sin(actor.footAngle) * actor.footReach,
+          }
+        : actor.pos;
+    return distance(point, ball);
+  };
+  const reachEdge = (contactDistance(carrier) - contactDistance(defender)) / 0.6;
   const support = actors.filter(
     (o) => !o.sentOff && o.side === defender.side && o !== defender && distance(o.pos, ball) < 3,
   ).length;
@@ -40,10 +91,29 @@ export function tackleWindow(defender, carrier, ball) {
   const protectedTouch = distance(carrier.pos, ball) < 0.72;
   const reachDisadvantage = distance(defender.pos, ball) - distance(carrier.pos, ball);
   const judgement = ability(defender.player, 'decisions') / 100;
+  // A forward's ordinary press contains a superior close controller rather
+  // than repeating low-percentage lunges. Defenders retain the actual exposed
+  // foot window; a high-tackling forward or a loose touch can still challenge.
   const mismatch = defensiveMismatch(defender, carrier);
-  if (mismatch > 0 && distance(carrier.pos, ball) < 1.3 && reachDisadvantage > -mismatch * 0.4)
+  if (
+    tacticalRoleOf(defender) === 'FWD' &&
+    localX(ball.x, defender.direction ?? 1) > 35 &&
+    mismatch > 0 &&
+    distance(carrier.pos, ball) < 1.3 &&
+    reachDisadvantage > -mismatch * 0.4
+  )
     return false;
-  return !protectedTouch || reachDisadvantage <= 0.08 + 0.08 * (1 - judgement);
+  // The real protected touch and foot reach decide availability. Skill mismatch
+  // already affects containment and duelProbability; it cannot grant immunity.
+  const shielded =
+    (defender.pos.x - carrier.pos.x) * (ball.x - carrier.pos.x) +
+      (defender.pos.z - carrier.pos.z) * (ball.z - carrier.pos.z) <
+    0;
+  const underBody = distance(carrier.pos, ball) < 0.35 && distance(defender.pos, ball) > 0.5;
+  return (
+    !underBody &&
+    (!protectedTouch || !shielded || reachDisadvantage <= 0.08 + 0.08 * (1 - judgement))
+  );
 }
 
 // A defender who expects to lose a close duel contains and waits for genuine
@@ -130,7 +200,19 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
       ability(a.player, 'teamwork')) /
     4;
   const bx = localX(ball.x, direction);
-  const candidates = mates.filter((a) => a !== owner && (!a.isKeeper || bx < 7));
+  const candidates = mates.filter(
+    (a) =>
+      a !== owner &&
+      (!a.isKeeper ||
+        (!owner &&
+          ((bx < 16.5 && Math.abs(ball.z - 34) < 20.16) ||
+            keeperSweepTarget(a, ball, direction))) ||
+        (owner &&
+          bx < 7 &&
+          Math.abs(ball.z - 34) < 12 &&
+          distance(a.pos, ball) < 2 &&
+          distance(owner.pos, ball) > 0.8)),
+  );
   const intercepts =
     !owner && Math.hypot(ball.vx ?? 0, ball.vz ?? 0) > 3
       ? new Map(candidates.map((a) => [a.index, movingBallIntercept(a, ball)]))
@@ -147,11 +229,20 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
   const chasers = [];
   while (candidates.length) {
     const canAddPresser = (next) => {
+      // Preserve the last line against a through ball it cannot reach. Farther
+      // upfield, an imperfect interception can still pressure the next touch;
+      // suppressing all late pursuits changed ordinary midfield tempo.
+      if (
+        intercepts &&
+        bx < 35 &&
+        ['centreBack', 'holdingMid', 'fullback', 'wingBack'].includes(next.positionRole) &&
+        !intercepts.get(next.index).feasible
+      )
+        return false;
       const nextGap = owner ? distance(next.pos, owner.pos) : distance(next.pos, ball);
-      const group = [
-        ...chasers.map((index) => mates.find((a) => a.index === index)),
-        next,
-      ].filter(Boolean);
+      const group = [...chasers.map((index) => mates.find((a) => a.index === index)), next].filter(
+        Boolean,
+      );
       const groupAwareness = group.reduce((sum, a) => sum + awareness(a), 0) / group.length;
       return !owner
         ? chasers.length < (bx < 30 ? 2 : 1)
@@ -165,7 +256,9 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
             ? chasers.length === 0
               ? nextGap <= 17
               : chasers.length === 1 && nextGap <= 7.5 && groupAwareness >= 66 && bx < 72
-            : chasers.length === 0 && nextGap <= 12;
+            : chasers.length === 0
+              ? nextGap <= 12
+              : chasers.length === 1 && bx < 28 && nextGap < 6 && groupAwareness >= 40;
     };
     // In the danger area, one closes and the other protects the forward lane.
     // Selecting both solely by proximity can put both pursuers behind a break.
@@ -210,7 +303,9 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
     (a) =>
       !a.isKeeper &&
       !chasers.includes(a.index) &&
-      (tacticalRoleOf(a) === 'DEF' || ['holdingMid', 'centralMid'].includes(a.positionRole)),
+      (tacticalRoleOf(a) === 'DEF' ||
+        ['holdingMid', 'centralMid'].includes(a.positionRole) ||
+        ['wideMid', 'wingBack'].includes(a.positionRole)),
   );
   const cover = {};
   if (owner && owner.side !== side && bx < 35) {
@@ -251,7 +346,7 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
         !a.isKeeper &&
         a !== owner &&
         localX(a.pos.x, direction) < 58 &&
-        ['FWD', 'MID'].includes(tacticalRoleOf(a)),
+        (['FWD', 'MID'].includes(tacticalRoleOf(a)) || localX(a.pos.x, direction) < 35),
     )
     .sort((a, b) => localX(a.pos.x, direction) - localX(b.pos.x, direction));
   const marking = {};
@@ -260,7 +355,8 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
       const value = (o) =>
         arrivalTime(o, threat.pos) +
         (o.activity?.load ?? 0) * 0.6 -
-        (o.defenceMemory?.id === threat.player.id && o.defenceMemory.until > time ? 1.2 : 0) -
+        (o.defenceMemory?.id === threat.player.id && o.defenceMemory.until > time ? 1.2 : 0) +
+        (tactics.press === 'low' ? 0.22 : 0.1) * Math.abs((o.anchor?.z ?? o.pos.z) - threat.pos.z) -
         (ability(o.player, 'marking') +
           ability(o.player, 'positioning') +
           ability(o.player, 'anticipation') +
@@ -290,21 +386,34 @@ export function blockPosition(actor, ball, direction, tactics, opponentStyle = '
       ability(actor.player, 'positioning') +
       ability(actor.player, 'teamwork')) /
     4;
-  const pressShift = tactics.press === 'high' ? 6 : tactics.press === 'low' ? -6 : 0;
-  const lineFollow = clamp(0.55 + (awareness - 50) * 0.001, 0.45, 0.65);
-  const centre = clamp(10 + bx * lineFollow + pressShift, 22, 52 + pressShift);
-  const line = tacticalRoleOf(actor) === 'DEF' ? -12 : tacticalRoleOf(actor) === 'FWD' ? 12 : 0;
+  const low = tactics.press === 'low',
+    high = tactics.press === 'high';
+  const lineFollow = (low ? 0.42 : high ? 0.57 : 0.5) + (awareness - 50) * 0.0005;
+  const back = clamp(2 + bx * lineFollow, 4, low ? 26 : high ? 46 : 38);
+  const gap = low ? 8 : high ? 11 : 10;
+  const outlet =
+    tactics.style === 'counter' && low
+      ? Math.max(back + gap + 14, clamp(bx + 12, 38, 52))
+      : back + gap + 14;
+  const depth =
+    tacticalRoleOf(actor) === 'DEF'
+      ? back
+      : tacticalRoleOf(actor) === 'FWD'
+        ? outlet
+        : back + gap + (actor.positionRole === 'holdingMid' ? -1 : 1);
   const compact = tactics.style === 'counter';
-  const ballSideBase = compact ? 0.12 : opponentStyle === 'possession' ? 0.65 : 0.3;
+  const ballSideBase = opponentStyle === 'possession' ? 0.65 : low || compact ? 0.24 : 0.3;
   const ballSideShift = clamp(ballSideBase + (awareness - 50) * 0.002, 0.06, 0.82);
+  const backWidth =
+    low && tacticalRoleOf(actor) === 'DEF'
+      ? actor.positionRole === 'centreBack'
+        ? 0.55
+        : 0.72 - 0.17 * clamp((35 - bx) / 25, 0, 1)
+      : compact || low
+        ? 0.72
+        : 0.78;
   return {
-    x: direction === 1 ? clamp(centre + line, 5, 83) : 105 - clamp(centre + line, 5, 83),
-    z: clamp(
-      34 +
-        (actor.anchor.z - 34) * (compact ? 0.66 : 0.78) +
-        (ball.z - 34) * ballSideShift,
-      5,
-      63,
-    ),
+    x: direction === 1 ? clamp(depth, 3, 83) : 105 - clamp(depth, 3, 83),
+    z: clamp(34 + (actor.anchor.z - 34) * backWidth + (ball.z - 34) * ballSideShift, 5, 63),
   };
 }

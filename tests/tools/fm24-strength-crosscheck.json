@@ -1,0 +1,45 @@
+{
+  "edition": "FM24 original historical row (not FM24 Update 2024/25)",
+  "retrievedOn": "2026-10-28",
+  "provider": "Sortitoutsi community database",
+  "field": "Rating",
+  "caveat": "Not raw CA; aggregation formula and original database patch date unavailable. Used only for independent ordinal context, not a pre-match dated causal model or CA/2.",
+  "teams": [
+    {
+      "club": "Manchester City",
+      "fcTeamId": 10,
+      "rating": 87,
+      "url": "https://sortitoutsi.net/football-manager/team/679/man-city"
+    },
+    {
+      "club": "Manchester United",
+      "fcTeamId": 11,
+      "rating": 83,
+      "url": "https://sortitoutsi.net/football-manager/team/680/man-utd"
+    },
+    {
+      "club": "Newport County",
+      "fcTeamId": 112254,
+      "rating": 63,
+      "url": "https://sortitoutsi.net/football-manager/team/581/newport-county"
+    },
+    {
+      "club": "Liverpool",
+      "fcTeamId": 9,
+      "rating": 85,
+      "url": "https://sortitoutsi.net/football-manager/team/676/liverpool"
+    },
+    {
+      "club": "Arsenal",
+      "fcTeamId": 1,
+      "rating": 86,
+      "url": "https://sortitoutsi.net/football-manager/team/602/arsenal"
+    },
+    {
+      "club": "Chelsea",
+      "fcTeamId": 5,
+      "rating": 83,
+      "url": "https://sortitoutsi.net/football-manager/team/630/chelsea"
+    }
+  ]
+}

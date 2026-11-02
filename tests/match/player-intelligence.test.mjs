@@ -25,12 +25,154 @@ import { carryRouteRisk } from '../../packages/shared/modules/matches/carry-rout
 import { actionQuality } from '../../packages/shared/modules/matches/skills.mjs';
 import {
   onTargetEstimate,
+  shotBlockRisk,
   projectedShotContext,
 } from '../../packages/shared/modules/matches/shot-window.mjs';
 import {
   carryTouchSpeed,
   shotCandidate,
+  interceptionAssessment,
 } from '../../packages/shared/modules/matches/decisions.mjs';
+import { passLossValue, lossValue } from '../../packages/shared/modules/matches/opportunity.mjs';
+import { preparationChallengeRisk } from '../../packages/shared/modules/matches/defending.mjs';
+
+test('reaching the preparation window does not bypass a skilled shield; quality and time affect interruption risk', () => {
+  const ball = { x: 60.6, z: 34, y: 0.11 };
+  const carrier = controlled('shield', 0, 60, 34, { firstTouch: 90, strength: 90, balance: 90 });
+  const defender = controlled('challenge', 1, 62, 34, { tackling: 50, strength: 50, balance: 50 });
+  const strong = preparationChallengeRisk(carrier, ball, [defender], 0.7);
+  const weak = {
+    ...carrier,
+    player: {
+      ...carrier.player,
+      attributes: { ...carrier.player.attributes, firstTouch: 40, strength: 40, balance: 40 },
+    },
+  };
+  assert.ok(strong < preparationChallengeRisk(weak, ball, [defender], 0.7));
+  assert.ok(strong < 0.5, 'physical arrival is not certain dispossession');
+  assert.ok(preparationChallengeRisk(carrier, ball, [defender], 0.2) < strong);
+  assert.equal(preparationChallengeRisk(carrier, ball, [{ ...defender, sentOff: true }], 2), 0);
+  const behind = { ...defender, pos: { x: 59.3, z: 34 } };
+  assert.ok(
+    preparationChallengeRisk(carrier, ball, [behind], 0.7) < strong,
+    'the body shields a challenge from behind',
+  );
+});
+
+test('midfield progression does not hit an artificial value barrier when entering the shooting forecast region', () => {
+  for (const direction of [-1, 1]) {
+    const x = (value) => (direction === 1 ? value : 105 - value);
+    const carrier = controlled('progress', 0, x(64.4), 34);
+    carrier.facing = direction === 1 ? 0 : Math.PI;
+    const forward = controlled('outlet', 0, x(75), 42);
+    const back = controlled('back', 0, x(57), 34);
+    const defender = controlled('deep', 1, x(92), 30);
+    const keeper = controlled('keeper', 1, x(104), 34, {}, 'GK');
+    const result = chooseAction(
+      carrier,
+      [carrier, forward, back, defender, keeper],
+      { x: x(65), z: 34, y: 0.11 },
+      direction,
+      { style: 'balanced' },
+      () => 0.5,
+      { time: 10 },
+    );
+    assert.ok(['pass', 'dribble'].includes(result.type));
+    assert.ok(
+      (result.destination.x - x(65)) * direction > 0,
+      'an open receiving/carry lane remains more useful than a safe retreat outside the window',
+    );
+  }
+});
+
+test('a lofted outlet is not charged for an unreachable interception below its flight', () => {
+  const ball = { x: 20, z: 34, y: 0.11 },
+    target = { x: 65, z: 34 };
+  const defender = controlled('below', 1, 32, 34);
+  const lob = interceptionAssessment(ball, target, 20, [defender], true, 2.5);
+  const ground = interceptionAssessment(ball, target, 20, [defender], false, 2.5);
+  assert.ok(ground.risk > lob.risk);
+  const loss = (laneAssessment) =>
+    passLossValue(ball, target, [defender], 1, {
+      laneAssessment,
+      failureProbability: Math.max(0.4, laneAssessment.risk),
+      obstructed: false,
+    });
+  assert.equal(loss(lob), lossValue(target, 1));
+  assert.ok(loss(ground) > loss(lob), 'a genuinely early interception is more dangerous');
+  assert.equal(
+    passLossValue(ball, target, [defender], 1, {
+      laneAssessment: lob,
+      failureProbability: 0.4,
+      obstructed: true,
+    }),
+    lossValue(ball, 1),
+  );
+});
+
+test('a shot accounts for losing the ball during a slow turn while preserving the physical kick sampler', () => {
+  const ready = controlled('ready', 0, 85.4, 34, { finishing: 85, balance: 80 });
+  ready.facing = 0;
+  const turned = { ...ready, facing: Math.PI };
+  const defender = controlled('closing', 1, 88, 34),
+    ball = { x: 86, z: 34, y: 0.11 };
+  const q = () => ({ value: 85, pressure: 0.2 });
+  const a = shotCandidate(ready, ball, [defender], 1, q, random(7), false);
+  const b = shotCandidate(turned, ball, [defender], 1, q, random(7), false);
+  assert.ok(a.utility > b.utility);
+  assert.deepEqual(a.make(), b.make(), 'the estimate does not force or resample an outcome');
+});
+
+test('shot blocking reads elevated corner trajectories rather than a ground pass to goal centre', () => {
+  const shooter = controlled('shooter', 0, 75, 34),
+    blocker = controlled('blocker', 1, 90, 34);
+  const ball = { x: 75, z: 34, y: 0.11 },
+    quality = { value: 65, pressure: 0 };
+  const risk = shotBlockRisk(shooter, ball, [blocker], 1, quality);
+  assert.ok(risk < 0.5, 'one central defender does not block both elevated corners with certainty');
+  blocker.pos = { x: 76, z: 34 };
+  assert.ok(
+    shotBlockRisk(shooter, ball, [blocker], 1, quality) > risk,
+    'close physical obstruction remains dangerous',
+  );
+  const mirror = (a) => ({ ...a, pos: { x: 105 - a.pos.x, z: a.pos.z }, velocity: { x: 0, z: 0 } });
+  assert.equal(
+    shotBlockRisk(mirror(shooter), { ...ball, x: 30 }, [mirror(blocker)], -1, quality),
+    shotBlockRisk(shooter, ball, [blocker], 1, quality),
+  );
+  assert.equal(shotBlockRisk(shooter, ball, [{ ...blocker, sentOff: true }], 1, quality), 0);
+});
+
+test('ordinary long shooters retain physically possible thirty-metre attempts with lower execution quality', () => {
+  const shooter = controlled('ordinary', 0, 74, 34, { longShots: 55, finishing: 55 });
+  const ball = { x: 74.6, z: 34, y: 0.11 };
+  const quality = (key) => actionQuality(shooter, ball, key, []);
+  const shot = shotCandidate(shooter, ball, [], 1, quality, random(42), false);
+  assert.ok(shot, 'rating is not a hard shooting-distance permission');
+  const kick = shot.make();
+  assert.ok(
+    Object.values(kick)
+      .filter((v) => typeof v === 'number')
+      .every(Number.isFinite),
+  );
+  const high = {
+    ...shooter,
+    player: { ...shooter.player, attributes: { ...shooter.player.attributes, longShots: 90 } },
+  };
+  const highShot = shotCandidate(
+    high,
+    ball,
+    [],
+    1,
+    (key) => actionQuality(high, ball, key, []),
+    random(42),
+    false,
+  );
+  assert.ok(highShot.quality.value > shot.quality.value);
+  assert.ok(
+    onTargetEstimate(high, 30.4, highShot.quality) > onTargetEstimate(shooter, 30.4, shot.quality),
+  );
+});
 
 function actor(id, side, x, z, changes = {}, role = 'MID') {
   const p = structuredClone(createGame().clubs[0].players.find((p) => p.role === role));
@@ -198,9 +340,12 @@ test('unavailable or unreachable defenders do not create phantom encounters and 
 });
 
 test('the route model changes real choices without suppressing open carries or single-defender skill', () => {
-  const choices = (skill, pair) => {
+  const choices = (skill, pair, secondZ = 32) => {
     const f = routeFixture('sequence', skill);
     f.defenders[0].pos = { x: 86, z: 33 };
+    // Both lines threaten the carry, with the opposite shooting corner open.
+    // A centre-goal ground ray previously hid this geometrical distinction.
+    f.defenders[1].pos.z = secondZ;
     const opponents = pair ? f.defenders : [f.defenders[0]];
     const keeper = controlled('route-gk', 1, 104, 34, {}, 'GK');
     const count = { shot: 0, forward: 0, escape: 0 };
@@ -231,6 +376,10 @@ test('the route model changes real choices without suppressing open carries or s
     'do not carry directly through the second line',
   );
   assert.ok(surrounded.shot > single.shot, 'an available shot can beat the risky forward carry');
+  assert.ok(
+    choices(35, true, 35).shot < surrounded.shot,
+    'covering the other shooting corner makes escaping more attractive than forcing a blocked shot',
+  );
   assert.ok(
     specialist.forward > single.forward + 20,
     'high dribbling still wins suitable one-on-ones',
@@ -532,8 +681,14 @@ test('long-shot ability keeps remote shots available and raises their candidate 
     false,
   );
 
-  assert.ok(highCandidate, 'high long-shot ability extends the candidate range');
-  assert.equal(ordinaryCandidate, null, 'the range remains ability-based');
+  assert.ok(
+    highCandidate && ordinaryCandidate,
+    'physically possible range is not a rating permission gate',
+  );
+  assert.ok(
+    highCandidate.utility > ordinaryCandidate.utility,
+    'long-shot skill improves the available opportunity',
+  );
   const sharedRangeBall = { x: 83.5, y: 0.11, z: 34 };
   const highInRange = shotCandidate(high, sharedRangeBall, [], 1, quality(high), () => 0.5, false);
   const ordinaryInRange = shotCandidate(
@@ -705,6 +860,28 @@ test('shot value accounts for pressure and blocked lanes, while ordinary finishi
   const average = heights.reduce((sum, height) => sum + height, 0) / heights.length;
   assert.ok(average > 0.7 && average < 1.7, 'aims should use the playable goal mouth');
   assert.ok(Math.max(...heights) < 2.6, 'ordinary shots should not mostly be aimed over the bar');
+});
+
+test('a near-post keeper is not classified as absent because the ball is outside the goal mouth', () => {
+  const shooter = controlled(
+    'acute-shooter',
+    0,
+    103.8,
+    50,
+    { finishing: 85, longShots: 85 },
+    'FWD',
+  );
+  const keeper = controlled('near-post', 1, 104, 38.6, {}, 'GK');
+  const ball = { x: 104.1, z: 50, y: 0.11 };
+  const candidate = (g) =>
+    shotCandidate(shooter, ball, [g], 1, () => ({ value: 85, pressure: 0 }), random(9), false);
+  const near = candidate(keeper);
+  keeper.pos.z = 29.4;
+  const wrongPost = candidate(keeper);
+  assert.ok(
+    near.xg < wrongPost.xg * 0.5,
+    'coverage is measured inside the same reachable goal-mouth span as keeper positioning',
+  );
 });
 
 test('shot aim reaches the goal mouth from close angles on either flank and attack direction', () => {

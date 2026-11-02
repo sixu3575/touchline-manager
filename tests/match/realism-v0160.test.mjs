@@ -34,6 +34,96 @@ import {
 import { targetFor } from '../../packages/shared/modules/matches/positioning.mjs';
 import { deadballTarget, restartReady } from '../../packages/shared/modules/matches/deadball.mjs';
 
+test('a weak-tackling forward contains close control in midfield while an exposed touch and defensive duty retain challenges', () => {
+  const carrier = actor('carrier', 1, 50, 'DEF', 'centreBack');
+  carrier.player.attributes.dribbling = 90;
+  const presser = actor('presser', 0, 51.4, 'FWD', 'striker');
+  presser.direction = 1;
+  presser.player.attributes.tackling = 20;
+  const ball = { x: 50.6, z: 34 };
+  assert.equal(tackleWindow(presser, carrier, ball), false);
+  presser.player.role = 'DEF';
+  presser.positionRole = 'centreBack';
+  assert.equal(
+    tackleWindow(presser, carrier, ball),
+    true,
+    'a last-line defender retains the real foot window',
+  );
+  presser.player.role = 'FWD';
+  presser.positionRole = 'striker';
+  presser.player.attributes.tackling = 100;
+  assert.equal(
+    tackleWindow(presser, carrier, ball),
+    true,
+    'a capable ball-winning forward is not categorically passive',
+  );
+  presser.player.attributes.tackling = 20;
+  presser.pos.x = 52;
+  assert.equal(
+    tackleWindow(presser, carrier, { x: 51.4, z: 34 }),
+    true,
+    'a poor touch can still be attacked',
+  );
+});
+
+test('a real tackling contact compares feet rather than penalising a longer torso-to-ball distance twice', () => {
+  const carrier = actor('carrier', 0, 50),
+    defender = actor('defender', 1, 51.4);
+  const ball = { x: 50.6, z: 34 };
+  carrier.footAngle = 0;
+  carrier.footReach = 0.6;
+  defender.footAngle = Math.PI;
+  defender.footReach = 0.65;
+  const guarded = tackleProbability(defender, carrier, ball, [carrier, defender], 60, 85);
+  carrier.footAngle = Math.PI; // an already released/exposed touch
+  const exposed = tackleProbability(defender, carrier, ball, [carrier, defender], 60, 85);
+  assert.ok(
+    exposed > guarded,
+    'the foot arriving at an exposed ball has a genuine first-contact advantage',
+  );
+  assert.ok(guarded < 0.5, 'superior close control still matters when both feet can play the ball');
+  assert.ok(exposed < 1, 'foot reach does not award possession without a duel');
+});
+
+test('a long-pass receiver runs for the arrival deadline while the ball is still far away', () => {
+  const a = actor('receiver', 0, 55, 'FWD', 'striker');
+  const ball = { x: 20, z: 34, vx: 20, vz: 0 };
+  const roles = { receiverId: a.player.id, receiveAt: 12, time: 10, chasers: [] };
+  assert.equal(movementMode(a, ball, null, roles, 15), 'sprint');
+  assert.equal(
+    movementMode(a, ball, null, { ...roles, receiveAt: 15 }, 15),
+    'run',
+    'a comfortable deadline does not waste a sprint',
+  );
+  a.energy = 0;
+  assert.notEqual(movementMode(a, ball, null, roles, 15), 'sprint');
+});
+
+test('a counter runner can start beyond eighteen metres if the carrier can see the outlet', () => {
+  const a = actor('runner', 0, 50, 'FWD', 'striker'),
+    owner = actor('passer', 0, 20);
+  const roles = {
+    chasers: [],
+    teams: { 0: { fastBreak: true } },
+    duties: { runner: { duty: 'break' } },
+  };
+  owner.player.attributes.vision = 80;
+  assert.equal(movementMode(a, { x: 20, z: 34 }, owner, roles, 12), 'sprint');
+  owner.player.attributes.vision = 10;
+  assert.equal(movementMode(a, { x: 20, z: 34 }, owner, roles, 12), 'jog');
+});
+
+test('a marker matches an observed fast run before conceding a four metre gap', () => {
+  const a = actor();
+  a.markMemory = { velocity: { x: 6.5, z: 0 } };
+  const roles = { marking: { [a.player.id]: 'runner' }, chasers: [], teamSide: 1 };
+  const mode = movementMode(a, { x: 50, z: 34 }, null, roles, 1.5);
+  assert.equal(mode, 'sprint');
+  a.player.matchState = { energy: 0 };
+  a.energy = 0;
+  assert.notEqual(movementMode(a, { x: 50, z: 34 }, null, roles, 1.5), 'sprint');
+});
+
 test('restart exclusion targets remain reachable at pitch edges and allow the legal goal-line keeper', () => {
   for (const direction of [1, -1]) {
     const dirs = (side) => (side === 0 ? direction : -direction);
@@ -306,7 +396,10 @@ test('match energy follows actual work, repeated sprint starts and individual ph
   }
   assert.equal(repeated.activity.sprintEfforts, 4);
   assert.equal(continuous.activity.sprintEfforts, 1);
-  assert.ok(repeated.energy < continuous.energy, 'repeated sprint starts add individual effort cost');
+  assert.ok(
+    repeated.energy < continuous.energy,
+    'repeated sprint starts add individual effort cost',
+  );
 
   const low = actor(24),
     high = actor(25);
@@ -443,7 +536,7 @@ test('a possession striker given a real split-line break accelerates from midfie
     ball = { x: 58, z: 34 },
     roles = {
       chasers: [],
-      duties: { '0': { duty: 'break' } },
+      duties: { 0: { duty: 'break' } },
       teams: { 0: { style: 'possession', fastBreak: false } },
     };
   assert.equal(movementMode(runner, ball, null, roles, 10), 'sprint');
@@ -584,12 +677,13 @@ test('a shielded close touch invites jockeying, while an exposed touch remains p
   );
 });
 
-test('an outmatched defender contains a close dribble but still challenges a genuinely exposed ball', () => {
+test('an outmatched defender protects against a close shield but can play an exposed ball from the front', () => {
   const defender = actor(0, 0, 51.8),
     carrier = actor(1, 1, 50);
   Object.keys(defender.player.attributes).forEach((k) => (defender.player.attributes[k] = 30));
   Object.keys(carrier.player.attributes).forEach((k) => (carrier.player.attributes[k] = 90));
-  assert.equal(tackleWindow(defender, carrier, { x: 50.95, z: 34 }), false);
+  assert.equal(tackleWindow(defender, carrier, { x: 50.2, z: 34 }), false);
+  assert.equal(tackleWindow(defender, carrier, { x: 50.95, z: 34 }), true);
   assert.equal(tackleWindow(defender, carrier, { x: 51.4, z: 34 }), true);
   const roles = { chasers: [0], time: 10 };
   const target = targetFor(
@@ -602,7 +696,26 @@ test('an outmatched defender contains a close dribble but still challenges a gen
     roles.chasers,
     roles,
   );
-  assert.ok(Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z) > 1.5);
+  const stand = Math.hypot(target.x - carrier.pos.x, target.z - carrier.pos.z);
+  assert.ok(
+    stand > 1 && stand < 1.5,
+    'contain within playing distance instead of granting skill-based immunity',
+  );
+  assert.ok(
+    duelProbability(30, 90) < 0.2,
+    'being able to challenge does not erase the skill disadvantage',
+  );
+});
+
+test('a covering defender can recover urgently without gaining infinite sprint reserve', () => {
+  const a = actor(0, 0, 20, 'DEF', 'centreBack'),
+    attacker = actor(1, 1, 17, 'FWD', 'striker');
+  const roles = { teamSide: 1, chasers: [], defensiveCover: { [a.player.id]: { x: 8, z: 34 } } };
+  const ball = { x: 16.5, z: 34 };
+  assert.equal(movementMode(a, ball, attacker, roles, 12), 'sprint');
+  a.player.matchState = { energy: 0 };
+  a.energy = 0;
+  assert.notEqual(movementMode(a, ball, attacker, roles, 12), 'sprint');
 });
 
 test('a central presser closes to jockeying distance without driving into the carrier', () => {

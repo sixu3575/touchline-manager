@@ -12,7 +12,7 @@ import { distance, unit, segmentPoint, localX } from './spatial.mjs';
 import { carryOptions } from './carrying.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { exitBlocked } from './onball.mjs';
-import { continuationValue, lossValue } from './opportunity.mjs';
+import { continuationValue, lossValue, passLossValue } from './opportunity.mjs';
 import { prepareKick, turnRate, angleDifference } from './execution.mjs';
 import {
   attackPhase,
@@ -25,8 +25,10 @@ import {
 } from './tactical-plan.mjs';
 import { positionRoleNames } from '../tactics/index.mjs';
 import { tacticalRoleOf } from './tactical-roles.mjs';
+import { duelProbability, preparationChallengeRisk } from './defending.mjs';
 import {
   shotExecution,
+  shotBlockRisk,
   shotWindowValue,
   projectedShotContext,
   continuationShotValue,
@@ -81,8 +83,24 @@ export function interceptionRisk(
   lob = false,
   flight = distance(from, to) / speed,
   preparation = 0,
+  receiver = null,
+) {
+  return interceptionAssessment(from, to, speed, opponents, lob, flight, preparation, receiver)
+    .risk;
+}
+
+export function interceptionAssessment(
+  from,
+  to,
+  speed,
+  opponents,
+  lob = false,
+  flight = distance(from, to) / speed,
+  preparation = 0,
+  receiver = null,
 ) {
   let survival = 1;
+  const threats = [];
   for (const o of opponents) {
     const { t, gap } = segmentPoint(from, to, o.pos);
     if (t > 0.99) continue;
@@ -97,13 +115,21 @@ export function interceptionRisk(
       pursuitMode(o, point),
       0.08 + (100 - ability(o.player, 'anticipation')) * 0.002,
     );
-    const threat =
+    let threat =
       !lob && gap < 0.43 && distance(from, o.pos) < 3
         ? 0.98
         : clamp((arrival + 0.15 - reach) / 0.55, 0, 0.94);
-    survival *= 1 - threat;
+    // Near the intended receiver, arriving before the ball is not a free
+    // interception: a player already in position can screen and control it.
+    if (receiver && distance(point, to) < 2.5) threat *= receiverContest(receiver, o, point, reach);
+    threats.push({ point, t, chance: threat });
   }
-  return 1 - survival;
+  threats.sort((a, b) => a.t - b.t);
+  for (const threat of threats) {
+    threat.firstProbability = survival * threat.chance;
+    survival *= 1 - threat.chance;
+  }
+  return { risk: 1 - survival, threats };
 }
 
 // A pass can clear every point on its line yet still be won by a defender at
@@ -112,18 +138,30 @@ export function interceptionRisk(
 export function receptionContestRisk(receiver, target, flight, opponents, preparation = 0) {
   const defenders = opponents.filter((opponent) => !opponent.sentOff);
   if (!defenders.length) return 0;
-  const receiverArrival =
-    preparation + arrivalTime(receiver, target, pursuitMode(receiver, target), 0);
-  const contestAt = preparation + Math.max(flight, receiverArrival);
+  const contestAt = preparation + flight;
   let survival = 1;
   for (const opponent of defenders) {
     const reaction = 0.08 + (100 - ability(opponent.player, 'anticipation')) * 0.002;
-    const reach =
-      preparation + arrivalTime(opponent, target, pursuitMode(opponent, target), reaction);
-    const threat = clamp((contestAt + 0.15 - reach) / 0.55, 0, 0.94);
+    const reach = arrivalTime(opponent, target, pursuitMode(opponent, target), reaction);
+    const threat =
+      clamp((contestAt + 0.15 - reach) / 0.55, 0, 0.94) *
+      receiverContest(receiver, opponent, target, reach);
     survival *= 1 - threat;
   }
   return 1 - survival;
+}
+
+function receiverContest(receiver, defender, target, defenderArrival) {
+  const quality = (a) =>
+    0.65 * ability(a.player, 'firstTouch') +
+    0.2 * ability(a.player, 'balance') +
+    0.15 * ability(a.player, 'agility');
+  const receiverArrival = arrivalTime(receiver, target, pursuitMode(receiver, target), 0);
+  return duelProbability(
+    quality(defender),
+    quality(receiver),
+    (receiverArrival - defenderArrival) / 0.6,
+  );
 }
 
 export function passExecutionAccuracy(quality, length) {
@@ -151,6 +189,8 @@ export function releasedPassSuccess(action, receiver, ball, opponents) {
     defenders,
     Boolean(action.kickFlight),
     flight,
+    0,
+    receiver,
   );
   const deliveryRisk =
     action.type === 'cross'
@@ -178,13 +218,11 @@ export function releasedPassSuccess(action, receiver, ball, opponents) {
 export function shotCandidate(actor, ball, opponents, direction, quality, rng, direct) {
   const goalX = direction === 1 ? 105 : 0,
     dist = distance(ball, { x: goalX, z: 34 });
-  if (
-    !direct &&
-    (actor.isKeeper ||
-      dist > 17 + ability(actor.player, 'longShots') * 0.14 ||
-      Math.abs(ball.z - 34) > 20)
-  )
-    return null;
+  // Distance and angle affect dispersion, flight, blocking and opportunity,
+  // rather than removing a physically possible kick at a skill-dependent
+  // boundary (a 60-rated long shooter used to be forbidden beyond 25.4m).
+  // A goalkeeper's ordinary distribution remains a separate role decision.
+  if (!direct && actor.isKeeper) return null;
   const q = direct
     ? quality(actor.setPiece === 'penalty' ? 'penalty' : 'setPieces')
     : quality('finishing');
@@ -204,17 +242,16 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
   );
   const keeper = opponents.find((o) => o.isKeeper ?? o.player.role === 'GK');
   const expectedKeeperZ = keeper
-    ? 34 +
-      (ball.z - 34) *
-        Math.min(1, Math.abs(keeper.pos.x - goalX) / Math.max(0.5, Math.abs(ball.x - goalX)))
+    ? clamp(
+        34 +
+          (ball.z - 34) *
+            Math.min(1, Math.abs(keeper.pos.x - goalX) / Math.max(0.5, Math.abs(ball.x - goalX))),
+        29.4,
+        38.6,
+      )
     : 34;
   const g = keeper ? clamp(Math.abs(keeper.pos.z - expectedKeeperZ) / 8, 0, 1) : 1;
-  const blocked = interceptionRisk(
-    ball,
-    { x: goalX, z: 34 },
-    27,
-    opponents.filter((o) => !o.isKeeper),
-  );
+  const blocked = shotBlockRisk(actor, ball, opponents, direction, q);
   const opportunity =
     actor.setPiece === 'penalty'
       ? 0.76
@@ -231,7 +268,7 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
                   2.5 * g
                 ),
               )),
-          0.005,
+          0,
           0.8,
         );
   // Geometry-based action value and calibrated expected-goal probability have
@@ -244,7 +281,7 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
   const legacyReturn = clamp(xg * (0.65 + q.value / 100), 0, 0.98);
   const rangeWeight = clamp((dist - 16) / 8, 0, 1);
   const shotReturnScore = window
-    ? legacyReturn * (1 - rangeWeight) + window.value * rangeWeight
+    ? legacyReturn * window.ready * (1 - rangeWeight) + window.value * rangeWeight
     : legacyReturn;
   if (window) window.value = shotReturnScore;
   return {
@@ -255,7 +292,8 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
     window,
     utility:
       shotReturnScore -
-      (1 - shotReturnScore) * lossValue(ball, direction) * 0.25 +
+      (1 - (window?.ready ?? 1)) * lossValue(ball, direction) -
+      Math.max(0, (window?.ready ?? 1) - shotReturnScore) * lossValue(ball, direction) * 0.25 +
       (tacticalRoleOf(actor) === 'FWD' ? 0.006 : 0),
     reason: direct
       ? '定位球按门将和球门位置瞄准'
@@ -328,7 +366,8 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   }
   const windowWeight =
     shot && !direct
-      ? clamp((distance(ball, { x: direction === 1 ? 105 : 0, z: 34 }) - 16) / 8, 0, 1)
+      ? clamp((distance(ball, { x: direction === 1 ? 105 : 0, z: 34 }) - 16) / 8, 0, 1) *
+        clamp((38 - distance(ball, { x: direction === 1 ? 105 : 0, z: 34 })) / 12, 0, 1)
       : 0;
   const continuation = (point, receiver, delay = 0, mode) => {
     const baseline = continuationValue(point, receiver, actors, direction);
@@ -350,8 +389,6 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
     const value = continuationShotValue(space, futureShot?.window, dist, future.confidence);
     return baseline * (1 - windowWeight) + value * windowWeight;
   };
-  const observation = 0.4 + (100 - a('vision')) * 0.006;
-  const currentValue = continuation(ball, actor, observation);
   const mates = actors.filter((o) => o.side === actor.side && o !== actor && !o.sentOff);
   const closingTime = Math.min(
     Infinity,
@@ -362,13 +399,14 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       .slice()
       .sort((a, b) => distance(a.pos, ball) - distance(b.pos, ball))[0];
     const shieldHeading = nearestThreat ? unit(nearestThreat.pos, ball) : { x: direction, z: 0 };
-    const waitingRisk = Math.exp(-closingTime / 1.2) * 0.5;
+    const holdExposure = 1.22 + (100 - a('balance')) * 0.002;
+    const waitingRisk = preparationChallengeRisk(actor, ball, opponents, holdExposure);
     candidates.push({
       type: 'hold',
       intent: 'shield',
       quality: quality('firstTouch'),
       utility:
-        (1 - waitingRisk) * currentValue -
+        (1 - waitingRisk) * continuation(ball, actor, holdExposure) -
         waitingRisk * lost +
         (tactics.style === 'possession' ? 0.002 : 0),
       shieldHeading,
@@ -551,7 +589,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         x: clamp(target.x + mate.velocity.x * preparation, 1, 104),
         z: clamp(target.z + mate.velocity.z * preparation, 1, 67),
       };
-      const laneRisk = interceptionRisk(
+      const laneAssessment = interceptionAssessment(
         releasePoint,
         futureTarget,
         speed,
@@ -559,7 +597,9 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         variant.lob,
         flight,
         preparation,
+        mate,
       );
+      const laneRisk = laneAssessment.risk;
       const obstructed = exitBlocked(
         ball,
         {
@@ -637,7 +677,13 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
             mate,
             flight + 0.12 + (100 - ability(mate.player, 'firstTouch')) * 0.004,
           ) -
-        (1 - success) * lost * (cross ? 0.6 : 1) +
+        (1 - success) *
+          passLossValue(ball, target, opponents, direction, {
+            laneAssessment,
+            failureProbability: 1 - success,
+            obstructed,
+          }) *
+          (cross ? 0.6 : 1) +
         (cross ? deliveryThreat(mate, target, direction, variant, success) * 0.25 : 0) +
         midfieldOutletValue(tactical, mate, forward, success, space) +
         (escape + retention + penetration + style) * 0.25 -
@@ -753,6 +799,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   if (
     actor.isKeeper ||
     localX(ball.x, direction) < 35 ||
+    closingTime < 1.22 + (100 - a('balance')) * 0.002 ||
     (pressure > 0.55 && (actor.hold ?? 0) > 1.2)
   ) {
     const target = { x: clamp(ball.x + direction * 40, 1, 104), z: ball.z < 34 ? 5 : 63 };

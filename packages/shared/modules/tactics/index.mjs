@@ -4,6 +4,7 @@ export const FORMATIONS = {
   '4-4-2': { GK: 1, DEF: 4, MID: 4, FWD: 2 },
   '4-3-3': { GK: 1, DEF: 4, MID: 3, FWD: 3 },
   '3-5-2': { GK: 1, DEF: 3, MID: 5, FWD: 2 },
+  '5-4-1': { GK: 1, DEF: 5, MID: 4, FWD: 1 },
 };
 export function bestLineup(club, formation = club.tactics.formation) {
   return Object.entries(FORMATIONS[formation]).flatMap(([role, count]) =>

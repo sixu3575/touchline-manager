@@ -3,19 +3,37 @@ import { tacticalPreset } from '../tactics/index.mjs';
 import { ability } from './skills.mjs';
 import { distance, localX, segmentPoint } from './spatial.mjs';
 
+// In build-up an outlet must be in front of the defenders. Only as the ball
+// progresses do the same roles become support/rest-defence behind the attack.
+// A universal "ball minus N metres" target stranded midfielders on their own
+// byline and disconnected the forwards, especially against stronger teams.
+const supportDepth = (bx, front, behind) =>
+  bx + front - (front + behind) * clamp((bx - 25) / 30, 0, 1);
+
 export function attackPhase(actors, ball, side, direction, tactics, time, continuity = {}) {
   const bx = localX(ball.x, direction);
   const behind = actors.filter(
     (a) => a.side !== side && !a.sentOff && localX(a.pos.x, direction) > bx + 3,
   ).length;
+  const opposition = actors.filter((a) => a.side !== side && !a.sentOff);
+  const back = opposition.filter((a) => ['centreBack', 'fullback'].includes(a.positionRole));
+  const middle = opposition.filter((a) =>
+    ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(a.positionRole),
+  );
+  const average = (rows) =>
+    rows.reduce((sum, a) => sum + localX(a.pos.x, direction), 0) / rows.length;
+  // Goal-side head count alone mistakes eight widely separated opponents for
+  // an organised block. Visible separation leaves a transition opportunity.
+  const disordered =
+    back.length > 0 && middle.length > 0 && Math.abs(average(back) - average(middle)) > 14;
   const fastBreak =
     tactics.style === 'counter' &&
     continuity.side === side &&
     continuity.regainedAt !== null &&
     continuity.regainedAt !== undefined &&
     time >= continuity.regainedAt &&
-    time - continuity.regainedAt < 8 &&
-    behind < 7 &&
+    time - continuity.regainedAt < (disordered ? 14 : 8) &&
+    (behind < 7 || disordered) &&
     bx < 88;
   return {
     style: tactics.style ?? 'balanced',
@@ -44,9 +62,14 @@ export function attackAssignments(
     outside = Math.abs(ball.z - 34) > 12;
   const wideAttack = tactics.style === 'wide';
   const line = opponents.map((o) => localX(o.pos.x, direction)).sort((a, b) => b - a)[1] ?? 105;
-  const defensiveRows = opponents.filter((o) => ['centreBack', 'fullback'].includes(o.positionRole)),
-    midfieldRows = opponents.filter((o) => ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(o.positionRole)),
-    averageX = (rows) => rows.reduce((sum, o) => sum + localX(o.pos.x, direction), 0) / Math.max(1, rows.length),
+  const defensiveRows = opponents.filter((o) =>
+      ['centreBack', 'fullback'].includes(o.positionRole),
+    ),
+    midfieldRows = opponents.filter((o) =>
+      ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(o.positionRole),
+    ),
+    averageX = (rows) =>
+      rows.reduce((sum, o) => sum + localX(o.pos.x, direction), 0) / Math.max(1, rows.length),
     lineStretch = clamp((Math.abs(averageX(defensiveRows) - averageX(midfieldRows)) - 5) / 8, 0, 1);
   const maxX = Math.max(52.5, bx, line) - 0.6;
   const assignments = {};
@@ -61,11 +84,11 @@ export function attackAssignments(
       ownFlank = actor.anchor.z < 34 ? -1 : 1;
     let x, z, duty;
     if (role === 'centreBack') {
-      x = Math.min(bx - 18, 62, actor.anchor.x + (bx - 52.5) * 0.35 + 7);
+      x = Math.min(Math.max(6, bx * 0.5, bx - 18), 62, actor.anchor.x + (bx - 52.5) * 0.35 + 7);
       z = actor.anchor.z + (ball.z - 34) * 0.1;
       duty = 'cover';
     } else if (role === 'holdingMid') {
-      x = Math.min(68, bx - (wideAttack ? 22 : 13));
+      x = Math.min(68, supportDepth(bx, 10, wideAttack ? 22 : 13));
       z = 34 + (ball.z - 34) * 0.12;
       duty = 'cover';
     } else if (state.fastBreak && ['winger', 'striker', 'wideMid'].includes(role)) {
@@ -78,7 +101,15 @@ export function attackAssignments(
           0.22 * ability(actor.player, 'acceleration') +
           0.3 * ability(actor.player, 'sprintSpeed')) /
         100;
-      x = bx + 17 + runReadiness * 13;
+      // A forward already beyond the ball attacks from his own shoulder.
+      // Basing the run only on a deep regain sent the outlet backwards.
+      x = Math.min(
+        Math.max(
+          localX(actor.pos.x, direction) + 10 + runReadiness * 8,
+          bx + 17 + runReadiness * 13,
+        ),
+        maxX - (1 - runReadiness) * 3,
+      );
       z = role === 'striker' ? actor.anchor.z : 34 + ownFlank * 20;
       duty = 'break';
     } else if (wideAttack && outside && bx > 60 && role === 'striker') {
@@ -122,7 +153,7 @@ export function attackAssignments(
         z = target.z;
         duty = 'overlap';
       } else {
-        x = Math.min(66, bx - 20);
+        x = Math.min(66, supportDepth(bx, 6, 20));
         z = 34 + ownFlank * 18;
         duty = 'cover';
       }
@@ -138,11 +169,11 @@ export function attackAssignments(
       z = actor.anchor.z;
       duty = 'break';
     } else if (role === 'centralMid' && wideAttack) {
-      x = bx - (ownFlank === flank ? 7 : 15);
+      x = supportDepth(bx, 16, ownFlank === flank ? 7 : 15);
       z = ownFlank === flank ? 34 + flank * 9 : 34 - flank * 6;
       duty = outside && bx > 68 && ownFlank === flank ? 'cutback' : 'support';
     } else if (tactics.style === 'possession' && ['centralMid', 'fullback'].includes(role)) {
-      x = bx - (role === 'fullback' ? 12 : 3);
+      x = supportDepth(bx, role === 'fullback' ? 6 : 16, role === 'fullback' ? 12 : 3);
       z = ball.z + ownFlank * (role === 'fullback' ? 15 : 9);
       duty = 'support';
     } else if (role === 'centralMid' && !state.fastBreak) {
@@ -150,7 +181,7 @@ export function attackAssignments(
       // this role target, balanced and counter teams let every midfielder join
       // the forward line and recycle possession through the front players.
       x = Math.min(
-        bx - (state.phase === 'finalThird' ? 8 : 5),
+        supportDepth(bx, 16, state.phase === 'finalThird' ? 8 : 5),
         actor.anchor.x + (bx - 52.5) * 0.45 + 3,
       );
       z = 34 + (actor.anchor.z - 34) * 0.72 + (ball.z - 34) * 0.08;
@@ -302,12 +333,15 @@ export function tacticalDecisionValue(
     ) {
       const line = opponents.map((o) => localX(o.pos.x, direction)).sort((a, b) => b - a)[1] ?? 105,
         defenders = opponents.filter((o) => ['centreBack', 'fullback'].includes(o.positionRole)),
-        midfield = opponents.filter((o) => ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(o.positionRole)),
-        averageX = (rows) => rows.reduce((sum, o) => sum + localX(o.pos.x, direction), 0) / Math.max(1, rows.length),
+        midfield = opponents.filter((o) =>
+          ['holdingMid', 'centralMid', 'wideMid', 'wingBack'].includes(o.positionRole),
+        ),
+        averageX = (rows) =>
+          rows.reduce((sum, o) => sum + localX(o.pos.x, direction), 0) / Math.max(1, rows.length),
         lineStretch = clamp((Math.abs(averageX(defenders) - averageX(midfield)) - 5) / 8, 0, 1),
         behindLine = clamp((targetX - line + 1) / 6, 0, 1),
-        runnerReadiness = 0.55 +
-          (ability(mate.player, 'offTheBall') + ability(mate.player, 'acceleration')) / 450;
+        runnerReadiness =
+          0.55 + (ability(mate.player, 'offTheBall') + ability(mate.player, 'acceleration')) / 450;
       if (targetX > offsideLine + 0.5 && lineStretch > 0.05)
         value +=
           0.08 *
@@ -343,10 +377,7 @@ export function tacticalDecisionValue(
     // quota. Pace/off-ball movement makes the run more attractive; vision,
     // passing and decisions reward players who can read and execute it.
     value +=
-      (variant.counterRun === 'lofted' ? 0.2 : 0.19) *
-      success *
-      progression *
-      runnerReadiness;
+      (variant.counterRun === 'lofted' ? 0.2 : 0.19) * success * progression * runnerReadiness;
     value += 0.055 * success * progression * passerReadiness;
     if (variant.counterRun === 'ground') value += 0.012 * success * progression;
   }

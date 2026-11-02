@@ -59,12 +59,26 @@ import {
 import {
   continuationValue,
   lossValue,
+  passLossValue,
 } from '../../packages/shared/modules/matches/opportunity.mjs';
+
+test('forward outlets price a turnover at its likely location, while nearby lane threats retain danger', () => {
+  const ball = { x: 20, z: 34 },
+    target = { x: 65, z: 34 };
+  assert.ok(passLossValue(ball, target, [], 1) < lossValue(ball, 1));
+  const defender = { pos: { x: 24, z: 34 } };
+  assert.ok(passLossValue(ball, target, [defender], 1) > passLossValue(ball, target, [], 1));
+  defender.sentOff = true;
+  assert.equal(passLossValue(ball, target, [defender], 1), passLossValue(ball, target, [], 1));
+});
 import {
   keeperCrossing,
   keeperDiveVelocity,
+  keeperGoalThreat,
   readKeeperPreparation,
   parryVelocity,
+  keeperSweepTarget,
+  keeperCloseClaim,
 } from '../../packages/shared/modules/matches/goalkeeping.mjs';
 import {
   movement,
@@ -254,6 +268,97 @@ test('a keeper intercepts by remaining flight time rather than braking short of 
   assert.equal(keeperDiveVelocity(a, { x: 7, z: 35.5, vx: 20, vz: 0 }, 2), null);
 });
 
+test('keepers sweep a reachable future point inside the area using the same tired sprint capacity as outfield players', () => {
+  for (const direction of [1, -1]) {
+    const x = (value) => (direction === 1 ? value : 105 - value);
+    const keeper = { ...actor(), direction, isKeeper: true, pos: { x: x(5), z: 34 } };
+    const ball = { x: x(19), z: 34, y: 0.11, vx: -direction * 9, vz: 0 };
+    const sweep = keeperSweepTarget(keeper, ball, direction);
+    assert.ok(sweep && sweep.feasible);
+    assert.ok((direction === 1 ? sweep.point.x : 105 - sweep.point.x) < 16.5);
+    const roles = { chasers: [keeper.index] };
+    assert.equal(movementMode(keeper, ball, null, roles, 6), 'sprint');
+    assert.equal(
+      movementMode(keeper, ball, { side: 1 }, roles, 6),
+      'run',
+      'no sprint instruction for an ordinary set stance',
+    );
+    keeper.activity = { recovering: true };
+    keeper.player.matchState = { energy: 20, sprintRecovering: true };
+    assert.equal(movementMode(keeper, ball, null, roles, 6), 'run');
+    assert.equal(keeperSweepTarget(keeper, { ...ball, vx: direction * 9 }, direction), null);
+    assert.equal(
+      keeperSweepTarget(keeper, { ...ball, z: 60 }, direction),
+      null,
+      'cannot claim a future point beyond the penalty area',
+    );
+  }
+});
+
+test('a close slow dribble can be smothered only after finite hand travel and physical contact inside the area', () => {
+  for (const direction of [1, -1]) {
+    const x = (value) => (direction === 1 ? value : 105 - value);
+    const physics = createPhysics();
+    const keeper = {
+      ...actor(),
+      direction,
+      isKeeper: true,
+      pos: { x: x(4), z: 34 },
+      ...createBody(physics, 180, 70, x(4), 34),
+    };
+    keeper.hands = createHands(physics, keeper);
+    const owner = { side: 1, player: { id: 'forward' } };
+    const ball = { x: x(4.65), z: 34, y: 0.11, vx: direction * 2, vz: 0 };
+    try {
+      assert.equal(
+        keeperCloseClaim(keeper, ball, owner, direction),
+        true,
+        'claim is possible even below the fast-shot threshold',
+      );
+      assert.equal(keeperCloseClaim(keeper, { ...ball, x: x(17) }, owner, direction), false);
+      assert.equal(
+        keeperCloseClaim(keeper, ball, { side: 0 }, direction),
+        false,
+        'do not smother a teammate carrying the ball',
+      );
+      physics.ball.setTranslation(ball, true);
+      orientHands(keeper, { ...ball, y: 0.9 }, 0.8);
+      assert.equal(touchesBall(physics, keeper.hands), false);
+      for (let i = 0; i < 8; i++) orientHands(keeper, ball, 0.8, 0.05);
+      assert.equal(touchesBall(physics, keeper.hands), true);
+      assert.notEqual(secureCatch(physics, keeper), null);
+    } finally {
+      physics.world.free();
+    }
+  }
+});
+
+test('a cross outside the goal mouth cannot pull the keeper into a save dive in either direction', () => {
+  for (const direction of [-1, 1]) {
+    const x = (value) => (direction === 1 ? value : 105 - value);
+    const keeper = {
+      ...actor(),
+      direction,
+      side: direction === 1 ? 0 : 1,
+      isKeeper: true,
+      pos: { x: x(2), z: 34 },
+    };
+    const cross = { x: x(12), z: 40, y: 1, vx: -24 * direction, vz: 8, vy: 0 };
+    assert.equal(keeperGoalThreat(keeper, cross, 0), false);
+    assert.equal(keeperDiveVelocity(keeper, cross, 0), null);
+    keeper.keeperRead = null;
+    const shot = { x: x(12), z: 33, y: 1, vx: -24 * direction, vz: 2, vy: 0 };
+    assert.equal(keeperGoalThreat(keeper, shot, 1), true);
+    assert.ok(Number.isFinite(keeperDiveVelocity(keeper, shot, 1)));
+    keeper.keeperRead = null;
+    assert.equal(
+      keeperGoalThreat(keeper, { ...shot, y: 8 }, 2),
+      false,
+      'an obviously over-bar ball is not a goal-bound dive',
+    );
+  }
+});
+
 test('a finite diving hand reaches laterally over time, without claiming a remote ball', () => {
   const physics = createPhysics();
   const a = { ...actor({ reflexes: 70 }), ...createBody(physics, 180, 70, 2, 34) };
@@ -276,6 +381,33 @@ test('a finite diving hand reaches laterally over time, without claiming a remot
       touchesBall(physics, a.hands),
       false,
       'finite diving reach still cannot touch a distant ball',
+    );
+  } finally {
+    physics.world.free();
+  }
+});
+
+test('aerial ability affects finite raised-hand reach above standing height', () => {
+  const physics = createPhysics();
+  const a = {
+    ...actor({ reflexes: 70, aerialReach: 90 }),
+    ...createBody(physics, 180, 70, 2, 34),
+    diveLean: 1,
+  };
+  a.hands = createHands(physics, a);
+  try {
+    physics.ball.setTranslation({ x: 2.3, y: 3, z: 34 }, true);
+    orientHands(a, { x: 2.3, y: 0.9, z: 34 }, 1.4);
+    orientHands(a, physics.ball.translation(), 1.4, 0.05);
+    assert.equal(touchesBall(physics, a.hands), false, 'a high ball is not claimed instantly');
+    for (let i = 0; i < 20; i++) orientHands(a, physics.ball.translation(), 1.4, 0.05);
+    assert.ok(touchesBall(physics, a.hands), 'raised arms can reach a genuine high save');
+    a.player.attributes.aerialReach = 1;
+    for (let i = 0; i < 20; i++) orientHands(a, physics.ball.translation(), 1.4, 0.05);
+    assert.equal(
+      touchesBall(physics, a.hands),
+      false,
+      'lower aerial reach cannot claim the same height',
     );
   } finally {
     physics.world.free();
@@ -423,7 +555,16 @@ test('pass estimates include the receiver-versus-defender race at the destinatio
   const lateDefender = { ...actor(), pos: { x: 60, z: 34 } };
   const late = receptionContestRisk(receiver, target, 1.2, [lateDefender]);
   assert.equal(open, 0, 'an unmarked destination has no opponent contest risk');
-  assert.ok(marked > 0.9, 'a defender already at the landing point can claim the pass');
+  assert.ok(
+    marked > 0.15 && marked < 0.8,
+    'two players already at the landing point contest it; the defender has no automatic claim',
+  );
+  const poorReceiver = { ...receiver, player: structuredClone(receiver.player) };
+  poorReceiver.player.attributes.firstTouch = 10;
+  assert.ok(
+    receptionContestRisk(poorReceiver, target, 1.2, [waitingDefender]) > marked,
+    'first touch changes the contested reception instead of merely changing an arrival clock',
+  );
   assert.equal(late, 0, 'a defender who cannot arrive before the receiver adds no contest risk');
 
   const action = {

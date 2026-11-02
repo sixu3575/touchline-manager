@@ -1,8 +1,8 @@
 {
-  "verifiedOn": "2026-10-27",
-  "baselineCommit": "d0e956d9198b9c4a6fb907142c0feabd55dcb039",
-  "engineVersion": "0.46.0-carry-routes",
-  "parameterVersion": "carry-routes-1",
+  "verifiedOn": "2026-10-29",
+  "baselineCommit": "583d47a3f309e2f7f98a5cfd23d7f38ec0b4ce23",
+  "engineVersion": "0.47.2-matchup-cover",
+  "parameterVersion": "role-containment-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -19,9 +19,9 @@
     "packages/shared/modules/matches/arrival.mjs": "d5c9d3a1ce9255991cb4605baf43abd5e89980e24af1f7c342763eaa09223a05",
     "packages/shared/modules/matches/offball.mjs": "e80f260eaa0b2891f7ad71ea887996381834247a48c05ed3bc5609b59dd4a7b9",
     "packages/shared/modules/matches/deadball.mjs": "b3d414f11343bcec48040cf0d79ab5e3254e7307f24964089d6c91747688db3d",
-    "packages/shared/modules/matches/tactical-plan.mjs": "cee7921c48bbfceaa7111aa933c514f7cb50766ff77f8597cba47889400d5f6b",
+    "packages/shared/modules/matches/tactical-plan.mjs": "9778b6916b246db7dc9e4f81adf818db21d138573329cf8798217c13c0e93b7d",
     "packages/shared/modules/matches/carrying.mjs": "0040074e994d3994e00a67969680d51daf0e92703dcef991c7a45591cf0c40a4",
-    "packages/shared/modules/tactics/presets.mjs": "4f2afb71291f17e61160f20a8774d9f8eb62ca54e488e81c94b9ea9daa262b26",
+    "packages/shared/modules/tactics/presets.mjs": "8ef3a0889d1fd79ee48540efeb48a068a658c5ea28d361a1539b56780864b52f",
     "packages/shared/modules/players/profiles.mjs": "165af9fef18fd9a4ce22af2cc31d3aeb255d742c6f9d007c1f677b22a2aba927",
     "packages/shared/modules/players/assessment.mjs": "81fab9459b8b7ce7f919ff92da3acf8c0141f6fe6ab34af3202283097237dfeb",
     "packages/server/src/player-view.mjs": "629589c76a9744ca31f2289e70f901a368916d4bf57d87a7e19e4323697eb6cf",
@@ -30,43 +30,43 @@
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "3af093453a081e5502bc3f9953b9ec4ca92fed22a988957a0566a833c984f500",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "166563457d0113b79f21fe4501d73f704a4a4c51ab9d6a586b53e23e8e2cfd27",
-    "packages/shared/modules/matches/locomotion.mjs": "3dc360a57ec43ca0a87675b0d63a1dc551c90c5910d207355145d7f72e50f866",
-    "packages/shared/modules/matches/decisions.mjs": "66d5badeba75a5f87758d5fecf4596a0371a48f8e925e52b81f1326e833944ad",
-    "packages/shared/modules/matches/simulation.mjs": "683d40c146cde2bd270d940b24ceec70dec23f215b2e56d29d3a41fcb697db1c",
+    "packages/shared/modules/matches/positioning.mjs": "1c5ae0cb83f29a0be522a285ab80074fa61caab70a0c4f97a0f9fdb0dff23360",
+    "packages/shared/modules/matches/locomotion.mjs": "d29a8f4e917a0e7f211c2b34b6fe1e33e137d0731d291170e2f2821cd8245e56",
+    "packages/shared/modules/matches/decisions.mjs": "3626c56c9b9b204321d6ef37af48d7b5025e063cac6381adcd111277b62af95b",
+    "packages/shared/modules/matches/simulation.mjs": "1a0eeec9d983996b80a722582d53093166f414accc196edf9b5c999b3f9d9608",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
-    "packages/shared/modules/matches/goalkeeping.mjs": "8e0d366399fc11fadbc14a66fb94ffe83d8e7e354f7604f7dc6d040746f6cfcd",
+    "packages/shared/modules/matches/goalkeeping.mjs": "c800dcbbfe98f7f13f1ae5ad5b1a73606d907105ab60a476dc31ca3ab8f08523",
     "packages/shared/modules/matches/skills.mjs": "826c903aebd51426b00892baf1e8bea7d9bf551887c38cca80c2b3314cf84c65",
     "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
-    "packages/shared/modules/matches/physics.mjs": "3037a6e77586af010fb7ed70ce5e44390ab487797e4a21e2e6537a4ecbda7df7",
+    "packages/shared/modules/matches/physics.mjs": "53710329ec2c2a06de6e10590b8b0d5959169f7a95126284f66dbb8c11c84082",
     "packages/shared/modules/matches/ball-motion.mjs": "63a4bf259b47bd7e0721d99983d2703fc5802f06b1e64d31d24355301872df38",
     "packages/shared/modules/matches/rules.mjs": "53f37ae04fdd7855cb62dcc6988fc483ae58d36f1e175ebebf915377185a9cd4",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
     "packages/shared/modules/players/index.mjs": "b933de5ad69016ed6f666836dd8141a3a01115914d596ef1919deca11a3a2911",
     "packages/shared/modules/players/match-state.mjs": "069a4fabc615a1073356136786096ac9444e23b95d0d9fa19a9e1ca74617d4b9",
     "packages/shared/modules/players/catalog.mjs": "08e28dfc77e989cc8016a744399cd9ebbddf36253636dce1b76f92a8cfb220f2",
-    "packages/shared/modules/tactics/index.mjs": "c627edcca5bf3310bb1ad30a14d550c9c134a59bca58835a91613e6f6b0ea5aa",
+    "packages/shared/modules/tactics/index.mjs": "a52547c4ff8ff2e97f7524b0fa8ef92345362f6c30ec69a1eacd570113df0d24",
     "packages/shared/modules/world/index.mjs": "784729092cd83e253de398a74265931b92f9a2c4fa4dbd0b078322f5592b0e68",
     "packages/shared/modules/matches/attribution.mjs": "8ce1387f8d79286f68555a7b5d7ee89693d844ac66e217797fa6e1c36439f934",
     "packages/shared/modules/matches/ratings/index.mjs": "120eefc103b65d1709f38aa67c041a023d733b1990097fad28c28e9de80ae6fa",
     "packages/shared/modules/matches/activity.mjs": "2f35445eeea545d3b385a41cb59179e1151a505c0b675783022571096ba3da4f",
-    "packages/shared/modules/matches/defending.mjs": "6ef08dacf046f4bf2363922785663a3c911a2470f13198ffd254437582133917",
+    "packages/shared/modules/matches/defending.mjs": "606665d6a1fbc7e07b4394f08f7a2e4f5390bc63d1b8a5d28110f4480ad734ba",
     "packages/shared/modules/matches/execution.mjs": "69aeae1444d6a8e4a518ffd59513984427cabb97f73ef329298b08af11d9f1be",
     "packages/shared/modules/matches/replay-analysis.mjs": "aa43d8ca08c570c694a50eba30ae8a8cbad9c48e93891f0ec68c81bd432dfafb",
     "packages/shared/modules/matches/replay-analysis.d.mts": "4bfb5cf234b7f33060693e144dcc1dc97f016e8c4ec86ac159f06e917f8aeb56",
     "packages/shared/modules/matches/onball.mjs": "f00dd508161dfd4eca66e7a77d4d301e362adfb66a4401c3cb201b8d04ba0a52",
-    "packages/shared/modules/matches/opportunity.mjs": "ff114ae4f6961d61d70225acf0a7773e7ba22620e4da8af489335652abce7e24",
+    "packages/shared/modules/matches/opportunity.mjs": "58f265c9b2c65054c8d96e827addb49a085d4b5393e3166f7708188e27f5de4f",
     "packages/shared/modules/players/physiology.mjs": "93bb30472677bc6a9dd2a765ec9ced7f8b9588442eed367ddf7beed55a518e92",
     "packages/shared/modules/matches/statistics.mjs": "b4f73e96decf04f90069fcdb6a0187d24abe4022d177e321c9aa5e8a71f7ab46",
     "packages/shared/modules/matches/ratings/statistics.mjs": "bfe7163a5a58b704d64644222947aca3f129bf74f4e61be53b75b9c16b25479e",
     "packages/client/src/modules/matches/PhysicalReplay.tsx": "dbdb55008f03b45873b8162bcc3f67b7b1aafb128e38d5b27177fc8c02eb9705",
     "packages/shared/modules/matches/tactical-roles.mjs": "7d70dbe916f9616cff03822ae72309e901799f722813df4dc81deb14f7dd3efc",
-    "packages/server/src/match-jobs.mjs": "4e64d5588e33e67bd0525545db3ab0a142a4216ec4d0cb1b13f45c6c9ea09bff",
+    "packages/server/src/match-jobs.mjs": "b83f1cb1b59423b960ed96ba113409b5e73854de80dbb48a18e36a085bffa11e",
     "packages/server/src/simulation-worker.mjs": "eff94902f73f0637042642d3c8880194ea60b4f73c75fd6b020ed45721d13b36",
-    "packages/client/src/modules/matches/LiveManagerBoard.tsx": "c88ac760c0df2112c548c253ef9054ecd5386582d69978a1d9396fed38be9c80",
-    "packages/shared/modules/matches/shot-window.mjs": "69f24b0188e92c899734119781395b65481228c76e18a00a3fc2f4559853d73e",
-    "packages/shared/modules/matches/carry-route.mjs": "818a3bd57a4695e7e641a81962490a394d6b5cc09a3807624f8ad3bcad7ebe91"
+    "packages/client/src/modules/matches/LiveManagerBoard.tsx": "607229a2692ad8d38042709fbf5fa5ebf01facd6a03e0dd9d4b07f0182ecf773",
+    "packages/shared/modules/matches/shot-window.mjs": "be0719e951a71240395407c1ecb0724e386bcf3b97aab2337bed930a321c2254",
+    "packages/shared/modules/matches/carry-route.mjs": "0e3bcb86a8ef09a84193cf12b5cd16f5ce1369e163195d40fadf572ddbc98c34"
   },
   "diagrams": {
     "01-overview": {
@@ -74,24 +74,24 @@
       "svgSha256": "e6e3abd9352861f080164bcc9322087767a7dfb46bf057d08be7aca0ee6db972"
     },
     "02-roles": {
-      "mermaidSha256": "4eb9b5a0f3e591f231cd7acd2bdae0bf39cde3fee8fbdd2c80f398a82b0f4535",
-      "svgSha256": "34b4115f397ce7b2ccd9bbd1cfb6c34cd20447c074a47057885e1181fd56d318"
+      "mermaidSha256": "b0f27542543a6e868f2409efbad0554b0c3ee7d80909c246a83136a2f7912f09",
+      "svgSha256": "d4f357f550943035b51113d8f13d250eeacdf7ca2364e225c9e6511882385cf2"
     },
     "03-positioning": {
-      "mermaidSha256": "be77b22f50969489e15dd5c22af5682e6f52597b7401ed5f200407db4781f17f",
-      "svgSha256": "714dd75979024a805e3e4bd0a5eff013ac3f0308a8e199c6690b29c87ea591ad"
+      "mermaidSha256": "6e09fa8c4bc7e2b8a6ed65b9ce6b0352ca9ebd44a1ec45431458ad58a06687e3",
+      "svgSha256": "0cb3a5745807c2693b10fb8bd567bc18f329a5e05a5433038e82435e0437f1b8"
     },
     "04-reception": {
-      "mermaidSha256": "f0e1d5a71048fa8d968545ef11015670121ae6ead29b8a88556872a21b8855dd",
-      "svgSha256": "3a5743e3a11f26ca28c353b3afa2c63b731f461a6bfc7fb037d76ff4a60d6280"
+      "mermaidSha256": "c39c2a5c9522219e5b3a4c7a717d8552f6d868b01478dc0b63f8af5ea6e0ec41",
+      "svgSha256": "47c4a0312bf79602bc5a5091b3bacdbd5985749c0f7ef15a59a221a6952e4bf3"
     },
     "05-actions": {
-      "mermaidSha256": "7b9fa055da6f2d912f959365fb97fc1f7c4811a2d81ddb109af5439a9db2c806",
-      "svgSha256": "a9dfff791c28084820ed213022da64cf946419e04ed231661c6524e4948c865a"
+      "mermaidSha256": "80859b301830505b28777bd1ebb017c10139bbf26821740f6bc5bb8965215caf",
+      "svgSha256": "50ec1fd1ce2eee73ad1c0e6a4df8c0817f5f29df7ef5cfdbde0a1fba6a3d1bf2"
     },
     "06-profiles": {
-      "mermaidSha256": "c9c1ded8e102fa1f3f5eb7a50c80c0e422ad7846fbaf5a4bdee40d9b62978703",
-      "svgSha256": "06474e2baf7c787ae9f9a1be90b80de5f603bd646f91c47497d8563e830819f2"
+      "mermaidSha256": "74d2f6675a92c6815e04d50ff955c423430254beb40d3c314fc52c72dcda6cc1",
+      "svgSha256": "324d57a82e3c2ea049eb3000d6cd076daa74a6752cc965815253c16809730ee0"
     },
     "07-knowledge": {
       "mermaidSha256": "b0a59dca625b70e91096a6d044bea54c95d103fe32d074af832069747dacc37a",

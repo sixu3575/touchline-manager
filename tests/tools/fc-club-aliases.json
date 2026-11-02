@@ -1,0 +1,1000 @@
+{
+  "edition": 24,
+  "ratingDate": "2023-09-22",
+  "method": "Explicit reviewed identity crosswalk. No fuzzy matching in the collector.",
+  "footballData": {
+    "E0": {
+      "Arsenal": {
+        "teamId": 1,
+        "fcName": "Arsenal"
+      },
+      "Aston Villa": {
+        "teamId": 2,
+        "fcName": "Aston Villa"
+      },
+      "Bournemouth": {
+        "teamId": 1943,
+        "fcName": "AFC Bournemouth"
+      },
+      "Brentford": {
+        "teamId": 1925,
+        "fcName": "Brentford"
+      },
+      "Brighton": {
+        "teamId": 1808,
+        "fcName": "Brighton & Hove Albion"
+      },
+      "Burnley": {
+        "teamId": 1796,
+        "fcName": "Burnley"
+      },
+      "Chelsea": {
+        "teamId": 5,
+        "fcName": "Chelsea"
+      },
+      "Crystal Palace": {
+        "teamId": 1799,
+        "fcName": "Crystal Palace"
+      },
+      "Everton": {
+        "teamId": 7,
+        "fcName": "Everton"
+      },
+      "Fulham": {
+        "teamId": 144,
+        "fcName": "Fulham"
+      },
+      "Liverpool": {
+        "teamId": 9,
+        "fcName": "Liverpool"
+      },
+      "Luton": {
+        "teamId": 1923,
+        "fcName": "Luton Town"
+      },
+      "Man City": {
+        "teamId": 10,
+        "fcName": "Manchester City"
+      },
+      "Man United": {
+        "teamId": 11,
+        "fcName": "Manchester United"
+      },
+      "Newcastle": {
+        "teamId": 13,
+        "fcName": "Newcastle United"
+      },
+      "Nott'm Forest": {
+        "teamId": 14,
+        "fcName": "Nottingham Forest"
+      },
+      "Sheffield United": {
+        "teamId": 1794,
+        "fcName": "Sheffield United"
+      },
+      "Tottenham": {
+        "teamId": 18,
+        "fcName": "Tottenham Hotspur"
+      },
+      "West Ham": {
+        "teamId": 19,
+        "fcName": "West Ham United"
+      },
+      "Wolves": {
+        "teamId": 110,
+        "fcName": "Wolverhampton Wanderers"
+      }
+    },
+    "E1": {
+      "Birmingham": {
+        "teamId": 88,
+        "fcName": "Birmingham City"
+      },
+      "Blackburn": {
+        "teamId": 3,
+        "fcName": "Blackburn Rovers"
+      },
+      "Bristol City": {
+        "teamId": 1919,
+        "fcName": "Bristol City"
+      },
+      "Cardiff": {
+        "teamId": 1961,
+        "fcName": "Cardiff City"
+      },
+      "Coventry": {
+        "teamId": 1800,
+        "fcName": "Coventry City"
+      },
+      "Huddersfield": {
+        "teamId": 1939,
+        "fcName": "Huddersfield Town"
+      },
+      "Hull": {
+        "teamId": 1952,
+        "fcName": "Hull City"
+      },
+      "Ipswich": {
+        "teamId": 94,
+        "fcName": "Ipswich Town"
+      },
+      "Leeds": {
+        "teamId": 8,
+        "fcName": "Leeds United"
+      },
+      "Leicester": {
+        "teamId": 95,
+        "fcName": "Leicester City"
+      },
+      "Middlesbrough": {
+        "teamId": 12,
+        "fcName": "Middlesbrough"
+      },
+      "Millwall": {
+        "teamId": 97,
+        "fcName": "Millwall"
+      },
+      "Norwich": {
+        "teamId": 1792,
+        "fcName": "Norwich City"
+      },
+      "Plymouth": {
+        "teamId": 1929,
+        "fcName": "Plymouth Argyle"
+      },
+      "Preston": {
+        "teamId": 1801,
+        "fcName": "Preston North End"
+      },
+      "QPR": {
+        "teamId": 15,
+        "fcName": "Queens Park Rangers"
+      },
+      "Rotherham": {
+        "teamId": 1797,
+        "fcName": "Rotherham United"
+      },
+      "Sheffield Weds": {
+        "teamId": 1807,
+        "fcName": "Sheffield Wednesday"
+      },
+      "Southampton": {
+        "teamId": 17,
+        "fcName": "Southampton"
+      },
+      "Stoke": {
+        "teamId": 1806,
+        "fcName": "Stoke City"
+      },
+      "Sunderland": {
+        "teamId": 106,
+        "fcName": "Sunderland"
+      },
+      "Swansea": {
+        "teamId": 1960,
+        "fcName": "Swansea City"
+      },
+      "Watford": {
+        "teamId": 1795,
+        "fcName": "Watford"
+      },
+      "West Brom": {
+        "teamId": 109,
+        "fcName": "West Bromwich Albion"
+      }
+    },
+    "E2": {
+      "Barnsley": {
+        "teamId": 1932,
+        "fcName": "Barnsley"
+      },
+      "Blackpool": {
+        "teamId": 1926,
+        "fcName": "Blackpool"
+      },
+      "Bolton": {
+        "teamId": 4,
+        "fcName": "Bolton Wanderers"
+      },
+      "Bristol Rvs": {
+        "teamId": 1962,
+        "fcName": "Bristol Rovers"
+      },
+      "Burton": {
+        "teamId": 15015,
+        "fcName": "Burton Albion"
+      },
+      "Cambridge": {
+        "teamId": 1944,
+        "fcName": "Cambridge United"
+      },
+      "Carlisle": {
+        "teamId": 1480,
+        "fcName": "Carlisle United"
+      },
+      "Charlton": {
+        "teamId": 89,
+        "fcName": "Charlton Athletic"
+      },
+      "Cheltenham": {
+        "teamId": 1936,
+        "fcName": "Cheltenham Town"
+      },
+      "Derby": {
+        "teamId": 91,
+        "fcName": "Derby County"
+      },
+      "Exeter": {
+        "teamId": 143,
+        "fcName": "Exeter City"
+      },
+      "Fleetwood Town": {
+        "teamId": 112260,
+        "fcName": "Fleetwood Town"
+      },
+      "Leyton Orient": {
+        "teamId": 1958,
+        "fcName": "Leyton Orient"
+      },
+      "Lincoln": {
+        "teamId": 149,
+        "fcName": "Lincoln City"
+      },
+      "Northampton": {
+        "teamId": 1930,
+        "fcName": "Northampton Town"
+      },
+      "Oxford": {
+        "teamId": 1951,
+        "fcName": "Oxford United"
+      },
+      "Peterboro": {
+        "teamId": 1938,
+        "fcName": "Peterborough United"
+      },
+      "Port Vale": {
+        "teamId": 1928,
+        "fcName": "Port Vale"
+      },
+      "Portsmouth": {
+        "teamId": 1790,
+        "fcName": "Portsmouth"
+      },
+      "Reading": {
+        "teamId": 1793,
+        "fcName": "Reading"
+      },
+      "Shrewsbury": {
+        "teamId": 127,
+        "fcName": "Shrewsbury Town"
+      },
+      "Stevenage": {
+        "teamId": 361,
+        "fcName": "Stevenage"
+      },
+      "Wigan": {
+        "teamId": 1917,
+        "fcName": "Wigan Athletic"
+      },
+      "Wycombe": {
+        "teamId": 1933,
+        "fcName": "Wycombe Wanderers"
+      }
+    },
+    "E3": {
+      "AFC Wimbledon": {
+        "teamId": 112259,
+        "fcName": "AFC Wimbledon"
+      },
+      "Accrington": {
+        "teamId": 110313,
+        "fcName": "Accrington Stanley"
+      },
+      "Barrow": {
+        "teamId": 381,
+        "fcName": "Barrow"
+      },
+      "Bradford": {
+        "teamId": 1804,
+        "fcName": "Bradford City"
+      },
+      "Colchester": {
+        "teamId": 1935,
+        "fcName": "Colchester United"
+      },
+      "Crawley Town": {
+        "teamId": 110890,
+        "fcName": "Crawley Town"
+      },
+      "Crewe": {
+        "teamId": 121,
+        "fcName": "Crewe Alexandra"
+      },
+      "Doncaster": {
+        "teamId": 142,
+        "fcName": "Doncaster Rovers"
+      },
+      "Forest Green": {
+        "teamId": 561,
+        "fcName": "Forest Green Rovers"
+      },
+      "Gillingham": {
+        "teamId": 1802,
+        "fcName": "Gillingham"
+      },
+      "Grimsby": {
+        "teamId": 92,
+        "fcName": "Grimsby Town"
+      },
+      "Harrogate": {
+        "teamId": 112222,
+        "fcName": "Harrogate Town"
+      },
+      "Mansfield": {
+        "teamId": 1940,
+        "fcName": "Mansfield Town"
+      },
+      "Milton Keynes Dons": {
+        "teamId": 1798,
+        "fcName": "Milton Keynes Dons"
+      },
+      "Morecambe": {
+        "teamId": 357,
+        "fcName": "Morecambe"
+      },
+      "Newport County": {
+        "teamId": 112254,
+        "fcName": "Newport County"
+      },
+      "Notts County": {
+        "teamId": 1937,
+        "fcName": "Notts County"
+      },
+      "Salford": {
+        "teamId": 113926,
+        "fcName": "Salford City"
+      },
+      "Stockport": {
+        "teamId": 1931,
+        "fcName": "Stockport County"
+      },
+      "Sutton": {
+        "teamId": 110799,
+        "fcName": "Sutton United"
+      },
+      "Swindon": {
+        "teamId": 1934,
+        "fcName": "Swindon Town"
+      },
+      "Tranmere": {
+        "teamId": 15048,
+        "fcName": "Tranmere Rovers"
+      },
+      "Walsall": {
+        "teamId": 1803,
+        "fcName": "Walsall"
+      },
+      "Wrexham": {
+        "teamId": 1947,
+        "fcName": "Wrexham"
+      }
+    },
+    "D1": {
+      "Augsburg": {
+        "teamId": 100409,
+        "fcName": "FC Augsburg"
+      },
+      "Bayern Munich": {
+        "teamId": 21,
+        "fcName": "FC Bayern München"
+      },
+      "Bochum": {
+        "teamId": 160,
+        "fcName": "VfL Bochum 1848"
+      },
+      "Darmstadt": {
+        "teamId": 110502,
+        "fcName": "Darmstadt 98"
+      },
+      "Dortmund": {
+        "teamId": 22,
+        "fcName": "Borussia Dortmund"
+      },
+      "Ein Frankfurt": {
+        "teamId": 1824,
+        "fcName": "Eintracht Frankfurt"
+      },
+      "FC Koln": {
+        "teamId": 31,
+        "fcName": "FC Köln"
+      },
+      "Freiburg": {
+        "teamId": 25,
+        "fcName": "SC Freiburg"
+      },
+      "Heidenheim": {
+        "teamId": 111235,
+        "fcName": "Heidenheim"
+      },
+      "Hoffenheim": {
+        "teamId": 10029,
+        "fcName": "TSG Hoffenheim"
+      },
+      "Leverkusen": {
+        "teamId": 32,
+        "fcName": "Bayer 04 Leverkusen"
+      },
+      "M'gladbach": {
+        "teamId": 23,
+        "fcName": "Borussia Mönchengladbach"
+      },
+      "Mainz": {
+        "teamId": 169,
+        "fcName": "FSV Mainz 05"
+      },
+      "RB Leipzig": {
+        "teamId": 112172,
+        "fcName": "RB Leipzig"
+      },
+      "Stuttgart": {
+        "teamId": 36,
+        "fcName": "VfB Stuttgart"
+      },
+      "Union Berlin": {
+        "teamId": 1831,
+        "fcName": "FC Union Berlin"
+      },
+      "Werder Bremen": {
+        "teamId": 38,
+        "fcName": "Werder Bremen"
+      },
+      "Wolfsburg": {
+        "teamId": 175,
+        "fcName": "VfL Wolfsburg"
+      }
+    },
+    "D2": {
+      "Braunschweig": {
+        "teamId": 110500,
+        "fcName": "Eintracht Braunschweig"
+      },
+      "Elversberg": {
+        "teamId": 580,
+        "fcName": "Elversberg"
+      },
+      "Fortuna Dusseldorf": {
+        "teamId": 110636,
+        "fcName": "Fortuna Düsseldorf"
+      },
+      "Greuther Furth": {
+        "teamId": 165,
+        "fcName": "SpVgg Greuther Fürth"
+      },
+      "Hamburg": {
+        "teamId": 28,
+        "fcName": "Hamburger SV"
+      },
+      "Hannover": {
+        "teamId": 485,
+        "fcName": "Hannover 96"
+      },
+      "Hansa Rostock": {
+        "teamId": 27,
+        "fcName": "Hansa Rostock"
+      },
+      "Hertha": {
+        "teamId": 166,
+        "fcName": "Hertha BSC"
+      },
+      "Holstein Kiel": {
+        "teamId": 576,
+        "fcName": "Holstein Kiel"
+      },
+      "Kaiserslautern": {
+        "teamId": 29,
+        "fcName": "Kaiserslautern"
+      },
+      "Karlsruhe": {
+        "teamId": 1832,
+        "fcName": "Karlsruher SC"
+      },
+      "Magdeburg": {
+        "teamId": 110588,
+        "fcName": "Magdeburg"
+      },
+      "Nurnberg": {
+        "teamId": 171,
+        "fcName": "Nürnberg"
+      },
+      "Osnabruck": {
+        "teamId": 487,
+        "fcName": "Osnabrück"
+      },
+      "Paderborn": {
+        "teamId": 10030,
+        "fcName": "Paderborn"
+      },
+      "Schalke 04": {
+        "teamId": 34,
+        "fcName": "Schalke 04"
+      },
+      "St Pauli": {
+        "teamId": 110329,
+        "fcName": "St. Pauli"
+      },
+      "Wehen": {
+        "teamId": 492,
+        "fcName": "Wehen Wiesbaden"
+      }
+    },
+    "I1": {
+      "Atalanta": {
+        "teamId": 39,
+        "fcName": "Atalanta"
+      },
+      "Bologna": {
+        "teamId": 189,
+        "fcName": "Bologna"
+      },
+      "Cagliari": {
+        "teamId": 1842,
+        "fcName": "Cagliari"
+      },
+      "Empoli": {
+        "teamId": 1746,
+        "fcName": "Empoli"
+      },
+      "Fiorentina": {
+        "teamId": 110374,
+        "fcName": "Fiorentina"
+      },
+      "Frosinone": {
+        "teamId": 111657,
+        "fcName": "Frosinone"
+      },
+      "Genoa": {
+        "teamId": 110556,
+        "fcName": "Genoa"
+      },
+      "Inter": {
+        "teamId": 44,
+        "fcName": "Inter"
+      },
+      "Juventus": {
+        "teamId": 45,
+        "fcName": "Juventus"
+      },
+      "Lazio": {
+        "teamId": 46,
+        "fcName": "Lazio"
+      },
+      "Lecce": {
+        "teamId": 347,
+        "fcName": "Lecce"
+      },
+      "Milan": {
+        "teamId": 47,
+        "fcName": "Milan"
+      },
+      "Monza": {
+        "teamId": 111811,
+        "fcName": "Monza"
+      },
+      "Napoli": {
+        "teamId": 48,
+        "fcName": "Napoli"
+      },
+      "Roma": {
+        "teamId": 52,
+        "fcName": "Roma"
+      },
+      "Salernitana": {
+        "teamId": 110373,
+        "fcName": "Salernitana"
+      },
+      "Sassuolo": {
+        "teamId": 111974,
+        "fcName": "Sassuolo"
+      },
+      "Torino": {
+        "teamId": 54,
+        "fcName": "Torino"
+      },
+      "Udinese": {
+        "teamId": 55,
+        "fcName": "Udinese"
+      },
+      "Verona": {
+        "teamId": 206,
+        "fcName": "Hellas Verona"
+      }
+    },
+    "SP1": {
+      "Alaves": {
+        "teamId": 463,
+        "fcName": "Deportivo Alavés"
+      },
+      "Almeria": {
+        "teamId": 1861,
+        "fcName": "Almería"
+      },
+      "Ath Bilbao": {
+        "teamId": 448,
+        "fcName": "Athletic Club"
+      },
+      "Ath Madrid": {
+        "teamId": 240,
+        "fcName": "Atlético Madrid"
+      },
+      "Barcelona": {
+        "teamId": 241,
+        "fcName": "FC Barcelona"
+      },
+      "Betis": {
+        "teamId": 449,
+        "fcName": "Real Betis"
+      },
+      "Cadiz": {
+        "teamId": 1968,
+        "fcName": "Cádiz"
+      },
+      "Celta": {
+        "teamId": 450,
+        "fcName": "Celta de Vigo"
+      },
+      "Getafe": {
+        "teamId": 1860,
+        "fcName": "Getafe"
+      },
+      "Girona": {
+        "teamId": 110062,
+        "fcName": "Girona"
+      },
+      "Granada": {
+        "teamId": 110832,
+        "fcName": "Granada"
+      },
+      "Las Palmas": {
+        "teamId": 472,
+        "fcName": "Las Palmas"
+      },
+      "Mallorca": {
+        "teamId": 453,
+        "fcName": "Mallorca"
+      },
+      "Osasuna": {
+        "teamId": 479,
+        "fcName": "Osasuna"
+      },
+      "Real Madrid": {
+        "teamId": 243,
+        "fcName": "Real Madrid"
+      },
+      "Sevilla": {
+        "teamId": 481,
+        "fcName": "Sevilla"
+      },
+      "Sociedad": {
+        "teamId": 457,
+        "fcName": "Real Sociedad"
+      },
+      "Valencia": {
+        "teamId": 461,
+        "fcName": "Valencia"
+      },
+      "Vallecano": {
+        "teamId": 480,
+        "fcName": "Rayo Vallecano"
+      },
+      "Villarreal": {
+        "teamId": 483,
+        "fcName": "Villarreal"
+      }
+    },
+    "F1": {
+      "Brest": {
+        "teamId": 378,
+        "fcName": "Brest"
+      },
+      "Clermont": {
+        "teamId": 1815,
+        "fcName": "Clermont"
+      },
+      "Le Havre": {
+        "teamId": 1738,
+        "fcName": "Le Havre"
+      },
+      "Lens": {
+        "teamId": 64,
+        "fcName": "Lens"
+      },
+      "Lille": {
+        "teamId": 65,
+        "fcName": "Lille"
+      },
+      "Lorient": {
+        "teamId": 217,
+        "fcName": "Lorient"
+      },
+      "Lyon": {
+        "teamId": 66,
+        "fcName": "Olympique Lyonnais"
+      },
+      "Marseille": {
+        "teamId": 219,
+        "fcName": "Olympique de Marseille"
+      },
+      "Metz": {
+        "teamId": 68,
+        "fcName": "Metz"
+      },
+      "Monaco": {
+        "teamId": 69,
+        "fcName": "Monaco"
+      },
+      "Montpellier": {
+        "teamId": 70,
+        "fcName": "Montpellier"
+      },
+      "Nantes": {
+        "teamId": 71,
+        "fcName": "Nantes"
+      },
+      "Nice": {
+        "teamId": 72,
+        "fcName": "Nice"
+      },
+      "Paris SG": {
+        "teamId": 73,
+        "fcName": "Paris Saint Germain"
+      },
+      "Reims": {
+        "teamId": 379,
+        "fcName": "Stade de Reims"
+      },
+      "Rennes": {
+        "teamId": 74,
+        "fcName": "Rennes"
+      },
+      "Strasbourg": {
+        "teamId": 76,
+        "fcName": "Strasbourg"
+      },
+      "Toulouse": {
+        "teamId": 1809,
+        "fcName": "Toulouse"
+      }
+    },
+    "SC0": {
+      "Aberdeen": {
+        "teamId": 77,
+        "fcName": "Aberdeen"
+      },
+      "Celtic": {
+        "teamId": 78,
+        "fcName": "Celtic"
+      },
+      "Dundee": {
+        "teamId": 180,
+        "fcName": "Dundee"
+      },
+      "Hearts": {
+        "teamId": 80,
+        "fcName": "Hearts"
+      },
+      "Hibernian": {
+        "teamId": 81,
+        "fcName": "Hibernian"
+      },
+      "Kilmarnock": {
+        "teamId": 82,
+        "fcName": "Kilmarnock"
+      },
+      "Livingston": {
+        "teamId": 621,
+        "fcName": "Livingston"
+      },
+      "Motherwell": {
+        "teamId": 83,
+        "fcName": "Motherwell"
+      },
+      "Rangers": {
+        "teamId": 86,
+        "fcName": "Rangers"
+      },
+      "Ross County": {
+        "teamId": 631,
+        "fcName": "Ross County"
+      },
+      "St Johnstone": {
+        "teamId": 100804,
+        "fcName": "St. Johnstone"
+      },
+      "St Mirren": {
+        "teamId": 100805,
+        "fcName": "St. Mirren"
+      }
+    },
+    "N1": {
+      "AZ Alkmaar": {
+        "teamId": 1906,
+        "fcName": "AZ Alkmaar"
+      },
+      "Ajax": {
+        "teamId": 245,
+        "fcName": "Ajax"
+      },
+      "Almere City": {
+        "teamId": 111380,
+        "fcName": "Almere City"
+      },
+      "Excelsior": {
+        "teamId": 1971,
+        "fcName": "Excelsior"
+      },
+      "Feyenoord": {
+        "teamId": 246,
+        "fcName": "Feyenoord"
+      },
+      "For Sittard": {
+        "teamId": 634,
+        "fcName": "Fortuna Sittard"
+      },
+      "Go Ahead Eagles": {
+        "teamId": 100632,
+        "fcName": "Go Ahead Eagles"
+      },
+      "Heerenveen": {
+        "teamId": 1913,
+        "fcName": "SC Heerenveen"
+      },
+      "Heracles": {
+        "teamId": 100634,
+        "fcName": "Heracles Almelo"
+      },
+      "Nijmegen": {
+        "teamId": 1910,
+        "fcName": "NEC"
+      },
+      "PSV Eindhoven": {
+        "teamId": 247,
+        "fcName": "PSV"
+      },
+      "Sparta Rotterdam": {
+        "teamId": 100646,
+        "fcName": "Sparta Rotterdam"
+      },
+      "Twente": {
+        "teamId": 1908,
+        "fcName": "FC Twente"
+      },
+      "Utrecht": {
+        "teamId": 1903,
+        "fcName": "FC Utrecht"
+      },
+      "Vitesse": {
+        "teamId": 1909,
+        "fcName": "Vitesse"
+      },
+      "Volendam": {
+        "teamId": 645,
+        "fcName": "FC Volendam"
+      },
+      "Waalwijk": {
+        "teamId": 1905,
+        "fcName": "RKC Waalwijk"
+      },
+      "Zwolle": {
+        "teamId": 1914,
+        "fcName": "PEC Zwolle"
+      }
+    },
+    "P1": {
+      "Arouca": {
+        "teamId": 112513,
+        "fcName": "Arouca"
+      },
+      "Benfica": {
+        "teamId": 234,
+        "fcName": "Benfica"
+      },
+      "Boavista": {
+        "teamId": 1898,
+        "fcName": "Boavista"
+      },
+      "Casa Pia": {
+        "teamId": 114510,
+        "fcName": "Casa Pia"
+      },
+      "Chaves": {
+        "teamId": 518,
+        "fcName": "Chaves"
+      },
+      "Estoril": {
+        "teamId": 10020,
+        "fcName": "Estoril"
+      },
+      "Estrela": {
+        "teamId": 718,
+        "fcName": "Estrela Amadora"
+      },
+      "Famalicao": {
+        "teamId": 112809,
+        "fcName": "Famalicão"
+      },
+      "Farense": {
+        "teamId": 489,
+        "fcName": "Farense"
+      },
+      "Gil Vicente": {
+        "teamId": 1888,
+        "fcName": "Gil Vicente"
+      },
+      "Guimaraes": {
+        "teamId": 1887,
+        "fcName": "Vitória SC"
+      },
+      "Moreirense": {
+        "teamId": 1900,
+        "fcName": "Moreirense"
+      },
+      "Portimonense": {
+        "teamId": 10031,
+        "fcName": "Portimonense"
+      },
+      "Porto": {
+        "teamId": 236,
+        "fcName": "Porto"
+      },
+      "Rio Ave": {
+        "teamId": 744,
+        "fcName": "Rio Ave"
+      },
+      "Sp Braga": {
+        "teamId": 1896,
+        "fcName": "Sporting Braga"
+      },
+      "Sp Lisbon": {
+        "teamId": 237,
+        "fcName": "Sporting CP"
+      },
+      "Vizela": {
+        "teamId": 111539,
+        "fcName": "Vizela"
+      }
+    }
+  },
+  "espn": {
+    "1. FC Union Berlin": 1831,
+    "AC Milan": 47,
+    "Antwerp": 230,
+    "Arsenal": 1,
+    "Atlético Madrid": 240,
+    "Barcelona": 241,
+    "Bayern Munich": 21,
+    "Benfica": 234,
+    "Borussia Dortmund": 22,
+    "Braga": 1896,
+    "Celtic": 78,
+    "F.C. København": 819,
+    "FC Porto": 236,
+    "Feyenoord Rotterdam": 246,
+    "Galatasaray": 325,
+    "Internazionale": 44,
+    "Lazio": 46,
+    "Lens": 64,
+    "Manchester City": 10,
+    "Manchester United": 11,
+    "Napoli": 48,
+    "Newcastle United": 13,
+    "PSV Eindhoven": 247,
+    "Paris Saint-Germain": 73,
+    "RB Leipzig": 112172,
+    "RB Salzburg": 191,
+    "Real Madrid": 243,
+    "Real Sociedad": 457,
+    "Sevilla": 481,
+    "Shakhtar Donetsk": 101059,
+    "Young Boys": 900
+  }
+}

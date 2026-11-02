@@ -1,6 +1,6 @@
 import { Check, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-import { bestLineup } from '../../../../shared/modules/tactics/index.mjs';
+import { bestLineup, FORMATIONS } from '../../../../shared/modules/tactics/index.mjs';
 import { PanelHead } from '../../components/ui';
 import { styleNames } from '../../constants';
 import type { Club, Game, Player } from '../../model';
@@ -52,7 +52,7 @@ export function Tactics({
                 setLineup(bestLineup(club, e.target.value));
               }}
             >
-              {['4-4-2', '4-3-3', '3-5-2'].map((f) => (
+              {Object.keys(FORMATIONS).map((f) => (
                 <option key={f}>{f}</option>
               ))}
             </select>

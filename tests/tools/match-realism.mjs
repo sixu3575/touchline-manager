@@ -60,8 +60,7 @@ const statisticalMetrics = [
 ];
 const sampleMoments = (values) => {
   const average = mean(values);
-  const sampleVariance =
-    sum(values.map((value) => (value - average) ** 2)) / (values.length - 1);
+  const sampleVariance = sum(values.map((value) => (value - average) ** 2)) / (values.length - 1);
   return { mean: average, sampleVariance };
 };
 
@@ -232,47 +231,74 @@ export function compareMatchSampleToEuropeanLeagueStats(matchRows) {
     matchRows.some((row) =>
       statisticalMetrics.some(
         (metric) =>
-          !Number.isInteger(row?.home?.[metric]) || row.home[metric] < 0 ||
-          !Number.isInteger(row?.away?.[metric]) || row.away[metric] < 0,
+          !Number.isInteger(row?.home?.[metric]) ||
+          row.home[metric] < 0 ||
+          !Number.isInteger(row?.away?.[metric]) ||
+          row.away[metric] < 0,
       ),
     )
   )
     throw Error('At least two matches with non-negative integer team statistics are required');
-  const sample = Object.fromEntries(statisticalMetrics.map((metric) => {
-    const home = matchRows.map((row) => row.home[metric]);
-    const away = matchRows.map((row) => row.away[metric]);
-    const totals = home.map((value, index) => value + away[index]);
-    return [metric, {
-      home: sampleMoments(home), away: sampleMoments(away),
-      teamPerMatch: sampleMoments([...home, ...away]), matchTotal: sampleMoments(totals),
-    }];
-  }));
+  const sample = Object.fromEntries(
+    statisticalMetrics.map((metric) => {
+      const home = matchRows.map((row) => row.home[metric]);
+      const away = matchRows.map((row) => row.away[metric]);
+      const totals = home.map((value, index) => value + away[index]);
+      return [
+        metric,
+        {
+          home: sampleMoments(home),
+          away: sampleMoments(away),
+          teamPerMatch: sampleMoments([...home, ...away]),
+          matchTotal: sampleMoments(totals),
+        },
+      ];
+    }),
+  );
   const comparisons = references.europeanLeagueStats.competitions.map((competition) => ({
-    country: competition.country, level: competition.level, code: competition.code,
-    name: competition.name, matches: competition.pooled.matches,
-    metrics: Object.fromEntries(statisticalMetrics.map((metric) => {
-      const sampleMetric = sample[metric];
-      const referenceMetric = competition.pooled.metrics[metric];
-      return [metric, Object.fromEntries(['home', 'away', 'teamPerMatch', 'matchTotal'].map((scope) => {
-        const observed = referenceMetric[scope];
-        const actual = sampleMetric[scope];
-        return [scope, {
-          sampleMean: actual.mean, sampleVariance: actual.sampleVariance,
-          referenceMean: observed?.mean ?? null,
-          referenceVariance: observed?.sampleVariance ?? null,
-          referenceN: observed?.n ?? 0,
-          coverage: referenceMetric.coverage,
-          meanDifference: observed ? actual.mean - observed.mean : null,
-          varianceDifference: observed ? actual.sampleVariance - observed.sampleVariance : null,
-        }];
-      }))];
-    })),
+    country: competition.country,
+    level: competition.level,
+    code: competition.code,
+    name: competition.name,
+    matches: competition.pooled.matches,
+    metrics: Object.fromEntries(
+      statisticalMetrics.map((metric) => {
+        const sampleMetric = sample[metric];
+        const referenceMetric = competition.pooled.metrics[metric];
+        return [
+          metric,
+          Object.fromEntries(
+            ['home', 'away', 'teamPerMatch', 'matchTotal'].map((scope) => {
+              const observed = referenceMetric[scope];
+              const actual = sampleMetric[scope];
+              return [
+                scope,
+                {
+                  sampleMean: actual.mean,
+                  sampleVariance: actual.sampleVariance,
+                  referenceMean: observed?.mean ?? null,
+                  referenceVariance: observed?.sampleVariance ?? null,
+                  referenceN: observed?.n ?? 0,
+                  coverage: referenceMetric.coverage,
+                  meanDifference: observed ? actual.mean - observed.mean : null,
+                  varianceDifference: observed
+                    ? actual.sampleVariance - observed.sampleVariance
+                    : null,
+                },
+              ];
+            }),
+          ),
+        ];
+      }),
+    ),
   }));
   return {
     referenceVersion: references.europeanLeagueStats.referenceVersion,
-    status: 'descriptive-only', sample: { matches: matchRows.length, metrics: sample },
+    status: 'descriptive-only',
+    sample: { matches: matchRows.length, metrics: sample },
     comparisons,
-    interpretation: 'European league comparison is descriptive only. Competitions remain separate; observations with missing provider statistics keep their own coverage and n. No league is treated as the game’s exact tier target and no per-match quotas are implied.',
+    interpretation:
+      'European league comparison is descriptive only. Competitions remain separate; observations with missing provider statistics keep their own coverage and n. No league is treated as the game’s exact tier target and no per-match quotas are implied.',
   };
 }
 
@@ -303,14 +329,19 @@ export function compareMatchSampleToOpenEuropeStats(matchRows) {
       ),
     )
   )
-    throw Error('At least two matches with non-negative integer European reference statistics are required');
+    throw Error(
+      'At least two matches with non-negative integer European reference statistics are required',
+    );
 
   const sample = Object.fromEntries(
     metrics.map((metric) => {
       const home = matchRows.map((row) => row.home[metric]);
       const away = matchRows.map((row) => row.away[metric]);
       const totals = home.map((value, index) => value + away[index]);
-      return [metric, { teamMatch: sampleMoments([...home, ...away]), matchTotal: sampleMoments(totals) }];
+      return [
+        metric,
+        { teamMatch: sampleMoments([...home, ...away]), matchTotal: sampleMoments(totals) },
+      ];
     }),
   );
   const comparisons = references.openEuropeanEventStats.competitions.map((competition) => ({
@@ -429,7 +460,8 @@ export function compareMatchSampleToOpenFootballGoals(matchRows) {
     status: 'descriptive-only',
     sample,
     comparisons,
-    selectedDomesticCoverage: references.openEuropeanGoalStats.method.eligibleDomesticCoverageSummary,
+    selectedDomesticCoverage:
+      references.openEuropeanGoalStats.method.eligibleDomesticCoverageSummary,
     interpretation:
       'Goal-only scores compare only goals. Domestic rows below 95% score coverage and UEFA qualifiers remain visible but are excluded from broad contextual interpretation; main-stage UEFA totals are cross-checked against official campaign totals. Competitions stay separate and no player/action metric is inferred.',
   };
@@ -505,8 +537,7 @@ export function tacticalOutcomeStats(report) {
           .map((player) => [player.id, player.positionRole]),
       ),
       actions = report.events.filter(
-        (event) =>
-          event.side === side && ['pass', 'cross', 'dribble'].includes(event.type),
+        (event) => event.side === side && ['pass', 'cross', 'dribble'].includes(event.type),
       ),
       passes = actions.filter((event) => event.type === 'pass' || event.type === 'cross'),
       completedActionIds = new Set(
@@ -543,7 +574,7 @@ export function tacticalOutcomeStats(report) {
       ),
       counterThroughProfile = (lofted) => {
         const attempts = counterThrough.filter(
-            (event) => Number.isFinite(event.velocity?.y) && (event.velocity.y > 0.5) === lofted,
+            (event) => Number.isFinite(event.velocity?.y) && event.velocity.y > 0.5 === lofted,
           ),
           lengths = attempts
             .filter(
@@ -555,17 +586,15 @@ export function tacticalOutcomeStats(report) {
             )
             .map((event) =>
               Math.hypot(
-                event.destination.x - (event.x * 1.05),
-                event.destination.z - (event.y * 0.68),
+                event.destination.x - event.x * 1.05,
+                event.destination.z - event.y * 0.68,
               ),
             )
             .sort((a, b) => a - b);
         return {
           attempts: attempts.length,
           completed: attempts.filter((event) => completedActionIds.has(event.actionId)).length,
-          medianTargetDistance: lengths.length
-            ? lengths[Math.floor(lengths.length / 2)]
-            : null,
+          medianTargetDistance: lengths.length ? lengths[Math.floor(lengths.length / 2)] : null,
         };
       },
       takeOnOutcomes = report.events.filter(
@@ -647,9 +676,20 @@ export function tacticalOutcomeStats(report) {
       wideTakeOnAttempts: takeOnOutcomes.length,
       wideTakeOnWins: takeOnOutcomes.filter((event) => event.type === 'takeOnWon').length,
       passOriginByRole: Object.fromEntries(
-        ['keeper', 'centreBack', 'fullback', 'wingBack', 'holdingMid', 'centralMid', 'wideMid', 'winger', 'striker'].map(
-          (role) => [role, passes.filter((event) => roles.get(event.playerId) === role).length],
-        ),
+        [
+          'keeper',
+          'centreBack',
+          'fullback',
+          'wingBack',
+          'holdingMid',
+          'centralMid',
+          'wideMid',
+          'winger',
+          'striker',
+        ].map((role) => [
+          role,
+          passes.filter((event) => roles.get(event.playerId) === role).length,
+        ]),
       ),
       possessionChains: chains.length,
       meanChainLength: average(chains),
@@ -659,7 +699,9 @@ export function tacticalOutcomeStats(report) {
         (total, player) => total + (player.defenceTelemetry?.pressSeconds ?? 0),
         0,
       ),
-      playersWithPressDuty: ownOutfield.filter((player) => (player.defenceTelemetry?.pressSeconds ?? 0) > 0).length,
+      playersWithPressDuty: ownOutfield.filter(
+        (player) => (player.defenceTelemetry?.pressSeconds ?? 0) > 0,
+      ).length,
       markingDutyPlayerSeconds: ownOutfield.reduce(
         (total, player) => total + (player.defenceTelemetry?.markingSeconds ?? 0),
         0,
@@ -757,7 +799,9 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       goals: ev.filter((e) => e.type === 'goal' && !e.ownGoal).length,
       assists: report.events.filter((e) => e.type === 'goal' && e.assistId === p.id).length,
       interceptions: p.interceptions ?? ev.filter((e) => e.type === 'interception').length,
-      tackles: p.tackleAttempts ?? p.tackles,
+      tackles: p.tackles,
+      tackleAttempts: p.tackleAttempts ?? p.tackles,
+      tackleDefinition: p.tackleAttempts == null ? 'legacy-ambiguous' : 'ball-contact',
       wonTackles: p.wonTackles,
       saves: ev.filter((e) => e.type === 'save').length,
       touches: p.touches,
@@ -792,6 +836,11 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       bounds('shotsPer90-extreme', row.shots * per90, [0, 20], p.id, 'block');
       bounds('tacklesPer90', row.tackles * per90, [0, 15], p.id);
       bounds('tacklesPer90-extreme', row.tackles * per90, [0, 25], p.id, 'block');
+      // Preserve the existing excessive-challenge guard separately. Attempts
+      // that never take the ball away are not Opta tackles; fixing the label
+      // must not silently remove the old diagnostic or relax its threshold.
+      bounds('tackleAttemptsPer90', row.tackleAttempts * per90, [0, 15], p.id);
+      bounds('tackleAttemptsPer90-extreme', row.tackleAttempts * per90, [0, 25], p.id, 'block');
       if (t) {
         bounds('trackingCoverage', t.coverage, [0.95, 1], p.id, 'block');
         bounds('distanceReconciliation', row.distanceDifference, [-0.08, 0.05], p.id);
@@ -820,6 +869,7 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
       trackedOutfieldMetres:
         tracking.status === 'available' ? sum(outfield.map((p) => p.trackedMetres)) : null,
       tackles: sum(own.map((p) => p.tackles)),
+      tackleAttempts: sum(own.map((p) => p.tackleAttempts)),
       wonTackles: sum(own.map((p) => p.wonTackles)),
       floorEnergyPlayers: outfield.filter((p) => p.energy <= 20).length,
       meanEndBurstReserve: mean(outfield.map((p) => p.burstReserve).filter(Number.isFinite)),
@@ -926,6 +976,7 @@ export function compareMatch(report, { trajectory = report.trajectory } = {}) {
   };
   return {
     referenceVersion: references.version,
+    measurementVersion: 'realism-actions-2',
     engineVersion: report.engineVersion,
     parameterVersion: report.parameterVersion,
     statisticsVersion: report.statisticsVersion ?? 'legacy',

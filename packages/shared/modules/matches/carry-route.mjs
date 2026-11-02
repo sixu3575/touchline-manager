@@ -1,5 +1,5 @@
 import { clamp } from '../../core/index.mjs';
-import { distance, segmentPoint } from './spatial.mjs';
+import { distance, segmentPoint, localX } from './spatial.mjs';
 import { arrivalTime, pursuitMode } from './arrival.mjs';
 import { actionQuality, ability } from './skills.mjs';
 import { duelProbability } from './defending.mjs';
@@ -70,7 +70,15 @@ export function carryRouteRisk(actor, ball, destination, mode, opponents, actors
       defenders = actors
         .filter((a) => !a.sentOff && a.side === opponent.side)
         .map((a) => (a === opponent ? defenderAt : a));
-    const defending = actionQuality(defenderAt, point, 'tackling', attackers).value,
+    const hands =
+      opponent.isKeeper &&
+      localX(point.x, actor.direction ?? (actor.side === 0 ? 1 : -1)) > 88.5 &&
+      Math.abs(point.z - 34) < 20.16;
+    const defending = hands
+        ? 0.5 * ability(opponent.player, 'oneOnOnes') +
+          0.3 * ability(opponent.player, 'handling') +
+          0.2 * ability(opponent.player, 'reflexes')
+        : actionQuality(defenderAt, point, 'tackling', attackers).value,
       carrying = actionQuality(carrierAt, point, 'dribbling', defenders).value;
     const tackle = duelProbability(defending, carrying, (own - theirs) / 0.6, support);
     encounter.loss = exposure * tackle;

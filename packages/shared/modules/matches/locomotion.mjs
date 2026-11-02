@@ -138,6 +138,14 @@ export function movementMode(actor, ball, owner, roles, gap) {
     intent && (fresh || triggerAdrenalineSprint(actor, critical));
   const attackingDepth = actor.direction === -1 ? 105 - ball.x : ball.x;
   const ownGoalDistance = attackingDepth;
+  const passDeadline =
+    roles.receiverId === actor.player.id && Number.isFinite(roles.receiveAt)
+      ? roles.receiveAt - (roles.time ?? 0)
+      : null;
+  const receivingRun =
+    passDeadline > 0 &&
+    gap > 2 &&
+    gap / passDeadline > movement(actor.player, actor.energy, 'run').speed * 0.8;
   if (actor.kickPlan) {
     const ballSpeed = Math.hypot(ball.vx ?? 0, ball.vz ?? 0);
     if (ballSpeed > movement(actor.player, actor.energy, 'run').speed)
@@ -145,9 +153,22 @@ export function movementMode(actor, ball, owner, roles, gap) {
     return ballSpeed > 1.5 ? 'run' : gap > 0.15 ? 'walk' : 'stand';
   }
   if (actor === owner) return actor.intent?.mode === 'carryFast' && fresh ? 'carryFast' : 'carry';
-  if (actor.isKeeper) return gap > 0.35 ? 'run' : 'stand';
-  if (roles.defensiveCover?.[actor.player.id])
+  if (actor.isKeeper) {
+    const sweep = !owner && roles.chasers.includes(actor.index) && gap > 2;
+    return gap > 0.35 ? (sprintFor(sweep, ownGoalDistance < 16.5) ? 'sprint' : 'run') : 'stand';
+  }
+  if (roles.defensiveCover?.[actor.player.id]) {
+    const goalSideLost = (ball.x - actor.pos.x) * (actor.direction ?? 1) < 0;
+    const danger = owner && owner.side !== actor.side && ownGoalDistance < 30;
+    if (
+      gap > 2 &&
+      danger &&
+      (goalSideLost || distance(actor.pos, ball) < 12) &&
+      sprintFor(true, true)
+    )
+      return 'sprint';
     return gap > 3 ? 'run' : gap > 1 ? 'jog' : gap > 0.3 ? 'walk' : 'stand';
+  }
   const chasing = roles.chasers.includes(actor.index);
   if (chasing || roles.receiverId === actor.player.id) {
     const ballGap = distance(actor.pos, ball);
@@ -163,7 +184,8 @@ export function movementMode(actor, ball, owner, roles, gap) {
         (roles.receiverId === actor.player.id && attackingDepth >= 70));
     const pressingSprint = pressing && ballGap < pressDistance;
     const looseBallSprint = !owner && ballSpeed > 8 && ballGap < 18;
-    const receiverSprint = roles.receiverId === actor.player.id && ballSpeed > 8 && ballGap < 18;
+    const receiverSprint =
+      receivingRun || (roles.receiverId === actor.player.id && ballSpeed > 8 && ballGap < 18);
     const breakSprint = fastBreak && ballGap < 24;
     const sprintIntent =
       dangerSprint || pressingSprint || looseBallSprint || receiverSprint || breakSprint;
@@ -186,7 +208,7 @@ export function movementMode(actor, ball, owner, roles, gap) {
       if (trackedSpeed > 1.8) return 'run';
     }
     if (gap < 0.4) return 'walk';
-    const canCloseInBurst = ballGap < 18 || (pressing && ballGap < pressDistance);
+    const canCloseInBurst = receivingRun || ballGap < 18 || (pressing && ballGap < pressDistance);
     if (gap <= 2 || !canCloseInBurst) return 'run';
     return sprintFor(sprintIntent, emergency) || (looseBallRace && fresh) ? 'sprint' : 'run';
   }
@@ -196,7 +218,7 @@ export function movementMode(actor, ball, owner, roles, gap) {
       : 0;
     const emergencyCover = ownGoalDistance < 26 && gap > 4 && speed > 3.5;
     const mustMatchObservedRun =
-      speed > movement(actor.player, actor.energy, 'run').speed && gap > 4;
+      speed > movement(actor.player, actor.energy, 'run').speed && gap > 0.8;
     return sprintFor(mustMatchObservedRun, emergencyCover)
       ? 'sprint'
       : speed > 3.5 || gap > 9
@@ -207,6 +229,16 @@ export function movementMode(actor, ball, owner, roles, gap) {
             ? 'stand'
             : 'walk';
   }
+  const defending = roles.teamSide !== actor.side && owner && owner.side !== actor.side;
+  const lostLine = (ball.x - actor.pos.x) * (actor.direction ?? 1) < 0;
+  if (
+    defending &&
+    lostLine &&
+    ownGoalDistance < 40 &&
+    gap > 3 &&
+    sprintFor(true, ownGoalDistance < 26)
+  )
+    return 'sprint';
   if (gap < 0.8) return 'stand';
   if (gap < 2.5) return 'walk';
   if (roles.runnerId === actor.player.id) {
@@ -228,11 +260,12 @@ export function movementMode(actor, ball, owner, roles, gap) {
   ) {
     const duty = roles.duties?.[actor.player.id]?.duty;
     const fastBreak = roles.teams?.[actor.side]?.fastBreak && duty === 'break';
-    const possessionBreak =
-      roles.teams?.[actor.side]?.style === 'possession' && duty === 'break';
+    const possessionBreak = roles.teams?.[actor.side]?.style === 'possession' && duty === 'break';
+    const outletRange =
+      fastBreak && owner?.side === actor.side ? 18 + ability(owner.player, 'vision') * 0.45 : 18;
     const urgent =
       gap > 9 &&
-      distance(actor.pos, ball) < 18 &&
+      distance(actor.pos, ball) < outletRange &&
       (duty === 'overlap'
         ? attackingDepth >= 45
         : attackingDepth >= 74 || fastBreak || (possessionBreak && attackingDepth >= 55));

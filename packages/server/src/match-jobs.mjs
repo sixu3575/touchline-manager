@@ -9,6 +9,7 @@ import { ENGINE_VERSION, PARAMETER_VERSION } from '../../shared/modules/matches/
 import { createJobStorage, unpack } from './storage/jobs.mjs';
 import { gunzipSync } from 'node:zlib';
 import { cardOverview, rating } from '../../shared/modules/players/index.mjs';
+import { FORMATIONS } from '../../shared/modules/tactics/index.mjs';
 import {
   broadcastAt,
   liveReport,
@@ -107,7 +108,7 @@ export class MatchJobs extends EventEmitter {
     let type, summary;
     if (command.type === 'tactics') {
       if (
-        !['4-4-2', '4-3-3', '3-5-2'].includes(command.formation) ||
+        !Object.hasOwn(FORMATIONS, command.formation) ||
         !['balanced', 'possession', 'counter', 'wide'].includes(command.style) ||
         !['low', 'normal', 'high'].includes(command.press)
       )
@@ -120,7 +121,8 @@ export class MatchJobs extends EventEmitter {
       const outgoing = manager.players.find((player) => player.id === command.playerOutId),
         incoming = manager.players.find((player) => player.id === command.playerInId);
       const onPitch = (playerId) =>
-        manager.roles?.some((player) => player.id === playerId) ?? manager.lineup.includes(playerId);
+        manager.roles?.some((player) => player.id === playerId) ??
+        manager.lineup.includes(playerId);
       if (
         !outgoing ||
         !incoming ||
