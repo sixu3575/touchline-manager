@@ -29,6 +29,8 @@ import { duelProbability, preparationChallengeRisk } from './defending.mjs';
 import {
   shotExecution,
   shotBlockRisk,
+  shotPlacement,
+  SHOT_AIM_HEIGHT,
   shotWindowValue,
   projectedShotContext,
   continuationShotValue,
@@ -168,8 +170,40 @@ export function passExecutionAccuracy(quality, length) {
   return clamp(0.88 + 0.001 * (quality - 50) - Math.max(0, length - 15) * 0.002, 0.55, 0.98);
 }
 
-export function passAimError(quality, length) {
-  return (1 - quality / 100) * (0.28 + 0.025 * length);
+// Physical dispersion of a pass, from the same sources as a shot: technique,
+// pressure on the passer, running across the line of the pass, and a ball
+// still moving relative to the foot or off the ground. Direction error grows
+// with length; weight error makes the ball arrive short or long. These are
+// kick parameters only: whether a stray pass is lost is decided by who
+// reaches it.
+export function passDispersion(quality, length, context = {}) {
+  const skill = 1 - quality / 100;
+  const pressure = context.pressure ?? 0;
+  const contact = context.contact ?? 0;
+  const angular =
+    0.012 +
+    0.05 * skill +
+    0.09 * pressure +
+    0.006 * (context.across ?? 0) +
+    contact * (0.003 + 0.006 * skill);
+  const weight = 0.03 + 0.08 * skill + 0.08 * pressure + contact * 0.005;
+  return { lateral: 0.15 + length * angular, along: 0.15 + length * weight };
+}
+
+export function passAimError(quality, length, context = {}) {
+  return passDispersion(quality, length, context).lateral;
+}
+
+export function passContext(actor, ball, heading, quality) {
+  const v = actor.velocity ?? { x: 0, z: 0 };
+  return {
+    pressure: quality.pressure ?? 0,
+    across: Math.abs(v.x * heading.z - v.z * heading.x),
+    contact: ball
+      ? Math.hypot((ball.vx ?? 0) - v.x, (ball.vz ?? 0) - v.z) +
+        2 * Math.max(0, (ball.y ?? 0.11) - 0.3)
+      : 0,
+  };
 }
 
 // Re-estimate a committed pass against the state immediately before release.
@@ -272,13 +306,17 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
           0.8,
         );
   // Geometry-based action value and calibrated expected-goal probability have
-  // separate jobs. Calibration changes reported expectation, never goal physics.
+  // separate jobs. The calibrated xG is a reported statistic only; the shooter
+  // decides on the uncalibrated opportunity, as continuation values do. Using
+  // the deflated report figure halved every shot against keeping the ball.
   const xg =
     actor.setPiece === 'penalty'
       ? 0.76
       : opportunity / (opportunity + Math.exp(0.9) * (1 - opportunity));
-  const window = direct ? null : shotWindowValue(actor, ball, opponents, direction, q, xg, blocked);
-  const legacyReturn = clamp(xg * (0.65 + q.value / 100), 0, 0.98);
+  const window = direct
+    ? null
+    : shotWindowValue(actor, ball, opponents, direction, q, opportunity, blocked);
+  const legacyReturn = clamp(opportunity * (0.65 + q.value / 100), 0, 0.98);
   const rangeWeight = clamp((dist - 16) / 8, 0, 1);
   const shotReturnScore = window
     ? legacyReturn * window.ready * (1 - rangeWeight) + window.value * rangeWeight
@@ -303,8 +341,9 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
     make: () => {
       // Angular error grows with range and pressure; quality narrows dispersion.
       // Opportunity ranks actions; xG records expectation, neither awards a goal.
-      const { error, speed: intendedSpeed, heightSpread } = shotExecution(actor, dist, q);
-      const intendedAim = 34 + (rng() < 0.5 ? -1 : 1) * (1.1 + rng() * 1.2);
+      const { error, speed: intendedSpeed, heightSpread } = shotExecution(actor, dist, q, ball);
+      // Placement reads the keeper as visible now and trades a miss against a save.
+      const intendedAim = shotPlacement(actor, ball, keeper, direction, q).aim;
       const aim = intendedAim + (rng() + rng() - 1) * error * 1.6;
       // Strength supplies available power, not an instruction to blast every
       // six-metre finish at full effort. Near, unhurried finishes use placement;
@@ -314,11 +353,10 @@ export function shotCandidate(actor, ball, opponents, direction, quality, rng, d
       // angle attempts wide even when their nominal aim is inside the posts.
       const target = { x: goalX + direction * (BALL_MOTION.radius + 0.05), z: aim },
         flight = Math.max(0.15, distance(ball, target) / intendedSpeed);
-      // Aim height is a point in the goal mouth, with skill-, range- and
-      // pressure-dependent dispersion around it. The previous expression used
-      // a low-skill spread of several metres above the turf, so average shots
-      // were deliberately launched over the bar far too often.
-      const targetY = 0.15 + rng() * heightSpread;
+      // Aim height is a point in the goal mouth with skill-, range- and
+      // pressure-dependent dispersion on both sides of it. A one-sided draw
+      // from the turf upwards made close-range shots almost never clear the bar.
+      const targetY = Math.max(0.15, SHOT_AIM_HEIGHT + (rng() + rng() - 1) * heightSpread);
       const kickAim = { ...target, y: targetY };
       return {
         ...airborneVelocity(ball, kickAim, flight),
@@ -722,10 +760,13 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
                       ? '通过可用线路向前传递'
                       : '利用接应点保持球权',
         make: () => {
-          const error = passAimError(q.value, candidateLength),
+          const line = unit(ball, target),
+            spread = passDispersion(q.value, candidateLength, passContext(actor, ball, line, q)),
+            wide = (rng() + rng() - 1) * spread.lateral,
+            long = (rng() + rng() - 1) * spread.along,
             aim = {
-              x: target.x + (rng() - 0.5) * error * 2,
-              z: target.z + (rng() - 0.5) * error * 2,
+              x: target.x + line.x * long - line.z * wide,
+              z: target.z + line.z * long + line.x * wide,
             };
           const actualLength = distance(ball, aim);
           const launch = variant.lob
@@ -841,10 +882,23 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
   const noise = 0.006 + 0.045 * (1 - a('decisions') / 100);
   let best = choices[0],
     value = -Infinity;
+  // An open-play shot's value is one scoring chance, and that chance is what a
+  // player misreads: perturb its log-odds. A real chance is over- or
+  // under-rated about as much as before; a near-zero chance stays near zero instead
+  // of borrowing a flat bonus that made 45m+ hopeful efforts a quarter of all shots.
+  const misread = (c, draw) => {
+    if (c.type !== 'shot' || !c.window) return (draw - 0.5) * noise * 2;
+    const p = clamp(c.xg, 1e-6, 0.99);
+    // Sized so an ordinary chance moves about as much as the flat utility noise
+    // did (decisions 70: about ±0.02 on a 0.1 chance).
+    const shift = (draw - 0.5) * 2 * (0.05 + 0.35 * (1 - a('decisions') / 100));
+    const perceived = 1 / (1 + ((1 - p) / p) * Math.exp(-shift));
+    return c.window.value * (perceived / p - 1);
+  };
   const disturbances = new Map();
   for (const c of choices) {
     const kind = c.type === 'cross' ? 'pass' : c.type;
-    if (!disturbances.has(kind)) disturbances.set(kind, (rng() - 0.5) * noise * 2);
+    if (!disturbances.has(kind)) disturbances.set(kind, misread(c, rng()));
     const u = c.utility + disturbances.get(kind);
     if (u > value) {
       value = u;

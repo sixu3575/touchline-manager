@@ -1,5 +1,5 @@
 // Observation only: never reads RNG, changes a target, or applies a ball impulse.
-export const ACTION_STATISTICS_VERSION = 'actions-1';
+export const ACTION_STATISTICS_VERSION = 'actions-2';
 const fields = [
   'passes',
   'completed',
@@ -79,11 +79,15 @@ export function createActionStatistics(players, emit, restored = null) {
     const t = state.takeOn;
     if (!t) return;
     state.takeOn = null;
-    if (!t.engaged && outcome !== 'won') return;
-    if (!t.engaged) credit(t.player, { takeOnAttempts: 1 }, second, 'takeOnAttempt');
+    // An attempt is counted once it has a result (Opta take-on): beating the
+    // defender, or losing the ball to the duel. Engaging and then choosing to
+    // pass or shoot without getting past him is neither, so it is not counted.
+    if (outcome === 'cancelled' || (outcome === 'lost' && !t.engaged)) return;
     credit(
       t.player,
-      outcome === 'won' ? { takeOns: 1 } : outcome === 'lost' ? { failedTakeOns: 1 } : {},
+      outcome === 'won'
+        ? { takeOnAttempts: 1, takeOns: 1 }
+        : { takeOnAttempts: 1, failedTakeOns: 1 },
       second,
       'takeOn-' + outcome,
       { opponentId: t.opponentId, occurredAt: t.second },
@@ -147,12 +151,7 @@ export function createActionStatistics(players, emit, restored = null) {
   }
   function failedChallenge(player, opponentId, second) {
     credit(player, { failedChallenges: 1 }, second, 'challengeFailed', { opponentId });
-    if (state.takeOn?.opponentId === player.id && !state.takeOn.engaged) {
-      state.takeOn.engaged = true;
-      credit(state.takeOn.player, { takeOnAttempts: 1 }, second, 'takeOnAttempt', {
-        opponentId: player.id,
-      });
-    }
+    if (state.takeOn?.opponentId === player.id) state.takeOn.engaged = true;
   }
   function blockedPass(player, second, bodyPart = 'body') {
     const c = state.context;
@@ -190,10 +189,7 @@ export function createActionStatistics(players, emit, restored = null) {
     const a = players.find((p) => p.id === t.player.id),
       b = players.find((p) => p.id === t.opponentId);
     if (!a || !b) return finishTakeOn('cancelled', second);
-    if (!t.engaged && gap(a.pos, b.pos) <= 1.8) {
-      t.engaged = true;
-      credit(t.player, { takeOnAttempts: 1 }, second, 'takeOnAttempt', { opponentId: b.id });
-    }
+    if (!t.engaged && gap(a.pos, b.pos) <= 1.8) t.engaged = true;
     if (
       t.engaged &&
       controllerId === a.id &&

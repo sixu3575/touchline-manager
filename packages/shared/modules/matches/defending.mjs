@@ -1,5 +1,5 @@
 import { ability } from './skills.mjs';
-import { arrivalTime, pursuitMode, movingBallIntercept } from './arrival.mjs';
+import { arrivalTime, pursuitMode, movingBallIntercept, carrierIntercept } from './arrival.mjs';
 import { distance, localX, segmentPoint } from './spatial.mjs';
 import { sprintAvailable } from './activity.mjs';
 import { clamp } from '../../core/index.mjs';
@@ -218,7 +218,8 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
       ? new Map(candidates.map((a) => [a.index, movingBallIntercept(a, ball)]))
       : null;
   const cost = (a) =>
-    (intercepts?.get(a.index)?.time ?? arrivalTime(a, ball, pursuitMode(a, ball))) +
+    (intercepts?.get(a.index)?.time ??
+      (owner ? carrierIntercept(a, owner) : arrivalTime(a, ball, pursuitMode(a, ball)))) +
     (a.activity?.load ?? 0) +
     (sprintAvailable(a) ? 0 : 2.5) +
     (owner && bx < 35 && localX(a.pos.x, direction) > bx + 0.3 ? 1.1 : 0) +
@@ -244,21 +245,35 @@ export function defensiveAssignments(actors, side, ball, owner, direction, tacti
         Boolean,
       );
       const groupAwareness = group.reduce((sum, a) => sum + awareness(a), 0) / group.length;
+      // Press height is a team setting for how far upfield to engage. Closing a
+      // carrier with a second nearby defender at the edge of one's own box is the
+      // same job for every block, so it uses one rule whatever the press setting.
+      // The helper must be level with or goal-side of the ball; a player chasing
+      // from behind still protects and marks rather than doubling up.
+      const boxSupport =
+        owner &&
+        chasers.length === 1 &&
+        bx < 28 &&
+        nextGap < 6 &&
+        localX(next.pos.x, direction) <= bx + 0.3 &&
+        groupAwareness >= 40;
       return !owner
         ? chasers.length < (bx < 30 ? 2 : 1)
-        : tactics.press === 'high'
-          ? chasers.length === 0
-            ? nextGap <= 22
-            : chasers.length === 1
-              ? nextGap <= 17 && groupAwareness >= 52
-              : chasers.length === 2 && nextGap <= 11 && groupAwareness >= 64 && bx < 78
-          : tactics.press === 'normal'
+        : boxSupport
+          ? true
+          : tactics.press === 'high'
             ? chasers.length === 0
-              ? nextGap <= 17
-              : chasers.length === 1 && nextGap <= 7.5 && groupAwareness >= 66 && bx < 72
-            : chasers.length === 0
-              ? nextGap <= 12
-              : chasers.length === 1 && bx < 28 && nextGap < 6 && groupAwareness >= 40;
+              ? nextGap <= 22
+              : chasers.length === 1
+                ? nextGap <= 17 && groupAwareness >= 52
+                : chasers.length === 2 && nextGap <= 11 && groupAwareness >= 64 && bx < 78
+            : tactics.press === 'normal'
+              ? chasers.length === 0
+                ? nextGap <= 17
+                : chasers.length === 1 && nextGap <= 7.5 && groupAwareness >= 66 && bx < 72
+              : chasers.length === 0
+                ? nextGap <= 12
+                : chasers.length === 1 && bx < 28 && nextGap < 6 && groupAwareness >= 40;
     };
     // In the danger area, one closes and the other protects the forward lane.
     // Selecting both solely by proximity can put both pursuers behind a break.

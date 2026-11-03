@@ -11,8 +11,13 @@ export function movement(p, energy, mode = 'sprint') {
     };
   const a = (key) => clamp(ability(p, key), 1, 100);
   const remaining = clamp((p.matchState.energy ?? energy ?? 100) / 100, 0, 1);
-  const effort = 0.35 + 0.65 * Math.sqrt(remaining);
-  const pace = a('sprintSpeed'),
+  // Fatigue reaches top speed once, through effort. The sprintSpeed attribute
+  // is read unscaled here; effectiveAbility's physical decline would otherwise
+  // be applied a second time. Peak sprint speed falls only a few percent by the
+  // end of a match; fewer and shorter efforts come from the sprint reserve.
+  // Only a nearly empty tank collapses output towards a walk.
+  const effort = Math.min(0.85 + 0.15 * Math.sqrt(remaining), 0.35 + 5 * remaining);
+  const pace = clamp(p.attributes?.sprintSpeed ?? 50, 1, 100),
     top = 5.7 + 0.036 * pace;
   const speeds = {
     walk: 1.5,
@@ -21,7 +26,9 @@ export function movement(p, energy, mode = 'sprint') {
     stand: 0,
     sprint: top,
     carry: top * (0.6 + 0.002 * a('dribbling')),
-    carryFast: top * (0.86 + 0.001 * a('dribbling')),
+    // Sprinting with the ball costs speed even for elite dribblers: field tests
+    // put dribbling sprints roughly 10-20% slower than the same sprint unladen.
+    carryFast: top * (0.8 + 0.0008 * a('dribbling')),
   };
   if (p.matchState?.sprintRecovering || remaining === 0) {
     speeds.sprint = speeds.run;

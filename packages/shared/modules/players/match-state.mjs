@@ -20,6 +20,10 @@ const technical = new Set([
   'command',
   'distribution',
 ]);
+// Cognitive fatigue: reading the game and choosing well also decline late in a
+// match, more gently than technique. Reaction, scanning and decision noise use
+// these attributes, so tired players make more mistakes without any rate set.
+const cognitive = new Set(['decisions', 'anticipation', 'positioning', 'concentration', 'composure']);
 export function createMatchState(p) {
   return {
     energy: clamp(p.fitness ?? 100, 0, 100),
@@ -48,6 +52,7 @@ export function effectiveAbility(p, key) {
   const remaining = clamp(state.energy / 100, 0, 1);
   if (physical.has(key)) value *= 0.7 + 0.3 * Math.sqrt(remaining);
   if (technical.has(key)) value *= 0.88 + 0.12 * remaining;
+  if (cognitive.has(key)) value *= 0.9 + 0.1 * remaining;
   if (key === 'composure' || key === 'decisions') value += mentalModifier(state);
   return clamp(value, 1, 100);
 }

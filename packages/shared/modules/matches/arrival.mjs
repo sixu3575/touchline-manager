@@ -64,3 +64,24 @@ export function movingBallIntercept(actor, ball) {
 export function pursuitMode(actor, ball) {
   return distance(actor.pos, ball) > 7 ? 'sprint' : 'run';
 }
+
+// A carrier keeps moving. A pursuer who cannot get level with the carrier's
+// observed path is not the defender who can stop him, however near he is now;
+// one who can step into that path is. Same movement limits as arrivalTime.
+export function carrierIntercept(actor, carrier, reaction = 0.08) {
+  let mode = pursuitMode(actor, carrier.pos);
+  if (!sprintAvailable(actor)) mode = 'run';
+  const m = movement(actor.player, actor.energy, mode);
+  const v = carrier.velocity ?? { x: 0, z: 0 };
+  let bestLate = Infinity;
+  for (let t = 0; t <= 3; t += 0.15) {
+    const point = {
+      x: Math.min(105, Math.max(0, carrier.pos.x + v.x * t)),
+      z: Math.min(68, Math.max(0, carrier.pos.z + v.z * t)),
+    };
+    const arrival = boundedArrival(actor, point, m, reaction);
+    if (arrival <= t + 0.15) return Math.max(arrival, t);
+    bestLate = Math.min(bestLate, arrival - t);
+  }
+  return 3 + bestLate;
+}

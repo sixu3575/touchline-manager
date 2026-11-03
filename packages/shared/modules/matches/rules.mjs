@@ -44,6 +44,7 @@ export function foulAssessment(
     danger,
     penalty,
     dogso = false,
+    promising = false,
     contact = 1,
     wonBall = false,
     aggression = 50,
@@ -67,7 +68,7 @@ export function foulAssessment(
   const card =
     severity === 'excessive' || (dogso && !penalty)
       ? 'red'
-      : severity === 'reckless' || dogso
+      : severity === 'reckless' || dogso || (promising && !penalty)
         ? 'yellow'
         : null;
   return { foul: true, probability, severity, card };
@@ -77,6 +78,13 @@ export function foulAssessment(
 // Weight it by the defender's closing impact, late arrival and trailing angle
 // so ordinary shoulder contact stays mostly legal while reckless challenges
 // become more likely to draw a whistle.
+// Law 12 caution for a foul that interferes with or stops a promising attack
+// (short of DOGSO): a carrier already driving at goal past halfway with few
+// defenders goal-side. Read from positions and velocity at the offence only.
+export function promisingAttack({ progress, forwardSpeed, covering }) {
+  return progress > 50 && forwardSpeed > 3 && covering <= 3;
+}
+
 export function physicalContactFoulRisk({ closingSpeed, late, danger, behind }) {
   const impact = clamp((closingSpeed - 1.5) / 4.5, 0, 1);
   return clamp(0.08 + impact * 0.38 + late * 0.22 + danger * 0.14 + (behind ? 0.18 : 0), 0.04, 0.92);

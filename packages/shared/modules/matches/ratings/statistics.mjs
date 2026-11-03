@@ -1,6 +1,7 @@
 // Public read-only reducer. Live, archived replay and ratings share this clock gate.
 export function playerStatisticsAt(report, playerId, second = Infinity) {
-  const modern = report.statisticsVersion === 'opta-conventional-2';
+  // Version 3 only fixes shot-outcome attribution; counters keep the version-2 shape.
+  const modern = /^opta-conventional-[2-9]$/.test(report.statisticsVersion ?? '');
   const player = report.replay?.players?.find((p) => p.id === playerId);
   /** @type {Record<string, number | undefined | null>} */
   const result = {
