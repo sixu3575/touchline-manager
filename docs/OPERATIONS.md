@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-11-03 发布：0.49.0 传球误差、射门决策价值与门将触及
+
+PR #84已部署，生产build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`，引擎`0.49.0-pass-keeper` / `pass-keeper-1`（含0.48.0）。合并树与已验证PR头`44ab9dc`相同。用户在获知本版95场真实对阵场均总进球5.2（现实2.86）、强方射门偏多后，明确要求部署以便在游戏中实测；这不改变以后的发布或拟真门槛。
+
+本机`npm run check`按现有分类通过（类型、冒烟/业务、针对性比赛单元、16项真实比赛/API集成、构建）；[CI 41614500140](https://github.com/sixu3575/touchline-manager/actions/runs/41614500140) Node22/24均通过。部署前确认无进行中的比赛任务。
+
+一致离机备份：`C:/Users/siyan/Documents/Codex/private-backups/touchline-manager/touchline-preflight-0490-20261103.sqlite`；VM原件`/var/backups/touchline-manager/touchline-preflight-0490-20261103.sqlite`。160,096,256字节，两端SHA256 `c7715e20522d6de40fda8eed3d0641f9b4b8e4761d5c0af1a3343c7066dfedb4`及integrity_check通过。
+
+发布包3,921,355字节、247个文件，SHA256 `5b294e165126e030d8f5580122b71dd48ebcb835aa4f47d287723c25bb966f55`，原install.sh安装。部署前后六表全列/BLOB指纹与离机快照相同：7 saves、54 operations、26 replays、75 match_reports、3 complete match_jobs、1080 match_chunks。本机/公网health返回上述build，线上源码引擎/参数版本核对一致；服务/Caddy/备份timer active，NRestarts=0，验收空闲MemoryCurrent约34MiB（不是比赛峰值）。临时上传文件已清理。旧release `029c5e2286abb778e5474b408876dc50b8a5aae2`保留；回滚须排空新任务，不能拿旧库覆盖新进度或用旧引擎恢复新检查点。本次未做浏览器交互验收（用户自行进游戏实测）。脚本与日志：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/outputs/release-0490-20261103/`。
+
 ## 2026-11-02 发布：0.47.2与AI交接
 
 PR #82已部署，生产build `029c5e2286abb778e5474b408876dc50b8a5aae2`，引擎`0.47.2-matchup-cover` / `role-containment-1`。合并树与已检查PR头`75ac38c`相同，保留整队更衣室。用户在获知FC20场9 blocked及同水平进球/方差下降后明确要求发布当前候选；本次不改变以后流程或拟真门槛。交接、失败证据与后续工作见[HANDOVER](HANDOVER.md)。

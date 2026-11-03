@@ -1,6 +1,8 @@
 # 项目地图
 
-2026-11-02当前生产：`0.47.2-matchup-cover` / `role-containment-1`，build `029c5e2286abb778e5474b408876dc50b8a5aae2`，PR #82已部署。5-4-1及保留的强弱对抗/防守/门将/接应优化上线，拟真仍未达标；本次按用户知情后的明确上线指令发布，不改变以后门槛。接手先读[HANDOVER](docs/HANDOVER.md)，备份及验证见[运维记录](docs/OPERATIONS.md)。下文候选/生产0.46状态是此前研发历史。
+2026-11-03当前生产：`0.49.0-pass-keeper` / `pass-keeper-1`，build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`，PR #84已部署（含0.48.0）。传球误差、射门决策价值与门将触及改为现实机制；弱队射门接近现实，强方射门/进球偏多，禁区防守待修；按用户知情后的明确上线指令发布，见[0.49设计说明](packages/shared/modules/matches/design/REALISM_FIXES_V0490.md)。
+
+2026-11-02此前生产：`0.47.2-matchup-cover` / `role-containment-1`，build `029c5e2286abb778e5474b408876dc50b8a5aae2`，PR #82已部署。5-4-1及保留的强弱对抗/防守/门将/接应优化上线，拟真仍未达标；本次按用户知情后的明确上线指令发布，不改变以后门槛。接手先读[HANDOVER](docs/HANDOVER.md)，备份及验证见[运维记录](docs/OPERATIONS.md)。下文候选/生产0.46状态是此前研发历史。
 
 2026-10-28续作：`0.47.2-matchup-cover`同时冻结线上0.46与本地0.47.1作对照后修复不可达球追赶、边前卫盯防岗位和门将实际出击/近身扑球。当前整包未达发布要求；本地验证状态、均值/方差与未解决项见[强弱对抗续查](packages/shared/modules/matches/design/MATCHUP_COVER_V0472.md)。未改变开发流程，生产仍为0.46.0。
 
