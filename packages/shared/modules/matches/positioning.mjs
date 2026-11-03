@@ -5,7 +5,7 @@ import { groundTravel, AIR_DRAG } from './ball-motion.mjs';
 import { distance, localX, unit, segmentPoint } from './spatial.mjs';
 import { formationSlot, tacticalPreset } from '../tactics/index.mjs';
 import { attackAssignments } from './tactical-plan.mjs';
-import { arrivalTime, pursuitMode, movingBallIntercept } from './arrival.mjs';
+import { arrivalTime, pursuitMode, movingBallIntercept, playableHeight } from './arrival.mjs';
 import { markingTarget, supportTarget } from './offball.mjs';
 import { defensiveAssignments, blockPosition, defensiveMismatch } from './defending.mjs';
 import { kickTarget } from './execution.mjs';
@@ -263,19 +263,30 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
     // Intercept the incoming trajectory instead of chasing its current position backwards.
     const speed = Math.hypot(ball.vx, ball.vz);
     let target = roles.receiveTarget ?? { x: ball.x, z: ball.z };
+    let found = false;
     for (let t = 0.05; t < 3; t += 0.05) {
       const travel =
         ball.y > 0.2 ? Math.log1p(AIR_DRAG * speed * t) / AIR_DRAG : groundTravel(speed, t);
       const f = travel / Math.max(0.001, speed);
       const point = { x: ball.x + ball.vx * f, z: ball.z + ball.vz * f };
       const height = Math.max(0.11, (ball.y ?? 0.11) + (ball.vy ?? 0) * t - 4.905 * t * t);
-      if (height > (actor.height ?? 1.8) + 0.35) continue;
+      if (!playableHeight(actor, height)) continue;
       if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) break;
       if (arrivalTime(actor, point, distance(actor.pos, ball) > 5 ? 'sprint' : 'run') <= t) {
         target = point;
+        found = true;
         break;
       }
     }
+    // Waiting at the planned landing point only makes sense while the ball is
+    // still travelling towards it. Once it has run past, been knocked away by a
+    // heavy touch or almost stopped, the receiver chases the ball itself.
+    const stillComing =
+      speed >= 1 &&
+      (target.x - ball.x) * ball.vx + (target.z - ball.z) * ball.vz > 0 &&
+      distance(target, ball) > 1;
+    if (!found && !stillComing)
+      target = speed < 1 ? { x: ball.x, z: ball.z } : movingBallIntercept(actor, ball).point;
     const from = unit(target, actor.pos);
     return {
       x: clamp(target.x + from.x * 0.48, 0.6, 104.4),

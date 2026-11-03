@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-11-03",
-  "baselineCommit": "e81726645b566b8c6b44194fb705c7c75c9e72e7",
-  "engineVersion": "0.49.0-pass-keeper",
-  "parameterVersion": "pass-keeper-1",
+  "baselineCommit": "73afbecd6d3b9ac41e4ae6bd70fe23450c3ed458",
+  "engineVersion": "0.49.2-lob-run",
+  "parameterVersion": "lob-run-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -16,7 +16,7 @@
     "packages/shared/modules/training/index.mjs": "8d55edd45a1275cef85b2dc2226e5253be8d1ab20b2ceae1e0cc7391651a301b",
     "packages/shared/modules/staff/index.mjs": "e843fb9815c0d8b5bf7b189e64a5c5baa6bfdb7c85083b35ac5070f773421d24",
     "packages/shared/modules/matches/index.mjs": "bb7546f5900dc835f2ca75e9f0b7f760441e61e30915c0e6f2e89bc215950309",
-    "packages/shared/modules/matches/arrival.mjs": "face7837149eb38355158cc48e17e54f26b311ff77e70fe98e666a5f57ade9d8",
+    "packages/shared/modules/matches/arrival.mjs": "9e7981127cab4a5e9f8badbee74b9731ff468bc2acc99cb6dc048340f35563a8",
     "packages/shared/modules/matches/offball.mjs": "e80f260eaa0b2891f7ad71ea887996381834247a48c05ed3bc5609b59dd4a7b9",
     "packages/shared/modules/matches/deadball.mjs": "b3d414f11343bcec48040cf0d79ab5e3254e7307f24964089d6c91747688db3d",
     "packages/shared/modules/matches/tactical-plan.mjs": "9778b6916b246db7dc9e4f81adf818db21d138573329cf8798217c13c0e93b7d",
@@ -30,10 +30,10 @@
     "packages/shared/game.mjs": "1d59ff81af0f0eb71bcdbadd32529d3d3a422c8fad09f7607a3e9927164bb087",
     "packages/shared/modules/competitions/index.mjs": "3af093453a081e5502bc3f9953b9ec4ca92fed22a988957a0566a833c984f500",
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
-    "packages/shared/modules/matches/positioning.mjs": "d9a9cb8c35992ca3020e50aaf53193547a22a436c82f18838f88e5bb936e6e9b",
+    "packages/shared/modules/matches/positioning.mjs": "c60b53c814fc3035a417f1cf8264345b9eebb48b0eba7f955b51a064f4d6b6b1",
     "packages/shared/modules/matches/locomotion.mjs": "37330e23fbbc155ba0218aa4e32f0701dfa4f9c29233edbd79e7fce936547b43",
-    "packages/shared/modules/matches/decisions.mjs": "119785b68fa9260611fb85669567d6231a613a9d367f06166d9fd2e96362eeb0",
-    "packages/shared/modules/matches/simulation.mjs": "e79c4c460243600926d9024146f8cb3600514111d141764a7278e455c982b51d",
+    "packages/shared/modules/matches/decisions.mjs": "9cc5479de459405fc691e9925926fe9991423fc4c0240cef994ea92d68dbe81a",
+    "packages/shared/modules/matches/simulation.mjs": "283b1811295524e70dfe342e0c692ae74b7869a4dafb9d4df61f30bf829aeaa6",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "b7b49b00ab70d2ed0f1f8f02a268eed0a5cdcfdb0546d0556f436ebda2b14349",
@@ -78,8 +78,8 @@
       "svgSha256": "9d5f43538840f53ef4b6e34f897e4d9fa31f66ffb2deeeadce3eeb06db77f6a4"
     },
     "03-positioning": {
-      "mermaidSha256": "6e09fa8c4bc7e2b8a6ed65b9ce6b0352ca9ebd44a1ec45431458ad58a06687e3",
-      "svgSha256": "0cb3a5745807c2693b10fb8bd567bc18f329a5e05a5433038e82435e0437f1b8"
+      "mermaidSha256": "2519b1b206be4727d591f3897653271b4f26aae565113fc07276c0b46cb36ec8",
+      "svgSha256": "06329be7637a2d668597eea0a6fbd66af7746824297d7e50b13b56b739a14788"
     },
     "04-reception": {
       "mermaidSha256": "c39c2a5c9522219e5b3a4c7a717d8552f6d868b01478dc0b63f8af5ea6e0ec41",
