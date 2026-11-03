@@ -9,6 +9,8 @@ import {
   releasedPassSuccess,
   passAimError,
   passExecutionAccuracy,
+  passDispersion,
+  passContext,
 } from '../../packages/shared/modules/matches/decisions.mjs';
 import {
   updateFacing,
@@ -586,6 +588,24 @@ test('pass estimates include the receiver-versus-defender race at the destinatio
 test('passing quality improves both target precision and estimated execution accuracy', () => {
   assert.ok(passAimError(90, 20) < passAimError(60, 20));
   assert.ok(passExecutionAccuracy(90, 20) > passExecutionAccuracy(60, 20));
+});
+
+test('pass dispersion grows with pressure, length, running across the line and a moving ball', () => {
+  const calm = passDispersion(65, 20);
+  assert.ok(passDispersion(65, 20, { pressure: 1 }).lateral > calm.lateral);
+  assert.ok(passDispersion(65, 20, { pressure: 1 }).along > calm.along);
+  assert.ok(passDispersion(65, 40).lateral > calm.lateral);
+  assert.ok(passDispersion(65, 20, { across: 5 }).lateral > calm.lateral);
+  assert.ok(passDispersion(65, 20, { contact: 8 }).lateral > calm.lateral);
+  const context = passContext(
+    { velocity: { x: 0, z: 4 } },
+    { vx: 6, vz: 0, y: 0.11 },
+    { x: 1, z: 0 },
+    { pressure: 0.5 },
+  );
+  assert.equal(context.pressure, 0.5);
+  assert.equal(context.across, 4);
+  assert.ok(Math.abs(context.contact - Math.hypot(6, 4)) < 1e-9);
 });
 
 test('keeper pre-release reading uses visible body orientation rather than private aim', () => {

@@ -44,9 +44,22 @@ export const diveAcceleration = (player) =>
   12.6 *
   (0.85 + 0.003 * ability(player, 'oneOnOnes')) *
   (0.85 + 0.003 * ability(player, 'agility'));
+// A dive is a push from a standing set position, not a sprint: the body's
+// lateral speed peaks well below running top speed (biomechanics of elite
+// keepers: about 3.5-4.5 m/s), and the hands then extend from it.
+export const diveSpeed = (player) =>
+  3.2 + 0.012 * ability(player, 'agility') + 0.006 * ability(player, 'oneOnOnes');
 // driveMovement multiplies the running limits, so convert to that multiplier.
 export const diveResponse = (player, limits) =>
   diveAcceleration(player) / (limits.acceleration * limits.response);
+
+// Two hands together are a contact patch about 0.3m across, not a 0.7m ball.
+// Arm extension beyond the body: about 1.15m at full stretch for a 1.88m
+// keeper (shoulder-to-fingertip with the body laid out), plus a little for
+// one-on-one technique. Shared by the executed save and the shooter's read.
+export const KEEPER_HAND_RADIUS = 0.15;
+export const keeperHandReach = (player, height, lean) =>
+  0.25 + ability(player, 'oneOnOnes') * 0.004 + height * 0.37 * lean;
 
 // How far sideways a keeper can get a hand to a ball arriving after `flight`
 // seconds. It mirrors the executed save: reaction gate, dive acceleration via
@@ -57,11 +70,12 @@ export function keeperLateralCover(keeper, flight) {
   const m = movement(p, keeper.energy, 'sprint');
   const accel = diveAcceleration(p);
   const t = Math.max(0, flight - keeperReaction(p));
-  const ramp = m.speed / accel;
-  const body = t < ramp ? 0.5 * accel * t * t : 0.5 * accel * ramp * ramp + m.speed * (t - ramp);
+  const top = Math.min(m.speed, diveSpeed(p));
+  const ramp = top / accel;
+  const body = t < ramp ? 0.5 * accel * t * t : 0.5 * accel * ramp * ramp + top * (t - ramp);
   const lean = Math.min(1, t * (1.5 + ability(p, 'oneOnOnes') * 0.02));
-  const hands = 0.45 + ability(p, 'oneOnOnes') * 0.004 + (keeper.height ?? 1.88) * 0.4 * lean;
-  return body + hands + 0.35 + BALL_MOTION.radius;
+  const hands = keeperHandReach(p, keeper.height ?? 1.88, lean);
+  return body + hands + KEEPER_HAND_RADIUS + BALL_MOTION.radius;
 }
 
 // A parry tries to send danger outside the posts, rather than returning every

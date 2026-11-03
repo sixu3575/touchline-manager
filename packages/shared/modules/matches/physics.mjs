@@ -3,6 +3,7 @@ import { AIR_DRAG, BALL_MOTION } from './ball-motion.mjs';
 import { movement } from './locomotion.mjs';
 import { ability } from './skills.mjs';
 import { angleDifference } from './execution.mjs';
+import { KEEPER_HAND_RADIUS } from './goalkeeping.mjs';
 await RAPIER.init();
 
 export const FIELD = Object.freeze({ length: 105, width: 68, goalWidth: 7.32, goalHeight: 2.44 });
@@ -153,7 +154,7 @@ export function physicalPlayerContact(physics, a, b) {
 
 export function createHands(physics, actor) {
   return physics.world.createCollider(
-    RAPIER.ColliderDesc.ball(0.35)
+    RAPIER.ColliderDesc.ball(KEEPER_HAND_RADIUS)
       .setTranslation(0, 0, 0)
       .setSensor(true)
       .setCollisionGroups(0x00100001),

@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-11-03",
-  "baselineCommit": "10576ab092bd43d13aa996b4b4e106187bd9a1d6",
-  "engineVersion": "0.48.0-defence-fatigue",
-  "parameterVersion": "defence-fatigue-1",
+  "baselineCommit": "e81726645b566b8c6b44194fb705c7c75c9e72e7",
+  "engineVersion": "0.49.0-pass-keeper",
+  "parameterVersion": "pass-keeper-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -32,14 +32,14 @@
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "d9a9cb8c35992ca3020e50aaf53193547a22a436c82f18838f88e5bb936e6e9b",
     "packages/shared/modules/matches/locomotion.mjs": "37330e23fbbc155ba0218aa4e32f0701dfa4f9c29233edbd79e7fce936547b43",
-    "packages/shared/modules/matches/decisions.mjs": "2015a6f25a623f9544e6fa9c0da838a0e0429d9b3549c803273e80e3666febc5",
-    "packages/shared/modules/matches/simulation.mjs": "bb08bbdea2198608ad6783ca29abea7212b35fe42f2a784cfa788f547df15a13",
+    "packages/shared/modules/matches/decisions.mjs": "119785b68fa9260611fb85669567d6231a613a9d367f06166d9fd2e96362eeb0",
+    "packages/shared/modules/matches/simulation.mjs": "e79c4c460243600926d9024146f8cb3600514111d141764a7278e455c982b51d",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
-    "packages/shared/modules/matches/goalkeeping.mjs": "d9f902393b1b0e6a190ee2640cf4ce097f5fdda4e3bb030500cac03acf8ce01a",
+    "packages/shared/modules/matches/goalkeeping.mjs": "b7b49b00ab70d2ed0f1f8f02a268eed0a5cdcfdb0546d0556f436ebda2b14349",
     "packages/shared/modules/matches/skills.mjs": "826c903aebd51426b00892baf1e8bea7d9bf551887c38cca80c2b3314cf84c65",
     "packages/shared/modules/matches/spatial.mjs": "cd0ee70429bf7de1f9da808f093712de20e7a1e2366236791b800b65151df653",
-    "packages/shared/modules/matches/physics.mjs": "53710329ec2c2a06de6e10590b8b0d5959169f7a95126284f66dbb8c11c84082",
+    "packages/shared/modules/matches/physics.mjs": "97916fb8bffbf0b6e397e14fadde2aae92def0e0dcfef6ce8d6d4699b3d8d601",
     "packages/shared/modules/matches/ball-motion.mjs": "63a4bf259b47bd7e0721d99983d2703fc5802f06b1e64d31d24355301872df38",
     "packages/shared/modules/matches/rules.mjs": "cf416a249f83ae306e02e8224acdc514c50f5ceea62330e6e5595d9c1c0c4f63",
     "packages/shared/modules/matches/shootout.mjs": "0e033609cd5dd8fdc872770b373da541954441080f4e426caa0a6f59efd05c7f",
@@ -65,7 +65,7 @@
     "packages/server/src/match-jobs.mjs": "b83f1cb1b59423b960ed96ba113409b5e73854de80dbb48a18e36a085bffa11e",
     "packages/server/src/simulation-worker.mjs": "eff94902f73f0637042642d3c8880194ea60b4f73c75fd6b020ed45721d13b36",
     "packages/client/src/modules/matches/LiveManagerBoard.tsx": "607229a2692ad8d38042709fbf5fa5ebf01facd6a03e0dd9d4b07f0182ecf773",
-    "packages/shared/modules/matches/shot-window.mjs": "b5bf365f6531aa466de585b687f5069e00befa3fbf9831ca3ddf926e79aaeebc",
+    "packages/shared/modules/matches/shot-window.mjs": "51211ce05e76f0d71ac460038e4f93e44f6500d1523b8bd4dc14158ef996fadc",
     "packages/shared/modules/matches/carry-route.mjs": "0e3bcb86a8ef09a84193cf12b5cd16f5ce1369e163195d40fadf572ddbc98c34"
   },
   "diagrams": {
@@ -86,8 +86,8 @@
       "svgSha256": "47c4a0312bf79602bc5a5091b3bacdbd5985749c0f7ef15a59a221a6952e4bf3"
     },
     "05-actions": {
-      "mermaidSha256": "311cfe7ddc2f7c6e70dd28f721996c0cd5ae75e5814f1cb6f4831cdcf5bac299",
-      "svgSha256": "73a7adc7a4110ec5fd855fe0ada65a88b88b5ec667ee91e6de876f8b49cc0a3a"
+      "mermaidSha256": "c2cf335597e74f524e72c9dad68598a19ec9e00f3faa4f9c5c9e033d51b049a3",
+      "svgSha256": "488cbc912af2797e229e8abba2429388ede4e9d40dc3900527560434d292d5c8"
     },
     "06-profiles": {
       "mermaidSha256": "6db12c44b07b4bd1ba8bb656ae30402ff9f05a913778be574f93c5dd6c942d4f",

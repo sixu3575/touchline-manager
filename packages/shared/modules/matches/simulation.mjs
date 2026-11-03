@@ -6,6 +6,8 @@ import { deadballTarget, kickoffPosition, restartReady } from './deadball.mjs';
 import {
   keeperReaction,
   diveResponse,
+  diveSpeed,
+  keeperHandReach,
   keeperDiveVelocity,
   parryVelocity,
   keeperHandTarget,
@@ -117,8 +119,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.48.0-defence-fatigue';
-export const PARAMETER_VERSION = 'defence-fatigue-1';
+export const ENGINE_VERSION = '0.49.0-pass-keeper';
+export const PARAMETER_VERSION = 'pass-keeper-1';
 export const SAMPLE_HZ = 5;
 export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -2172,7 +2174,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               ? ball
               : keeperHandTarget(a, ball, time)
             : { ...ball, y: Math.max(0.9, ball.y) };
-          const reach = 0.45 + ability(a.player, 'oneOnOnes') * 0.004 + a.height * 0.4 * a.diveLean;
+          const reach = keeperHandReach(a.player, a.height, a.diveLean);
           orientHands(a, target, reach, STEP);
         }
         if (active && a.isKeeper && tick % 2 === 0)
@@ -2242,7 +2244,7 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
         driveMovement(
           a,
           { x: vx, z: vz },
-          m,
+          diving ? { ...m, speed: Math.min(m.speed, diveSpeed(a.player)) } : m,
           STEP,
           diving ? diveResponse(a.player, m) * (1 + 0.4 * setStance) : 1,
         );

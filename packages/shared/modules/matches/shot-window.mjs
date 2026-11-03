@@ -150,7 +150,7 @@ export function shotPlacement(actor, ball, keeper, direction, quality) {
   return { ...best, cover };
 }
 
-export function shotWindowValue(actor, ball, opponents, direction, quality, xg, blocked) {
+export function shotWindowValue(actor, ball, opponents, direction, quality, chance, blocked) {
   const goal = { x: direction === 1 ? 105 : 0, z: 34 };
   const dist = distance(ball, goal);
   const execution = shotExecution(actor, dist, quality, ball);
@@ -167,12 +167,12 @@ export function shotWindowValue(actor, ball, opponents, direction, quality, xg, 
     Math.hypot(actor.velocity.x, actor.velocity.z) * 0.015 +
     turn;
   const ready = 1 - preparationChallengeRisk(actor, ball, opponents, preparation);
-  // xG remains the existing average-player report metric. Only action utility
-  // uses the shooter's dispersion relative to a reference-quality 65 kick.
+  // `chance` is the uncalibrated geometric opportunity for an average kick;
+  // this shooter's dispersion scales it relative to a reference 65 kick.
   const accuracy =
     onTargetEstimate(actor, dist, quality, 0, ball) /
     Math.max(0.01, onTargetEstimate(actor, dist, { ...quality, value: 65 }, 0, ball));
-  const expected = clamp(xg * accuracy * ready, 0, 0.98);
+  const expected = clamp(chance * accuracy * ready, 0, 0.98);
   const range = clamp((dist - 16) / 8, 0, 1);
   const specialty = clamp(
     (ability(actor.player, 'longShots') -
