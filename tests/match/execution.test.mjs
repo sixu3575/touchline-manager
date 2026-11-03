@@ -38,6 +38,7 @@ import { targetFor } from '../../packages/shared/modules/matches/positioning.mjs
 import {
   interceptionReadTime,
   movingBallIntercept,
+  playableHeight,
 } from '../../packages/shared/modules/matches/arrival.mjs';
 import { defensiveAssignments } from '../../packages/shared/modules/matches/defending.mjs';
 import {
@@ -1063,4 +1064,46 @@ test('a moving receiver reaches a diagonal incoming ball instead of stopping out
   } finally {
     physics.world.free();
   }
+});
+
+test('a receiver chases a ball that ran past or was knocked away, but still waits under one that is coming', () => {
+  const player = createGame('接球追球', 42).clubs[0].players.find((p) => p.id === 'c0-p8');
+  const receiver = {
+    ...actor(),
+    player,
+    energy: 90,
+    direction: 1,
+    facing: Math.PI / 2,
+    pos: { x: 67, y: 0, z: 57 },
+    velocity: { x: 0, z: 0 },
+  };
+  const roles = {
+    chasers: [],
+    receiverId: player.id,
+    passTime: 0,
+    time: 1,
+    receiveTarget: { x: 67, z: 57 },
+  };
+  const target = (ball) =>
+    targetFor(receiver, [receiver], ball, null, 1, { style: 'balanced' }, [], roles);
+  // Heavy first touch: the ball now runs towards the byline, away from the landing point.
+  const knocked = target({ x: 70, y: 0.11, z: 57.5, vx: 10, vy: 0, vz: 0.6 });
+  assert.ok(
+    Math.hypot(knocked.x - 70, knocked.z - 57.5) < Math.hypot(knocked.x - 67, knocked.z - 57) - 2,
+    'runs after the loose ball instead of standing on the landing point',
+  );
+  // A lofted switch still in the air on its way to him: keep the landing point.
+  const coming = target({ x: 66, y: 6, z: 35, vx: 0.5, vy: 2, vz: 18 });
+  assert.ok(Math.hypot(coming.x - 67, coming.z - 57) < 3, 'waits under a ball still coming');
+});
+
+test('receiving points are only where the foot or head can actually play the ball', () => {
+  const body = { height: 1.8 };
+  assert.ok(playableHeight(body, 0.3), 'foot height');
+  assert.ok(
+    !playableHeight(body, 0.9),
+    'no thigh/chest trap exists, so waist height is not a receiving point',
+  );
+  assert.ok(playableHeight(body, 1.6), 'header height');
+  assert.ok(!playableHeight(body, 2.4), 'above a standing header');
 });

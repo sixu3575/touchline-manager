@@ -34,6 +34,16 @@ function boundedArrival(actor, point, m, reaction) {
   return reaction + turn + travel;
 }
 
+// Heights at which an outfield body can actually play the ball, matching the
+// physical contacts: the foot volume (centre 0.2m, radius 0.18m) and the head
+// volume used for headers (from 1.25m up to just above standing height).
+// There is no thigh/chest trap, so a ball passing at waist height is not a
+// receiving point; plan for where it drops to the feet or rises to the head.
+export const FOOT_PLAY_HEIGHT = 0.45;
+export function playableHeight(actor, height) {
+  return height <= FOOT_PLAY_HEIGHT || (height >= 1.25 && height <= (actor.height ?? 1.8) + 0.35);
+}
+
 // A defender races a reachable future point, not the ball's old position. Use
 // the same movement limits and observed drag/gravity as the receiving predictor.
 export function movingBallIntercept(actor, ball) {
@@ -50,7 +60,7 @@ export function movingBallIntercept(actor, ball) {
     const point = { x: ball.x + (ball.vx ?? 0) * scale, z: ball.z + (ball.vz ?? 0) * scale };
     if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) break;
     const height = Math.max(0.11, (ball.y ?? 0.11) + (ball.vy ?? 0) * t - 4.905 * t * t);
-    if (height > (actor.height ?? 1.8) + 0.35) continue;
+    if (!playableHeight(actor, height)) continue;
     const arrival = boundedArrival(actor, point, m, readingTime);
     if (arrival <= t) return { point, time: t, feasible: true };
     if (arrival - t < bestLate) {
