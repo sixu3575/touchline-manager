@@ -1,8 +1,10 @@
 # TOUCHLINE 足球经理：AI 接手文档
 
-更新日期：2026-11-02（Australia/Sydney）。这是当前交接入口；先读本文件，再读根目录 `AGENTS.md`、`PROJECT.md` 和 `docs/VALIDATION.md`。
+更新日期：2026-11-03（Australia/Sydney）。这是当前交接入口；先读本文件，再读根目录 `AGENTS.md`、`PROJECT.md` 和 `docs/VALIDATION.md`。
 
 ## 当前状态与这次发布
+
+- **2026-11-03已部署：`0.49.0-pass-keeper` / `pass-keeper-1`**，生产build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`（[PR #84](https://github.com/sixu3575/touchline-manager/pull/84)，含0.48.0）。开发worktree `C:/Users/siyan/Documents/Codex/2026-10-15/wo/work/realism-diagnostics-v047`。弱队射门/远射与门将扑救接近现实，但强方射门与总进球偏多（95场场均5.2，现实2.86）：强方38%射门时射手与球门间无外场防守者，禁区内射门多来自连续带球。下一步修禁区内对持球人的封堵与上抢。详见[0.49设计说明](../packages/shared/modules/matches/design/REALISM_FIXES_V0490.md)及末尾发布记录。以下2026-11-02内容为上一版本记录。
 
 - GitHub：<https://github.com/sixu3575/touchline-manager>，公开仓库。
 - 本地开发目录：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/work/tactical-block-v047`。上一级 `wo` **不是 Git 仓库**。
@@ -139,7 +141,15 @@ node tests/tools/compare-matchup.mjs BASELINE_DIR CANDIDATE_DIR OUTPUT.json
 请接手 sixu3575/touchline-manager。先读 docs/HANDOVER.md、AGENTS.md、PROJECT.md、docs/VALIDATION.md 和 docs/OPERATIONS.md，核对真实生产SHA及Git状态。最近工作是0.47～0.47.2的5-4-1、强弱对抗、FC/FIFA现实基准及防守/门将执行优化。拟真仍未达标：FC20场9 blocked，同水平16对进球均值/方差由0.46的2.31/3.03降至候选1.31/1.03。2026-11-02用户要求在已知问题后部署此版本，但没有永久放宽发布/测试流程。保留并解释这些失败，先以固定0.46源码逐项消融，不要用当前HEAD当旧算法，不恢复已撤回的普遍远侧包抄或相对决策误差方案。球员数据1～100整数；比赛不设比分/射门配额，不压制合理远射；分析只放后台。每次相关改动更新模块CHANGELOG、决策Mermaid/SVG/SOURCE_SNAPSHOT。保护存档、旧回放和单Worker的1GB VM，不操作用户活动浏览器。开发采用独立分支/worktree及模块锁，不修改开发流程。先检查本次部署最终记录，再继续开发。
 ```
 
-## 本次最终发布记录
+## 2026-11-03 发布记录（0.49.0）
+
+PR #84已部署，生产build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`，引擎`0.49.0-pass-keeper` / `pass-keeper-1`（含0.48.0）。合并树与已验证PR头`44ab9dc`相同。用户在获知本版95场真实对阵场均总进球5.2（现实2.86）、强方射门偏多后，明确要求部署以便在游戏中实测；这不改变以后的发布或拟真门槛。
+
+- 一致离机备份：`C:/Users/siyan/Documents/Codex/private-backups/touchline-manager/touchline-preflight-0490-20261103.sqlite`，160,096,256字节，两端SHA256 `c7715e20522d6de40fda8eed3d0641f9b4b8e4761d5c0af1a3343c7066dfedb4`。
+- 部署前后六表指纹一致：7 saves、54 operations、26 replays、75 match_reports、3 complete match_jobs、1080 match_chunks。旧release `029c5e2`保留。
+- 脚本与日志：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/outputs/release-0490-20261103/`。
+
+## 2026-11-02 发布记录（0.47.2）
 
 2026-11-02已发布PR #82，功能头 `75ac38c610025b9899b32c741d3c7980f9bee26c`，合并/生产SHA **`029c5e2286abb778e5474b408876dc50b8a5aae2`**。合并树与已验证PR头完全相同，保留整队更衣室资料墙。此后纯文档提交不需要重新安装相同运行代码；生产以health build和实际引擎源码为准。
 
