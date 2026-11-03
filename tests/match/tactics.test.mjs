@@ -974,6 +974,9 @@ test('counter block protects central width and counter runners receive a forward
   runner.pos = { x: 52, z: 34 };
   runner.velocity = { x: 5, z: 0 };
   runner.player.attributes.offTheBall = 98;
+  // A pacey runner has both top speed and acceleration: a lofted ball keeps
+  // running after it lands, so reaching it depends on the burst as well.
+  runner.player.attributes.acceleration = 98;
   runner.player.attributes.sprintSpeed = 98;
   opposition.forEach((a) => {
     a.pos = a.isKeeper
