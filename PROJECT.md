@@ -1,6 +1,8 @@
 # 项目地图
 
-2026-11-03当前生产：`0.49.0-pass-keeper` / `pass-keeper-1`，build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`，PR #84已部署（含0.48.0）。传球误差、射门决策价值与门将触及改为现实机制；弱队射门接近现实，强方射门/进球偏多，禁区防守待修；按用户知情后的明确上线指令发布，见[0.49设计说明](packages/shared/modules/matches/design/REALISM_FIXES_V0490.md)。
+2026-11-04当前生产：`0.49.2-lob-run` / `lob-run-1`，build `82a87a47b713f289e6d614785a23119ada4bf05a`，PR #86已部署（含0.49.1）：高球接球只选脚/头可触高度、身后球按落地后前冲/门将/出界估计。进球偏多与反击高空转移偏多待修。
+
+2026-11-03此前生产：`0.49.0-pass-keeper` / `pass-keeper-1`，build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`，PR #84已部署（含0.48.0）。传球误差、射门决策价值与门将触及改为现实机制；弱队射门接近现实，强方射门/进球偏多，禁区防守待修；按用户知情后的明确上线指令发布，见[0.49设计说明](packages/shared/modules/matches/design/REALISM_FIXES_V0490.md)。
 
 2026-11-02此前生产：`0.47.2-matchup-cover` / `role-containment-1`，build `029c5e2286abb778e5474b408876dc50b8a5aae2`，PR #82已部署。5-4-1及保留的强弱对抗/防守/门将/接应优化上线，拟真仍未达标；本次按用户知情后的明确上线指令发布，不改变以后门槛。接手先读[HANDOVER](docs/HANDOVER.md)，备份及验证见[运维记录](docs/OPERATIONS.md)。下文候选/生产0.46状态是此前研发历史。
 
