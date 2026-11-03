@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-11-04 发布：0.49.2 高球接球与身后球估算
+
+PR #86已部署，生产build `82a87a47b713f289e6d614785a23119ada4bf05a`，引擎`0.49.2-lob-run` / `lob-run-1`（含0.49.1）。修复用户实测发现的高球转移滚出底线（接球只选脚/头可触高度）和反击打法乱吊高空身后球（按落地后前冲、门将和出界估计成功率）。合并树与已验证PR头`134c112`相同。用户要求不回滚、直接修复上线。
+
+本机`npm run check`通过（首次提交前误读检查结果，一项战术测试实际未过；修正测试设置后重跑通过，再推送）；[CI 41645976685](https://github.com/sixu3575/touchline-manager/actions/runs/41645976685) Node22/24均通过。部署前确认无进行中的比赛任务。
+
+一致离机备份：`C:/Users/siyan/Documents/Codex/private-backups/touchline-manager/touchline-preflight-0492-20261104.sqlite`；VM原件`/var/backups/touchline-manager/touchline-preflight-0492-20261104.sqlite`。160,096,256字节，两端SHA256 `f9d3520a6247f9465eb73d8fa7e1590590dc639c2cd49814f672590686301eed`及integrity_check通过。
+
+发布包3,925,690字节、247个文件，SHA256 `9b96267a59748ec0160e90078034e966c3c255bca10f76171591102604f97008`，原install.sh安装。部署前后六表全列/BLOB指纹与离机快照相同：7 saves、56 operations、27 replays、79 match_reports、3 complete match_jobs、1080 match_chunks。本机/公网health返回上述build，线上引擎版本核对一致；服务/Caddy/备份timer active，NRestarts=0，验收空闲MemoryCurrent约45MiB（不是比赛峰值）。临时上传文件已清理。旧release `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`保留；回滚须排空新任务，不能拿旧库覆盖新进度或用旧引擎恢复新检查点。脚本与日志：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/outputs/release-0492-20261104/`。
+
 ## 2026-11-03 发布：0.49.0 传球误差、射门决策价值与门将触及
 
 PR #84已部署，生产build `23cb63115d46f5746ecaef04537c8f9aaaf2fdcc`，引擎`0.49.0-pass-keeper` / `pass-keeper-1`（含0.48.0）。合并树与已验证PR头`44ab9dc`相同。用户在获知本版95场真实对阵场均总进球5.2（现实2.86）、强方射门偏多后，明确要求部署以便在游戏中实测；这不改变以后的发布或拟真门槛。
