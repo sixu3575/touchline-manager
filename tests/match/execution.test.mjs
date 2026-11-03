@@ -6,6 +6,7 @@ import {
   chooseAction,
   interceptionRisk,
   receptionContestRisk,
+  lobRunChance,
   releasedPassSuccess,
   passAimError,
   passExecutionAccuracy,
@@ -1106,4 +1107,33 @@ test('receiving points are only where the foot or head can actually play the bal
   );
   assert.ok(playableHeight(body, 1.6), 'header height');
   assert.ok(!playableHeight(body, 2.4), 'above a standing header');
+});
+
+test('a lofted ball dropped into the keeper area or towards the byline is rarely kept', () => {
+  const runner = { ...actor(), pos: { x: 80, y: 0, z: 34 }, velocity: { x: 7, z: 0 } };
+  const keeper = {
+    ...actor(),
+    isKeeper: true,
+    player: { ...actor().player, role: 'GK' },
+    pos: { x: 103, y: 0, z: 34 },
+    velocity: { x: 0, z: 0 },
+  };
+  const heading = { x: 1, z: 0 };
+  // Lands 8m from goal, 2s after the kick, running on towards the line.
+  const deep = lobRunChance(runner, { x: 97, z: 34 }, heading, 20, 2, [keeper]);
+  const edge = lobRunChance(runner, { x: 94, z: 34 }, heading, 20, 2, [keeper]);
+  const midfield = lobRunChance(
+    { ...runner, pos: { x: 40, y: 0, z: 34 } },
+    { x: 52, z: 34 },
+    heading,
+    20,
+    2,
+    [keeper],
+  );
+  assert.ok(deep < 0.25, `deep lob into the keeper area: ${deep}`);
+  assert.ok(midfield > 0.8, `open midfield lob: ${midfield}`);
+  assert.ok(
+    deep < edge && edge < midfield,
+    'the nearer the goal line and keeper, the lower the chance',
+  );
 });

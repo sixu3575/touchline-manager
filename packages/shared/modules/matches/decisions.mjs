@@ -153,6 +153,79 @@ export function receptionContestRisk(receiver, target, flight, opponents, prepar
   return 1 - survival;
 }
 
+// A lofted ball can only be received once it comes down, and it does not stop
+// where it lands. In this engine's physics an untouched lob leaves its first
+// bounce at about 55% of its mean horizontal speed (248 lobs nobody touched for
+// 2s: ~26 m/s mean, ~13 m/s after landing, ~11 m/s a second later, 23m run),
+// hopping above foot height for about 0.5s, then rolls on. Walk the
+// ball along that run: whoever reaches it first takes it (a keeper in his own
+// box simply gathers it), and a ball that crosses a line first is lost. This
+// replaces the point contest at the landing spot for lobs; physics decides.
+export const LOB_BOUNCE_RETENTION = 0.55;
+export const LOB_HOP_SECONDS = 0.5;
+export function lobRunChance(receiver, target, heading, meanSpeed, landingTime, opponents) {
+  const defenders = opponents.filter((o) => !o.sentOff);
+  const v0 = meanSpeed * LOB_BOUNCE_RETENTION;
+  const reach = (arrival, at) => 1 / (1 + Math.exp((arrival - at) / 0.2));
+  let survival = 1,
+    success = 0;
+  for (let t = 0; t <= 2.7 + 1e-9; t += 0.15) {
+    const travel = groundTravel(v0, t);
+    const point = { x: target.x + heading.x * travel, z: target.z + heading.z * travel };
+    // Whatever is still loose when it crosses a line is a lost ball.
+    if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) return success;
+    // Between the landing instant and the end of the first hop the ball is
+    // above foot height; nobody plays it there.
+    if (t > 0.05 && t < LOB_HOP_SECONDS) continue;
+    const at = landingTime + t;
+    const mine = arrivalTime(receiver, point, pursuitMode(receiver, point), 0);
+    const theirs = Math.min(
+      Infinity,
+      ...defenders.map((o) =>
+        arrivalTime(
+          o,
+          point,
+          pursuitMode(o, point),
+          0.08 + (100 - ability(o.player, 'anticipation')) * 0.002,
+        ),
+      ),
+    );
+    const ours = reach(mine, at) / (1 + Math.exp((mine - theirs) / 0.3));
+    const lost = reach(theirs, at) / (1 + Math.exp((theirs - mine) / 0.3));
+    success += survival * ours;
+    survival *= Math.max(0, 1 - ours - lost);
+    if (survival < 0.01) break;
+  }
+  return success;
+}
+
+// The kick does not land exactly on the target: average the run-on chance over
+// the inner quartiles of the passer's own direction and weight dispersion
+// (the same triangular error the kick samples). A landing point beyond a line
+// is a lost ball.
+const LOB_NODES = [-0.293, 0.293];
+export function lobLandingChance(
+  receiver,
+  target,
+  heading,
+  meanSpeed,
+  landingTime,
+  opponents,
+  spread,
+) {
+  let total = 0;
+  for (const wide of LOB_NODES)
+    for (const long of LOB_NODES) {
+      const point = {
+        x: target.x + heading.x * long * spread.along - heading.z * wide * spread.lateral,
+        z: target.z + heading.z * long * spread.along + heading.x * wide * spread.lateral,
+      };
+      if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) continue;
+      total += lobRunChance(receiver, point, heading, meanSpeed, landingTime, opponents);
+    }
+  return total / 4;
+}
+
 function receiverContest(receiver, defender, target, defenderArrival) {
   const quality = (a) =>
     0.65 * ability(a.player, 'firstTouch') +
@@ -243,9 +316,22 @@ export function releasedPassSuccess(action, receiver, ball, opponents) {
   const firstTouchRisk =
     (1 - ability(receiver.player, 'firstTouch') / 120) /
     (1 + Math.exp((receiveMargin + 0.3) / 0.18));
-  const contestRisk = receptionContestRisk(receiver, action.destination, flight, defenders);
   const quality = action.quality?.value ?? 50;
   const accuracy = passExecutionAccuracy(quality, length);
+  if (action.kickFlight && action.type !== 'cross')
+    return (
+      (1 - Math.max(laneRisk, deliveryRisk)) *
+      accuracy *
+      lobRunChance(
+        receiver,
+        action.destination,
+        unit(ball, action.destination),
+        length / flight,
+        flight,
+        defenders,
+      )
+    );
+  const contestRisk = receptionContestRisk(receiver, action.destination, flight, defenders);
   return (1 - Math.max(laneRisk, deliveryRisk, contestRisk)) * accuracy * (1 - firstTouchRisk);
 }
 
@@ -647,7 +733,24 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         },
         opponents,
       );
-      const contestRisk = receptionContestRisk(mate, futureTarget, flight, opponents, preparation);
+      // Lofted switches and through balls are received after they come down
+      // and run on; crosses keep their own delivery model.
+      const lobRun =
+        variant.lob && !cross
+          ? lobLandingChance(
+              mate,
+              futureTarget,
+              corridor,
+              candidateLength / flight,
+              preparation + flight,
+              opponents,
+              passDispersion(q.value, candidateLength, passContext(actor, ball, corridor, q)),
+            )
+          : null;
+      const contestRisk =
+        lobRun === null
+          ? receptionContestRisk(mate, futureTarget, flight, opponents, preparation)
+          : 0;
       const deliveryRisk = cross ? deliveryReceptionRisk(mate, target, opponents, variant) : 0;
       const risk = Math.max(laneRisk, contestRisk, deliveryRisk, obstructed ? 0.98 : 0);
       // A high-risk corridor is not a viable professional pass, except a necessary clearance.
@@ -668,7 +771,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
       const firstTouchRisk =
         (1 - ability(mate.player, 'firstTouch') / 120) /
         (1 + Math.exp((receiveMargin + 0.3) / 0.18));
-      const success = (1 - risk) * accuracy * (1 - firstTouchRisk);
+      const success = (1 - risk) * accuracy * (lobRun ?? 1 - firstTouchRisk);
       const style = tacticalPassValue(
         tactics,
         tactical,

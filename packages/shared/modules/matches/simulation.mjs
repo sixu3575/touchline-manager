@@ -119,8 +119,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.49.1-receiver-chase';
-export const PARAMETER_VERSION = 'receiver-chase-1';
+export const ENGINE_VERSION = '0.49.2-lob-run';
+export const PARAMETER_VERSION = 'lob-run-1';
 export const SAMPLE_HZ = 5;
 export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.

@@ -1,8 +1,8 @@
 {
   "verifiedOn": "2026-11-03",
   "baselineCommit": "73afbecd6d3b9ac41e4ae6bd70fe23450c3ed458",
-  "engineVersion": "0.49.1-receiver-chase",
-  "parameterVersion": "receiver-chase-1",
+  "engineVersion": "0.49.2-lob-run",
+  "parameterVersion": "lob-run-1",
   "textDigestEncoding": "SHA-256 of UTF-8 text with CRLF/CR normalized to LF (source files and Mermaid)",
   "svgDigestEncoding": "SHA-256 of SVG UTF-8 text with CRLF/CR normalized to LF",
   "rendering": {
@@ -32,8 +32,8 @@
     "packages/shared/modules/matches/agents.mjs": "7485aad6b566a70c3f05af4d0e1be3339aeddc9e155c1d7fbd1fd0d4c1a3d022",
     "packages/shared/modules/matches/positioning.mjs": "c60b53c814fc3035a417f1cf8264345b9eebb48b0eba7f955b51a064f4d6b6b1",
     "packages/shared/modules/matches/locomotion.mjs": "37330e23fbbc155ba0218aa4e32f0701dfa4f9c29233edbd79e7fce936547b43",
-    "packages/shared/modules/matches/decisions.mjs": "119785b68fa9260611fb85669567d6231a613a9d367f06166d9fd2e96362eeb0",
-    "packages/shared/modules/matches/simulation.mjs": "b301bce3f37b3ba1a0be9b30f6817eb651faf0ae91cf2f060a19b82365a963ae",
+    "packages/shared/modules/matches/decisions.mjs": "9cc5479de459405fc691e9925926fe9991423fc4c0240cef994ea92d68dbe81a",
+    "packages/shared/modules/matches/simulation.mjs": "283b1811295524e70dfe342e0c692ae74b7869a4dafb9d4df61f30bf829aeaa6",
     "packages/shared/modules/matches/continuity.mjs": "6fbaa7ff93031e2df72238ecbaace99f360f2491935b3f130fd1ead166bdfc08",
     "packages/shared/modules/matches/receiving.mjs": "7dd6778abd64392af063b8aeb36af8272171091c6461a337f110fce772ad14c2",
     "packages/shared/modules/matches/goalkeeping.mjs": "b7b49b00ab70d2ed0f1f8f02a268eed0a5cdcfdb0546d0556f436ebda2b14349",
