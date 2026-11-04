@@ -1,5 +1,15 @@
 # 部署与恢复
 
+## 2026-11-05 发布：0.50.0 禁区上抢、胸部停球与战术体检
+
+PR #88已部署，生产build `36832285186f7a777e6ec0fdaec820885ceb7dda`，引擎`0.50.0-body-trap` / `body-trap-1`。修复禁区被连续带过（本方30米内近身直接上抢）、新增胸/大腿卸球、地面球与高球成功率估计按各自机制、控球/边路风格不再偏爱高空换边，并修复线上中柱漏记（检查点恢复后门柱判定失效）。合并树与已验证PR头`677310c`相同。用户确认后合并部署。
+
+本机`npm run check`通过（核对退出码0及“Validation passed”）；[CI 41823090705](https://github.com/sixu3575/touchline-manager/actions/runs/41823090705) Node22/24均通过。部署前确认无进行中的比赛任务。
+
+一致离机备份：`C:/Users/siyan/Documents/Codex/private-backups/touchline-manager/touchline-preflight-0500-20261105.sqlite`；VM原件`/var/backups/touchline-manager/touchline-preflight-0500-20261105.sqlite`。160,096,256字节，两端SHA256 `327cdd59154a7fae9721f64b3609f9be52f1af9fbf54b79cadecaa98cd822315`及integrity_check通过。
+
+发布包3,935,324字节、249个文件，SHA256 `f99cb2772be75d339602cf545a03f0536fb9dc49c43017779edfaeb97590acab`，原install.sh安装（启动瞬间一次本机health连接失败后重试成功）。部署前后六表全列/BLOB指纹与离机快照相同：9 saves、56 operations、27 replays、79 match_reports、3 complete match_jobs、1080 match_chunks。本机/公网health返回上述build，线上引擎版本`0.50.0-body-trap`核对一致；服务/Caddy/备份timer active，NRestarts=0，验收空闲MemoryCurrent约32MiB（不是比赛峰值）。本次临时上传文件已清理（/tmp另有10月旧发布残留未动）。旧release `82a87a47b713f289e6d614785a23119ada4bf05a`保留；回滚须排空新任务，不能拿旧库覆盖新进度或用旧引擎恢复新检查点。脚本与日志：`C:/Users/siyan/Documents/Codex/2026-10-15/wo/outputs/release-0500-20261105/`。
+
 ## 2026-11-04 发布：0.49.2 高球接球与身后球估算
 
 PR #86已部署，生产build `82a87a47b713f289e6d614785a23119ada4bf05a`，引擎`0.49.2-lob-run` / `lob-run-1`（含0.49.1）。修复用户实测发现的高球转移滚出底线（接球只选脚/头可触高度）和反击打法乱吊高空身后球（按落地后前冲、门将和出界估计成功率）。合并树与已验证PR头`134c112`相同。用户要求不回滚、直接修复上线。
