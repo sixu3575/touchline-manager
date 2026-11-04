@@ -42,6 +42,7 @@ import {
   releasedKick,
   kickRecovery,
   trackKickReceiver,
+  angleDifference,
 } from './execution.mjs';
 import {
   activityState,
@@ -119,8 +120,8 @@ import {
   playerProfile,
 } from './agents.mjs';
 
-export const ENGINE_VERSION = '0.49.2-lob-run';
-export const PARAMETER_VERSION = 'lob-run-1';
+export const ENGINE_VERSION = '0.50.0-body-trap';
+export const PARAMETER_VERSION = 'body-trap-1';
 export const SAMPLE_HZ = 5;
 export const LIVE_MANAGER_COMMANDS_VERSION = 1;
 export const FRAME_STRIDE = 49; // 22*(x,z), ball*(x,height,z), cut, last-touch actor+1.
@@ -1521,7 +1522,25 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
             return;
           }
         }
-        if (!a.keeperHold && (distance(a.pos, ball) > 0.92 || !touchesBall(physics, a.foot)))
+        // Thigh/chest trap: a ball arriving between foot and head height
+        // against the body of a player facing it can be cushioned down, as
+        // real players do with high balls. Without it the ball only bounced off
+        // the torso collider. The usual reception, contest and miscontrol
+        // rules follow; the dropping speed counts towards the difficulty.
+        const bodyTrap =
+          !a.isKeeper &&
+          !a.keeperHold &&
+          !shot &&
+          ball.y > 0.45 &&
+          ball.y < 1.55 &&
+          Math.hypot(ball.x - a.pos.x, ball.z - a.pos.z) < 0.55 &&
+          Number.isFinite(a.facing) &&
+          Math.abs(angleDifference(Math.atan2(ball.z - a.pos.z, ball.x - a.pos.x), a.facing)) < 1.3;
+        if (
+          !a.keeperHold &&
+          !bodyTrap &&
+          (distance(a.pos, ball) > 0.92 || !touchesBall(physics, a.foot))
+        )
           return;
         if (checkInvolvement(a)) {
           active = false;
@@ -1698,7 +1717,9 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
           a.onBallPlan = null;
           if (lastPass && lastPass.receiver.side !== a.side) lastPass = null;
         }
-        const incoming = Math.hypot(bv.x - a.velocity.x, bv.z - a.velocity.z);
+        const incoming = bodyTrap
+          ? Math.hypot(bv.x - a.velocity.x, bv.y, bv.z - a.velocity.z)
+          : Math.hypot(bv.x - a.velocity.x, bv.z - a.velocity.z);
         // A fast pass can strike a leg/body immediately, but reacting and
         // deliberately cushioning it is a separate action. Slow exposed balls
         // remain playable at once; ordinary physical collisions stay enabled.
@@ -2282,7 +2303,11 @@ export function* createMatchSimulation(home, away, seed, id = 'match', options =
               // (corner vs goal kick/throw-in) must use this physical toucher,
               // not the last intentional kick that happened before the deflection.
               lastTouch = a;
-            } else if (!collider.parent() && attribution.attempt) {
+            } else if (!colliderActors.has(collider.handle) && attribution.attempt) {
+              // A Rapier world restored from a durable checkpoint reports a
+              // fixed collider's parent as body 0 instead of null, so the goal
+              // frame is identified by not belonging to a player and by where
+              // it stands, never by parent().
               const p = collider.translation();
               if ((Math.abs(p.x) < 0.1 || Math.abs(p.x - 105) < 0.1) && p.y > 1)
                 attribution.attempt.woodwork = true;

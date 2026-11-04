@@ -2,6 +2,7 @@ import { clamp } from '../../core/index.mjs';
 import { tacticalPreset } from '../tactics/index.mjs';
 import { ability } from './skills.mjs';
 import { distance, localX, segmentPoint } from './spatial.mjs';
+import { arrivalTime, pursuitMode } from './arrival.mjs';
 
 // In build-up an outlet must be in front of the defenders. Only as the ball
 // progresses do the same roles become support/rest-defence behind the attack.
@@ -265,12 +266,21 @@ export function tacticalPassValue(
 ) {
   const preset = tacticalPreset(tactics.style),
     forward = (target.x - ball.x) * direction;
-  let bonus = preset.pass * success;
+  // A possession side is more averse to risking the ball, not fond of passing
+  // for its own sake: it favours ground passes safer than an ordinary one
+  // (about 85%) and marks down riskier ones. A flat per-pass bonus made any
+  // safe recycle outscore a shot or a forward carry. Lofted balls earn none.
+  let bonus = variant.lob
+    ? Math.min(0, preset.pass * (success - 0.85))
+    : preset.pass * (success - 0.85);
   if (variant.delivery) bonus += preset.delivery * success * clamp(space / 4, 0.25, 1);
   if (
     Math.abs(target.z - 34) > 18 &&
     forward > -6 &&
-    ['winger', 'wideMid', 'wingBack', 'fullback'].includes(mate.positionRole)
+    ['winger', 'wideMid', 'wingBack', 'fullback'].includes(mate.positionRole) &&
+    // Width is built by moving the ball out to the flank on the ground; a
+    // lofted cross-field ball is a separate risk and earns no style bonus.
+    !variant.lob
   )
     bonus += preset.flank * success * clamp(space / 5, 0, 1);
   if (tactics.style === 'counter')
@@ -294,6 +304,7 @@ export function tacticalDecisionValue(
   space,
   opponents,
   offsideLine,
+  flight = 0,
 ) {
   const style = tactics.style,
     forward = (target.x - ball.x) * direction,
@@ -320,7 +331,20 @@ export function tacticalDecisionValue(
       const ballSide = Math.sign(ball.z - 34),
         targetSide = Math.sign(target.z - 34),
         pressureAtBall = opponents.filter((o) => distance(o.pos, ball) < 14).length,
-        pressureAtOutlet = opponents.filter((o) => distance(o.pos, target) < 10).length,
+        // The far side is only open if it is still open when the ball lands:
+        // count opponents who can actually reach the target during the flight
+        // and the receiver's first touch, not those near it right now.
+        pressureAtOutlet = opponents.filter(
+          (o) =>
+            !o.sentOff &&
+            arrivalTime(
+              o,
+              target,
+              pursuitMode(o, target),
+              0.08 + (100 - ability(o.player, 'anticipation')) * 0.002,
+            ) <
+              flight + 0.5,
+        ).length,
         overload = clamp((pressureAtBall - pressureAtOutlet - 1) / 3, 0, 1);
       if (ballSide !== targetSide && pressureAtBall >= 2 && pressureAtOutlet === 0 && space > 4)
         value += 0.018 * success * overload * clamp((space - 3) / 6, 0, 1);

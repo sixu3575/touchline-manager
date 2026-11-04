@@ -400,7 +400,9 @@ test('an ordinary midfielder uses unmarked forward space instead of circulating 
         controlled('k', 1, mirror(102), 34, {}, 'GK'),
       ];
     const result = decisions(p, others, direction);
-    assert.ok(result.dribble >= 85, JSON.stringify(result));
+    // Ground passes are no longer discounted by a flat 12% execution allowance,
+    // so an open teammate is a fair alternative; carrying still dominates.
+    assert.ok(result.dribble >= 75, JSON.stringify(result));
     assert.equal(
       result.takeOn,
       0,

@@ -35,13 +35,13 @@ function boundedArrival(actor, point, m, reaction) {
 }
 
 // Heights at which an outfield body can actually play the ball, matching the
-// physical contacts: the foot volume (centre 0.2m, radius 0.18m) and the head
-// volume used for headers (from 1.25m up to just above standing height).
-// There is no thigh/chest trap, so a ball passing at waist height is not a
-// receiving point; plan for where it drops to the feet or rises to the head.
+// physical contacts: the foot volume (ball centre up to ~0.45m), a thigh/chest
+// trap against the body (0.45-1.55m, see attemptTouch) and the head for
+// headers (from 1.25m to just above standing height).
 export const FOOT_PLAY_HEIGHT = 0.45;
+export const BODY_TRAP_HEIGHT = 1.55;
 export function playableHeight(actor, height) {
-  return height <= FOOT_PLAY_HEIGHT || (height >= 1.25 && height <= (actor.height ?? 1.8) + 0.35);
+  return height <= BODY_TRAP_HEIGHT || (height >= 1.25 && height <= (actor.height ?? 1.8) + 0.35);
 }
 
 // A defender races a reachable future point, not the ball's old position. Use
