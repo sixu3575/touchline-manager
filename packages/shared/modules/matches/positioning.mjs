@@ -321,12 +321,25 @@ export function targetFor(actor, actors, ball, owner, direction, tactics, chaser
       // presser who can reach that ball before the carrier steps in to contest
       // it instead of holding his standing distance; the duel model still
       // decides who wins, and a beaten defender still pays the recovery time.
-      if (
+      // Near goal there is no room left to keep backing off. A defender who is
+      // level with the carrier or still goal-side and within a stride of him
+      // commits to the ball, from the side if he could not get in front; the
+      // duel and foul models decide the outcome. Further out the existing
+      // containment distance stays, so a weaker defender can still delay.
+      // The cover still holds behind a first presser who is in front of him.
+      const committed =
         !recovering &&
-        (!covering || shotThreat) &&
-        distance(owner.pos, ball) > 0.72 &&
-        arrivalTime(actor, ball, 'run', 0.08 + (100 - a('anticipation')) * 0.002) <
-          arrivalTime(owner, ball, 'carry', 0)
+        (!covering || firstBeaten) &&
+        separation < 2.2 &&
+        localX(actor.pos.x, direction) <= localX(owner.pos.x, direction) + 0.5 &&
+        localX(owner.pos.x, direction) < 30;
+      if (
+        committed ||
+        (!recovering &&
+          (!covering || shotThreat) &&
+          distance(owner.pos, ball) > 0.72 &&
+          arrivalTime(actor, ball, 'run', 0.08 + (100 - a('anticipation')) * 0.002) <
+            arrivalTime(owner, ball, 'carry', 0))
       ) {
         const approach = unit(ball, actor.pos);
         return {

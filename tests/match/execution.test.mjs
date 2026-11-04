@@ -1098,13 +1098,10 @@ test('a receiver chases a ball that ran past or was knocked away, but still wait
   assert.ok(Math.hypot(coming.x - 67, coming.z - 57) < 3, 'waits under a ball still coming');
 });
 
-test('receiving points are only where the foot or head can actually play the ball', () => {
+test('receiving points are where the foot, a thigh/chest trap or the head can play the ball', () => {
   const body = { height: 1.8 };
   assert.ok(playableHeight(body, 0.3), 'foot height');
-  assert.ok(
-    !playableHeight(body, 0.9),
-    'no thigh/chest trap exists, so waist height is not a receiving point',
-  );
+  assert.ok(playableHeight(body, 0.9), 'thigh/chest trap height');
   assert.ok(playableHeight(body, 1.6), 'header height');
   assert.ok(!playableHeight(body, 2.4), 'above a standing header');
 });
@@ -1136,4 +1133,44 @@ test('a lofted ball dropped into the keeper area or towards the byline is rarely
     deep < edge && edge < midfield,
     'the nearer the goal line and keeper, the lower the chance',
   );
+});
+
+test('near goal a level or goal-side first presser commits to the ball instead of backing off', () => {
+  const player = createGame('上抢', 42).clubs[0].players.find((p) => p.id === 'c0-p3');
+  const defender = {
+    ...actor(),
+    player,
+    index: 1,
+    side: 0,
+    direction: 1,
+    pos: { x: 14, y: 0, z: 35.5 },
+    velocity: { x: 0, z: 0 },
+  };
+  const carrier = {
+    ...actor(),
+    index: 2,
+    side: 1,
+    player: { ...actor().player, id: 'carrier' },
+    pos: { x: 15, y: 0, z: 34 },
+    velocity: { x: -6, z: 0 },
+  };
+  const ball = { x: 14.4, y: 0.11, z: 34, vx: -6, vz: 0 };
+  const roles = { chasers: [defender.index], time: 10 };
+  const near = targetFor(defender, [defender, carrier], ball, carrier, 1, {}, roles.chasers, roles);
+  assert.ok(Math.hypot(near.x - ball.x, near.z - ball.z) < 1.2, 'steps in to the ball near goal');
+  // The same picture in midfield keeps the containment distance in front.
+  const shift = (p) => ({ ...p, x: p.x + 40 });
+  defender.pos = shift(defender.pos);
+  carrier.pos = shift(carrier.pos);
+  const mid = targetFor(
+    defender,
+    [defender, carrier],
+    shift(ball),
+    carrier,
+    1,
+    {},
+    roles.chasers,
+    roles,
+  );
+  assert.ok(mid.x < carrier.pos.x - 0.9, 'in midfield he still stands off goal-side');
 });

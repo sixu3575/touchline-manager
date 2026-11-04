@@ -156,13 +156,12 @@ export function receptionContestRisk(receiver, target, flight, opponents, prepar
 // A lofted ball can only be received once it comes down, and it does not stop
 // where it lands. In this engine's physics an untouched lob leaves its first
 // bounce at about 55% of its mean horizontal speed (248 lobs nobody touched for
-// 2s: ~26 m/s mean, ~13 m/s after landing, ~11 m/s a second later, 23m run),
-// hopping above foot height for about 0.5s, then rolls on. Walk the
+// 2s: ~26 m/s mean, ~13 m/s after landing, ~11 m/s a second later, 23m run);
+// its first hop stays below chest height, where a thigh trap can take it. Walk the
 // ball along that run: whoever reaches it first takes it (a keeper in his own
 // box simply gathers it), and a ball that crosses a line first is lost. This
 // replaces the point contest at the landing spot for lobs; physics decides.
 export const LOB_BOUNCE_RETENTION = 0.55;
-export const LOB_HOP_SECONDS = 0.5;
 export function lobRunChance(receiver, target, heading, meanSpeed, landingTime, opponents) {
   const defenders = opponents.filter((o) => !o.sentOff);
   const v0 = meanSpeed * LOB_BOUNCE_RETENTION;
@@ -174,9 +173,6 @@ export function lobRunChance(receiver, target, heading, meanSpeed, landingTime, 
     const point = { x: target.x + heading.x * travel, z: target.z + heading.z * travel };
     // Whatever is still loose when it crosses a line is a lost ball.
     if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) return success;
-    // Between the landing instant and the end of the first hop the ball is
-    // above foot height; nobody plays it there.
-    if (t > 0.05 && t < LOB_HOP_SECONDS) continue;
     const at = landingTime + t;
     const mine = arrivalTime(receiver, point, pursuitMode(receiver, point), 0);
     const theirs = Math.min(
@@ -200,10 +196,11 @@ export function lobRunChance(receiver, target, heading, meanSpeed, landingTime, 
 }
 
 // The kick does not land exactly on the target: average the run-on chance over
-// the inner quartiles of the passer's own direction and weight dispersion
-// (the same triangular error the kick samples). A landing point beyond a line
-// is a lost ball.
-const LOB_NODES = [-0.293, 0.293];
+// equal-probability points of the passer's own direction and weight dispersion
+// (the same triangular error the kick samples), tails included. A landing
+// point beyond a line is a lost ball.
+// Equal-probability nodes (octile midpoints) of the triangular error U+U-1.
+const LOB_NODES = [-0.5, -0.134, 0.134, 0.5];
 export function lobLandingChance(
   receiver,
   target,
@@ -223,7 +220,7 @@ export function lobLandingChance(
       if (point.x < 0 || point.x > 105 || point.z < 0 || point.z > 68) continue;
       total += lobRunChance(receiver, point, heading, meanSpeed, landingTime, opponents);
     }
-  return total / 4;
+  return total / (LOB_NODES.length * LOB_NODES.length);
 }
 
 function receiverContest(receiver, defender, target, defenderArrival) {
@@ -239,8 +236,23 @@ function receiverContest(receiver, defender, target, defenderArrival) {
   );
 }
 
+// Generic execution allowance, kept for deliveries (crosses) whose own
+// delivery model has no explicit dispersion term.
 export function passExecutionAccuracy(quality, length) {
   return clamp(0.88 + 0.001 * (quality - 50) - Math.max(0, length - 15) * 0.002, 0.55, 0.98);
+}
+
+// A ground pass is lost to its own error only when it runs further off line
+// than the receiver can adjust while it travels. Use the passer's own
+// triangular dispersion (the error the kick samples) against the receiver's
+// lateral adjustment during the roll; a flat discount made every ground pass
+// look ~12% riskier than it is and every lob look safer by comparison.
+export function groundExecutionChance(spread, flight, receiver) {
+  const run = movement(receiver.player, receiver.energy, 'run').speed;
+  const adjust = 0.6 + Math.max(0, flight - 0.3) * 0.6 * run;
+  const within = (halfWidth, reach) =>
+    reach >= halfWidth ? 1 : 1 - (1 - reach / Math.max(0.01, halfWidth)) ** 2;
+  return within(spread.lateral, adjust) * within(spread.along, adjust * 2);
 }
 
 // Physical dispersion of a pass, from the same sources as a shot: technique,
@@ -317,7 +329,9 @@ export function releasedPassSuccess(action, receiver, ball, opponents) {
     (1 - ability(receiver.player, 'firstTouch') / 120) /
     (1 + Math.exp((receiveMargin + 0.3) / 0.18));
   const quality = action.quality?.value ?? 50;
-  const accuracy = passExecutionAccuracy(quality, length);
+  // At release the sampled kick error is already in the destination, so only
+  // a cross keeps the generic execution allowance.
+  const accuracy = action.type === 'cross' ? passExecutionAccuracy(quality, length) : 1;
   if (action.kickFlight && action.type !== 'cross')
     return (
       (1 - Math.max(laneRisk, deliveryRisk)) *
@@ -765,7 +779,17 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         Math.max(52.5, localX(ball.x, direction), offsideLine) + 0.01
       )
         continue;
-      const accuracy = passExecutionAccuracy(q.value, candidateLength);
+      // Lobs carry their dispersion inside lobLandingChance; ground passes
+      // compare it with the receiver's adjustment; crosses keep the allowance.
+      const accuracy = cross
+        ? passExecutionAccuracy(q.value, candidateLength)
+        : variant.lob
+          ? 1
+          : groundExecutionChance(
+              passDispersion(q.value, candidateLength, passContext(actor, ball, corridor, q)),
+              flight,
+              mate,
+            );
       const receiveMargin =
         flight + preparation - arrivalTime(mate, futureTarget, pursuitMode(mate, futureTarget), 0);
       const firstTouchRisk =
@@ -797,6 +821,7 @@ export function chooseAction(actor, actors, ball, direction, tactics, rng, conte
         space,
         opponents,
         offsideLine,
+        flight,
       );
       const escape = success * pressure * clamp(space / 7, 0, 1) * 0.14;
       const outlets = mates.filter(
